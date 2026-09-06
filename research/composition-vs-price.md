@@ -1,6 +1,6 @@
 # When an index measures its own sampling
 
-**How a 10% move in a compute benchmark turned out to be entirely composition noise — and what the unit definition had to do with it**
+**How a 10% move in a compute benchmark turned out to be entirely composition noise, and what the unit definition had to do with it**
 
 EU-CRI Research Note 2026-01 · 16 August 2026 · Mark Rusch
 
@@ -8,17 +8,17 @@ EU-CRI Research Note 2026-01 · 16 August 2026 · Mark Rusch
 
 ## Abstract
 
-Between 18 July and 15 August 2026, the EU-CRI-H100 headline moved from $2.99 to $3.29,
-a rise of 10.03%. Decomposing that move against the underlying constituent set shows the
+Between 18 July and 15 August 2026, the EU-CRI-H100 headline moved from $2.99 to $3.29, a
+rise of 10.03%. Decomposing that move against the underlying constituent set shows the
 matched-pair market move over the same window was **+0.00%**. Every basis point of the
 published change came from constituents entering and leaving the panel.
 
-The proximate cause was the estimator: a weighted median over roughly six providers has a
+The proximate cause was the estimator. A weighted median over roughly six providers has a
 partial derivative of 1.0 with respect to exactly one constituent and 0.0 with respect to
 every other. The *root* cause was the unit definition. A minimum-node-size filter of eight
 GPUs admitted marketplace inventory on one collection day in ten, discarding a source that
-had posted nine distinct prices spanning 12.3% — while retaining catalog rate cards that
-had not moved once in a month.
+had posted nine distinct prices spanning 12.3%, while retaining catalog rate cards that had
+not moved once in a month.
 
 The index was not measuring the compute market. It was measuring which of its sources
 happened to answer.
@@ -34,7 +34,7 @@ Index. Both are US venues, both USD, both global in scope.
 
 That makes the construction of compute benchmarks a question with money attached, and it
 makes the failure modes worth publishing rather than quietly patching. What follows is a
-post-mortem of our own index, using our own data, with the code and the database public.
+post-mortem of my own index, using my own data, with the code and the database public.
 
 ---
 
@@ -49,11 +49,11 @@ Every query below is reproducible from the committed database.
 
 ---
 
-## 3. Finding 1 — the published series had almost no price content
+## 3. Finding 1: the published series had almost no price content
 
-Distinct prices per provider across all 14 days:
+Prices observed per provider across all 14 days:
 
-| Provider | Tier | Distinct prices observed |
+| Provider | Tier | Price(s) observed, USD/GPU-hr |
 |---|---|---|
 | aws | list | 7.3616 |
 | datacrunch | list | 3.2500 |
@@ -66,31 +66,31 @@ Distinct prices per provider across all 14 days:
 Six of seven providers show exactly one price for the entire history. The whole dataset
 contains one price move, at one provider.
 
-At the time this looked like a fact about the market — that EU H100 rental prices are
-sticky. Section 6 shows it was a fact about our filter.
+At the time this looked like a fact about the market, that EU H100 rental prices are
+sticky. Section 6 shows it was a fact about my filter.
 
-## 4. Finding 2 — the move was composition, not price
+## 4. Finding 2: the move was composition, not price
 
 Chain-linking on matched pairs (providers present on both days) isolates the price effect
 from the composition effect:
 
 | Date | n | Matched | Matched return | Chained $ | Published $ | Panel change |
 |---|---|---|---|---|---|---|
-| 07-18 | 7 | base | — | 2.9900 | 2.9900 | |
+| 07-18 | 7 | base | | 2.9900 | 2.9900 | |
 | 07-19 | 6 | 6 | +0.000% | 2.9900 | 3.2500 | −vast.ai |
 | 07-21 | 6 | 6 | +0.000% | 2.9900 | 3.2500 | |
 | 08-05 | 5 | 5 | +0.000% | 2.9900 | 3.8500 | −runpod |
 | 08-06 | 5 | 5 | +0.000% | 2.9900 | 3.8500 | |
 | 08-07 | 6 | 5 | +0.000% | 2.9900 | 3.2900 | +runpod |
-| 08-08 → 08-15 | 6 | 6 | +0.000% | 2.9900 | 3.2900 | |
+| 08-08 to 08-15 | 6 | 6 | +0.000% | 2.9900 | 3.2900 | |
 
 **Published: +10.03%. Matched-pair: +0.00%.**
 
-Realised volatility of the published series over the window was 107.5%, annualised — of
-which 100% is composition and 0.00% is price. Anyone who had sold options on this series
-would have been short a pure jump process with no diffusion to hedge.
+Realised volatility of the published series over the window was 107.5% annualised, of which
+100% is composition and 0.00% is price. Anyone who had sold options on this series would
+have been short a pure jump process with no diffusion to hedge.
 
-## 5. Finding 3 — two-thirds of the panel had no influence at all
+## 5. Finding 3: two-thirds of the panel had no influence at all
 
 Shocking each constituent by +10% on the 2026-08-15 panel (lower weighted median, $3.29):
 
@@ -103,17 +103,17 @@ Shocking each constituent by +10% on the 2026-08-15 panel (lower weighted median
 | +10% gcp | 3.2900 | **0.00%** |
 | +10% aws | 3.2900 | **0.00%** |
 
-AWS and GCP — between them a large share of global compute capacity — had exactly zero
+AWS and GCP, between them a large share of global compute capacity, had exactly zero
 influence on the print. A hedger short EU-CRI-H100 was, in delta terms, short RunPod's rate
 card and a little DataCrunch.
 
-This is not an argument that medians are bad. SOFR is a volume-weighted median and is
-among the most robust benchmarks in existence — because its constituent is *an observation
-out of thousands*, not *a provider out of six*. A median is locally smooth over a dense
+This is not an argument that medians are bad. SOFR is a volume-weighted median and is among
+the most robust benchmarks in existence, because its constituent is *an observation out of
+thousands* rather than *a provider out of six*. A median is locally smooth over a dense
 distribution and a step function over a sparse one. Panel density is the variable that
-matters, and we did not have it.
+matters, and I did not have it.
 
-## 6. Finding 4 — the root cause was the unit definition, not the estimator
+## 6. Finding 4: the root cause was the unit definition, not the estimator
 
 The reference unit required a minimum of **eight GPUs** per offer, intended to pin the
 contract to a standard 8-way SXM training node. Marketplace inventory is not shaped like
@@ -127,18 +127,18 @@ that. Checking Vast.ai's raw EU H100 SXM observations *before* the filter:
 | Observations passing the ≥8-GPU filter | **1** |
 | Collection days with any passing offer | **1 of 10** |
 
-The price discovery was in the data the whole time. The unit definition removed it and
-left the rate cards behind.
+The price discovery was in the data the whole time. The unit definition removed it and left
+the rate cards behind.
 
-This is the general lesson, and it is not specific to compute: **a specification filter
-that correlates with the source of variance will silently convert a price index into a
-catalog index.** The filter looked conservative. It was the single most destructive
-parameter in the methodology.
+The general lesson is not specific to compute: **a specification filter that correlates
+with the source of variance will silently convert a price index into a catalog index.** The
+filter looked conservative. It was the single most destructive parameter in the
+methodology.
 
 ### 6.1 What the market itself says about node size
 
 Because Vast.ai posts several node sizes simultaneously, the node-size effect is directly
-measurable within one venue on one day — no cross-provider or cross-time confounding:
+measurable within one venue on one day, with no cross-provider or cross-time confounding:
 
 | Node | USD/GPU-hr (2026-07-18) | Ratio vs 1× |
 |---|---|---|
@@ -148,13 +148,13 @@ measurable within one venue on one day — no cross-provider or cross-time confo
 | 8× | 2.2003 | 0.916 |
 
 The per-GPU discount **saturates at two GPUs**. A 2-GPU offer and an 8-GPU offer differ by
-under 4% per GPU; the meaningful premium is on the single-GPU order (~9%), which is a
+under 4% per GPU. The meaningful premium is on the single-GPU order (~9%), which is a
 small-order effect rather than a fabric effect.
 
 So the eight-GPU floor was not buying comparability. It was buying almost nothing, at the
 cost of nearly all the data.
 
-## 7. Finding 5 — the robustness control did not exist
+## 7. Finding 5: the robustness control did not exist
 
 The methodology winsorised the constituent set at the nearest-rank 5th and 95th
 percentiles. At n = 6, nearest-rank p5 resolves to the minimum and p95 to the maximum:
@@ -166,13 +166,13 @@ percentiles. At n = 6, nearest-rank p5 resolves to the minimum and p95 to the ma
 | 10 | clamps (upper only) | clamps (upper only) | clamps |
 
 The clamp performed no work on any print in the index's history, and even at n = 10 it
-protects only the upper tail. A percentile control is inert at small n; small panels need
+protects only the upper tail. A percentile control is inert at small n. Small panels need
 count-based trimming, which binds deterministically at every n.
 
-We had shipped a robustness parameter that was decorative, and it was visible in config as
+I had shipped a robustness parameter that was decorative, and it sat in config looking as
 though it were doing something.
 
-## 8. Finding 6 — the panel is bimodal, so the average is a fiction
+## 8. Finding 6: the panel is bimodal, so the average is a fiction
 
 The 2026-08-15 constituent set:
 
@@ -181,13 +181,13 @@ neocloud/marketplace [2.16  3.25  3.29  3.85] │ gap │ hyperscaler [5.44  7.3
 ```
 
 Cluster separation is **5.4 standard deviations**. A weighted mean across the full panel
-returns $4.03–4.23, which falls inside the empty interval between the two clusters — a
-number no participant in this market quotes or could transact at.
+returns $4.03 to $4.23, which falls inside the empty interval between the two clusters. It
+is a number no participant in this market quotes or could transact at.
 
 This is why the fix is not "use a mean instead of a median". Across a bimodal population
-both estimators are wrong in different ways: the mean invents a price, and the median
-picks a real price but responds to only one name. The fix is to stop averaging across the
-gap: hyperscaler catalog rates belong in a hyperscaler series where they are the object of
+both estimators are wrong in different ways: the mean invents a price, and the median picks
+a real price but responds to only one name. The fix is to stop averaging across the gap.
+Hyperscaler catalog rates belong in a hyperscaler series where they are the object of
 measurement, not a drag on someone else's print.
 
 ## 9. What changed
@@ -197,7 +197,8 @@ Methodology v0.3.0, in order of measured impact:
 1. **Node-size floor 8 → 2 GPUs.** Recovers marketplace price discovery at a measured
    comparability cost under 4%; the ~9% single-GPU small-order premium stays excluded.
 2. **Aggregation over offers, not providers.** Restores a non-degenerate delta vector by
-   making the panel dense — the SOFR construction, applied at the level where it works.
+   making the panel dense. This is the SOFR construction, applied at the level where it
+   works.
 3. **Market-segment segregation.** Headline population is marketplace + neocloud;
    hyperscaler catalogs move to their own series.
 4. **Count-based trim replaces percentile winsorising.** A control that binds.
@@ -209,22 +210,22 @@ Methodology v0.3.0, in order of measured impact:
 7. **FX look-ahead fixed.** Two backfilled prints had used a rate published after their own
    print date.
 
-## 10. What did not change, and what we are not claiming
+## 10. What did not change, and what I am not claiming
 
-We considered and **rejected** a chain-linked level as the headline. Chain-linking cures
+I considered and **rejected** a chain-linked level as the headline. Chain-linking cures
 composition instability, but a Laspeyres link with a same-day divisor reset contributes
-exactly zero return on panel entry and exit — which makes in-panel rises permanent while
+exactly zero return on panel entry and exit, which makes in-panel rises permanent while
 falls taken via exit and re-entry are laundered away. On this panel's churn that ratchet is
 worth roughly +7.8% per cycle for a constituent at the concentration cap. The chained level
-is published as a labelled companion; the headline is the raw cross-section, which is the
+is published as a labelled companion. The headline is the raw cross-section, which is the
 number a third party can most easily verify.
 
-We also **rejected** three series we had specified:
+I also **rejected** three series I had specified:
 
 - an **EU-vs-US basis**, because the neocloud tier is globally arbitraged and the spread is
   approximately zero;
-- a **Nordic-vs-Continental basis**, because our own data refutes it — Azure's H100 price in
-  Sweden equals West Europe exactly, and the 22.5% dispersion we had cited was Poland
+- a **Nordic-vs-Continental basis**, because my own data refutes it. Azure's H100 price in
+  Sweden equals West Europe exactly, and the 22.5% dispersion I had cited was Poland
   against Germany, both Continental;
 - a **compute–power spark spread**, because power is 0.9–8.8% of the price, so the spread
   would be 91–99% one leg.
@@ -233,7 +234,7 @@ And the headline claim is deliberately narrow. EU-CRI has **no transaction feed*
 reproducible, spec-locked, publicly auditable *price-transparency* benchmark, not a
 settlement benchmark, and it should not be referenced in a financial contract. The
 conditions that would have to be met before that changed are published, falsifiable, and
-currently unmet — chiefly ≥15 constituents with ≥50% executable share, against today's five
+currently unmet, chiefly ≥15 constituents with ≥50% executable share, against today's five
 constituents and roughly 17%.
 
 ## 11. Reproducibility
@@ -248,9 +249,9 @@ python -m tci.run backfill --from 2026-07-18 --to 2026-08-15
 pytest
 ```
 
-Raw observations and published prints are append-only, enforced by database triggers.
-Every print records the methodology version it was computed under, so the v0.2.0 series
-discussed here remains queryable alongside its v0.3.0 recomputation.
+Raw observations and published prints are append-only, enforced by database triggers. Every
+print records the methodology version it was computed under, so the v0.2.0 series discussed
+here remains queryable alongside its v0.3.0 recomputation.
 
 ## 12. Limitations
 
@@ -258,8 +259,8 @@ The window is 14 collection days and seven providers. The node-size ratios in §
 three venue-days for the 2× step and one each for 4× and 8×; they are published as
 provisional and are deliberately *not* used as adjustment factors in the calculation path.
 The bimodality result is a single-day cluster separation, not a formal mixture test. None
-of these weaken the two central findings — the composition decomposition in §4 and the
-filter effect in §6 — which are arithmetic rather than inferential.
+of these weaken the two central findings, the composition decomposition in §4 and the
+filter effect in §6, which are arithmetic rather than inferential.
 
 ---
 

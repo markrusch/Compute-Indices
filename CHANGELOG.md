@@ -74,6 +74,30 @@ cause was not the estimator but the unit definition. Changes, in order of impact
   moving without a version change is exactly the kind of thing an audit trail exists to
   explain.
 
+## Research notes revised for house voice — 2026-09-06 (prose; one correction)
+
+All three research notes were rewritten against STYLE.md and the Wikipedia-derived
+"Signs of AI writing" pattern set. Prose only. Every figure, date, table, citation and
+finding was held fixed and the invariance was checked mechanically, by diffing the
+multiset of numbers, money amounts, percentages, ratios, dates, footnote markers, URLs
+and code spans between the old and new text.
+
+- **Notes 2026-01 and 2026-02 now use "I" rather than "we"** (17 occurrences). STYLE.md
+  has always required it: the project is one person, and the plural was a tell.
+- **Em and en dashes in prose: 25 → 3, 26 → 6, 35 → 3.** STYLE.md budgets "one or two a
+  post"; the notes were running roughly one every 70 words. What survives is numeric
+  ranges, the cited IEA report title, and the sign-off.
+- **One factual correction, in note 2026-03.** The note said RunPod "moved three times in
+  35 days". Three distinct prices imply at least two transitions, not three, and the data
+  shows exactly two (2026-08-05, $2.99 → $3.29; 2026-09-04, $3.29 → $3.49). Corrected to
+  "twice". This is a correction to a published note and is recorded here rather than made
+  silently.
+- **One mislabelled table header, in note 2026-01.** The column reading "Distinct prices
+  observed" contained prices, not counts. Relabelled "Price(s) observed, USD/GPU-hr". No
+  cell value changed.
+- The notes keep their original `EU-CRI` naming in source. They record what was true when
+  written, and the site rebrands their prose at render.
+
 ## Repository rename — 2026-09-06 (lock rehashed, editorial, no numeric effect)
 
 The Python package was renamed to match the published brand: import `eucri` → `tci`,
