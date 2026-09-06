@@ -778,6 +778,11 @@ def _masthead(ctx: SiteContext, current: str, prefix: str) -> str:
   <div class="masthead__bar">
     <div class="wrap masthead__inner">
       <a class="brand" href="{prefix}index.html">{_wordmark(24)}</a>
+      <input type="checkbox" id="navtoggle" class="navtoggle">
+      <label class="navbtn" for="navtoggle">
+        <span class="navbtn__bars" aria-hidden="true"></span>
+        <span>Menu</span>
+      </label>
       <nav class="nav" aria-label="Primary">{links}
         <a href="mailto:{_e(CONTACT_EMAIL)}">Contact</a>
         <a class="nav__cta" href="{prefix}index.html#indices">View Indices</a>

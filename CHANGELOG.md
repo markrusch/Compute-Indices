@@ -74,6 +74,36 @@ cause was not the estimator but the unit definition. Changes, in order of impact
   moving without a version change is exactly the kind of thing an audit trail exists to
   explain.
 
+## Mobile layout — 2026-09-06 (presentation; desktop unchanged)
+
+The site had responsive rules but no mobile layout. Measured in headless Chrome at 320,
+375, 414, 768 and 1280px across all five pages, before and after.
+
+- **Nav collapses behind a Menu button below 860px**, built from a checkbox and its
+  label so it opens with no JavaScript. The checkbox is `opacity:0` rather than
+  `display:none` on mobile, which keeps it in the tab order: `display:none` would have
+  left the menu working by mouse and unreachable by keyboard. Links become full-width
+  44px rows; measured at 44px with the menu open.
+- **Sticky chrome cut from ~92px to 60px.** Only the masthead bar stays stuck on mobile;
+  the ticker band scrolls away. On a landscape phone the bar unsticks entirely.
+- **The as-of stamp is no longer hidden.** A leftover one-line media query was hiding
+  `.tickerbar__stamp` below 720px, which was the only piece of live state the small
+  screen was not shown, and it is the cell the refresh script rewrites. It now wraps onto
+  its own row.
+- **Sticky offsets are tokenised** (`--sticky-h`). Anchor targets were hard-coded to the
+  desktop header height, so every link from a table of contents mis-scrolled on mobile.
+- **Fixed real horizontal overflow.** Citation URLs in the footnote strip are unbreakable
+  130-character tokens; at 375px one of them was pushing the document to 645px of
+  scrollable width. All five pages now measure zero overflow at every tested width.
+- The headline table drops its Region column on mobile (constant "EU/EEA", already
+  stated in the section dek) and lets the gap-reason column wrap, which is what removes
+  the last horizontal scrollbar.
+- Also fixed a pre-existing bug at all widths: a gap-reason chip is longer than a 220px
+  tile and `.chip` is nowrap, so the text was being clipped in every sub-index tile.
+
+Nothing is hidden on mobile that the desktop shows, apart from the decorative hero wave
+and a constant table column; a test now pins that list.
+
 ## Research notes revised for house voice — 2026-09-06 (prose; one correction)
 
 All three research notes were rewritten against STYLE.md and the Wikipedia-derived

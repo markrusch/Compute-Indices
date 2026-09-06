@@ -357,6 +357,100 @@ def test_pages_publish_tci_names_and_say_where_the_stored_keys_still_apply(built
     assert "old&#8594;new mapping" in data
 
 
+# ---------------------------------------------------------------------------
+# the mobile layer
+# ---------------------------------------------------------------------------
+
+
+def test_mobile_nav_is_operable_without_javascript(built):
+    """The menu is a checkbox and its label, so it opens with scripting off.
+
+    The trap this guards: hiding the checkbox with `display:none` would still
+    let a mouse open the menu via the label, so it would look fine, while
+    removing the input from the tab order and making the nav keyboard-only
+    unreachable on a phone. It has to be invisible AND focusable.
+    """
+    for name in PAGES:
+        page = (built / name).read_text(encoding="utf-8")
+        body = page.split("</style>", 1)[1]
+        assert '<input type="checkbox" id="navtoggle"' in body, name
+        assert 'for="navtoggle"' in body, name
+        # opened by CSS state, never by a script
+        assert ".navtoggle:checked ~ .nav" in page, name
+
+    css = (built / "assets" / "site.css").read_text(encoding="utf-8")
+    mobile = css.split("@media (max-width: 860px)", 1)[1]
+    assert ".navtoggle { display: block; }" in mobile
+    assert "opacity: 0" in css.split(".navtoggle {", 1)[1][:200]
+
+
+def test_desktop_nav_is_untouched_by_the_mobile_layer(built):
+    """The disclosure control is inert above the breakpoint.
+
+    Both halves are display:none by default, which also takes the checkbox out
+    of the tab order, so a desktop visitor tabs from the brand straight into the
+    nav exactly as before the mobile layer existed.
+    """
+    css = (built / "assets" / "site.css").read_text(encoding="utf-8")
+    base = css.split("@media", 1)[0]
+    assert (
+        ".navtoggle { position: absolute; opacity: 0; pointer-events: none;"
+        " display: none; }"
+    ) in base
+    assert ".navbtn { display: none; }" in base
+
+
+def test_mobile_never_hides_a_value_the_desktop_shows(built):
+    """A phone gets the page rearranged, not a reduced version of it.
+
+    The old layout hid `.tickerbar__stamp` below 720px, which was the one piece
+    of live state the small screen was not told: it is the cell the refresh
+    script rewrites. Anything display:none in a mobile query now has to be
+    either decorative or genuinely redundant, and this pins the list.
+    """
+    css = (built / "assets" / "site.css").read_text(encoding="utf-8")
+
+    def blocks(text: str):
+        """Brace-match each max-width block. A naive `.*?\\n}` stops at the first
+        line-start brace, which silently swallows everything after a one-line
+        media query and reports base rules as mobile-hidden."""
+        for m in re.finditer(r"@media \([^)]*max-width[^)]*\)\s*\{", text):
+            depth, i = 1, m.end()
+            while depth and i < len(text):
+                depth += (text[i] == "{") - (text[i] == "}")
+                i += 1
+            yield text[m.end():i - 1]
+
+    hidden = set()
+    for block in blocks(css):
+        for rule in re.finditer(r"([^;{}\n]+)\{[^}]*display:\s*none", block):
+            hidden.add(rule.group(1).strip())
+    allowed = {
+        ".hero__wave",           # decorative brand furniture, aria-hidden
+        ".brand__name",          # the wordmark itself still shows
+        ".nav",                  # collapsed behind the Menu button, not removed
+        ".stable thead th:nth-child(2), .stable tbody td:nth-child(2)",  # constant "EU/EEA"
+    }
+    assert hidden <= allowed, f"mobile hides something new: {hidden - allowed}"
+    # and specifically, the live timestamp survives
+    assert ".tickerbar__stamp { display: none" not in css
+
+
+def test_sticky_offsets_are_tokenised_not_hardcoded(built):
+    """Anchor targets must follow the header height, which differs per breakpoint.
+
+    A heading linked from the table of contents has to land below the masthead
+    rather than under it. Hard-coding the desktop height silently mis-scrolls
+    every anchor on mobile, where only the bar stays stuck.
+    """
+    css = (built / "assets" / "site.css").read_text(encoding="utf-8")
+    assert "scroll-margin-top: 110px" not in css
+    assert css.count("scroll-margin-top: var(--sticky-h)") >= 3
+    assert "--sticky-h: 64px" in css        # mobile bar only
+    tokens = (built / "assets" / "tokens.css").read_text(encoding="utf-8")
+    assert "--sticky-h:      110px" in tokens
+
+
 def test_rebrand_renames_prose_but_never_a_pasteable_command():
     """The embedded docs print commands whose --series argument is a database key.
 

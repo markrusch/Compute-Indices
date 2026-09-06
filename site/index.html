@@ -579,6 +579,13 @@
   --row-h:         36px;    /* standard table row                            */
   --row-h-dense:   30px;    /* constituents grid — terminal density          */
   --strip-h:       32px;    /* the ticker band                               */
+  /* How much sticky chrome sits above the content: the ticker band plus the
+     masthead bar. Anchor targets and the sticky table of contents both offset
+     by this, so a heading linked from the contents lands below the masthead
+     instead of underneath it. The mobile layer redefines it, because there only
+     the bar stays stuck. Anything that hard-codes this number will silently
+     mis-scroll the moment the header height changes. */
+  --sticky-h:      110px;
 
   --z-base:    0;
   --z-sticky:  10;   /* masthead + ticker                                    */
@@ -670,7 +677,9 @@ code, kbd, samp, pre,
    ========================================================================== */
 
 /* ---- utilities ---------------------------------------------------------- */
-.wrap      { max-width: var(--content-max); margin-inline: auto; padding-inline: var(--space-8); }
+.wrap      { max-width: var(--content-max); margin-inline: auto;
+             padding-inline: max(var(--space-8), env(safe-area-inset-left))
+                             max(var(--space-8), env(safe-area-inset-right)); }
 .scroll-x  { overflow-x: auto; overscroll-behavior-x: contain; min-inline-size: 0; }
 
 /* A grid or flex item defaults to min-width:auto, which is min-CONTENT — so a
@@ -759,6 +768,34 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
 .nav a.nav__cta:hover { color: var(--on-accent); filter: brightness(1.3); }
 .masthead__tools { flex: none; }
 
+/* ---- MOBILE NAV DISCLOSURE (inert on desktop) ---------------------------
+   A checkbox plus its label, so the menu opens with no JavaScript and stays
+   keyboard-operable: the input is a real focusable control and the label is
+   its accessible name. Both are display:none above the mobile breakpoint,
+   which also takes the input out of the tab order, so the desktop nav is
+   exactly what it was. */
+/* Invisible but FOCUSABLE on mobile: opacity:0 keeps the input in the tab order
+   so the menu opens from the keyboard, where display:none would have made it
+   mouse-only. It is display:none on desktop, which is correct there because the
+   nav is always open and the control has nothing to do. */
+.navtoggle { position: absolute; opacity: 0; pointer-events: none; display: none; }
+.navbtn { display: none; }
+.navbtn { align-items: center; gap: var(--space-3); cursor: pointer;
+          margin-inline-start: auto; padding: 10px var(--space-4);
+          border: var(--border-hairline) solid var(--rule-heavy);
+          border-radius: var(--radius-md); color: var(--ink-1);
+          font-size: var(--text-sm); font-weight: var(--weight-medium);
+          user-select: none; -webkit-user-select: none; }
+.navbtn__bars { position: relative; inline-size: 16px; block-size: 2px;
+                background: currentColor; border-radius: 2px; display: block; }
+.navbtn__bars::before, .navbtn__bars::after { content: ""; position: absolute;
+                inset-inline: 0; block-size: 2px; background: currentColor;
+                border-radius: 2px; transition: transform var(--dur-fast) var(--ease); }
+.navbtn__bars::before { top: -5px; }
+.navbtn__bars::after  { top: 5px; }
+.navtoggle:focus-visible + .navbtn { outline: var(--focus-width) solid var(--focus-ring);
+                                     outline-offset: var(--focus-offset); }
+
 /* ==========================================================================
    TICKER BAND — scrolling marquee, tci-marquee 24s linear infinite
    --------------------------------------------------------------------------
@@ -804,7 +841,8 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
   .tickerbar__marquee { overflow-x: auto; }
   .tickerbar__run + .tickerbar__run { display: none; }
 }
-@media (max-width: 720px) { .tickerbar__stamp { display: none; } }
+/* The stamp is never hidden. Below 860px it wraps onto its own row instead —
+   see the mobile layer. It is the only live-updating cell on the page. */
 
 /* The live dot: the brand guide's pulse, and the only ambient motion here. */
 .live-dot { inline-size: 8px; block-size: 8px; flex: none; display: inline-block;
@@ -1585,7 +1623,7 @@ code.inline { background: var(--surface-inset);
 .doc { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: var(--space-8);
        align-items: start; padding-block: var(--space-7) var(--space-9); }
 .doc > * { min-inline-size: 0; }
-.toc { position: sticky; top: 110px; font-size: var(--text-xs); }
+.toc { position: sticky; top: calc(var(--sticky-h) + var(--space-4)); font-size: var(--text-xs); }
 .toc__h { margin: 0 0 var(--space-4); font-family: var(--font-mono); font-size: var(--text-3xs);
           text-transform: uppercase; letter-spacing: var(--tracking-caps);
           color: var(--ink-3); font-weight: var(--weight-semibold); }
@@ -1605,11 +1643,11 @@ code.inline { background: var(--surface-inset);
          font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight);
          padding-bottom: var(--space-4);
          border-bottom: var(--border-hairline) solid var(--rule-heavy);
-         max-width: none; scroll-margin-top: 110px; }
+         max-width: none; scroll-margin-top: var(--sticky-h); }
 .md h3 { margin: var(--space-7) 0 var(--space-4); font-size: var(--text-lg); color: var(--ink-1);
-         font-weight: var(--weight-semibold); scroll-margin-top: 110px; }
+         font-weight: var(--weight-semibold); scroll-margin-top: var(--sticky-h); }
 .md h4 { margin: var(--space-6) 0 var(--space-3); font-size: var(--text-base); color: var(--ink-1);
-         font-weight: var(--weight-semibold); scroll-margin-top: 110px; }
+         font-weight: var(--weight-semibold); scroll-margin-top: var(--sticky-h); }
 .md h2:first-child, .md h3:first-child { margin-top: 0; }
 .md p  { margin: 0 0 var(--space-5); }
 .md ul, .md ol { margin: 0 0 var(--space-5); padding-inline-start: var(--space-6); }
@@ -1782,6 +1820,13 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
        .ledger, .slot, .print, .term, .dl, .pillar, .fam, .policy, .segcard)
        :where(*) { min-inline-size: 0; }
 .ledger__k, .srcs__ep, .qstat__n, .segcard__l, .cite { overflow-wrap: anywhere; }
+/* Citation URLs are single unbreakable tokens 130 characters long. Without this
+   the footnote strip sets its own width, and because the strip is a grid item it
+   drags the whole document past the viewport: measured at 375px, one CME press
+   release URL was pushing the page to 645px of scrollable width. Everything else
+   that overflowed on that page was inside a scroller and meant to be. */
+.fnstrip__list li, .fnstrip__list li * { overflow-wrap: anywhere; }
+.md { overflow-wrap: break-word; }
 
 /* ---- TILE HEAD ---------------------------------------------------------- */
 /* The series description belongs with the symbol, not crammed beside the
@@ -1789,9 +1834,22 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 .tile__head { display: grid; gap: var(--space-1); min-block-size: 34px; }
 .tile__head .tile__note { line-height: var(--leading-snug); }
 .tile__foot { flex-wrap: wrap; }
+/* A gap reason in words ("below the provider gate") is longer than a 220px tile,
+   and .chip is nowrap by default, so the text was being clipped at every width.
+   Chips elsewhere keep nowrap; only the one in a tile foot is allowed to wrap. */
+.tile__foot .chip { white-space: normal; text-align: left; }
 
 /* ==========================================================================
    RESPONSIVE
+   --------------------------------------------------------------------------
+   Four steps: 1040 (two-column layouts collapse), 860 (the mobile layer, where
+   the nav becomes a disclosure and the sticky chrome is cut down), 720 (type
+   scale and remaining grids), 520 (small phones).
+
+   Everything below is additive and lives inside a media query. Nothing here
+   changes a desktop rule, and no control or value is removed from the small
+   layout that the large one has -- the mobile job is to re-arrange the page,
+   not to serve a reduced version of it.
    ========================================================================== */
 @media (max-width: 1040px) {
   .print { grid-template-columns: 1fr; }
@@ -1802,21 +1860,91 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
          padding-bottom: var(--space-5); }
   .toc__list { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 }
+
+/* ---- THE MOBILE LAYER --------------------------------------------------- */
 @media (max-width: 860px) {
-  .wrap { padding-inline: var(--space-6); }
-  .masthead__inner { flex-wrap: wrap; gap: var(--space-4); }
-  .nav { margin-inline-start: 0; order: 3; flex-basis: 100%; gap: var(--space-5);
-         overflow-x: auto; flex-wrap: nowrap; padding-bottom: var(--space-2); }
-  .nav__cta, .nav a.nav__cta { padding: 7px var(--space-5); }
+  /* The sticky element moves from the whole masthead to the bar alone. The
+     ticker then scrolls away with the page instead of holding ~32px of a short
+     viewport permanently, and the sticky chrome drops from about 92px to 53px.
+     Pure CSS: the markup is identical to desktop. */
+  :root { --sticky-h: 64px; }
+  .masthead { position: static; }
+  .masthead__bar { position: sticky; top: 0; z-index: var(--z-sticky); }
+  .masthead__inner { flex-wrap: wrap; gap: var(--space-4); min-height: 0;
+                     padding-block: var(--space-3); }
   .masthead__inner .brand { margin-inline-end: 0; }
-  .masthead__tools { margin-inline-start: auto; }
+
+  /* Nav collapses behind the Menu button. Links become full-width rows with a
+     44px minimum height, which is the smallest reliable touch target. */
+  .navbtn { display: inline-flex; }
+  .navtoggle { display: block; }   /* back in the tab order; still invisible */
+  .nav { display: none; order: 3; flex-basis: 100%; flex-direction: column;
+         align-items: stretch; gap: 0; margin-inline-start: 0;
+         border-top: var(--border-hairline) solid var(--rule-strong);
+         margin-block-start: var(--space-3); }
+  .navtoggle:checked ~ .nav { display: flex; }
+  .navtoggle:checked + .navbtn .navbtn__bars { background: transparent; }
+  .navtoggle:checked + .navbtn .navbtn__bars::before { transform: translateY(5px) rotate(45deg); }
+  .navtoggle:checked + .navbtn .navbtn__bars::after  { transform: translateY(-5px) rotate(-45deg); }
+  .nav a { display: flex; align-items: center; min-block-size: 44px;
+           padding-inline: var(--space-2); font-size: var(--text-md);
+           border-bottom: var(--border-hairline) solid var(--rule); }
+  .nav a[aria-current="page"] { color: var(--ink-1); }
+  .nav a[aria-current="page"]::before { content: ""; inline-size: 3px; block-size: 18px;
+           background: var(--red); border-radius: 2px; margin-inline-end: var(--space-4);
+           margin-inline-start: calc(var(--space-2) * -1); flex: none; }
+  .nav a.nav__cta { justify-content: center; margin-block: var(--space-5) var(--space-3);
+           border-radius: var(--radius-md); border-bottom-width: 1px; }
+
+  /* The as-of stamp wraps onto its own full-width row rather than being hidden.
+     It is the one cell the refresh script rewrites, and on the old layout it
+     vanished below 720px -- the only piece of live state the small screen was
+     not being told. The band is no longer sticky here, so the extra row costs
+     nothing that stays on screen. */
+  .tickerbar { flex-wrap: wrap; }
+  .tickerbar__marquee { flex-basis: 100%; }
+  .tickerbar__stamp { flex-basis: 100%; justify-content: center; border-left: 0;
+                      border-top: var(--border-hairline) solid var(--rule-strong); }
+  .tickerbar__item { padding: 0 var(--space-5); }
+
+  /* Wide data keeps scrolling inside its own container, so give the scrollbar
+     enough presence to read as an affordance rather than a clipped edge. No
+     fade mask: fading the right edge of a price table hides a number. */
+  .scroll-x { scrollbar-width: thin; scrollbar-color: var(--rule-heavy) transparent;
+              -webkit-overflow-scrolling: touch; }
+  .scroll-x::-webkit-scrollbar { height: 5px; }
+  .scroll-x::-webkit-scrollbar-thumb { background: var(--rule-heavy); border-radius: 999px; }
+
+  /* Region is "EU/EEA" in every row of the headline table, and the section dek
+     already says so. Dropping the constant column is what lets this table fit a
+     phone with no horizontal scroll at all. */
+  .stable { min-inline-size: 0; }
+  .stable thead th:nth-child(2), .stable tbody td:nth-child(2) { display: none; }
+  /* The last column carries the gap reason in words ("gap · below the provider
+     gate"), which is far too long to hold on one line at this width. Dropping
+     nowrap there is what actually removes the horizontal scrollbar; hiding the
+     constant Region column alone was not enough. The series, price and delta
+     columns keep nowrap so the figures stay aligned. */
+  .stable tbody td:last-child, .stable thead th:last-child { white-space: normal; }
+  .stable tbody td, .stable thead th { padding-inline-end: var(--space-3); }
+  .stable tbody td:last-child { text-align: right; line-height: var(--leading-snug); }
+
+  .section__head { gap: var(--space-4); }
+  .section__link { margin-inline-start: 0; flex-basis: 100%; }
+  .card__meta { margin-inline-start: 0; flex-basis: 100%; }
+  .tableview > summary { padding-block: var(--space-4); min-block-size: 44px;
+                         display: flex; align-items: center; }
+  .seg label { padding: 9px var(--space-5); }
 }
+
 @media (max-width: 720px) {
-  :root { --text-hero: 44px; --text-display: 32px; --text-3xl: 30px; --text-2xl: 24px; }
-  .hero { padding-block: var(--space-8) var(--space-7); }
-  .footer__cols { grid-template-columns: 1fr; }
+  :root { --text-hero: 44px; --text-display: 32px; --text-3xl: 28px; --text-2xl: 23px; }
+  .hero { padding-block: var(--space-7) var(--space-6); }
+  .hero__cta .btn { flex: 1 1 auto; justify-content: center; }
+  .footer__cols { grid-template-columns: 1fr; gap: var(--space-6); }
+  .footer__nav a { min-block-size: 32px; display: flex; align-items: center; }
   .section { padding-block: var(--space-8); }
-  .ledger__row { grid-template-columns: 28px minmax(0,1fr); }
+  .ledger__row { grid-template-columns: 28px minmax(0,1fr); gap: var(--space-4); }
   .ledger__v { grid-column: 2; text-align: left; }
   .qstat { border-right: 0; border-bottom: var(--border-hairline) solid var(--rule); }
   .qstat:last-child { border-bottom: 0; }
@@ -1826,6 +1954,42 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
   .brand__name { display: none; }
   .terms th { display: block; inline-size: auto; border-bottom: 0; padding-bottom: 0; }
   .terms td { display: block; padding-top: var(--space-2); }
+  /* Title and date stop competing for one row. */
+  .linklist__row { flex-direction: column; gap: var(--space-2); }
+  .preconds td { display: block; }
+  .preconds td:last-child { text-align: left; padding-inline-start: 0;
+                            padding-block: 0 var(--space-4); }
+  .preconds tr { display: block; border-bottom: var(--border-hairline) solid var(--rule-strong); }
+  .preconds td { border-bottom: 0; }
+  .kv td:first-child { inline-size: 34%; }
+  .print__main, .card__body, .card__head { padding-inline: var(--space-5); }
+  .qstat, .srcs__row { padding-inline: var(--space-5); }
+}
+
+@media (max-width: 520px) {
+  :root { --text-hero: 38px; --text-display: 27px; --text-3xl: 25px; }
+  .wrap { padding-inline: var(--space-5); }
+  .print__figure { flex-wrap: wrap; }
+  .metagrid > div { flex-wrap: wrap; gap: var(--space-1); }
+  .metagrid dd { text-align: left; }
+  .kv td { display: block; }
+  .kv td:first-child { inline-size: auto; padding-block: var(--space-4) 0;
+                       border-bottom: 0; }
+  .kv td:last-child { padding-block: var(--space-2) var(--space-4); }
+  /* Every card grid is auto-fit with a minmax floor, and on a 320px phone the
+     widest floor (.policygrid, 280px) plus card padding no longer fits. Pinning
+     them to a single column removes the floor entirely rather than leaving the
+     track wider than the screen and relying on the body to clip it. */
+  .tiles, .pillars, .famcards, .dlcards, .segcards, .policygrid, .qgrid {
+    grid-template-columns: 1fr; gap: var(--space-4); }
+  .vbadges { gap: var(--space-2); }
+}
+
+/* Landscape phones: the sticky bar is a bigger share of a short viewport, so
+   let it scroll away entirely rather than covering a third of the content. */
+@media (max-height: 460px) and (max-width: 900px) {
+  .masthead__bar { position: static; }
+  :root { --sticky-h: 8px; }
 }
 
 </style>
@@ -1833,10 +1997,15 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="masthead">
-<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-06T18:16:03Z">AS OF 2026-09-06 18:16:03 UTC</div></div>
+<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-06T19:02:28Z">AS OF 2026-09-06 19:02:28 UTC</div></div>
   <div class="masthead__bar">
     <div class="wrap masthead__inner">
       <a class="brand" href="index.html"><span class="brand__mark" style="--brand-h:24px" aria-hidden="true"><span class="brand__tc">TC</span><span class="brand__i"><span class="brand__dot"></span><span class="brand__bar"></span></span></span><span class="brand__name">The Compute Indices</span></a>
+      <input type="checkbox" id="navtoggle" class="navtoggle">
+      <label class="navbtn" for="navtoggle">
+        <span class="navbtn__bars" aria-hidden="true"></span>
+        <span>Menu</span>
+      </label>
       <nav class="nav" aria-label="Primary"><a href="index.html" aria-current="page">Indices</a><a href="methodology.html">Methodology</a><a href="data.html">Data</a><a href="research.html">Research</a><a href="governance.html">Governance</a>
         <a href="mailto:rusch.mh@gmail.com">Contact</a>
         <a class="nav__cta" href="index.html#indices">View Indices</a>
@@ -2167,7 +2336,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
       welcome and must carry its own name.</p>
       <p class="disclaimer__meta num">TCI-CRI&#8209;M v0.3.0-dev
       &#183; methodology hash sha256:5c61ce6b3b8b&#8230; &#183; generated
-      2026-09-06T18:16:03Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
+      2026-09-06T19:02:28Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
       at the ECB reference rate dated on or before the print date.</p>
     </div>
   </div>

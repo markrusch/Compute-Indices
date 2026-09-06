@@ -567,6 +567,13 @@
   --row-h:         36px;    /* standard table row                            */
   --row-h-dense:   30px;    /* constituents grid — terminal density          */
   --strip-h:       32px;    /* the ticker band                               */
+  /* How much sticky chrome sits above the content: the ticker band plus the
+     masthead bar. Anchor targets and the sticky table of contents both offset
+     by this, so a heading linked from the contents lands below the masthead
+     instead of underneath it. The mobile layer redefines it, because there only
+     the bar stays stuck. Anything that hard-codes this number will silently
+     mis-scroll the moment the header height changes. */
+  --sticky-h:      110px;
 
   --z-base:    0;
   --z-sticky:  10;   /* masthead + ticker                                    */
