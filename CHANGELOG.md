@@ -74,6 +74,40 @@ cause was not the estimator but the unit definition. Changes, in order of impact
   moving without a version change is exactly the kind of thing an audit trail exists to
   explain.
 
+## Presentation — 2026-09-06 (no methodology change, no version bump)
+
+The published site was rebranded to **TCI — The Compute Indices** and rebuilt on a new
+visual system (dark ground, two-tone red, Outfit + JetBrains Mono). No calculation, no
+config, no stored data and none of the five hash-locked files were touched; the
+methodology lock is unchanged. Recorded here because the *names a reader sees* moved,
+and that is the kind of thing an index owes an audit trail even when no number did.
+
+- **Display rename, not a data rename.** The site publishes `TCI-CRI-*`; `daily_index`,
+  `site/data/latest.json` and `index_history.csv` still carry the original `EU-CRI-*`
+  keys. Renaming a stored identifier owes readers a published old→new mapping and an
+  effective date (GOVERNANCE.md §1), so it stays a separate, governed change.
+  `site.display_series()` is the single boundary where a stored key becomes a published
+  name, and the Data page states the mismatch outright rather than leaving it to be
+  discovered inside a download.
+- **Embedded documents are rebranded at render time**, prose only: fenced blocks and
+  inline code are held out, because `--series EU-CRI-H100` in METHODOLOGY.md is a
+  database key a reader is meant to paste, not a brand.
+- **One theme.** The brand's ground (#0B0C0D) is the only page background it allows, so
+  the light palette and the Auto/Light/Dark toggle are gone rather than left inert. The
+  site test now asserts the opposite contract: an OS set to light must render the same
+  page.
+- **Fonts are self-hosted** (`site/assets/fonts/`, SIL OFL 1.1) rather than loaded from
+  Google's CDN. Same files, same subsets, same rendering — but the site keeps making
+  zero off-origin requests, and no visitor's IP reaches a third party.
+- **Two defects fixed on the way through**: the constituents table emitted
+  `badge--l1/l2/l3` while the stylesheet defined only `badge--t1/t2/t3`, so seven tier
+  badges per print rendered unstyled on the live site; and `#hero-usd`/`#asof`, which the
+  refresh script rewrites every five minutes, had no `aria-live`.
+- **New page**: `data.html` — downloads, series identifiers, terms in short, and the
+  citation format. The settlement-grade precondition checklist on the governance page is
+  parsed out of GOVERNANCE.md rather than retyped, and reports a condition the document
+  is silent about as "not stated", never as met by inference.
+
 ## 0.2.0-dev — 2026-07-19
 
 Adaptive, data-driven weighting — standard index procedure (scheduled reviews,

@@ -15,7 +15,7 @@ from eucri.outputs import site, webdata
 from tests.conftest import insert_run
 
 PAGES = (
-    "index.html", "methodology.html", "governance.html", "research.html",
+    "index.html", "methodology.html", "data.html", "governance.html", "research.html",
 )
 
 
@@ -225,14 +225,36 @@ def test_generate_writes_every_page(built):
 
 def test_pages_are_self_contained(built):
     """No off-origin request is possible: no stylesheet link, no script src, no @import,
-    no url() that resolves anywhere. Prose that merely mentions the words is allowed."""
+    no url() that resolves anywhere. Prose that merely mentions the words is allowed.
+
+    The two typefaces are self-hosted for exactly this reason (site/assets/fonts/LICENSE):
+    a Google Fonts <link> would be the site's only off-origin request and would hand every
+    visitor's IP to a third party.
+    """
     for name in PAGES:
         html = (built / name).read_text(encoding="utf-8")
         assert '<link rel="stylesheet"' not in html
         assert "<script src=" not in html
         assert not re.search(r"@import\s+(url\(|[\"'])", html)
         assert not re.search(r"\burl\(\s*['\"]?(https?:)?//", html)
+        assert "fonts.googleapis.com" not in html and "fonts.gstatic.com" not in html
         assert "<style>" in html  # tokens + components are inlined
+
+
+def test_font_urls_resolve_from_the_page_that_inlines_them(built):
+    """The sheet is inlined, so url() resolves against the PAGE, not the stylesheet.
+
+    A note at research/x.html therefore needs ../assets/fonts/; a top-level page needs
+    assets/fonts/. Getting this wrong is silent — the browser just falls back to the
+    system stack and nobody notices until the brand looks wrong on one page.
+    """
+    top = (built / "index.html").read_text(encoding="utf-8")
+    nested = (built / "research" / "a-note.html").read_text(encoding="utf-8")
+
+    assert 'url("assets/fonts/outfit-latin.woff2")' in top
+    assert "{FONTS}" not in top  # the placeholder is always substituted
+    assert 'url("../assets/fonts/outfit-latin.woff2")' in nested
+    assert 'url("assets/fonts/outfit-latin.woff2")' not in nested
 
 
 def test_pages_carry_one_h1_and_a_current_nav_marker(built):
@@ -243,13 +265,30 @@ def test_pages_carry_one_h1_and_a_current_nav_marker(built):
         assert body.count('aria-current="page"') == 1, name
 
 
-def test_theming_contract_is_present_on_every_page(built):
+def test_single_theme_contract_is_present_on_every_page(built):
+    """TCI ships ONE theme, and the contract is that nothing can change it.
+
+    Until the rebrand this asserted the opposite: a full light palette plus two dark
+    blocks, with an explicit stamp beating the OS in both directions. The brand guide is
+    explicit that #0B0C0D is "the page background — the only page-background color", so
+    there is no light palette to switch to and the toggle went with it. What has to hold
+    now is that an OS set to light renders exactly the same page:
+
+      * body carries an explicit token background (a transparent body borrows the host's
+        theme and the whole palette comes apart);
+      * color-scheme is declared dark, in the CSS and in the meta tag, so form controls
+        and scrollbars match rather than painting white;
+      * nothing anywhere reacts to prefers-color-scheme, and no data-theme stamp survives.
+    """
     for name in PAGES:
-        css = (built / name).read_text(encoding="utf-8")
-        assert "@media (prefers-color-scheme: dark)" in css
-        assert ':root:not([data-theme="light"])' in css
-        assert ':root[data-theme="dark"]' in css
-        assert "background: var(--page)" in css
+        page = (built / name).read_text(encoding="utf-8")
+        assert "background: var(--page)" in page
+        assert "color-scheme: dark" in page
+        assert '<meta name="color-scheme" content="dark">' in page
+        # The at-rule and the selector, not the words: the stylesheet's own comments
+        # explain why neither is used, and prose that mentions them is not a leak.
+        assert not re.search(r"@media[^{]*prefers-color-scheme", page), name
+        assert not re.search(r"\[data-theme[~^|$*]?=", page), name
 
 
 def test_dashboard_shows_the_headline_and_never_carries_a_gap_forward(built):
@@ -288,6 +327,63 @@ def test_live_surfaces_never_show_a_stale_print_as_current(conn):
     assert "EU-CRI-H100-CLOUD" not in site.TICKER
     assert "EU-CRI-H100-CLOUD" not in site.SERIES_LABEL
     assert "EU-CRI-H100-CLOUD" not in webdata.ALL_SERIES
+
+
+# ---------------------------------------------------------------------------
+# the rename boundary: TCI on the page, EU-CRI in the store
+# ---------------------------------------------------------------------------
+
+
+def test_display_series_is_the_only_place_the_rename_happens():
+    assert site.display_series("EU-CRI-H100") == "TCI-CRI-H100"
+    assert site.display_series("EU-CRI-COMPUTE") == "TCI-CRI-COMPUTE"
+    # The stored constants are untouched: the DB, the CSV and latest.json still key on
+    # them, and renaming those is a governed change, not a restyle (GOVERNANCE.md §1).
+    assert site.HEADLINE == "EU-CRI-H100"
+    assert all(s.startswith("EU-CRI") for s in site.TICKER + site.TILES)
+
+
+def test_pages_publish_tci_names_and_say_where_the_stored_keys_still_apply(built):
+    index = (built / "index.html").read_text(encoding="utf-8")
+    body = index.split("</style>", 1)[1]
+    assert "TCI&#8209;CRI&#8209;H100" in body
+    assert "The Compute Indices" in body
+
+    # The one place the mismatch is allowed to surface is the Data page, and it has to
+    # be stated outright -- a reader who cites TCI-CRI-H100 must be able to find it in
+    # the CSV. Leaving that to be discovered inside a download costs the citation.
+    data = (built / "data.html").read_text(encoding="utf-8")
+    assert "EU-CRI-H100" in data and "TCI-CRI-H100" in data
+    assert "old&#8594;new mapping" in data
+
+
+def test_rebrand_renames_prose_but_never_a_pasteable_command():
+    """The embedded docs print commands whose --series argument is a database key.
+
+    Renaming it would hand a reader a command that returns nothing, so fenced blocks and
+    inline code are held out of the substitution while the prose around them is renamed.
+    """
+    out = site._rebrand_doc(
+        "EU-CRI is a benchmark; EU-CRI-H100 is its headline.\n\n"
+        "```\npython -m eucri.run constituents --series EU-CRI-H100\n```\n\n"
+        "Config lives in `EU-CRI-H100` and prose does not."
+    )
+    assert out.startswith("TCI is a benchmark; TCI-CRI-H100 is its headline.")
+    assert "--series EU-CRI-H100" in out          # fenced block untouched
+    assert "`EU-CRI-H100`" in out                 # inline code untouched
+    # Order matters: renaming the bare brand first would leave TCI-H100, not TCI-CRI-H100.
+    assert "TCI-H100" not in out
+
+
+def test_ticker_marquee_reads_each_value_once(built):
+    """The band duplicates its run to loop seamlessly; only one run is announced."""
+    html = (built / "index.html").read_text(encoding="utf-8")
+    assert html.count('class="tickerbar__run"') == 2
+    assert html.count('class="tickerbar__run" aria-hidden="true"') == 1
+    # And the as-of stamp stays outside the marquee, where the refresh script can find
+    # it and where it does not scroll away from the reader.
+    marquee = html.split('class="tickerbar__marquee"', 1)[1].split("</div></div>", 1)[0]
+    assert 'id="asof"' not in marquee
 
 
 def test_research_note_is_rendered_from_markdown(built):

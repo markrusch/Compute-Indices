@@ -1,19 +1,29 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Mark Rusch
-"""Static site generation: the published EU-CRI pages, rendered from the DB + the docs.
+"""Static site generation: the published TCI pages, rendered from the DB + the docs.
 
 WHY a generator and not hand-maintained HTML: the dashboard has to be correct the morning
 after every daily run, and a page whose numbers are typed by hand is a page that will one
 day disagree with `daily_index`. Everything numeric here is read out of SQLite at build
 time and baked into the markup, so the pages are complete with JavaScript disabled.
 
-Design contract (DESIGN.md, site/assets/tokens.css, site/components.html):
-  * no external requests — tokens.css and site.css are inlined, fonts are system stacks,
-    every graphic is inline SVG;
-  * light + dark from one token file, explicit stamp beating the OS in both directions;
-  * charts are hand-rolled SVG, greyscale by default, accent on the current value only;
+Design contract (site/assets/tokens.css, and the TCI brand guide):
+  * no external requests — tokens.css and site.css are inlined, the two typefaces are
+    self-hosted from site/assets/fonts, every graphic is inline SVG or DOM;
+  * ONE theme. TCI's ground (#0B0C0D) is the only page background the brand allows, so
+    there is no light palette and no theme toggle (see tokens.css, "THEMING CONTRACT");
+  * two reds, never inverted: wine fills large shapes, bright red marks small ones;
+  * charts are hand-rolled SVG, monochrome by default, the bright red on the current
+    value only;
   * a gap is published as a gap. No interpolation across a missing print, no stale value
     dressed as live.
+
+NAMING (2026-09-06). The brand is TCI — The Compute Indices — and the ticker family is
+`TCI-CRI-*`. The DATABASE still stores the original `EU-CRI-*` series keys, and so do
+`site/data/latest.json` and `index_history.csv`: renaming stored identifiers is a
+governed event (old->new mapping, effective date, version bump — GOVERNANCE.md §1), not
+a reskin. `display_series()` is the single boundary where a stored key becomes a
+published name, so exactly one function has to change when that governed rename lands.
 """
 
 from __future__ import annotations
@@ -46,9 +56,30 @@ RESEARCH_SRC = REPO_ROOT / "research"
 
 WINDOW_DAYS = 30
 
+# ---- brand ---------------------------------------------------------------
+BRAND = "TCI"
+BRAND_FULL = "The Compute Indices"
+BRAND_LINE = (
+    "TCI publishes reproducible reference prices for AI and HPC compute — "
+    "methodology-driven, vendor-neutral, and rebuildable from public sources by anyone."
+)
+CONTACT_EMAIL = "rusch.mh@gmail.com"
+NEWSLETTER_URL = "https://computeindex.substack.com"
+REPO_URL = "https://github.com/markrusch/Compute-Index"
+
+# The stored series prefix and its published equivalent. See the module docstring:
+# the DB is not renamed here, only what the reader sees.
+SERIES_PREFIX_STORED = "EU-CRI"
+SERIES_PREFIX_PUBLISHED = "TCI-CRI"
+
+# The daily cut-off, stated wherever the site claims a schedule. 11:00 UTC is the real
+# one (it is why the EUR leg is structurally T-1: the ECB publishes ~14:00 UTC).
+CUTOFF_UTC = "11:00 UTC"
+
 NAV: tuple[tuple[str, str], ...] = (
-    ("index.html", "Index"),
+    ("index.html", "Indices"),
     ("methodology.html", "Methodology"),
+    ("data.html", "Data"),
     ("research.html", "Research"),
     ("governance.html", "Governance"),
 )
@@ -59,6 +90,14 @@ NAV: tuple[tuple[str, str], ...] = (
 # replaced: the remaining sub-population series draw on segments smaller than
 # aggregation.min_providers and so cannot print (see the note in TILES).
 TICKER = (HEADLINE, SERIES_7D, "EU-CRI-H100-MKT", COMPOSITE)
+
+# The landing page's "headline series, today" table: the headline plus one row per GPU
+# class the index prices. Class series only — segment cuts of H100 belong in the tiles,
+# where their gap reasons have room to be explained.
+HEADLINE_TABLE = (
+    HEADLINE, "EU-CRI-H200", "EU-CRI-B200", "EU-CRI-B300", "EU-CRI-A100",
+    "EU-CRI-H100-PCIE",
+)
 
 # The sub-index tiles, in publication order.
 # NOTE (2026-09-04): EU-CRI-H100-MKT and EU-CRI-H100-HS draw on the marketplace (2
@@ -133,20 +172,30 @@ ICON = {
            ' stroke-width="1.8" stroke-linecap="round"/>',
 }
 
-WORDMARK_SVG = (
-    '<svg class="wordmark__mark" viewBox="0 0 24 24" width="20" height="20"'
-    ' aria-hidden="true" focusable="false">'
-    '<rect x="1.5" y="1.5" width="21" height="21" rx="2" fill="none" stroke="currentColor"'
-    ' stroke-width="1.6"/>'
-    '<path d="M6 16.5 10 10.5 14 13.5 18 7.5" fill="none" stroke="currentColor"'
-    ' stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-)
+# The wordmark is DOM, not an image: "TC" set in Outfit 800, then the "I" built as a bar
+# with the bright red dot above it — the one place bright red is a fixed brand element.
+# Building it from spans means it scales with the type, needs no asset request, and stays
+# crisp at any DPI. --brand-h drives every dimension (brand guide §01: clearspace = the
+# height of the "T", minimum 18px cap height).
+def _wordmark(height: int = 24, *, name: bool = True) -> str:
+    lockup = (
+        f'<span class="brand__mark" style="--brand-h:{height}px" aria-hidden="true">'
+        '<span class="brand__tc">TC</span>'
+        '<span class="brand__i"><span class="brand__dot"></span>'
+        '<span class="brand__bar"></span></span></span>'
+    )
+    label = f'<span class="brand__name">{_e(BRAND_FULL)}</span>' if name else ""
+    return lockup + label
 
+
+# The mark, flattened to a favicon: the ground, the bar, the dot. Same construction,
+# same two colours, no external request.
 FAVICON = (
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'"
-    "%3E%3Crect width='32' height='32' rx='6' fill='%2317191c'/%3E%3Cpath d='M7 21 L13 13"
-    " L18 17 L25 9' fill='none' stroke='%232fd6c3' stroke-width='2.6' stroke-linecap='round'"
-    " stroke-linejoin='round'/%3E%3C/svg%3E"
+    "%3E%3Crect width='32' height='32' rx='7' fill='%230b0c0d'/%3E"
+    "%3Crect x='6' y='9' width='7' height='16' rx='1' fill='%23f5f5f6'/%3E"
+    "%3Crect x='17' y='16' width='7' height='9' rx='1' fill='%23f5f5f6'/%3E"
+    "%3Ccircle cx='20.5' cy='10.5' r='3.5' fill='%23ff0000'/%3E%3C/svg%3E"
 )
 
 
@@ -157,6 +206,65 @@ FAVICON = (
 
 def _e(value: object) -> str:
     return escape(str(value), quote=True)
+
+
+def display_series(series: str) -> str:
+    """The published name of a stored series key — the ONE place the rename happens.
+
+    `daily_index.series` still holds `EU-CRI-H100`, and so do the published CSV and
+    latest.json, because renaming a stored identifier is a governed event that owes
+    readers an old->new mapping and an effective date (GOVERNANCE.md §1). Until that
+    lands, the site publishes the TCI name and the data files publish the stored one;
+    the Data page says so in as many words rather than leaving a reader to notice.
+    """
+    return series.replace(SERIES_PREFIX_STORED, SERIES_PREFIX_PUBLISHED)
+
+
+def _nbsp_series(series: str) -> str:
+    """A ticker with non-breaking hyphens, so `TCI-CRI-H100` never wraps mid-symbol."""
+    return _e(display_series(series)).replace("-", "&#8209;")
+
+
+def _rebrand(prose: str) -> str:
+    """Brand-substitute prose for display, without editing the source it came from.
+
+    Two substitutions, in this order, because order is the whole trick: a hyphenated
+    `EU-CRI-H100` is an identifier and becomes `TCI-CRI-H100`, while a bare `EU-CRI` is
+    the brand and becomes `TCI`. Doing the bare one first would turn every ticker into
+    `TCI-H100`.
+
+    Used for `DISCLAIMER` — which also ships inside latest.json, so the constant itself
+    is left alone — and, via `_rebrand_doc`, for the Markdown the pages embed. Same
+    boundary `display_series` draws for identifiers: rename what the reader sees, leave
+    the stored artefact to the governed rename.
+    """
+    return prose.replace(
+        f"{SERIES_PREFIX_STORED}-", f"{SERIES_PREFIX_PUBLISHED}-"
+    ).replace(SERIES_PREFIX_STORED, BRAND)
+
+
+_FENCE_RE = re.compile(r"(^```.*?^```|`[^`\n]+`)", re.M | re.S)
+
+
+def _rebrand_doc(markdown_text: str) -> str:
+    """Rebrand a Markdown document's PROSE, leaving code untouched.
+
+    The embedded documents are the reason this is not a plain string replace. Prose that
+    says "EU-CRI is a price-transparency benchmark" must read TCI under a TCI masthead —
+    a page whose chrome and body disagree about the name of the thing is exactly the
+    half-finished feel the rebrand is meant to remove. But the same documents also print
+    commands a reader is meant to paste:
+
+        python -m eucri.run constituents --series EU-CRI-H100
+
+    and that argument is a database key, not a brand. Renaming it would hand out a
+    command that returns nothing. So fenced blocks and inline-code spans are held out
+    and everything between them is rebranded.
+    """
+    return "".join(
+        part if _FENCE_RE.fullmatch(part) else _rebrand(part)
+        for part in _FENCE_RE.split(markdown_text)
+    )
 
 
 def _icon(name: str, size: int = 12, cls: str = "ico") -> str:
@@ -284,6 +392,27 @@ def previous_published(
         (series, series, before),
     ).fetchone()
     return (row["date"], row["value_usd"]) if row else None
+
+
+def value_on_or_before(
+    conn: sqlite3.Connection, series: str, date: str
+) -> float | None:
+    """The last published value at or before DATE, for a fixed-horizon comparison.
+
+    A 30-day delta on a series that gaps as often as this one cannot ask for "the value
+    exactly 30 days ago" — most sessions have none. It asks for the most recent print up
+    to that date instead, which is a comparison against a value that was genuinely
+    published, never an interpolation onto a day the index said nothing.
+    """
+    row = conn.execute(
+        "SELECT d.value_usd FROM daily_index d JOIN ("
+        "  SELECT date, MAX(revision) AS rev FROM daily_index WHERE series = ? GROUP BY date"
+        ") m ON d.date = m.date AND d.revision = m.rev"
+        " WHERE d.series = ? AND d.date <= ? AND d.value_usd IS NOT NULL"
+        " ORDER BY d.date DESC LIMIT 1",
+        (series, series, date),
+    ).fetchone()
+    return row["value_usd"] if row else None
 
 
 def constituents_for(conn: sqlite3.Connection, series: str, date: str) -> list[sqlite3.Row]:
@@ -550,29 +679,14 @@ def sparkline(points: list[Point]) -> str:
 # page shell
 # ==========================================================================
 
-_THEME_HEAD = (
-    "(function(){try{var t=localStorage.getItem('eucri-theme');"
-    "if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}"
-    "catch(e){}"
-    # Marks the document as scripted, before body paints. The one-shot fade-in CSS
-    # (.js-boot body, see site.css) only fires when this class is present, so with
-    # scripting off the class is never added and the page renders at full opacity
-    # immediately — nothing to skip, nothing to wait for.
-    "document.documentElement.classList.add('js-boot');"
-    "})();"
-)
-
-_THEME_BODY = (
-    "(function(){var r=document.documentElement;"
-    "var v=r.getAttribute('data-theme')||'auto';"
-    "var el=document.getElementById('th-'+v);if(el)el.checked=true;"
-    "document.addEventListener('change',function(e){var t=e.target;"
-    "if(!t||t.name!=='theme')return;"
-    "if(t.value==='auto'){r.removeAttribute('data-theme');"
-    "try{localStorage.removeItem('eucri-theme');}catch(x){}}"
-    "else{r.setAttribute('data-theme',t.value);"
-    "try{localStorage.setItem('eucri-theme',t.value);}catch(x){}}});})();"
-)
+# Marks the document as scripted, before body paints. The one-shot fade-in CSS
+# (.js-boot body, see site.css) only fires when this class is present, so with scripting
+# off the class is never added and the page renders at full opacity immediately —
+# nothing to skip, nothing to wait for.
+#
+# v1.0 also read a stored theme preference here. TCI ships one theme (tokens.css,
+# "THEMING CONTRACT"), so there is nothing to restore and no flash to guard against.
+_BOOT_HEAD = "document.documentElement.classList.add('js-boot');"
 
 # Same-origin refresh: re-stamps the ticker and the hero if the pipeline has published
 # since the page was served. Pure enhancement — every value is already in the markup.
@@ -598,11 +712,20 @@ document.addEventListener('visibilitychange',function(){
 setInterval(poll,300000);})();"""
 
 
-def _css() -> str:
-    return _read(ASSETS / "tokens.css") + "\n" + _read(ASSETS / "site.css")
+def _css(prefix: str = "") -> str:
+    """The whole stylesheet, inlined, with font URLs resolved for this page's depth.
+
+    tokens.css writes `url("{FONTS}outfit-latin.woff2")`. Because the sheet is inlined
+    into the page rather than linked, that URL resolves against the PAGE — so a note at
+    research/x.html needs `../assets/fonts/`, not `assets/fonts/`. Substituting here is
+    what keeps the fonts same-origin (no off-origin request, nothing for a third party
+    to log) without hard-coding a site root that GitHub Pages does not serve from.
+    """
+    css = _read(ASSETS / "tokens.css") + "\n" + _read(ASSETS / "site.css")
+    return css.replace("{FONTS}", f"{prefix}assets/fonts/")
 
 
-def _masthead(current: str, prefix: str, ticker: str) -> str:
+def _masthead(ctx: SiteContext, current: str, prefix: str) -> str:
     links = "".join(
         f'<a href="{prefix}{href}"'
         + (' aria-current="page"' if href == current else "")
@@ -610,62 +733,57 @@ def _masthead(current: str, prefix: str, ticker: str) -> str:
         for href, label in NAV
     )
     return f"""<header class="masthead">
+{_ticker(ctx)}
   <div class="masthead__bar">
     <div class="wrap masthead__inner">
-      <a class="wordmark" href="{prefix}index.html">{WORDMARK_SVG}
-        <span class="wordmark__text">EU&#8209;CRI</span>
-        <span class="wordmark__sub">European Compute Reference Index</span>
-      </a>
-      <nav class="nav" aria-label="Primary">{links}</nav>
-      <div class="masthead__tools">
-        <fieldset class="seg seg--theme">
-          <legend class="vh">Colour theme</legend>
-          <input type="radio" id="th-auto" name="theme" value="auto" checked>
-          <label for="th-auto">Auto</label>
-          <input type="radio" id="th-light" name="theme" value="light">
-          <label for="th-light">Light</label>
-          <input type="radio" id="th-dark" name="theme" value="dark">
-          <label for="th-dark">Dark</label>
-        </fieldset>
-      </div>
+      <a class="brand" href="{prefix}index.html">{_wordmark(24)}</a>
+      <nav class="nav" aria-label="Primary">{links}
+        <a href="mailto:{_e(CONTACT_EMAIL)}">Contact</a>
+        <a class="nav__cta" href="{prefix}index.html#indices">View Indices</a>
+      </nav>
     </div>
   </div>
-{ticker}</header>"""
+</header>"""
 
 
 def _footer(ctx: SiteContext, prefix: str) -> str:
+    """Brand guide footer: four link columns, then the legal block.
+
+    The mockup's fourth column carries a one-line disclaimer. The full "Important
+    information" block underneath it is not decoration — it is the not-for-settlement
+    position, the licence position and the print stamp — so it stays on every page.
+    """
     return f"""<footer class="footer">
   <div class="wrap footer__inner">
     <div class="footer__cols">
       <div class="footer__brand">
-        <span class="wordmark__text">EU&#8209;CRI</span>
-        <p class="footer__tag">A daily, reproducible reference price for renting AI compute
-        delivered from the EU/EEA. Every print is recomputable from public sources using the
-        published code.</p>
+        <span class="brand">{_wordmark(20)}</span>
+        <p class="footer__tag">Reproducible reference prices for renting AI compute. Every
+        print is recomputable from public sources using the published code.</p>
       </div>
-      <nav class="footer__nav" aria-label="Footer, index">
-        <h4>Index</h4>
-        <a href="{prefix}index.html">Headline &amp; sub&#8209;indices</a>
-        <a href="{prefix}index.html#constituents">Constituents</a>
-        <a href="{prefix}index.html#quality">Data quality</a>
-      </nav>
-      <nav class="footer__nav" aria-label="Footer, governance">
-        <h4>Governance</h4>
+      <nav class="footer__nav" aria-label="Footer, product">
+        <h4>Product</h4>
+        <a href="{prefix}index.html">Indices</a>
         <a href="{prefix}methodology.html">Methodology v{_e(ctx.version)}</a>
-        <a href="{prefix}governance.html">Oversight &amp; complaints</a>
-        <a href="{prefix}methodology.html#lock">Methodology lock</a>
+        <a href="{prefix}governance.html">Governance</a>
       </nav>
-      <nav class="footer__nav" aria-label="Footer, access">
-        <h4>Access</h4>
-        <a href="{prefix}data/latest.json">latest.json</a>
+      <nav class="footer__nav" aria-label="Footer, data">
+        <h4>Data</h4>
+        <a href="{prefix}data.html">Downloads &amp; terms</a>
         <a href="{prefix}data/index_history.csv">index_history.csv</a>
-        <a href="{prefix}research.html">Research notes</a>
+        <a href="{prefix}data/latest.json">latest.json</a>
+      </nav>
+      <nav class="footer__nav" aria-label="Footer, company">
+        <h4>Company</h4>
+        <a href="{prefix}research.html">Research</a>
+        <a href="{_e(REPO_URL)}" rel="noopener">GitHub</a>
+        <a href="mailto:{_e(CONTACT_EMAIL)}">Contact</a>
       </nav>
     </div>
     <div class="disclaimer">
       <h4 class="disclaimer__h">Important information</h4>
-      <p>{_e(DISCLAIMER)}</p>
-      <p>EU&#8209;CRI is a <strong>price-transparency benchmark, not a settlement
+      <p>{_e(_rebrand(DISCLAIMER))}</p>
+      <p>{_e(BRAND)} is a <strong>price-transparency benchmark, not a settlement
       benchmark</strong>. It is not transaction-based, is not administered by an authorised
       benchmark administrator, and must not be referenced in a financial contract. Values are
       derived from third-party public price surfaces believed to be reliable but are
@@ -678,10 +796,11 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
       is published under CC&#160;BY&#160;4.0, so any print here can be reproduced and
       checked independently. The <strong>index data</strong> is published under separate
       terms: free to use for research, journalism and other non-commercial purposes with
-      attribution. &#8220;EU&#8209;CRI&#8221; is used as the identity of this benchmark and
-      its published values; a fork is welcome and must carry its own name.</p>
-      <p class="disclaimer__meta num">EU&#8209;CRI&#8209;M v{_e(ctx.version)} &#183;
-      methodology hash sha256:{_e(ctx.lock_hash[:12])}&#8230; &#183; generated
+      attribution. &#8220;{_e(BRAND)}&#8221; and &#8220;{SERIES_PREFIX_PUBLISHED}&#8221; are
+      used as the identity of this benchmark family and its published values; a fork is
+      welcome and must carry its own name.</p>
+      <p class="disclaimer__meta num">{SERIES_PREFIX_PUBLISHED}&#8209;M v{_e(ctx.version)}
+      &#183; methodology hash sha256:{_e(ctx.lock_hash[:12])}&#8230; &#183; generated
       {_e(ctx.generated_at)} &#183; administrator Mark Rusch &#183; USD primary, EUR companion
       at the ECB reference rate dated on or before the print date.</p>
     </div>
@@ -697,12 +816,9 @@ def _shell(
     current: str,
     body: str,
     prefix: str = "",
-    ticker: str = "",
     extra_js: str = "",
 ) -> str:
-    scripts = f"<script>{_THEME_BODY}</script>"
-    if extra_js:
-        scripts += f"<script>{extra_js}</script>"
+    scripts = f"<script>{extra_js}</script>" if extra_js else ""
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -710,18 +826,17 @@ def _shell(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_e(title)}</title>
 <meta name="description" content="{_e(description)}">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f3f3">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#101113">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0c0d">
 <link rel="icon" href="{FAVICON}">
-<script>{_THEME_HEAD}</script>
+<script>{_BOOT_HEAD}</script>
 <style>
-{_css()}
+{_css(prefix)}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-{_masthead(current, prefix, ticker)}
+{_masthead(ctx, current, prefix)}
 {body}
 {_footer(ctx, prefix)}
 {scripts}
@@ -760,41 +875,266 @@ def _lock_hash() -> str:
 
 
 def _ticker(ctx: SiteContext) -> str:
-    items = []
-    for i, series in enumerate(TICKER):
+    """The scrolling ticker band, on every page (brand guide: shared header partial).
+
+    Two identical runs translated by exactly -50% make the loop seamless. Each run
+    repeats the series list until it is comfortably wider than a desktop viewport —
+    a run narrower than the screen leaves a bald patch at the right edge on every
+    cycle, which is the one way a marquee looks broken rather than deliberate.
+
+    The duplicate run is aria-hidden, so a screen reader gets each value once. The
+    as-of stamp is pinned outside the marquee: it is the cell the refresh script
+    rewrites, and a timestamp that scrolls away is a timestamp nobody reads.
+    """
+    items: list[str] = []
+    for series in TICKER:
         row = current_print(ctx.conn, series, ctx.date)
         if row is None:
             continue
-        dot = '<span class="live-dot" aria-hidden="true"></span>' if i == 0 else ""
-        short = series.replace("EU-CRI-", "")
         if row["value_usd"] is None:
-            body = (
-                '<span class="ticker__val u">&#8212;</span>'
-                '<span class="ticker__stamp">GAP</span>'
-            )
+            value = ('<span class="tickerbar__gap">&#8212;&#8194;GAP</span>')
         else:
-            prev = previous_published(ctx.conn, series, row["date"])
             dp = 2 if series != COMPOSITE else 1
-            body = (
-                f'<span class="ticker__val num">{_num(row["value_usd"], dp)}</span>'
-                f'{_delta(_pct(row["value_usd"], prev[1] if prev else None))}'
+            unit = "" if series == COMPOSITE else "$"
+            value = (
+                f'<span class="tickerbar__val num">{unit}'
+                f'{_num(row["value_usd"], dp)}</span>'
             )
         items.append(
-            f'<div class="ticker__item" role="listitem">{dot}'
-            f'<span class="ticker__sym">{_e(short)}</span>{body}</div>'
+            '<span class="tickerbar__item">'
+            '<span class="tickerbar__dot" aria-hidden="true"></span>'
+            f'<span class="tickerbar__sym">{_nbsp_series(series)}</span>{value}</span>'
         )
     stamp = (
-        f'<div class="ticker__item ticker__item--meta" role="listitem">'
-        f'<span class="ticker__stamp num" id="asof" data-generated="{_e(ctx.generated_at)}">'
-        f'AS OF {_e(ctx.generated_at.replace("T", " ").replace("Z", " UTC"))}</span></div>'
+        f'<div class="tickerbar__stamp num" id="asof" aria-live="polite"'
+        f' data-generated="{_e(ctx.generated_at)}">'
+        f'AS OF {_e(ctx.generated_at.replace("T", " ").replace("Z", " UTC"))}</div>'
     )
+    if not items:
+        # No series resolved for this session. The band still carries the stamp — an
+        # empty ticker that says when it was built beats a ticker that is simply absent.
+        return f'<div class="tickerbar">{stamp}</div>'
+
+    # ~200px per item; two runs of >=10 keep the track wider than a 1920px viewport.
+    reps = max(1, -(-10 // len(items)))
+    run = "".join(items * reps)
     return (
-        '<div class="ticker"><div class="ticker__track scroll-x" role="list"'
-        ' aria-label="EU-CRI series, last published values">'
-        + "".join(items)
-        + stamp
-        + "</div></div>"
+        '<div class="tickerbar">'
+        '<div class="tickerbar__marquee" role="region"'
+        f' aria-label="{_e(BRAND)} series, last published values">'
+        f'<div class="tickerbar__track">'
+        f'<div class="tickerbar__run">{run}</div>'
+        f'<div class="tickerbar__run" aria-hidden="true">{run}</div>'
+        "</div></div>"
+        f"{stamp}</div>"
     )
+
+
+# --- landing-page components ----------------------------------------------
+
+
+def _wave() -> str:
+    """The hero's wave graphic — brand furniture, not a chart.
+
+    Deliberately abstract: no axis, no scale, no readable value, and aria-hidden, so it
+    can never be mistaken for a price series. The shape is the brand guide's own curve
+    (two summed sines), evaluated here rather than in JavaScript so the graphic is
+    present with scripting disabled. It draws in once on load (tci-rise, staggered) and
+    breathes only while hovered (tci-wave) — motion that answers the reader instead of
+    looping at them, and silenced entirely by prefers-reduced-motion.
+    """
+    from math import pi, sin
+
+    n = 48
+    cols = []
+    for i in range(n):
+        t = i / (n - 1)
+        height = max(8, round(90 + sin(t * pi * 2.2 + 0.5) * 60 + sin(t * pi * 5) * 16))
+        hi = 0.3 < t < 0.7 and i % 3 == 0
+        cols.append(
+            f'<span class="wave__col{" wave__col--hi" if hi else ""}"'
+            f' style="--h:{height}px;--dot:{4 if hi else 2.5}px;--d:{i * 0.03:.2f}s;'
+            f'--dw:{i * 0.035:.2f}s;--wd:{1.3 + (i % 5) * 0.15:.2f}s">'
+            '<span class="wave__dot"></span><span class="wave__bar"></span></span>'
+        )
+    return f'<div class="hero__wave" aria-hidden="true">{"".join(cols)}</div>'
+
+
+def _hero() -> str:
+    return f"""<section class="hero">
+  {_wave()}
+  <div class="hero__inner">
+    <h1 class="hero__h">Independent. Transparent.<br>Built for the compute
+    market<span class="hero__stop">.</span></h1>
+    <p class="hero__dek">{_e(BRAND_LINE)}</p>
+    <div class="hero__cta">
+      <a class="btn btn--primary" href="#indices">View Indices</a>
+      <a class="btn btn--ghost" href="methodology.html">Our Methodology</a>
+    </div>
+  </div>
+</section>"""
+
+
+def _series_table(ctx: SiteContext) -> str:
+    """Today's print for every class series, in the brand guide's flat ruled register.
+
+    Every row is this session's row or nothing: `current_print` refuses to hand back an
+    older print dressed as today's. A series that gapped keeps its row and says why.
+    """
+    region = ctx.factors.reference_unit.location.replace("_", "/")
+    rows = []
+    for series in HEADLINE_TABLE:
+        row = current_print(ctx.conn, series, ctx.date)
+        if row is None:
+            price = '<td class="ta-r u">&#8212;</td>'
+            delta = '<td class="ta-r u">not computed</td>'
+        elif row["value_usd"] is None:
+            price = '<td class="ta-r u">&#8212;</td>'
+            delta = (
+                f'<td class="ta-r u">gap &#183; '
+                f'{_e(_flag_words(row["flags"]) or "not computed")}</td>'
+            )
+        else:
+            month_ago = (
+                date_type.fromisoformat(row["date"]) - timedelta(days=WINDOW_DAYS)
+            ).isoformat()
+            base = value_on_or_before(ctx.conn, series, month_ago)
+            price = f'<td class="ta-r">${_num(row["value_usd"])}</td>'
+            delta = f'<td class="ta-r">{_delta(_pct(row["value_usd"], base), 1)}</td>'
+        rows.append(
+            f'<tr><th scope="row">{_nbsp_series(series)}</th>'
+            f'<td class="stable__reg">{_e(region)}</td>{price}{delta}</tr>'
+        )
+    return f"""<div class="scroll-x"><table class="stable">
+  <caption class="vh">{_e(BRAND)} class series, print for {_e(ctx.date)}</caption>
+  <thead><tr>
+    <th scope="col">Series</th><th scope="col">Region</th>
+    <th scope="col" class="ta-r">$/GPU&#8209;hr</th>
+    <th scope="col" class="ta-r">{WINDOW_DAYS}d &#916;</th>
+  </tr></thead>
+  <tbody>{"".join(rows)}</tbody>
+</table></div>"""
+
+
+def _pillars(ctx: SiteContext) -> str:
+    gate = ctx.factors.aggregation.min_providers
+    cap = f"{ctx.factors.weights.max_weight_share_pct:,.0f}"
+    cards = (
+        (
+            "dot", "Reproducible",
+            "Every parameter is a visible config value, and the five files that can change "
+            "a print are hash-locked. Every print can be rebuilt from public sources by "
+            "anyone with the repo.",
+        ),
+        (
+            "sq", "Vendor-neutral",
+            "A weighted median over offers from marketplaces, neoclouds and sovereign "
+            f"operators, gated at {gate} providers, with a {cap}% concentration cap — "
+            "no single source sets the price.",
+        ),
+        (
+            "rule", "Open methodology",
+            "Design follows the IOSCO Principles for Financial Benchmarks as voluntary best "
+            "practice — published, versioned, and change-controlled, with the full "
+            "constituent set behind every print.",
+        ),
+    )
+    return '<div class="pillars">' + "".join(
+        f'<article class="pillar"><span class="pillar__ico pillar__ico--{kind}"'
+        f' aria-hidden="true"><i></i></span>'
+        f'<h3 class="pillar__t">{_e(title)}</h3>'
+        f'<p class="pillar__d">{_e(body)}</p></article>'
+        for kind, title, body in cards
+    ) + "</div>"
+
+
+def _family(ctx: SiteContext) -> str:
+    """The index family. Only the first one exists; the others say so plainly.
+
+    A roadmap card is fine; a roadmap card that reads like a shipped product is the same
+    failure as a stale print dressed as live, so the status label leads and the copy for
+    an unbuilt index never implies a number.
+    """
+    classes = len(ctx.factors.model_classes)
+    cards = (
+        (
+            True, "Live", f"{SERIES_PREFIX_PUBLISHED}",
+            f"Compute Reference Index — GPU-hour pricing across {classes} hardware classes, "
+            "published daily with its full constituent set.",
+        ),
+        (
+            False, "In development", "TCI-ERI",
+            "Energy Reference Index — the power cost behind the compute cost. Day-ahead "
+            "power prices are already collected as an overlay; they do not enter any "
+            "index value.",
+        ),
+        (
+            False, "Planned", "TCI-SRI",
+            "Storage Reference Index — reference pricing for high-throughput storage. "
+            "No data is collected for this yet.",
+        ),
+    )
+    return '<div class="famcards">' + "".join(
+        f'<article class="fam{" fam--live" if live else ""}">'
+        f'<span class="fam__status">{_e(status)}</span>'
+        f'<h3 class="fam__sym">{_e(sym).replace("-", "&#8209;")}</h3>'
+        f'<p class="fam__desc">{_e(desc)}</p></article>'
+        for live, status, sym, desc in cards
+    ) + "</div>"
+
+
+def _data_teaser(ctx: SiteContext) -> str:
+    """The data section's terminal block — a command that actually works.
+
+    The mockup curls a `tci.dev/api/v1/...` endpoint. No such host or API exists, so the
+    block shows the real published JSON and the real stored series key, and its output is
+    generated from this session's row rather than typed. A fabricated example response on
+    a benchmark site is the same class of error as a fabricated print.
+    """
+    head = ctx.head
+    if head is not None and head["value_usd"] is not None:
+        out = (
+            f'{{"date":"{head["date"]}","value_usd":{head["value_usd"]:.2f},'
+            f'"flags":""}}'
+        )
+    elif head is not None:
+        out = (
+            f'{{"date":"{head["date"]}","value_usd":null,'
+            f'"flags":"{_e(head["flags"] or "")}"}}'
+        )
+    else:
+        out = '{"date":null,"value_usd":null}'
+    return f"""<div class="teaser">
+  <div>
+    <h2 class="teaser__h" id="data">Full history. CSV and JSON.</h2>
+    <p class="teaser__d">Every observation, every print, every constituent set — the
+    candidates that were rejected as well as the ones that counted, and the reason for
+    each. Downloadable and versioned since day one.</p>
+    <div class="teaser__cta">
+      <a class="btn btn--primary" href="data/index_history.csv">Download CSV</a>
+      <a class="btn btn--ghost" href="data.html">Data &amp; terms</a>
+    </div>
+  </div>
+  <div class="term">
+    <div class="term__chrome" aria-hidden="true"><i></i><i></i><i></i>
+      <span class="term__name">latest.json</span></div>
+    <div class="term__body">
+      <div class="term__c"># today's print, straight from the published JSON</div>
+      <div>curl -s ./data/latest.json | jq '.series["{HEADLINE}"]'</div>
+      <div class="term__hi">{_e(out)}</div>
+    </div>
+  </div>
+</div>"""
+
+
+def _research_strip(notes: list[Note], limit: int = 3) -> str:
+    rows = "".join(
+        f'<a class="linklist__row" href="research/{_e(n.slug)}.html">'
+        f'<span class="linklist__t">{_e(n.title)}</span>'
+        f'<span class="linklist__when num">{_e(n.date or "unscheduled")}</span></a>'
+        for n in notes[:limit]
+    )
+    return f'<div class="linklist">{rows}</div>'
 
 
 def _print_card(ctx: SiteContext) -> str:
@@ -830,7 +1170,7 @@ def _print_card(ctx: SiteContext) -> str:
             else ""
         )
         figure = (
-            '<div class="print__figure">'
+            '<div class="print__figure" aria-live="polite">'
             '<span class="print__ccy ccy-usd" aria-hidden="true">$</span>'
             '<span class="print__ccy ccy-eur" aria-hidden="true">&#8364;</span>'
             f'<span class="print__value num ccy-usd" id="hero-usd">'
@@ -846,7 +1186,8 @@ def _print_card(ctx: SiteContext) -> str:
         )
     else:
         figure = (
-            '<div class="print__figure"><span class="print__value num" id="hero-usd"'
+            '<div class="print__figure" aria-live="polite">'
+            '<span class="print__value num" id="hero-usd"'
             ' aria-label="No value published">&#8212;&#8212;</span>'
             '<span class="print__unit">no print this session</span></div>'
         )
@@ -893,7 +1234,7 @@ def _print_card(ctx: SiteContext) -> str:
     <div class="print__head">
       <div>
         <div class="eyebrow">Headline index</div>
-        <h2 class="print__sym" id="print-h">EU&#8209;CRI&#8209;H100</h2>
+        <h2 class="print__sym" id="print-h">{_nbsp_series(HEADLINE)}</h2>
         <p class="print__desc">{_e(desc)}</p>
       </div>
       {ccy_toggle}
@@ -910,8 +1251,8 @@ def _print_card(ctx: SiteContext) -> str:
       <div><dt>Providers</dt><dd class="num">{head["n_sources"]} in panel</dd></div>
       <div><dt>Estimator</dt><dd>{_e(ctx.factors.aggregation.estimator.replace("_", " "))}</dd>
       </div>
-      <div><dt>Methodology</dt><dd><a href="methodology.html">EU&#8209;CRI&#8209;M
-        v{_e(ctx.version)}</a></dd></div>
+      <div><dt>Methodology</dt><dd><a href="methodology.html">
+        {SERIES_PREFIX_PUBLISHED}&#8209;M v{_e(ctx.version)}</a></dd></div>
     </dl>
   </div>
 </section>"""
@@ -923,9 +1264,8 @@ def _tiles(ctx: SiteContext) -> str:
     for series in TILES:
         row = current_print(ctx.conn, series, ctx.date)
         label = SERIES_LABEL.get(series, series)
-        short = series.replace("EU-CRI-", "")
         head = (
-            f'<div class="tile__head"><span class="tile__sym">{_e(short)}</span>'
+            f'<div class="tile__head"><span class="tile__sym">{_nbsp_series(series)}</span>'
             f'<span class="tile__note">{_e(label)}</span></div>'
         )
         if row is None:
@@ -995,14 +1335,14 @@ def _chart_card(ctx: SiteContext) -> str:
     )
     return f"""<div class="card">
   <div class="card__head">
-    <div><h3 class="card__title">EU&#8209;CRI&#8209;H100</h3>
+    <div><h3 class="card__title">{_nbsp_series(HEADLINE)}</h3>
     <p class="card__sub">USD per GPU-hour &#183; {WINDOW_DAYS} sessions to
     {_e(_human_date(ctx.date))} &#183; {published} published, {WINDOW_DAYS - published}
     gapped</p></div>
     <span class="card__meta num">{meta}</span>
   </div>
   <div class="card__body">
-    {line_chart(points, symbol="EU-CRI-H100")}
+    {line_chart(points, symbol=display_series(HEADLINE))}
     <p class="ledger__d" style="margin-top:var(--space-4)">A gapped session is drawn as a
     hairline tick on the baseline and the line breaks across it. Nothing is interpolated:
     the index publishes a gap rather than a value it cannot defend.</p>
@@ -1101,7 +1441,8 @@ def _constituents_card(ctx: SiteContext) -> str:
     return f"""<div class="card card__body--flush">
 <div class="scroll-x">
 <table class="grid">
-  <caption class="vh">EU-CRI-H100 constituents at the {_e(ctx.date)} print</caption>
+  <caption class="vh">{_e(display_series(HEADLINE))} constituents at the
+  {_e(ctx.date)} print</caption>
   <thead><tr>
     <th scope="col">Provider</th>
     <th scope="col">Segment</th>
@@ -1328,36 +1669,65 @@ def _model_mix_bar(ctx: SiteContext) -> str:
 # ==========================================================================
 
 
-def _dashboard(ctx: SiteContext) -> str:
+def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
+    title = f"{BRAND} — {BRAND_FULL}"
+    description = (
+        f"{BRAND}: daily, reproducible reference prices for renting AI compute. Weighted "
+        "median over offers, published with its full constituent set and a gap wherever "
+        "the panel is too thin to price."
+    )
     if ctx.head is None:
         body = (
-            '<main class="wrap" id="main"><section class="section">'
+            '<main id="main"><div class="wrap">'
+            '<section class="section"><h1 class="section__h">' + _e(BRAND_FULL) + "</h1>"
             '<div class="gapnote">' + _icon("warn", 14)
             + "<p>No print has been computed yet. Run the daily pipeline.</p></div>"
-            "</section></main>"
+            "</section></div></main>"
         )
         return _shell(
-            ctx,
-            title="EU-CRI — European Compute Reference Index",
-            description="Daily reference price for renting AI compute in the EU/EEA.",
-            current="index.html",
-            body=body,
+            ctx, title=title, description=description, current="index.html", body=body
         )
 
-    body = f"""<main class="wrap" id="main">
-  <h1 class="vh">EU-CRI — European Compute Reference Index, daily print for
-  {_e(ctx.date)}</h1>
+    # The pulsing dot means "there is a price here right now". On a session that gapped
+    # there is not, and a live badge over a column of dashes is the same lie as a stale
+    # value dressed as current — so the badge states which of the two it is.
+    if ctx.head is not None and ctx.head["value_usd"] is not None:
+        live = (
+            '<div class="live-label"><span class="live-dot" aria-hidden="true"></span>'
+            f'<span>Live &#183; updated daily {_e(CUTOFF_UTC)}</span></div>'
+        )
+    else:
+        live = (
+            '<div class="live-label">'
+            f'<span>No headline print this session &#183; next {_e(CUTOFF_UTC)}</span>'
+            "</div>"
+        )
+    body = f"""<main id="main">
+  <div class="wrap">
+    {_hero()}
+  </div>
 
-  <section class="section" aria-labelledby="print-h" style="padding-block:var(--space-6)">
+  <div class="wrap">
+  <section class="section" id="indices" aria-labelledby="s-today">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-today">Headline series &#8212; today</h2>
+      <p class="section__dek">One row per class the index prices, for the
+      {_e(_human_date(ctx.date))} session. A class below the provider gate keeps its row and
+      states the gate it missed; the last good value is never promoted into today's slot.
+      </p></div>
+      <div class="section__link">{live}</div></div>
+    {_series_table(ctx)}
+  </section>
+
+  <section class="section" aria-labelledby="print-h">
     {_print_card(ctx)}
   </section>
 
   <section class="section" aria-labelledby="s-sub">
     <div class="section__head"><div>
       <h2 class="section__h" id="s-sub">Sub-indices</h2>
-      <p class="section__dek">One tile per published series. A series below the provider gate
-      keeps its slot and shows a gap with the reason — the last good value is never promoted
-      into the current slot.</p></div></div>
+      <p class="section__dek">The segment and variant cuts of the headline. A series below
+      the provider gate keeps its slot and shows a gap with the reason.</p></div></div>
     {_tiles(ctx)}
   </section>
 
@@ -1393,18 +1763,43 @@ def _dashboard(ctx: SiteContext) -> str:
       {_sources_card(ctx)}
     </div>
   </section>
+
+  <section class="section" id="methodology" aria-labelledby="s-pillars">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-pillars">How the number is made</h2>
+      <p class="section__dek">Three commitments, each one checkable against the repository
+      rather than taken on trust.</p></div>
+      <a class="section__link" href="methodology.html">Full methodology</a></div>
+    {_pillars(ctx)}
+  </section>
+
+  <section class="section" aria-labelledby="s-family">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-family">A family of indices</h2>
+      <p class="section__dek">One index is published today. The rest are stated as what they
+      are — in development or planned — and carry no numbers until they do.</p></div></div>
+    {_family(ctx)}
+  </section>
+
+  <section class="section" aria-labelledby="data">
+    {_data_teaser(ctx)}
+  </section>
+
+  <section class="section" aria-labelledby="s-research">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-research">Latest research</h2>
+      <p class="section__dek">Notes on what the index measures and what it cannot.</p>
+      </div><a class="section__link" href="research.html">All notes</a></div>
+    {_research_strip(notes)}
+  </section>
+  </div>
 </main>"""
     return _shell(
         ctx,
-        title=f"EU-CRI — European Compute Reference Index — {ctx.date}",
-        description=(
-            "EU-CRI: a daily, reproducible reference price for renting AI compute delivered "
-            "from the EU/EEA. Weighted median over offers, published with its full "
-            "constituent set."
-        ),
+        title=f"{title} — {ctx.date}",
+        description=description,
         current="index.html",
         body=body,
-        ticker=_ticker(ctx),
         extra_js=_REFRESH_JS,
     )
 
@@ -1564,17 +1959,101 @@ def _parameter_ledger(ctx: SiteContext) -> str:
     )
 
 
+def _reference_definition(ctx: SiteContext) -> str:
+    """The unit, as a key/value table read from config — never retyped prose."""
+    ru = ctx.factors.reference_unit
+    f = ctx.factors
+    rows = (
+        ("GPU model", ru.gpu_model.replace("_", " ")),
+        ("Term", ru.term.replace("_", "-").capitalize() + ", no commitment"),
+        ("Location", ru.location.replace("_", "/") + " data centre"),
+        ("Node size", f"&#8805;{f.filters.min_gpu_count} GPUs; sub-node offers excluded"),
+        ("Unit", "Per-GPU-hour, ex-VAT, excluding storage and metered egress"),
+        ("Currency", "USD primary, EUR companion at the ECB reference rate (T&#8722;1)"),
+    )
+    body = "".join(f"<tr><td>{_e(k)}</td><td>{v}</td></tr>" for k, v in rows)
+    return f'<table class="kv"><tbody>{body}</tbody></table>'
+
+
+def _class_table(ctx: SiteContext) -> str:
+    rows = "".join(
+        f'<tr><td>{_e(name)}</td>'
+        f'<td class="u">{_e(cls.reference_variant.replace("_", " "))}</td></tr>'
+        for name, cls in ctx.factors.model_classes.items()
+    )
+    return (
+        '<table class="kv"><thead><tr><td>Class</td><td>Reference variant</td></tr></thead>'
+        f"<tbody>{rows}</tbody></table>"
+    )
+
+
+def _segment_cards(ctx: SiteContext) -> str:
+    """Market segments and their members, straight from `factors.segments`.
+
+    The mockup lists the providers as copy. Reading them from config instead means a
+    provider added or delisted tomorrow cannot leave this card telling a stale story.
+    """
+    by_segment: dict[str, list[str]] = {}
+    for provider, segment in sorted(ctx.factors.segments.items()):
+        by_segment.setdefault(segment, []).append(provider)
+    note = {
+        "marketplace": "Executable quotes with a demonstrated node size.",
+        "neocloud": "Published list prices from specialist operators.",
+        "hyperscaler": "Catalog list prices. Published as their own series.",
+    }
+    cards = "".join(
+        f'<article class="segcard"><h4 class="segcard__t">{_e(seg.capitalize())}</h4>'
+        f'<p class="segcard__l">{_e(", ".join(members))}</p>'
+        + (f'<p class="segcard__l">{_e(note[seg])}</p>' if seg in note else "")
+        + "</article>"
+        for seg, members in sorted(by_segment.items())
+    )
+    return f'<div class="segcards">{cards}</div>'
+
+
+def _aggregation_term(ctx: SiteContext) -> str:
+    """The aggregation rules as a terminal block — the config file, not a paraphrase."""
+    agg = ctx.factors.aggregation
+    trim = ", ".join(f"k={r.k} at n&#8805;{r.min_n}" for r in agg.trim_k if r.min_n)
+    return f"""<div class="term">
+  <div class="term__chrome" aria-hidden="true"><i></i><i></i><i></i>
+    <span class="term__name">config/factors.yaml</span></div>
+  <div class="term__body">
+    <div>unit: <span class="term__hi">{_e(agg.unit)}</span>  <span class="term__c">
+    # weighted over offers, not one price per provider</span></div>
+    <div>estimator: {_e(agg.estimator)}</div>
+    <div>min_providers: {agg.min_providers}  <span class="term__c">
+    # below this: value=null, flag=insufficient_sources</span></div>
+    <div>min_offers: {agg.min_offers}</div>
+    <div>trim: count-based ({trim})</div>
+    <div>smoothing_days: {agg.smoothing_days}  <span class="term__c">
+    # headline companion series only</span></div>
+  </div>
+</div>"""
+
+
 def _methodology(ctx: SiteContext) -> str:
-    doc = markdown.render(_read(REPO_ROOT / "METHODOLOGY.md"), heading_offset=1)
+    doc = markdown.render(_rebrand_doc(_read(REPO_ROOT / "METHODOLOGY.md")), heading_offset=1)
     lock = ctx.lock_hash
+    ru = ctx.factors.reference_unit
+    head_pop = ", ".join(sorted(ctx.factors.population_for("headline")))
     body = f"""<main class="wrap" id="main">
   <div class="pagehead">
-    <div class="eyebrow">EU-CRI-M</div>
-    <h1 class="pagehead__h pagehead__h--display">Methodology</h1>
-    <p class="pagehead__dek">Everything that can change a published print, and the exact
-    order it is applied in. The document below is generated from
-    <code class="inline">config/factors.yaml</code>; the parameter ledger is read from the
-    same file at build time, so neither can drift from the calculation.</p>
+    <div class="vbadges">
+      <span class="vbadge">v{_e(ctx.version)}</span>
+      <span class="vbadge">iosco-aligned</span>
+      <span class="vbadge">reproducible</span>
+    </div>
+    <h1 class="pagehead__h pagehead__h--display">The reference price, defined
+    precisely.</h1>
+    <p class="pagehead__dek"><strong>{_nbsp_series(HEADLINE)}</strong> is the headline
+    series: one NVIDIA {_e(ru.gpu_model.replace("_", " "))} GPU-hour, on-demand, per GPU,
+    ex-VAT, from an {_e(ru.location.replace("_", "/"))} data centre. Companion series cover
+    market segments, additional GPU generations, and a chain-linked composite that follows
+    the market across hardware cycles. Everything below is read from
+    <code class="inline">config/factors.yaml</code> at build time, so no table on this page
+    can drift from the calculation. Series identifiers quoted as code below are the
+    <a href="data.html#s-ids">stored keys</a>, which the published files still use.</p>
     <div class="pagehead__meta">
       <span>Version <span class="num">v{_e(ctx.version)}</span></span>
       <span id="lock">Lock <span class="num">sha256:{_e(lock[:16])}&#8230;</span></span>
@@ -1582,13 +2061,50 @@ def _methodology(ctx: SiteContext) -> str:
       <span><a href="governance.html">Change procedure</a></span>
     </div>
   </div>
+
+  <section class="section" aria-labelledby="s-refdef">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-refdef">Reference definition</h2></div></div>
+    {_reference_definition(ctx)}
+  </section>
+
+  <section class="section" aria-labelledby="s-classes">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-classes">Compute classes</h2>
+      <p class="section__dek">A class prices its reference variant only. No assumed
+      cross-variant normalisation factor enters the calculation path — a variant re-enters a
+      class only once a factor is measured from same-venue, same-day, same-SKU pairs.</p>
+      </div></div>
+    {_class_table(ctx)}
+  </section>
+
+  <section class="section" aria-labelledby="s-segments">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-segments">Market segments</h2>
+      <p class="section__dek">The headline draws from {_e(head_pop)} only. The constituent
+      distribution is bimodal — the hyperscaler catalog sits 5.4 standard deviations away —
+      so it is published as its own series rather than averaged in.</p></div></div>
+    {_segment_cards(ctx)}
+  </section>
+
+  <section class="section" aria-labelledby="s-agg">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-agg">How the print is computed</h2>
+      <p class="section__dek">Every offer is weighted by GPU count rather than counted once
+      per provider: a median over six providers is a step function, a median over many
+      weighted offers is locally smooth. Below the provider floor the value is published as
+      a gap, never fabricated.</p></div></div>
+    {_aggregation_term(ctx)}
+  </section>
+
   <div class="doc">
     {_toc(doc.headings)}
     <div>
       <section aria-labelledby="ledger-h" style="margin-bottom:var(--space-8)">
         <div class="card">
           <div class="card__head">
-            <div><h2 class="card__title" id="ledger-h">EU-CRI-M &#183; construction</h2>
+            <div><h2 class="card__title" id="ledger-h">{SERIES_PREFIX_PUBLISHED}&#8209;M
+            &#183; construction</h2>
             <p class="card__sub">Hash-locked. A change to any row requires a version bump, a
             CHANGELOG entry, and one publication's notice.</p></div>
             <span class="card__meta num">v{_e(ctx.version)} &#183;
@@ -1642,33 +2158,162 @@ python -m eucri.run docs</code></pre>
 </main>"""
     return _shell(
         ctx,
-        title=f"Methodology v{ctx.version} — EU-CRI",
+        title=f"Methodology v{ctx.version} — {BRAND}",
         description=(
-            "The exact EU-CRI construction: unit definition, market segmentation, weighting, "
-            "trim, weighted median over offers, and the publication gate."
+            f"The exact {SERIES_PREFIX_PUBLISHED} construction: unit definition, market "
+            "segmentation, weighting, trim, weighted median over offers, and the "
+            "publication gate."
         ),
         current="methodology.html",
         body=body,
     )
 
 
+_PRECOND_HEAD = re.compile(r"^#+\s*Settlement-grade preconditions", re.M)
+_PRECOND_ITEM = re.compile(r"^(\d+)\.\s+(.+?)(?=\n\d+\.\s|\n\n)", re.M | re.S)
+_PRECOND_STATUS = re.compile(r"none of ([\d,\s]+?(?:or\s*\d+)?) is met", re.I)
+
+
+def _preconditions(ctx: SiteContext) -> str:
+    """The settlement-grade checklist, PARSED out of GOVERNANCE.md — never retyped.
+
+    The mockup hardcodes the seven conditions. Duplicating a governance list in the
+    generator is precisely the drift this project exists to avoid: the document is the
+    authority, and a summary that quietly disagrees with it is worse than no summary. So
+    the list and the met/unmet line are read from the document at build time, and if its
+    shape ever changes the component simply does not render — the full text is on the
+    same page either way.
+    """
+    text = _read(REPO_ROOT / "GOVERNANCE.md")
+    start = _PRECOND_HEAD.search(text)
+    if start is None:
+        return ""
+    block = text[start.end():]
+    end = block.find("\n## ")          # stop at the next top-level section
+    items = _PRECOND_ITEM.findall(block if end < 0 else block[:end])
+    if not items:
+        return ""
+    # The document names the conditions it considers UNMET. It does not anywhere assert
+    # that a condition is met, so neither does this table: anything the document is
+    # silent about renders as "not stated", never as met by inference. Reading a
+    # governance page's silence as a positive claim is how a checklist starts lying.
+    unmet_match = _PRECOND_STATUS.search(block)
+    unmet = (
+        {int(n) for n in re.findall(r"\d+", unmet_match.group(1))}
+        if unmet_match
+        else set(range(1, len(items) + 1))
+    )
+    rows = []
+    for num, raw in items:
+        pill = (
+            '<span class="pill">not yet met</span>' if int(num) in unmet
+            else '<span class="pill">not stated</span>'
+        )
+        rows.append(
+            f'<tr><td>{_e(" ".join(raw.split())).rstrip(".")}</td><td>{pill}</td></tr>'
+        )
+    return f"""<table class="preconds">
+  <caption class="vh">Settlement-grade preconditions as of methodology
+  v{_e(ctx.version)}</caption>
+  <tbody>{"".join(rows)}</tbody>
+</table>"""
+
+
+def _policy_grid() -> str:
+    """Navigational summaries of the policies set out in full further down the page."""
+    cards = (
+        ("Methodology changes (IOSCO P12)",
+         "Version bump, CHANGELOG entry, regenerated lock, and one publication's notice "
+         "before the change affects a print. Every print records the version it was "
+         "computed under."),
+        ("Corrections (IOSCO P13)",
+         "Prints are never edited or deleted — database triggers forbid it. An erroneous "
+         "print is superseded by a new revision flagged “correction”, no later "
+         "than the next publication."),
+        ("Audit trail (IOSCO P16)",
+         "Every print stores its full constituent set — every candidate, price, weight and "
+         "exclusion reason. Reproducible with a single CLI command against any print date."),
+        ("Conflicts of interest (IOSCO P4–P5)",
+         "The calculation path contains no expert judgement: every parameter is a published "
+         "config value. Any author position on an observed venue is disclosed where "
+         "relevant."),
+        ("Data sufficiency (IOSCO P6–P7)",
+         "Below the minimum provider count the print is null and flagged "
+         "“insufficient_sources”. A gap is published — never fabricated."),
+        ("Review and cessation",
+         "Reviewed annually or on structural market change. If the index can no longer be "
+         "produced credibly, cessation is announced with 30 days' notice; the history "
+         "stays public."),
+    )
+    return '<div class="policygrid">' + "".join(
+        f'<article class="policy"><h3 class="policy__t">{title}</h3>'
+        f'<p class="policy__d">{_e(body)}</p></article>'
+        for title, body in cards
+    ) + "</div>"
+
+
 def _governance(ctx: SiteContext) -> str:
-    doc = markdown.render(_read(REPO_ROOT / "GOVERNANCE.md"), heading_offset=1)
+    doc = markdown.render(_rebrand_doc(_read(REPO_ROOT / "GOVERNANCE.md")), heading_offset=1)
+    preconds = _preconditions(ctx)
+    preconds_section = (
+        f"""<section class="section" aria-labelledby="s-pre">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-pre">Settlement-grade preconditions</h2>
+      <p class="section__dek">{_e(BRAND)} is a price-transparency benchmark, not a
+      settlement benchmark, and will not be represented as one until all of these hold.
+      Published so the claim can be checked rather than trusted.</p></div></div>
+    {preconds}
+  </section>"""
+        if preconds
+        else ""
+    )
     body = f"""<main class="wrap" id="main">
   <div class="pagehead">
     <div class="eyebrow">IOSCO principles, voluntary</div>
     <h1 class="pagehead__h pagehead__h--display">Governance</h1>
-    <p class="pagehead__dek">Who administers the index, how a change to it is made, and what
-    happens when a print is wrong. EU-CRI is a research publication: it is not licensed for
-    use in financial instruments, and any request to hard-wire it into a financial contract
-    will be refused. The regulatory position is stated precisely below rather than
-    summarised here.</p>
+    <p class="pagehead__dek">Administrator and author: <strong>Mark Rusch</strong>,
+    Amsterdam. Who administers the index, how a change to it is made, and what happens when
+    a print is wrong. {_e(BRAND)} is a research publication: it is not licensed for use in
+    financial instruments, and any request to hard-wire it into a financial contract will be
+    refused.</p>
     <div class="pagehead__meta">
       <span>Administrator Mark Rusch</span>
       <span>Methodology <span class="num">v{_e(ctx.version)}</span></span>
       <span>Lock <span class="num">sha256:{_e(ctx.lock_hash[:16])}&#8230;</span></span>
     </div>
   </div>
+
+  <section class="section" aria-labelledby="s-scope">
+    <div class="callout--brand">
+      <span class="eyebrow" id="s-scope">Regulatory scope</span>
+      <p>Regulation (EU) 2025/914 narrows the EU Benchmarks Regulation to critical,
+      significant and climate-transition benchmarks, and {_e(BRAND)} falls outside Titles
+      II&#8211;VI as a non-significant benchmark. Whether prices scraped from public rate
+      cards constitute &#8220;contributed input data&#8221; under the new Article 2(1c) is
+      an open question on which the administrator expresses no view; legal advice will be
+      obtained before any contractual use. The precise position is set out below.</p>
+    </div>
+  </section>
+
+  {preconds_section}
+
+  <section class="section" aria-labelledby="s-policy">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-policy">Policy summary</h2>
+      <p class="section__dek">The short form. Each one is set out in full in the document
+      below, which is the authority wherever the two differ.</p></div></div>
+    {_policy_grid()}
+  </section>
+
+  <section class="section" aria-labelledby="s-complaints">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-complaints">Complaints</h2></div></div>
+    <p class="dek">Complaints or challenges to any print:
+    <a href="mailto:{_e(CONTACT_EMAIL)}">{_e(CONTACT_EMAIL)}</a>. Acknowledged within 7
+    days; the outcome — a correction or a rationale for no change — is published with the
+    next print.</p>
+  </section>
+
   <div class="doc">
     {_toc(doc.headings)}
     <div class="md">{doc.html}</div>
@@ -1676,12 +2321,137 @@ def _governance(ctx: SiteContext) -> str:
 </main>"""
     return _shell(
         ctx,
-        title="Governance — EU-CRI",
+        title=f"Governance — {BRAND}",
         description=(
-            "EU-CRI governance: methodology change procedure, correction policy, audit trail, "
-            "conflicts of interest, complaints, and cessation."
+            f"{BRAND} governance: methodology change procedure, correction policy, audit "
+            "trail, conflicts of interest, complaints, and cessation."
         ),
         current="governance.html",
+        body=body,
+    )
+
+
+# ---- data -----------------------------------------------------------------
+
+
+def _data(ctx: SiteContext) -> str:
+    """Downloads, the terms in short, and how to cite a value.
+
+    The one thing this page must be straight about: the site publishes TCI names while the
+    files still carry the stored EU-CRI keys, because renaming a published identifier is a
+    governed event and not a styling decision. Saying so here costs a paragraph; letting a
+    reader discover it inside a CSV costs the citation.
+    """
+    head = ctx.head
+    stamp = (
+        f'{_e(display_series(HEADLINE))}, {_e(ctx.date)}: '
+        + (
+            f"${_num(head['value_usd'])}/GPU-hr"
+            if head is not None and head["value_usd"] is not None
+            else "no print (gap)"
+        )
+        + f" (v{_e(ctx.version)}, lock sha256:{_e(ctx.lock_hash[:12])}&#8230;)"
+    )
+    cards = (
+        ("Index history", "Full daily history of every published series, latest revision "
+         "per date.", "data/index_history.csv", "Download CSV"),
+        ("Latest print", "latest.json — current values across all series, with flags and "
+         "the FX leg.", "data/latest.json", "View JSON"),
+        ("Constituent audit", "Every candidate provider per print, included or not, its "
+         "weight, and why. Published inside latest.json.", "data/latest.json",
+         "View audit set"),
+        ("Source code", "The generator, the collectors and the calculation — Apache-2.0, "
+         "so any print here can be rebuilt independently.", REPO_URL, "Open repository"),
+    )
+    dl = "".join(
+        f'<article class="dl"><h3 class="dl__t">{_e(t)}</h3><p class="dl__d">{_e(d)}</p>'
+        f'<a class="btn btn--ghost btn--sm" href="{_e(href)}">{_e(action)}</a></article>'
+        for t, d, href, action in cards
+    )
+    body = f"""<main class="wrap" id="main">
+  <div class="pagehead">
+    <h1 class="pagehead__h pagehead__h--display">Full history. Every observation. No black
+    box.</h1>
+    <p class="pagehead__dek">Raw observations, daily prints, and the full constituent audit
+    set behind each one — downloadable, versioned since day one, and reproducible from
+    public sources using the published code.</p>
+    <div class="pagehead__meta">
+      <span>As of <span class="num">{_e(ctx.date)}</span></span>
+      <span>Methodology <span class="num">v{_e(ctx.version)}</span></span>
+      <span>Updated daily <span class="num">{_e(CUTOFF_UTC)}</span></span>
+    </div>
+  </div>
+
+  <section class="section" aria-labelledby="s-dl">
+    <h2 class="vh" id="s-dl">Downloads</h2>
+    <div class="dlcards">{dl}</div>
+  </section>
+
+  <section class="section" aria-labelledby="s-ids">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-ids">Series identifiers</h2>
+      <p class="section__dek">The site publishes the
+      <code class="inline">{SERIES_PREFIX_PUBLISHED}&#8209;*</code> names. The data files
+      still carry the original <code class="inline">{SERIES_PREFIX_STORED}&#8209;*</code>
+      keys, and will until the rename is executed as a governed change with a published
+      old&#8594;new mapping and an effective date. Until then, read
+      <code class="inline">{HEADLINE}</code> in the files as
+      <code class="inline">{_e(display_series(HEADLINE))}</code> on this site: same series,
+      same history, same values.</p></div></div>
+    <div class="term">
+      <div class="term__chrome" aria-hidden="true"><i></i><i></i><i></i>
+        <span class="term__name">latest.json</span></div>
+      <div class="term__body">
+        <div class="term__c"># the headline print, and the constituents behind it</div>
+        <div>curl -s ./data/latest.json | jq '.series["{HEADLINE}"]'</div>
+        <div>curl -s ./data/latest.json | jq '.constituents["{HEADLINE}"]'</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="s-terms">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-terms">Terms of use, in short</h2>
+      <p class="section__dek">The full text is in
+      <code class="inline">DATA-TERMS.md</code>; this is a summary, and the document
+      governs.</p></div></div>
+    <table class="terms">
+      <tbody>
+        <tr><th scope="row">Non-commercial</th><td>Free, no permission needed — research,
+        teaching, journalism, verification, critique, reproducibility packages. Attribution
+        required. Verification is never restricted: if you believe a print is wrong, you may
+        publish everything needed to demonstrate it.</td></tr>
+        <tr><th scope="row">Commercial</th><td>Paid products, terminals, resale, or
+        financial-instrument use require permission — contact
+        <a href="mailto:{_e(CONTACT_EMAIL)}">{_e(CONTACT_EMAIL)}</a>. Terms are being
+        finalised; enquiries are welcome now.</td></tr>
+        <tr><th scope="row">Never permitted</th><td>Use as a reference price in a financial
+        instrument or contract. That is a governance restriction, not a commercial one, and
+        it is not for sale at any price.</td></tr>
+        <tr><th scope="row">Software &amp; docs</th><td>The code is Apache&#160;2.0 and the
+        methodology is CC&#160;BY&#160;4.0, so every print here can be recomputed and
+        checked independently.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" aria-labelledby="s-cite">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-cite">How to cite a value</h2>
+      <p class="section__dek">Cite the print date, the methodology version and the lock
+      hash, so the claim is checkable rather than merely attributed.</p></div></div>
+    <div class="cite">Source: {_e(BRAND)} ({_e(BRAND_FULL)}), Mark Rusch &#183;
+    {stamp}</div>
+  </section>
+</main>"""
+    return _shell(
+        ctx,
+        title=f"Data & downloads — {BRAND}",
+        description=(
+            f"{BRAND} data: full CSV history, latest.json, the constituent audit set behind "
+            "every print, terms of use, and the citation format."
+        ),
+        current="data.html",
         body=body,
     )
 
@@ -1754,7 +2524,7 @@ def _discover_notes() -> list[Note]:
     if RESEARCH_SRC.exists():
         for path in sorted(RESEARCH_SRC.glob("*.md")):
             meta, body = _front_matter(_read(path))
-            doc = markdown.render(body)
+            doc = markdown.render(_rebrand_doc(body))
             found.append(
                 Note(
                     slug=str(meta.get("slug") or path.stem),
@@ -1786,15 +2556,16 @@ def _research_index(ctx: SiteContext, notes: list[Note]) -> str:
             f'<h3 class="note__t"><a href="research/{_e(n.slug)}.html">{_e(n.title)}</a></h3>'
             f'<p class="note__dek">{_e(n.dek)}</p>'
             f'<div class="note__foot">{chip}'
-            f'<span class="u">EU-CRI Research &#183; methodology v{_e(ctx.version)}</span>'
+            f'<span class="u">{_e(BRAND)} Research &#183; methodology '
+            f'v{_e(ctx.version)}</span>'
             f"</div></div></article>"
         )
     body = f"""<main class="wrap" id="main">
   <div class="pagehead">
-    <div class="eyebrow">EU-CRI Research</div>
-    <h1 class="pagehead__h pagehead__h--display">Research notes</h1>
-    <p class="pagehead__dek">Notes on what the index measures and what it cannot. Each one is
-    reproducible from the published history in
+    <div class="eyebrow">{_e(BRAND)} Research</div>
+    <h1 class="pagehead__h pagehead__h--display">Research</h1>
+    <p class="pagehead__dek">The newsletter behind the index: notes on what it measures and
+    what it cannot. Each one is reproducible from the published history in
     <code class="inline">site/data/index_history.csv</code> and the stored constituent sets;
     where a note makes a numeric claim, the query that produced it is printed with it.</p>
     <div class="pagehead__meta">
@@ -1806,12 +2577,25 @@ def _research_index(ctx: SiteContext, notes: list[Note]) -> str:
   <div class="section">
     <div class="notes">{"".join(rows)}</div>
   </div>
+  <section class="section" aria-labelledby="s-sub">
+    <div class="subscribe">
+      <div class="subscribe__t" id="s-sub">Get the next print note</div>
+      <p class="subscribe__d">One email every two to three weeks, plus a short print note
+      whenever something breaks or moves. The archive is public; the index is published here
+      whether you subscribe or not.</p>
+      <div class="subscribe__cta">
+        <a class="btn btn--primary" href="{_e(NEWSLETTER_URL)}"
+        rel="noopener">Subscribe on Substack</a>
+        <a class="btn btn--ghost" href="{_e(REPO_URL)}" rel="noopener">Watch the repo</a>
+      </div>
+    </div>
+  </section>
 </main>"""
     return _shell(
         ctx,
-        title="Research — EU-CRI",
+        title=f"Research — {BRAND}",
         description=(
-            "EU-CRI research notes: what the index measures, what moves it, and what it "
+            f"{BRAND} research notes: what the index measures, what moves it, and what it "
             "cannot yet say."
         ),
         current="research.html",
@@ -1841,7 +2625,7 @@ def _strip_note_masthead(text: str) -> str:
 def _research_note(ctx: SiteContext, note: Note) -> str:
     if note.source is not None:
         _, raw = _front_matter(_read(note.source))
-        doc = markdown.render(_strip_note_masthead(raw), heading_offset=1)
+        doc = markdown.render(_rebrand_doc(_strip_note_masthead(raw)), heading_offset=1)
         content = f'<div class="md">{doc.html}</div>'
         toc = _toc(doc.headings)
     else:
@@ -1861,8 +2645,8 @@ def _research_note(ctx: SiteContext, note: Note) -> str:
 </div>"""
     body = f"""<main class="wrap" id="main">
   <div class="pagehead">
-    <div class="eyebrow"><a class="link-quiet" href="../research.html">EU-CRI Research</a>
-    </div>
+    <div class="eyebrow"><a class="link-quiet" href="../research.html">{_e(BRAND)}
+    Research</a></div>
     <h1 class="pagehead__h pagehead__h--display">{_e(note.title)}</h1>
     <p class="pagehead__dek">{_e(note.dek)}</p>
     <div class="pagehead__meta">
@@ -1880,7 +2664,7 @@ def _research_note(ctx: SiteContext, note: Note) -> str:
 </main>"""
     return _shell(
         ctx,
-        title=f"{note.title} — EU-CRI Research",
+        title=f"{note.title} — {BRAND} Research",
         description=note.dek[:200],
         current="research.html",
         body=body,
@@ -1910,8 +2694,9 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
     notes = _discover_notes()
 
     pages: list[tuple[Path, str]] = [
-        (SITE_DIR / "index.html", _dashboard(ctx)),
+        (SITE_DIR / "index.html", _dashboard(ctx, notes)),
         (SITE_DIR / "methodology.html", _methodology(ctx)),
+        (SITE_DIR / "data.html", _data(ctx)),
         (SITE_DIR / "governance.html", _governance(ctx)),
         (SITE_DIR / "research.html", _research_index(ctx, notes)),
     ]

@@ -3,3 +3,6 @@
 * text=auto eol=lf
 *.db binary
 *.png binary
+# Without this, `text=auto` above would rewrite CR/LF bytes inside the compressed
+# font tables and every self-hosted face would fail to parse.
+*.woff2 binary

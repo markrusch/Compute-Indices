@@ -3,242 +3,337 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>When an index measures its own sampling — EU-CRI Research</title>
+<title>When an index measures its own sampling — TCI Research</title>
 <meta name="description" content="How a 10% move in a compute benchmark turned out to be entirely composition noise — and what the unit definition had to do with it">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f3f3">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#101113">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2317191c'/%3E%3Cpath d='M7 21 L13 13 L18 17 L25 9' fill='none' stroke='%232fd6c3' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<script>(function(){try{var t=localStorage.getItem('eucri-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}document.documentElement.classList.add('js-boot');})();</script>
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0c0d">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0c0d'/%3E%3Crect x='6' y='9' width='7' height='16' rx='1' fill='%23f5f5f6'/%3E%3Crect x='17' y='16' width='7' height='9' rx='1' fill='%23f5f5f6'/%3E%3Ccircle cx='20.5' cy='10.5' r='3.5' fill='%23ff0000'/%3E%3C/svg%3E">
+<script>document.documentElement.classList.add('js-boot');</script>
 <style>
 /* ==========================================================================
-   EU-CRI — European Compute Reference Index
-   DESIGN TOKENS  ·  v1.0  ·  the whole visual system, one file
+   TCI — The Compute Indices
+   DESIGN TOKENS  ·  v2.0 (TCI rebrand)  ·  the whole visual system, one file
    ==========================================================================
 
    HOW THIS FILE IS ORGANISED
    --------------------------
-   §0  Reset-adjacent globals            §7   Diverging scale (basis ribbon)
-   §1  Neutral ramp (cool slate)         §8   Typography
+   §0  Fonts (self-hosted)               §7   Diverging scale (basis ribbon)
+   §1  Neutral ramp (near-black)         §8   Typography
    §2  Semantic surfaces                 §9   Space
    §3  Ink (text)                        §10  Radii & borders
    §4  Lines, rules, focus               §11  Elevation
-   §5  Brand accent (rationed)           §12  Motion
+   §5  Brand reds (two-tone, rationed)   §12  Motion
    §6  Status, delta, chart chrome,      §13  Layout
-       categorical + sequential
+       categorical + sequential          §14  Globals
 
    THE THREE RULES THAT MAKE THIS SYSTEM WORK
    ------------------------------------------
-   1. THE ACCENT IS RATIONED. `--accent` is teal and it means ONE thing:
-      "this is the live / current value." It is not a link colour by default,
-      not a button colour by default, not a section-header colour, ever. If
-      the teal appears more than a couple of times in a viewport, the system
-      has been misused and the page has stopped signalling anything.
-      (Lineage: Ornn ships exactly one saturated hex, used once, in a
-      stylesheet otherwise made of ten greys.)
+   1. TWO REDS, NEVER INVERTED. `--wine` (#650304) is for LARGE FILLED SHAPES
+      only: primary buttons, the nav CTA pill, tinted card grounds. `--red`
+      (#FF0000) is for SMALL MARKS only: the live dot, ticker markers, the
+      logo dot, "Live" labels, the chart's current-value marker. If a whole
+      button is bright red, or a tiny dot is wine, it is wrong.
 
-   2. THE BASE CARRIES NO HUE. The neutral ramp is a cool slate with no
-      green, no navy, no warmth. All hue in the product comes from the
-      accent, the status scale, and the chart palettes. Tinting the base
-      spends the hue budget on chrome.
+   2. THE BASE CARRIES NO HUE. The ramp is a neutral near-black. All hue in
+      the product comes from the two reds, the status scale, and the chart
+      palettes. Tinting the base spends the hue budget on chrome.
 
    3. COLOUR IS NEVER THE ONLY CHANNEL. Every status, every delta, every
-      diverging value ships with a glyph, a sign, a direct label, or a
-      table view beside it. See §6 and §7.
+      diverging value ships with a glyph, a sign, a direct label, or a table
+      view beside it. See §6 and §7.
 
-   THEMING CONTRACT
-   ----------------
-   The complete light palette lives on bare `:root`. Dark mode redefines
-   ONLY the tokens that change, in two places:
-     (a) `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) }`
-         — follows the OS, but yields to an explicit light stamp.
-     (b) `:root[data-theme="dark"]`
-         — an explicit toggle, declared after (a) so it wins in both
-           directions.
-   Non-colour tokens (type, space, radii, motion, layout) are declared once
-   and never themed.
+   THEMING CONTRACT — SINGLE THEME
+   -------------------------------
+   TCI ships ONE theme. The brand guide is explicit that #0B0C0D is "the page
+   background — the only page-background color", so there is no light palette
+   to switch to and no theme toggle. The contract is therefore:
 
-   NO EXTERNAL REQUESTS. System font stacks only. No @import, no url(),
-   no remote anything. This file is safe under a strict CSP.
+     (a) `:root` declares `color-scheme: dark` and the complete palette;
+     (b) `body` sets `background: var(--page)` explicitly — a transparent body
+         borrows the host's theme and the whole palette comes apart;
+     (c) NOTHING in this file or site.css reacts to `prefers-color-scheme`.
+         An OS set to light must render exactly the same page.
+
+   (Before v2.0 this file carried a full light palette plus two dark blocks.
+   That machinery is gone rather than left inert: a theme toggle that cannot
+   change anything is worse than no toggle.)
+
+   NO EXTERNAL REQUESTS. The two typefaces are self-hosted from
+   site/assets/fonts (§0) — the same woff2 subsets Google Fonts serves, but
+   same-origin. No @import, no remote url(), no third party sees a visitor's
+   IP. This file is safe under a strict CSP, and the pages stay byte-identical
+   across the Vercel and GitHub Pages mirrors.
+
+   CONTRAST — MEASURED, NOT ASSUMED
+   --------------------------------
+   Every text level below is stated with its measured ratio against both
+   §2 surfaces. One deliberate deviation from the brand guide is recorded at
+   --ink-3: see the note there. Ratios are recomputed whenever a value moves.
    ========================================================================== */
 
 
 /* ==========================================================================
-   :root — THE COMPLETE LIGHT PALETTE + ALL UNTHEMED TOKENS
+   §0  FONTS — self-hosted, variable, latin + latin-ext
+   --------------------------------------------------------------------------
+   Outfit and JetBrains Mono, both SIL Open Font License 1.1 (see
+   site/assets/fonts/LICENSE). These are the exact woff2 subsets fonts.gstatic
+   .com serves; the unicode-ranges are Google's own, so glyph coverage and
+   fallback behaviour match a Google-hosted <link> precisely.
+
+   The stylesheet is inlined into every page, so `url()` here is resolved
+   against the PAGE, not this file. site.py rewrites ../assets/fonts/ to the correct
+   relative prefix per page depth (research/ notes sit one level down).
+
+   font-display: swap — text paints immediately in the fallback stack and
+   re-renders when the face arrives. A price is never invisible while a font
+   loads.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Outfit";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("../assets/fonts/outfit-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Outfit";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("../assets/fonts/outfit-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+                 U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
+                 U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("../assets/fonts/jetbrains-mono-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("../assets/fonts/jetbrains-mono-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+                 U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
+                 U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+
+/* ==========================================================================
+   :root — THE COMPLETE PALETTE + ALL NON-COLOUR TOKENS
    ========================================================================== */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
   /* ------------------------------------------------------------------------
-     §1  NEUTRAL RAMP — cool slate, no hue cast
+     §1  NEUTRAL RAMP — near-black, no hue cast
      ------------------------------------------------------------------------
-     The raw ladder. DO NOT reference these directly in component CSS —
-     always go through a semantic token in §2/§3/§4. The ramp exists so new
-     semantic tokens can be minted from steps that are already in the family.
-     Numbering runs 0 (white) → 1000 (near-black); the number is a rough
-     darkness position, not a fixed lightness value.
+     The raw ladder. DO NOT reference these directly in component CSS — always
+     go through a semantic token in §2/§3/§4. Numbering runs 0 (deepest) →
+     1000 (off-white); the number is a rough lightness position.
      ---------------------------------------------------------------------- */
-  --slate-0:    #ffffff;   /* card / chart surface, light mode                */
-  --slate-25:   #f7f8f9;   /* inset well — code blocks, table headers         */
-  --slate-50:   #f3f3f3;   /* page plane, light mode                          */
-  --slate-75:   #eceef1;   /* ticker strip, neutral chip fill                 */
-  --slate-100:  #e8eaed;   /* chart gridline, table row rule                  */
-  --slate-150:  #dbdde0;   /* structural border / hairline                    */
-  --slate-200:  #c4c8ce;   /* chart axis + baseline, strong rule              */
-  --slate-300:  #a2a9b3;   /* — dark-mode secondary-ish; unused in light      */
-  --slate-350:  #949ba5;   /* NON-TEXT only in light (2.80:1). Disabled glyph */
-  --slate-400:  #8b929d;   /* chart de-emphasis stroke, light (3.14:1)        */
-  --slate-450:  #7b828c;   /* dark-mode de-emphasis stroke                    */
-  --slate-500:  #5f6570;   /* light muted ink — smallest AA-safe grey (5.28+) */
-  --slate-550:  #565c66;   /* reserved mid step                               */
-  --slate-600:  #454b54;   /* light secondary ink; default chart line         */
-  --slate-650:  #3d4045;   /* dark-mode strong rule                           */
-  --slate-750:  #2a2d33;   /* dark-mode structural border                     */
-  --slate-800:  #24272c;   /* dark-mode gridline / row rule                   */
-  --slate-825:  #22262c;   /* dark-mode neutral chip fill                     */
-  --slate-850:  #1c1f24;   /* dark-mode inset well                            */
-  --slate-875:  #17191c;   /* dark-mode card / chart surface                  */
-  --slate-925:  #101113;   /* dark-mode page plane                            */
-  --slate-950:  #0b0c0e;   /* dark-mode masthead / footer plane               */
-  --slate-1000: #08090a;   /* deepest step — hard borders on dark             */
+  --n-0:    #08090a;   /* ticker band, the deepest plane                     */
+  --n-50:   #0b0c0d;   /* GROUND — the page background                       */
+  --n-100:  #131416;   /* card / chart surface                               */
+  --n-150:  #151619;   /* code + terminal wells                              */
+  --n-200:  #17181b;   /* row hover                                          */
+  --n-250:  #1c1d21;   /* pressed / selected row                             */
+
+  /* The off-white the whole ink scale is mixed from. Every --ink-* below is
+     this colour at an alpha, exactly as the brand guide specifies. */
+  --n-1000: #f5f5f6;
 
   /* ------------------------------------------------------------------------
      §2  SEMANTIC SURFACES
      ------------------------------------------------------------------------
-     Four planes, and that is the whole depth model. There is no fifth.
-     Depth is expressed by surface + hairline, not by shadow (see §11).
+     Five planes, and that is the whole depth model. Depth is expressed by
+     surface + hairline, not by shadow (see §11).
      ---------------------------------------------------------------------- */
-  --page:            var(--slate-50);   /* the page body. Always set explicitly
-                                           on <body> — never leave transparent. */
-  --surface:         var(--slate-0);    /* cards, panels, table bodies, the
-                                           surface every chart is drawn on.     */
-  --surface-inset:   var(--slate-25);   /* recessed wells: code blocks, table
-                                           headers, footnote strips.            */
-  --surface-strip:   var(--slate-75);   /* the ticker strip + any full-bleed
-                                           band that must read denser than the
-                                           page but flatter than a card.        */
-  --surface-chrome:  var(--slate-0);    /* masthead / footer plane.             */
-  --surface-hover:   var(--slate-25);   /* ghost wash on row + control hover.
-                                           Never a saturated hover state.       */
-  --surface-active:  var(--slate-75);   /* pressed / selected row.              */
+  --page:            var(--n-50);    /* the page body. Always set explicitly
+                                        on <body> — never left transparent.  */
+  --surface:         var(--n-100);   /* cards, panels, table bodies, the
+                                        surface every chart is drawn on.     */
+  --surface-inset:   var(--n-150);   /* recessed wells: code blocks, terminal
+                                        blocks, footnote strips.             */
+  --surface-strip:   var(--n-0);     /* the scrolling ticker band — the one
+                                        plane darker than the ground.        */
+  --surface-chrome:  var(--n-50);    /* masthead / footer sit ON the ground;
+                                        a hairline separates them, not a
+                                        second colour.                       */
+  --surface-hover:   var(--n-200);   /* ghost wash on row + control hover.    */
+  --surface-active:  var(--n-250);   /* pressed / selected row.               */
 
   /* ------------------------------------------------------------------------
      §3  INK — text colour
      ------------------------------------------------------------------------
-     Three text levels, and one non-text grey. Every text level clears
-     WCAG AA 4.5:1 on EVERY surface in §2 — checked, not assumed. Ratios in
-     DESIGN.md. If you need a fourth level, you have a hierarchy problem,
-     not a token problem.
+     Three text levels and one non-text grey, each an alpha over --n-1000 as
+     the brand guide specifies. Ratios measured against BOTH surfaces in §2.
+
+       ink-1   #F5F5F6        17.6:1 on page · 16.0:1 on surface
+       ink-2   alpha .60       6.7:1 on page ·  6.6:1 on surface
+       ink-3   alpha .50       4.9:1 on page ·  4.9:1 on surface   ← see note
+       faint   alpha .32       2.4:1 — NOT FOR TEXT
+
+     DEVIATION, RECORDED: the brand guide sets ink-3 to alpha .4. Measured,
+     that lands at 3.6:1 — below WCAG AA (4.5:1) — and ink-3 carries every
+     label, caption, axis tick and timestamp on the site, at 11–12px. Raised
+     to .50, the smallest step that clears AA on both surfaces. The visual
+     hierarchy the guide asks for is intact (ink-3 still reads as clearly
+     recessive against ink-2); the failing ratio is not.
      ---------------------------------------------------------------------- */
-  --ink:           var(--slate-1000);  /* overridden below — see note          */
-  --ink-1:         #111214;            /* primary: headings, prices, values.
-                                          18.7:1 on surface, 16.9:1 on page.    */
-  --ink-2:         var(--slate-600);   /* secondary: body prose, table cells.
-                                          8.8:1 / 7.9:1.                        */
-  --ink-3:         var(--slate-500);   /* muted: labels, captions, units, axis
-                                          tick text, timestamps. 5.9:1 / 5.3:1.
-                                          THIS IS THE FLOOR FOR TEXT.           */
-  --ink-faint:     var(--slate-350);   /* NOT FOR TEXT (2.8:1). Disabled
-                                          controls, decorative glyphs, the
-                                          inactive half of a toggle only.       */
-  --ink-inverse:   #ffffff;            /* text on a filled accent/status mark. */
+  --ink-1:       #f5f5f6;
+  --ink-2:       rgba(245, 245, 246, 0.60);
+  --ink-3:       rgba(245, 245, 246, 0.50);
+  --ink-faint:   rgba(245, 245, 246, 0.32);  /* disabled glyphs, inactive
+                                                halves of a toggle. Never text. */
+  --ink-inverse: #ffffff;                    /* text on a wine fill. 13.4:1.   */
 
   /* ------------------------------------------------------------------------
      §4  LINES, RULES, FOCUS
      ------------------------------------------------------------------------
-     Everything structural is a 1px hairline. There are no 2px dividers, no
-     dashed rules anywhere (dashes read as "projection" in a data product),
-     and no double borders.
+     Everything structural is a 1px hairline at one of three opacities, per
+     the brand guide's rgba(255,255,255,.08–.18). No 2px dividers, no dashed
+     rules anywhere (dashes read as "projection" in a data product).
      ---------------------------------------------------------------------- */
-  --rule:          var(--slate-100);   /* table row dividers, ledger rows,
-                                          the densest separator.               */
-  --rule-strong:   var(--slate-150);   /* card borders, section boundaries.    */
-  --rule-heavy:    var(--slate-200);   /* the one rule under a table head; the
-                                          chart baseline. Use sparingly.       */
-  --focus-ring:    var(--accent);      /* 2px solid + 2px offset. Never remove
-                                          focus; restyle it.                   */
+  --rule:          rgba(255, 255, 255, 0.06);  /* table row dividers, the
+                                                  densest separator.          */
+  --rule-strong:   rgba(255, 255, 255, 0.10);  /* card borders.               */
+  --rule-heavy:    rgba(255, 255, 255, 0.18);  /* section boundaries, the rule
+                                                  under a table head, the
+                                                  secondary button border.    */
+  --focus-ring:    var(--ink-1);   /* off-white, not red: the focus ring must
+                                      read on a wine fill AND on the ground,
+                                      and red would spend the ration. 2px
+                                      solid + 2px offset. Never removed.      */
   --focus-offset:  2px;
   --focus-width:   2px;
 
   /* ------------------------------------------------------------------------
-     §5  BRAND ACCENT — teal, RATIONED
+     §5  BRAND REDS — two-tone, RATIONED
      ------------------------------------------------------------------------
-     Meaning: "live / current / this is the number the page is about."
-     Lineage: Nord Pool's power-market teal, deepened for contrast. Chosen
-     over blue because every comparable in the category (Ornn, Deribit,
-     Linear, generic fintech) defaults to blue, and blue is already spoken
-     for as categorical slot 1 in charts.
+     THE ONE RULE: big shapes get the wine, small marks get the bright red.
+     Never invert it.
 
-     BUDGET: at most ~3 accent marks per viewport. In practice that is the
-     hero rule, the live dot, and the chart's current-value marker.
+       --wine  #650304  LARGE FILLED SHAPES. Primary buttons, the nav CTA
+                        pill, tinted card grounds and rails. White text on it
+                        measures 13.4:1.
+       --red   #FF0000  SMALL MARKS, rationed. The live dot (with pulse),
+                        ticker marker dots, the logo dot, "Live" labels, the
+                        chart's current-value marker, highlight text inside a
+                        terminal block. As text it measures 4.8:1 on the
+                        ground and 4.6:1 on a card — AA at every size it is
+                        used. It is never a fill for anything button-sized.
+
+     BUDGET: at most a handful of bright-red marks per viewport. In practice
+     that is the logo dot, the live dot, the ticker dots and the chart's
+     current-value marker. If the bright red starts appearing on links or
+     headings, the system has been misused.
      ---------------------------------------------------------------------- */
-  --accent:        #00786c;   /* MARKS ONLY — rules, dots, chart markers,
-                                 filled button backgrounds. 5.4:1 on surface. */
-  --accent-ink:    #00655c;   /* TEXT — links, accented labels. 7.0:1 on
-                                 surface, 6.3:1 on page. Use this, not
-                                 --accent, whenever the teal is a glyph the
-                                 reader must read.                            */
-  --accent-wash:   #dff0ed;   /* the only tinted fill: L1 badge, selected
-                                 state, accent callout rail background.       */
-  --on-accent:     #ffffff;   /* text on an --accent fill. 5.4:1.             */
+  --wine:          #650304;
+  --wine-wash:     rgba(101, 3, 4, 0.08);  /* tinted card ground             */
+  --wine-wash-2:   rgba(101, 3, 4, 0.20);  /* the pillar icon squares        */
+  --wine-edge:     rgba(101, 3, 4, 0.50);  /* the border of a tinted card    */
+  --red:           #ff0000;
+  --red-halo:      rgba(255, 0, 0, 0.55);  /* the pulse keyframe's start ring */
+
+  /* Brand furniture: the hero wave. Abstract, aria-hidden, never a data channel —
+     tokenised only so no raw rgba() has to appear in the component sheet. */
+  --wave-dot:      rgba(245, 245, 246, 0.35);
+  --wave-bar:      rgba(245, 245, 246, 0.18);
+  --wave-bar-hi:   rgba(255, 0, 0, 0.60);
+
+  /* Compatibility aliases. site.css and the chart CSS were written against an
+     `--accent` vocabulary; the two reds map onto it so nothing has to guess
+     which red it wants. --accent is the FILL, --accent-mark is the MARK. */
+  --accent:        var(--wine);
+  --accent-mark:   var(--red);
+  --accent-ink:    var(--red);   /* text-weight red. Rationed exactly like
+                                    --red: "Live" labels and terminal
+                                    highlights, NOT link colour.            */
+  --accent-wash:   var(--wine-wash-2);
+  --on-accent:     #ffffff;
+
+  /* Links are off-white with a hairline underline, and they stay off-white on
+     hover — the underline brightens instead. A red link colour would blow the
+     ration on the densest element on the page. */
+  --link:          var(--ink-1);
+  --link-rule:     rgba(255, 255, 255, 0.28);
+  --link-rule-hi:  var(--ink-1);
 
   /* ------------------------------------------------------------------------
      §6  STATUS — fixed scale, reserved meaning
      ------------------------------------------------------------------------
-     These four steps are FIXED and identical in both themes. They are never
+     Four steps, re-selected for the near-black ground and deliberately
+     desaturated so they never compete with the two brand reds. They are never
      reused as "series 5", and a categorical series colour is never used for
-     status. Every status mark ships with an icon AND a text label — on the
-     light surface `warning` (1.8:1) and `serious` (2.6:1) are deliberately
-     below 3:1, and the icon+label pairing is the mitigation.
+     status. Every status mark ships with an icon AND a text label.
 
-     Each status has THREE tokens with three different jobs:
-       --status-x        the MARK   — dot, icon fill, chart mark. Non-text.
+     Critical is #FF6B6B, NOT #FF0000: bright red is reserved for live marks,
+     and a gap chip that wore it would read as "live" at a glance.
+
+       --status-x        the MARK   — dot, icon fill. Non-text.
        --status-x-ink    the TEXT   — AA-safe on --surface and --status-x-bg.
        --status-x-bg     the WASH   — chip background only. Never a table-cell
                                       fill: full-cell colour washes are the
-                                      single fastest way to look like a retail
+                                      fastest way to look like a retail
                                       trading app instead of a benchmark.
      ---------------------------------------------------------------------- */
-  --status-good:       #0ca30c;
-  --status-good-ink:   #006300;
-  --status-good-bg:    #e2f3e2;
+  --status-good:        #3fb950;
+  --status-good-ink:    #56d364;               /*  8.4:1 on surface */
+  --status-good-bg:     rgba(63, 185, 80, 0.12);
 
-  --status-warning:    #fab219;
-  --status-warning-ink:#7a5200;
-  --status-warning-bg: #fbf0d8;
+  --status-warning:     #d29922;
+  --status-warning-ink: #e3b341;               /*  8.5:1 */
+  --status-warning-bg:  rgba(210, 153, 34, 0.12);
 
-  --status-serious:    #ec835a;
-  --status-serious-ink:#8f4420;
-  --status-serious-bg: #fbeae2;
+  --status-serious:     #db6d28;
+  --status-serious-ink: #f0883e;               /*  7.1:1 */
+  --status-serious-bg:  rgba(219, 109, 40, 0.12);
 
-  --status-critical:   #d03b3b;
-  --status-critical-ink:#a32222;
-  --status-critical-bg:#fbe6e6;
+  --status-critical:    #da3633;
+  --status-critical-ink:#ff6b6b;               /*  6.4:1 */
+  --status-critical-bg: rgba(218, 54, 51, 0.14);
 
-  --status-neutral:    var(--slate-400);
-  --status-neutral-ink:var(--ink-2);
-  --status-neutral-bg: var(--slate-75);
+  --status-neutral:     var(--ink-faint);
+  --status-neutral-ink: var(--ink-3);
+  --status-neutral-bg:  rgba(255, 255, 255, 0.05);
 
   /* ---- DELTA -------------------------------------------------------------
-     Price movement. Text-safe steps derived from the status scale — NOT the
-     status marks themselves, which are too light to read as text on white.
-     ALWAYS rendered with a visible +/− sign and a hairline arrow glyph, so
-     the colour is redundant. Never a background wash on the cell.
+     Price movement. ALWAYS rendered with a visible +/− sign and a hairline
+     arrow glyph, so the colour is redundant and a reader who cannot separate
+     the hues loses nothing. Never a background wash on the cell, and never
+     the bright brand red — a down-tick is not a live mark.
      ---------------------------------------------------------------------- */
-  --delta-up:      var(--status-good-ink);   /* 7.5:1 */
-  --delta-down:    var(--status-critical-ink);/* 7.5:1 */
-  --delta-flat:    var(--ink-3);              /* 5.9:1 */
+  --delta-up:      var(--status-good-ink);
+  --delta-down:    var(--status-critical-ink);
+  --delta-flat:    var(--ink-3);
 
   /* ---- TIER BADGES -------------------------------------------------------
-     L1 = verified transacted price · L2 = published API/list with observed
-     fills · L3 = list price only. This is an ORDINAL scale (the order is the
-     meaning), so it is encoded by ink weight + wash lightness, not by hue —
-     only L1 earns the accent, because L1 is the tier the index trusts.
+     L1 = executable marketplace quote · L2 = published neocloud list price ·
+     L3 = hyperscaler catalog list price. This is an ORDINAL scale (the order
+     IS the meaning), so it is encoded by ink weight and ground lightness, not
+     by hue — only L1 earns the wine ground, because L1 is the tier the index
+     trusts most.
      ---------------------------------------------------------------------- */
-  --tier-1-ink:  var(--accent-ink);   --tier-1-bg: var(--accent-wash);
-  --tier-2-ink:  var(--ink-2);        --tier-2-bg: var(--slate-75);
-  --tier-3-ink:  var(--ink-3);        --tier-3-bg: var(--slate-25);
+  --tier-1-ink: var(--ink-1);  --tier-1-bg: var(--wine-wash-2);
+                               --tier-1-edge: var(--wine-edge);
+  --tier-2-ink: var(--ink-2);  --tier-2-bg: rgba(255, 255, 255, 0.06);
+                               --tier-2-edge: var(--rule-heavy);
+  --tier-3-ink: var(--ink-3);  --tier-3-bg: transparent;
+                               --tier-3-edge: var(--rule-strong);
 
   /* ------------------------------------------------------------------------
      §6b  CHART CHROME
@@ -246,145 +341,137 @@
      The non-data ink in a chart. All of it recessive: gridlines one step off
      the surface, solid hairlines only, never dashed.
 
-     THE HOUSE CHART RULE: a chart is GREYSCALE by default. `--chart-line` is
+     THE HOUSE CHART RULE: a chart is MONOCHROME by default. --chart-line is
      the default single-series stroke. The categorical palette (§6c) comes out
-     only when two or more series genuinely need identity. The accent marks
-     the current value and nothing else.
+     only when two or more series genuinely need identity. The bright red
+     marks the current value and nothing else — one mark per chart, which is
+     exactly the small-mark case the ration exists for.
      ---------------------------------------------------------------------- */
   --chart-surface: var(--surface);
-  --chart-grid:    var(--slate-100);  /* 1px solid. Recessive.                */
-  --chart-axis:    var(--slate-200);  /* baseline + axis rule.                */
-  --chart-label:   var(--ink-3);      /* axis tick text — AA-safe, 5.9:1.     */
-  --chart-line:    var(--slate-600);  /* default single series, 2px. 8.8:1.   */
-  --chart-wash:    rgba(69, 75, 84, 0.08); /* area fill under --chart-line.   */
-  --chart-deemph:  var(--slate-400);  /* sparkline body, context series.
-                                         3.14:1 — clears the 3:1 mark floor.  */
-  --chart-marker:  var(--accent);     /* current-value dot + hairline. ONE
-                                         per chart.                           */
-  --chart-ring:    var(--surface);    /* 2px surface ring on overlapping dots */
-  --chart-crosshair: var(--slate-300);/* hover hairline.                      */
-  --chart-gap:     2px;               /* surface gap between touching marks.  */
+  --chart-grid:    rgba(255, 255, 255, 0.055); /* 1px solid. Recessive.      */
+  --chart-axis:    rgba(255, 255, 255, 0.16);  /* baseline + axis rule.      */
+  --chart-label:   var(--ink-3);               /* axis tick text. 4.9:1.     */
+  --chart-line:    rgba(245, 245, 246, 0.62);  /* default single series, 2px */
+  --chart-wash:    rgba(245, 245, 246, 0.06);  /* NOT used under a truncated
+                                                  axis — see DESIGN.md.     */
+  --chart-deemph:  rgba(245, 245, 246, 0.30);  /* sparkline body, context
+                                                  series, meter fills.      */
+  --chart-marker:  var(--red);                 /* current-value dot. ONE per
+                                                  chart.                     */
+  --chart-ring:    var(--surface);             /* 2px surface ring on dots   */
+  --chart-crosshair: rgba(255, 255, 255, 0.26);
+  --chart-gap:     2px;                        /* gap between touching marks */
 
   /* ------------------------------------------------------------------------
      §6c  CATEGORICAL PALETTE — fixed order, NEVER cycled
      ------------------------------------------------------------------------
-     Validated (dataviz validator, both modes, against THIS system's surfaces
-     #ffffff / #17191c): lightness band PASS, chroma floor PASS, CVD
-     separation PASS (worst adjacent ΔE 9.1 light / 8.4 dark, protanopia,
-     Machado 2009 @1.0), normal-vision floor PASS (19.6 / 19.3).
+     The eight-slot set carried over from v1.0's dark mode, which was
+     validated against #17191c — within one step of this system's #131416
+     card, so the separation results hold: lightness band PASS, chroma floor
+     PASS, CVD separation PASS (worst adjacent ΔE 8.4, protanopia, Machado
+     2009 @1.0).
 
      RULES
      · Assign in slot order 1,2,3… Colour follows the ENTITY, never its rank —
        filtering a series out must not repaint the survivors.
      · There is no slot 9. A ninth series folds into "Other", facets into
        small multiples, or the chart form changes.
-     · Scatter / bubble / choropleth / small-multiples use the ALL-PAIRS test
-       and are capped at THREE slots. Past three, facet.
-     · LIGHT-MODE RELIEF RULE: slots 3 (2.82:1), 4 (2.17:1) and 5 (2.69:1) sit
-       below 3:1 on white. Wherever they appear, ship visible direct labels or
-       the table view. This is not dismissable.
+     · Scatter / bubble / choropleth use the ALL-PAIRS test, capped at THREE.
      · Text never wears a series colour. A coloured mark sits BESIDE the label.
      ---------------------------------------------------------------------- */
-  --series-1: #2a78d6;  /* blue    4.42:1 */
-  --series-2: #eb6834;  /* orange  3.20:1 */
-  --series-3: #1baf7a;  /* aqua    2.82:1  ← relief required */
-  --series-4: #eda100;  /* yellow  2.17:1  ← relief required */
-  --series-5: #e87ba4;  /* magenta 2.69:1  ← relief required */
-  --series-6: #008300;  /* green   4.95:1 */
-  --series-7: #4a3aa7;  /* violet  8.56:1 */
-  --series-8: #e34948;  /* red     3.95:1 */
+  --series-1: #3987e5;  /* blue    */
+  --series-2: #d95926;  /* orange  */
+  --series-3: #199e70;  /* aqua    */
+  --series-4: #c98500;  /* yellow  */
+  --series-5: #d55181;  /* magenta */
+  --series-6: #2f9e2f;  /* green   */
+  --series-7: #9085e9;  /* violet  */
+  --series-8: #e66767;  /* red     */
 
   /* ------------------------------------------------------------------------
-     §6d  SEQUENTIAL RAMP — one hue, light → dark, for MAGNITUDE
+     §6d  SEQUENTIAL RAMP — one hue, dark → light, for MAGNITUDE
      ------------------------------------------------------------------------
      Blue. Heatmaps, choropleths, weight-share intensity. For an ORDINAL use
-     (discrete ordered marks) do not go lighter than --seq-250 on light or
-     darker than --seq-600 on dark — those are the 2:1-vs-surface floors.
+     do not go darker than --seq-250: that is the 2:1-vs-surface floor.
      ---------------------------------------------------------------------- */
-  --seq-100: #cde2fb;  --seq-150: #b7d3f6;  --seq-200: #9ec5f4;
-  --seq-250: #86b6ef;  --seq-300: #6da7ec;  --seq-350: #5598e7;
-  --seq-400: #3987e5;  --seq-450: #2a78d6;  --seq-500: #256abf;
-  --seq-550: #1c5cab;  --seq-600: #184f95;  --seq-650: #104281;
-  --seq-700: #0d366b;
+  --seq-100: #0d366b;  --seq-150: #104281;  --seq-200: #184f95;
+  --seq-250: #1c5cab;  --seq-300: #256abf;  --seq-350: #2a78d6;
+  --seq-400: #3987e5;  --seq-450: #5598e7;  --seq-500: #6da7ec;
+  --seq-550: #86b6ef;  --seq-600: #9ec5f4;  --seq-650: #b7d3f6;
+  --seq-700: #cde2fb;
 
   /* ------------------------------------------------------------------------
      §7  DIVERGING SCALE — the basis ribbon
      ------------------------------------------------------------------------
-     The signature device. Encodes the EU-vs-global spread: which side of
-     zero, and how far.
+     The signature device, not yet wired to data (there is no non-EU leg in
+     the pipeline). Encodes the regional spread: which side of zero, how far.
 
-       COOL (blue)  = EU DISCOUNT — European compute cheaper than the
-                      global reference.
-       NEUTRAL      = flat. A GREY, never a hue — the midpoint has to read
-                      as "nothing happened".
-       WARM (orange)= EU PREMIUM — European compute dearer.
+       COOL (blue)   = DISCOUNT — the measured region cheaper than reference.
+       NEUTRAL       = flat. A GREY, never a hue — the midpoint has to read as
+                       "nothing happened".
+       WARM (orange) = PREMIUM — the measured region dearer.
 
-     Poles are the categorical slot-1 blue and slot-2 orange hues, so the
-     colourblind-safety of those hues carries over. Warm/cool poles read as
-     opposite; blue↔aqua would not. Four equal steps per arm; both arms pass
-     the ordinal check in both modes (monotone lightness, adjacent ΔL ≥ 0.06,
-     near-surface end ≥ 2:1, single hue).
+     The arms are anchored so the step NEAREST zero is DARKEST, so "nearly
+     flat" recedes toward the surface.
 
-     BINS (absolute basis, $/GPU-hr):  1: <0.10   2: 0.10–0.20
-                                       3: 0.20–0.32   4: ≥0.32
-
-     MANDATORY COMPANIONS: a scale legend, and a table view. Colour is
-     paired with column DIRECTION (up = premium, down = discount) so sign is
-     never carried by hue alone.
+     MANDATORY COMPANIONS: a scale legend, and a table view. Colour is paired
+     with column DIRECTION (up = premium, down = discount) so sign is never
+     carried by hue alone.
      ---------------------------------------------------------------------- */
-  --div-cool-4: #1c5cab;   /* deepest discount   6.63:1 */
-  --div-cool-3: #2a78d6;   /*                    4.42:1 */
-  --div-cool-2: #5598e7;   /*                    2.99:1 */
-  --div-cool-1: #86b6ef;   /* nearest zero       2.11:1 */
-  --div-mid:    #edeff2;   /* neutral grey midpoint     */
-  --div-warm-1: #e89d83;   /* nearest zero       2.19:1 */
-  --div-warm-2: #da7550;   /*                    3.16:1 */
-  --div-warm-3: #c54e1c;   /*                    4.69:1 */
-  --div-warm-4: #9c390c;   /* deepest premium    6.99:1 */
-  /* Ink for a label set INSIDE a diverging fill — pick by the fill's
-     luminance so it always clears contrast. */
-  --div-ink-on-deep:  #ffffff;   /* on arms 3–4: 6.6:1 / 7.0:1 */
-  --div-ink-on-light: var(--ink-1); /* on arms 1–2: 8.9:1 / 8.6:1 */
+  --div-cool-4: #6da7ec;   /* deepest discount */
+  --div-cool-3: #3987e5;
+  --div-cool-2: #256abf;
+  --div-cool-1: #184f95;   /* nearest zero     */
+  --div-mid:    #2a2c31;   /* neutral midpoint */
+  --div-warm-1: #883008;   /* nearest zero     */
+  --div-warm-2: #af4517;
+  --div-warm-3: #d45e2f;
+  --div-warm-4: #e28969;   /* deepest premium  */
+  --div-ink-on-deep:  #0b0c0d;
+  --div-ink-on-light: var(--ink-1);
 
   /* ------------------------------------------------------------------------
-     §8  TYPOGRAPHY — three system stacks, three jobs
+     §8  TYPOGRAPHY — two families, two jobs
      ------------------------------------------------------------------------
-     No webfonts. No @font-face. System stacks only, chosen so the fallback
-     chain lands on a grotesque / a mono / a transitional serif on every
-     platform.
-       SANS  — all UI, all prose. The workhorse.
-       MONO  — EVERY numeral the reader might compare: prices, deltas,
-               weights, timestamps, hashes, versions, axis ticks. This is the
-               institutional tell; proportional figures in a price column is
-               the fastest way to look un-audited.
-       SERIF — editorial display ONLY: methodology and research page
-               headlines, pull quotes. Never on a price, never in a chart,
-               never in the UI. (A serif on a hero figure reads as
-               decoration; the hero price uses MONO.)
-     ---------------------------------------------------------------------- */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-               Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, "Cascadia Mono",
-               "Segoe UI Mono", "Roboto Mono", Menlo, Consolas,
-               "Liberation Mono", monospace;
-  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Palladio,
-               "Hoefler Text", Georgia, "Times New Roman", serif;
+     OUTFIT — all headings, all UI, all prose. Weights 400 (body), 500/600
+              (subheads, buttons, nav), 700–800 (display headings, wordmark).
+     JETBRAINS MONO — EVERY numeral and data label the reader might compare:
+              prices, deltas, weights, timestamps, hashes, versions, series
+              tickers, axis ticks, code. NEVER for prose. This is the
+              institutional tell; proportional figures in a price column is
+              the fastest way to look un-audited.
 
-  /* Type scale — 1.200 minor third, anchored at 14px body. Institutional
-     products run one step smaller than consumer products; that is deliberate. */
-  --text-3xs:  10px;   /* table-head labels, flag glyph text. ALL-CAPS only. */
-  --text-2xs:  11px;   /* footnote refs, chip text, axis ticks               */
-  --text-xs:   12px;   /* dense table cells, metadata lines                  */
-  --text-sm:   13px;   /* secondary UI, ticker strip                         */
-  --text-base: 14px;   /* body prose, default UI                             */
-  --text-md:   16px;   /* lead paragraph, sub-index tile value               */
-  --text-lg:   19px;   /* card / section headings                            */
-  --text-xl:   23px;   /* page section headings                              */
-  --text-2xl:  28px;   /* page title                                         */
-  --text-3xl:  34px;   /* editorial display headline (serif)                 */
+     There is no third family. v1.0's editorial serif is gone: TCI sets
+     display headlines in Outfit 700, and --font-display exists so a heading
+     never has to reach for a family token that no longer means anything.
+
+     Every stack keeps a real system fallback, so a page whose fonts fail to
+     load still renders in the right register rather than in Times.
+     ---------------------------------------------------------------------- */
+  --font-sans: "Outfit", system-ui, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", SFMono-Regular,
+               "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", Menlo,
+               Consolas, "Liberation Mono", monospace;
+  --font-display: var(--font-sans);
+
+  /* Type scale — the brand guide's own steps (H1 36–44/700, H2 22–24/600,
+     body 15–16/400, label 11/600 tracked). Institutional products run one
+     step smaller than consumer products; that is deliberate. */
+  --text-3xs:  11px;   /* ALL-CAPS labels, table heads, flag glyphs          */
+  --text-2xs:  12px;   /* ticker items, chip text, captions, axis ticks      */
+  --text-xs:   13px;   /* dense table cells, metadata lines                  */
+  --text-sm:   13.5px; /* secondary UI, card body copy                       */
+  --text-base: 14px;   /* table body, default UI                             */
+  --text-md:   15.5px; /* body prose, lead paragraph, tile value             */
+  --text-lg:   17px;   /* card / sub-section headings                        */
+  --text-xl:   24px;   /* section headings (brand guide H2)                  */
+  --text-2xl:  28px;   /* secondary page title                               */
+  --text-3xl:  40px;   /* page display headline (brand guide H1)             */
+  --text-display: 44px;/* the landing hero headline. Exactly one per site.   */
   --text-hero: 60px;   /* THE print. Exactly one per view.                   */
 
-  --leading-tight:  1.15;  /* headings, the hero print                       */
+  --leading-tight:  1.2;   /* headings, the hero print                       */
   --leading-snug:   1.35;  /* table cells, tiles, chips                      */
   --leading-normal: 1.55;  /* UI text                                        */
   --leading-prose:  1.65;  /* body copy at --measure-prose                   */
@@ -393,104 +480,105 @@
   --weight-medium:   500;
   --weight-semibold: 600;
   --weight-bold:     700;
+  --weight-black:    800;  /* the wordmark's "TC" only                       */
 
-  --tracking-tight:  -0.02em;  /* the hero print + display sizes only        */
+  --tracking-tight:  -0.01em;  /* display sizes and the wordmark             */
   --tracking-normal: 0;
-  --tracking-wide:   0.06em;   /* small-caps-ish label runs                  */
-  --tracking-caps:   0.09em;   /* --text-3xs ALL-CAPS table heads            */
+  --tracking-wide:   0.06em;   /* small label runs                           */
+  --tracking-caps:   0.08em;   /* --text-3xs ALL-CAPS table heads            */
+  --tracking-brand:  0.14em;   /* the "THE COMPUTE INDICES" lockup text      */
 
-  /* Numerals. Applied globally to mono in §0 below; stated here so it can be
-     reasoned about as a token. Tabular + fixed decimals means a live cell
-     never reflows on update. */
+  /* Numerals. Applied globally to mono in §14. Tabular + fixed decimals means
+     a live cell never reflows on update. */
   --numeric-table: tabular-nums lining-nums;
 
   /* ------------------------------------------------------------------------
-     §9  SPACE — 8px base, with a 4px half-step for dense grids
+     §9  SPACE — 4px base, per the brand guide
      ------------------------------------------------------------------------
-     Outer rhythm is 8px. Inside a dense table or ticker the rhythm halves to
-     4px — that nesting is what produces terminal density without the page
-     itself feeling cramped.
+     Common paddings 12 / 16 / 22 / 24 / 48. Inside a dense table or the
+     ticker the rhythm halves to 4px — that nesting is what produces terminal
+     density without the page itself feeling cramped.
      ---------------------------------------------------------------------- */
   --space-0:  0;
-  --space-1:  2px;   /* the chart surface-gap; icon nudges                   */
-  --space-2:  4px;   /* dense-grid half-step                                 */
-  --space-3:  8px;   /* BASE                                                 */
+  --space-1:  2px;   /* icon nudges, the chart surface-gap                   */
+  --space-2:  4px;   /* BASE / dense-grid half-step                          */
+  --space-3:  8px;
   --space-4:  12px;
   --space-5:  16px;
+  --space-5b: 22px;  /* the brand guide's card padding                       */
   --space-6:  24px;
   --space-7:  32px;
-  --space-8:  48px;
-  --space-9:  64px;
-  --space-10: 96px;  /* major section separation                             */
+  --space-8:  48px;  /* the page gutter                                      */
+  --space-9:  56px;  /* major section separation                             */
+  --space-10: 80px;
 
   /* ------------------------------------------------------------------------
      §10  RADII & BORDER WIDTHS
      ------------------------------------------------------------------------
-     Nothing rounder than 20px, and only the hero print card earns the
-     maximum — the one element the eye should land on first. Tables and the
-     ticker stay square; density there reads as precision, not as chrome.
+     The brand guide allows 6–10px on cards and buttons and a 999px pill on
+     the nav CTA. Nothing is rounder than 12px, and only the hero print card
+     earns that — the one element the eye should land on first. Tables and the
+     ticker stay square; density there reads as precision, not chrome.
      ---------------------------------------------------------------------- */
   --radius-0:  0;      /* tables, ticker, full-bleed bands — square          */
-  --radius-xs: 4px;    /* chips, badges, inline code                         */
-  --radius-sm: 6px;    /* buttons, inputs                                    */
-  --radius-md: 12px;   /* cards, panels, tiles                               */
-  --radius-lg: 20px;   /* the hero print card only. THE MAXIMUM.             */
-  --radius-pill: 999px;/* the live dot only                                  */
+  --radius-xs: 3px;    /* flags, inline code, version badges                 */
+  --radius-sm: 6px;    /* small buttons, inputs                              */
+  --radius-md: 8px;    /* buttons, chips, tiles                              */
+  --radius-lg: 10px;   /* cards and panels — the brand guide's maximum       */
+  --radius-xl: 12px;   /* the hero print card only                           */
+  --radius-pill: 999px;/* the nav CTA and the live dot                       */
 
   --border-hairline: 1px;
-  --border-marker:   2px;   /* the accent rule on the hero card; focus ring  */
+  --border-marker:   2px;   /* callout rails; the focus ring                 */
 
   /* ------------------------------------------------------------------------
-     §11  ELEVATION — shadow, glow, texture
+     §11  ELEVATION
      ------------------------------------------------------------------------
      Depth in this system is surface + hairline. --shadow-raised exists for
-     genuinely floating layers only: the chart tooltip and a dropdown. A card
-     never has a shadow. If you are reaching for a second shadow, use a
-     hairline instead.
+     genuinely floating layers only: the chart tooltip. A card never has a
+     shadow. If you are reaching for a second shadow, use a hairline.
 
-     --shadow-glow and --accent-glow are the one deliberate exception, and
-     they are RATIONED exactly like --accent itself (§5): --accent-glow ships
-     only on the live dot, --shadow-glow only on the hero print card. Both
-     are inert (`none` / fully transparent) in light mode — a glow reads as
-     ambient light, which only a dark surface can plausibly emit.
-
-     --texture-dot is the same story for surface texture: a near-invisible
-     dot grid, dark-mode only, on the masthead, hero and footer chrome. It is
-     never a foreground channel — nothing is ever encoded in it.
+     There is no glow and no texture in TCI. v1.0 shipped both; the brand
+     guide's ground is flat, so the tokens survive as inert values rather than
+     being deleted, which keeps every `var()` that referenced them valid.
      ---------------------------------------------------------------------- */
   --shadow-none:   none;
-  --shadow-raised: 0 2px 8px rgba(17, 18, 20, 0.10),
-                   0 0 0 1px rgba(17, 18, 20, 0.06);
-  /* The same elevation expressed as a filter, for SVG tooltips — box-shadow
-     does not apply inside SVG. Keep the two in step. */
-  --shadow-raised-svg: drop-shadow(0 2px 8px rgba(17, 18, 20, 0.18));
-  --shadow-glow:   none;                        /* hero card ambient ring    */
-  --accent-glow:   rgba(0, 120, 108, 0.28);      /* live-dot halo            */
-  --texture-dot:   none;                         /* masthead/hero/footer bg  */
+  --shadow-raised: 0 2px 12px rgba(0, 0, 0, 0.6),
+                   0 0 0 1px rgba(255, 255, 255, 0.10);
+  /* The same elevation as a filter, for SVG tooltips — box-shadow does not
+     apply inside SVG. Keep the two in step. */
+  --shadow-raised-svg: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.75));
+  --shadow-glow:   none;
+  --accent-glow:   var(--red-halo);
+  --texture-dot:   none;
 
   /* ------------------------------------------------------------------------
      §12  MOTION
      ------------------------------------------------------------------------
-     Motion is functional or absent. The only animation in the product is the
-     live-dot pulse and the tick flash. A tick flash is a brief OPACITY change
-     on the changed cell — never a green/red background wash across the row.
-     All of it collapses to nothing under prefers-reduced-motion (§0).
+     Motion is functional or absent: it marks live data, choreographs
+     entrance, or confirms interaction. Never animate a static value just to
+     add movement. All of it collapses to nothing under prefers-reduced-motion
+     (§14).
      ---------------------------------------------------------------------- */
-  --dur-flash: 180ms;  /* the tick flash on an updated cell                  */
-  --dur-fast:  120ms;  /* hover / focus state changes                        */
-  --dur-base:  200ms;  /* disclosure, theme swap                             */
-  --dur-pulse: 2400ms; /* the live dot. Slow enough to be ambient.           */
+  --dur-flash:  180ms;  /* the tick flash on an updated cell                 */
+  --dur-fast:   120ms;  /* hover / focus state changes                       */
+  --dur-base:   200ms;  /* disclosure                                        */
+  --dur-pulse:  2200ms; /* the live dot                                      */
+  --dur-marquee: 24s;   /* the ticker band                                   */
+  --dur-fadeup: 700ms;  /* hero entrance                                     */
+  --dur-rise:   1100ms; /* wave draw-in on load                              */
   --ease:      cubic-bezier(0.2, 0, 0.2, 1);
+  --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
 
   /* ------------------------------------------------------------------------
      §13  LAYOUT
      ------------------------------------------------------------------------ */
-  --content-max:   1280px;  /* the 12-column field                           */
+  --content-max:   1280px;  /* the field                                     */
   --measure-prose: 68ch;    /* body copy never exceeds this. Charts and
                                tables break out to full width.               */
   --row-h:         36px;    /* standard table row                            */
-  --row-h-dense:   28px;    /* constituents grid, ticker — terminal density  */
-  --strip-h:       34px;    /* the ticker strip                              */
+  --row-h-dense:   30px;    /* constituents grid — terminal density          */
+  --strip-h:       32px;    /* the ticker band                               */
 
   --z-base:    0;
   --z-sticky:  10;   /* masthead + ticker                                    */
@@ -499,199 +587,7 @@
 
 
 /* ==========================================================================
-   DARK — (a) follows the OS, yields to an explicit light stamp
-   Only the tokens that CHANGE are redefined. Type, space, radii, motion and
-   layout are inherited untouched from :root.
-   ========================================================================== */
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-
-    /* §2 surfaces — the plane order inverts: page is darker than card */
-    --page:           var(--slate-925);
-    --surface:        var(--slate-875);
-    --surface-inset:  var(--slate-850);
-    --surface-strip:  var(--slate-925);
-    --surface-chrome: var(--slate-950);
-    --surface-hover:  var(--slate-850);
-    --surface-active: var(--slate-825);
-
-    /* §3 ink — re-selected for the dark surface, not an automatic flip */
-    --ink-1:       #f5f6f7;              /* 16.3:1 surface / 17.5:1 page      */
-    --ink-2:       #c3c8d0;              /* 10.5:1 / 11.2:1                   */
-    --ink-3:       var(--slate-300);     /*  7.4:1 /  8.0:1                   */
-    --ink-faint:   var(--slate-450);     /*  4.5:1 — still non-text by policy */
-    --ink-inverse: #08191c;
-
-    /* §4 lines */
-    --rule:        var(--slate-800);
-    --rule-strong: var(--slate-750);
-    --rule-heavy:  var(--slate-650);
-
-    /* §5 accent — one step, bright enough to carry 3:1 as a mark and
-       4.5:1 as text, so --accent and --accent-ink converge in dark */
-    --accent:      #2fd6c3;   /* 9.7:1 on surface */
-    --accent-ink:  #2fd6c3;   /* 9.7:1 */
-    --accent-wash: #0d2b28;
-    --on-accent:   #08191c;   /* 9.9:1 on the accent fill */
-
-    /* §6 status — the four MARKS are fixed and do not change. Only the
-       text-safe inks and the washes are re-selected for the dark surface. */
-    --status-good-ink:     #0ca30c;  /* 5.3:1 */
-    --status-good-bg:      #0e2413;
-    --status-warning-ink:  #fab219;  /* 9.6:1 */
-    --status-warning-bg:   #2a2109;
-    --status-serious-ink:  #ec835a;  /* 6.7:1 */
-    --status-serious-bg:   #2a1a12;
-    --status-critical-ink: #ef7a7a;  /* 6.5:1 */
-    --status-critical-bg:  #2c1516;
-    --status-neutral:      var(--slate-450);
-    --status-neutral-bg:   var(--slate-825);
-
-    /* §6 tiers */
-    --tier-2-bg: var(--slate-825);
-    --tier-3-bg: var(--slate-850);
-
-    /* §6b chart chrome */
-    --chart-grid:      var(--slate-800);
-    --chart-axis:      var(--slate-650);
-    --chart-line:      var(--ink-2);                  /* 10.5:1 */
-    --chart-wash:      rgba(195, 200, 208, 0.08);
-    --chart-deemph:    var(--slate-450);              /*  4.5:1 */
-    --chart-crosshair: var(--slate-550);
-
-    /* §6c categorical — the same eight hues, RE-STEPPED for the dark
-       surface (not a filter, not an automatic lighten). All eight clear
-       3:1 on #17191c, so the light-mode relief rule does not apply here —
-       but ship the labels anyway so both themes read identically. */
-    --series-1: #3987e5;  /* 4.84:1 */
-    --series-2: #d95926;  /* 4.54:1 */
-    --series-3: #199e70;  /* 5.17:1 */
-    --series-4: #c98500;  /* 5.74:1 */
-    --series-5: #d55181;  /* 4.46:1 */
-    --series-6: #008300;  /* 3.56:1 */
-    --series-7: #9085e9;  /* 5.63:1 */
-    --series-8: #e66767;  /* 5.45:1 */
-
-    /* §7 diverging — the arms flip anchor: the step nearest zero is now the
-       DARKEST, so "nearly flat" still recedes toward the surface. */
-    --div-cool-4: #6da7ec;  /* 7.04:1 */
-    --div-cool-3: #3987e5;  /* 4.84:1 */
-    --div-cool-2: #256abf;  /* 3.26:1 */
-    --div-cool-1: #184f95;  /* 2.17:1 */
-    --div-mid:    #33373d;
-    --div-warm-1: #883008;  /* 2.07:1 */
-    --div-warm-2: #af4517;  /* 3.09:1 */
-    --div-warm-3: #d45e2f;  /* 4.56:1 */
-    --div-warm-4: #e28969;  /* 6.72:1 */
-    --div-ink-on-deep:  var(--ink-1);   /* on arms 3–4 in dark: 7.5:1 / 7.9:1 */
-    --div-ink-on-light: var(--ink-1);
-
-    /* §11 elevation — a dark surface cannot be lifted by a darker shadow, so
-       the ring does the work and the shadow only deepens the ground. */
-    --shadow-raised: 0 2px 10px rgba(0, 0, 0, 0.55),
-                     0 0 0 1px rgba(255, 255, 255, 0.10);
-    --shadow-raised-svg: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.7));
-    --shadow-glow: 0 0 0 1px rgba(47, 214, 195, 0.22),
-                   0 0 40px rgba(47, 214, 195, 0.13),
-                   0 8px 24px rgba(0, 0, 0, 0.45);
-    --accent-glow: rgba(47, 214, 195, 0.5);
-    --texture-dot: radial-gradient(circle, rgba(255, 255, 255, 0.055) 1px, transparent 1.6px)
-                   0 0/22px 22px;
-  }
-}
-
-
-/* ==========================================================================
-   DARK — (b) explicit toggle. Declared AFTER the media block so that
-   data-theme="dark" wins under an OS set to light, and the :not() guard in
-   (a) lets data-theme="light" win under an OS set to dark.
-   Identical body to (a). Keep the two blocks in lockstep.
-   ========================================================================== */
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-
-  --page:           var(--slate-925);
-  --surface:        var(--slate-875);
-  --surface-inset:  var(--slate-850);
-  --surface-strip:  var(--slate-925);
-  --surface-chrome: var(--slate-950);
-  --surface-hover:  var(--slate-850);
-  --surface-active: var(--slate-825);
-
-  --ink-1:       #f5f6f7;
-  --ink-2:       #c3c8d0;
-  --ink-3:       var(--slate-300);
-  --ink-faint:   var(--slate-450);
-  --ink-inverse: #08191c;
-
-  --rule:        var(--slate-800);
-  --rule-strong: var(--slate-750);
-  --rule-heavy:  var(--slate-650);
-
-  --accent:      #2fd6c3;
-  --accent-ink:  #2fd6c3;
-  --accent-wash: #0d2b28;
-  --on-accent:   #08191c;
-
-  --status-good-ink:     #0ca30c;
-  --status-good-bg:      #0e2413;
-  --status-warning-ink:  #fab219;
-  --status-warning-bg:   #2a2109;
-  --status-serious-ink:  #ec835a;
-  --status-serious-bg:   #2a1a12;
-  --status-critical-ink: #ef7a7a;
-  --status-critical-bg:  #2c1516;
-  --status-neutral:      var(--slate-450);
-  --status-neutral-bg:   var(--slate-825);
-
-  --tier-2-bg: var(--slate-825);
-  --tier-3-bg: var(--slate-850);
-
-  --chart-grid:      var(--slate-800);
-  --chart-axis:      var(--slate-650);
-  --chart-line:      var(--ink-2);
-  --chart-wash:      rgba(195, 200, 208, 0.08);
-  --chart-deemph:    var(--slate-450);
-  --chart-crosshair: var(--slate-550);
-
-  --series-1: #3987e5;
-  --series-2: #d95926;
-  --series-3: #199e70;
-  --series-4: #c98500;
-  --series-5: #d55181;
-  --series-6: #008300;
-  --series-7: #9085e9;
-  --series-8: #e66767;
-
-  --div-cool-4: #6da7ec;
-  --div-cool-3: #3987e5;
-  --div-cool-2: #256abf;
-  --div-cool-1: #184f95;
-  --div-mid:    #33373d;
-  --div-warm-1: #883008;
-  --div-warm-2: #af4517;
-  --div-warm-3: #d45e2f;
-  --div-warm-4: #e28969;
-  --div-ink-on-deep:  var(--ink-1);
-  --div-ink-on-light: var(--ink-1);
-
-  --shadow-raised: 0 2px 10px rgba(0, 0, 0, 0.55),
-                   0 0 0 1px rgba(255, 255, 255, 0.10);
-  --shadow-raised-svg: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.7));
-  --shadow-glow: 0 0 0 1px rgba(47, 214, 195, 0.22),
-                 0 0 40px rgba(47, 214, 195, 0.13),
-                 0 8px 24px rgba(0, 0, 0, 0.45);
-  --accent-glow: rgba(47, 214, 195, 0.5);
-  --texture-dot: radial-gradient(circle, rgba(255, 255, 255, 0.055) 1px, transparent 1.6px)
-                 0 0/22px 22px;
-}
-
-
-/* ==========================================================================
-   §0  GLOBALS — the small amount of behaviour the tokens imply
+   §14  GLOBALS — the small amount of behaviour the tokens imply
    ========================================================================== */
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -700,13 +596,15 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  /* An explicit token background is mandatory: a transparent body borrows
-     the host's theme and the whole palette comes apart. */
+  /* An explicit token background is mandatory: a transparent body borrows the
+     host's theme and the whole palette comes apart. This single declaration
+     is the reason an OS set to light still renders TCI dark. */
   background: var(--page);
   color: var(--ink-2);
   font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
   /* The page body never scrolls horizontally. Wide tables and charts scroll
      inside their own overflow-x container. */
   overflow-x: hidden;
@@ -726,6 +624,30 @@ code, kbd, samp, pre,
   border-radius: var(--radius-xs);
 }
 
+/* ---- BRAND KEYFRAMES ----------------------------------------------------
+   Declared here, beside the duration tokens they read, so the motion table in
+   the brand guide has exactly one home in the codebase. */
+@keyframes tci-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--red-halo); }
+  50%      { box-shadow: 0 0 0 7px rgba(255, 0, 0, 0); }
+}
+@keyframes tci-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes tci-fadeup {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes tci-rise {
+  from { transform: scaleY(0.3); opacity: 0; }
+  to   { transform: scaleY(1);   opacity: 1; }
+}
+@keyframes tci-wave {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(1.18); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 1ms !important;
@@ -735,21 +657,20 @@ code, kbd, samp, pre,
   }
 }
 
-/* forced-colors: let the OS palette through rather than fighting it. The
-   texture channel (45°/135° hatch) is the identity backup here. */
+/* forced-colors: let the OS palette through rather than fighting it. */
 @media (forced-colors: active) {
   :root { --shadow-raised: none; }
   .chip, .badge, .card { border: 1px solid CanvasText; }
 }
 
 /* ==========================================================================
-   EU-CRI COMPONENT SHEET
+   TCI COMPONENT SHEET  ·  v2.0 (TCI rebrand)
    Every value below resolves to a token from tokens.css. If you find a raw
    hex, a raw px font-size, or a second box-shadow in here, it is a bug.
    ========================================================================== */
 
 /* ---- utilities ---------------------------------------------------------- */
-.wrap      { max-width: var(--content-max); margin-inline: auto; padding-inline: var(--space-5); }
+.wrap      { max-width: var(--content-max); margin-inline: auto; padding-inline: var(--space-8); }
 .scroll-x  { overflow-x: auto; overscroll-behavior-x: contain; min-inline-size: 0; }
 
 /* A grid or flex item defaults to min-width:auto, which is min-CONTENT — so a
@@ -766,61 +687,141 @@ code, kbd, samp, pre,
 .rule-v    { width: 1px; align-self: stretch; background: var(--rule-strong); }
 .vh        { position:absolute; width:1px; height:1px; margin:-1px; padding:0;
              overflow:hidden; clip-path: inset(50%); white-space: nowrap; border:0; }
-.eyebrow   { font-size: var(--text-3xs); text-transform: uppercase;
-             letter-spacing: var(--tracking-caps); color: var(--ink-3);
-             font-weight: var(--weight-semibold); }
+.eyebrow   { font-family: var(--font-mono); font-size: var(--text-3xs);
+             text-transform: uppercase; letter-spacing: var(--tracking-caps);
+             color: var(--ink-3); font-weight: var(--weight-semibold); }
 .ico       { flex: none; display: block; }
+.stack     { display: grid; gap: var(--space-6); }
 
-/* ---- links -------------------------------------------------------------- */
-a { color: var(--ink-1); text-decoration-color: var(--rule-heavy);
+/* ---- links ---------------------------------------------------------------
+   Off-white with a hairline underline; the underline brightens on hover and
+   the text does not change colour. A red link would spend the brand's small-
+   mark ration on the densest element on the page (tokens.css §5). */
+a { color: var(--link); text-decoration-color: var(--link-rule);
     text-underline-offset: 2px; text-decoration-thickness: 1px;
-    transition: color var(--dur-fast) var(--ease), text-decoration-color var(--dur-fast) var(--ease); }
-a:hover { color: var(--accent-ink); text-decoration-color: var(--accent-ink); }
+    transition: text-decoration-color var(--dur-fast) var(--ease); }
+a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
 .link-quiet { color: var(--ink-2); text-decoration: none; }
-.link-quiet:hover { color: var(--accent-ink); text-decoration: underline; }
+.link-quiet:hover { color: var(--ink-1); text-decoration: underline; }
 
-/* ---- MASTHEAD ----------------------------------------------------------- */
-.masthead { position: sticky; top: 0; z-index: var(--z-sticky); }
-.masthead__bar { background: var(--texture-dot), var(--surface-chrome); border-bottom: var(--border-hairline) solid var(--rule-strong); }
-.masthead__inner { display: flex; align-items: center; gap: var(--space-6); min-height: 56px; }
-.wordmark { display: flex; align-items: center; gap: var(--space-3); text-decoration: none; color: var(--ink-1); flex: none; }
-.wordmark__mark { color: var(--ink-1); }
-.wordmark__text { font-weight: var(--weight-bold); font-size: var(--text-md);
-                  letter-spacing: var(--tracking-tight); }
-.wordmark__sub  { font-size: var(--text-2xs); color: var(--ink-3); border-left: var(--border-hairline) solid var(--rule-strong);
-                  padding-left: var(--space-3); max-width: 18ch; line-height: var(--leading-snug); }
-.nav { display: flex; gap: var(--space-5); margin-inline-start: auto; flex-wrap: wrap; }
-.nav a { font-size: var(--text-sm); color: var(--ink-2); text-decoration: none; padding-block: var(--space-4);
-         border-bottom: var(--border-marker) solid transparent; }
+/* ==========================================================================
+   BRAND LOCKUP — "TC" + a red-dotted bar standing in for the "I"
+   --------------------------------------------------------------------------
+   Built from DOM, not an image: it scales with the type, inherits currentColor
+   for the letters, and needs no asset request. Clearspace = the height of the
+   "T", enforced by the gap on .brand. Sized by --brand-h so one rule serves
+   the masthead (24px) and the footer (20px).
+   ========================================================================== */
+.brand { display: flex; align-items: center; gap: var(--space-4);
+         text-decoration: none; color: var(--ink-1); flex: none; white-space: nowrap; }
+.brand:hover { text-decoration: none; }
+.brand__mark { display: flex; align-items: flex-end; gap: 2px;
+               block-size: var(--brand-h, 24px); }
+.brand__tc { font-family: var(--font-sans); font-weight: var(--weight-black);
+             font-size: var(--brand-h, 24px); line-height: var(--brand-h, 24px);
+             letter-spacing: var(--tracking-tight); color: var(--ink-1); }
+.brand__i  { display: inline-flex; flex-direction: column; align-items: center;
+             justify-content: flex-end; gap: 2px; block-size: var(--brand-h, 24px); }
+.brand__dot { inline-size: calc(var(--brand-h, 24px) * .25);
+              block-size: calc(var(--brand-h, 24px) * .25);
+              border-radius: var(--radius-pill); background: var(--red);
+              flex: none; display: block; }
+.brand__bar { inline-size: calc(var(--brand-h, 24px) * .25);
+              block-size: calc(var(--brand-h, 24px) * .54);
+              background: var(--ink-1); border-radius: 1px; flex: none; display: block; }
+.brand__name { font-family: var(--font-sans); font-weight: var(--weight-semibold);
+               font-size: var(--text-2xs); letter-spacing: var(--tracking-brand);
+               color: var(--ink-2); text-transform: uppercase; }
+
+/* ==========================================================================
+   MASTHEAD — ticker band above, nav row below. Shared by every page.
+   ========================================================================== */
+.masthead { position: sticky; top: 0; z-index: var(--z-sticky);
+            background: var(--surface-chrome); }
+.masthead__bar { background: var(--surface-chrome);
+                 border-bottom: var(--border-hairline) solid var(--rule-strong); }
+.masthead__inner { display: flex; align-items: center; gap: var(--space-7);
+                   min-height: 60px; padding-block: var(--space-4); }
+.masthead__inner .brand { margin-inline-end: auto; }
+
+.nav { display: flex; align-items: center; gap: var(--space-7); flex-wrap: wrap; }
+.nav a { font-family: var(--font-sans); font-size: var(--text-base);
+         color: rgba(245, 245, 246, 0.75); text-decoration: none; white-space: nowrap;
+         transition: color var(--dur-fast) var(--ease); }
 .nav a:hover { color: var(--ink-1); }
-.nav a[aria-current="page"] { color: var(--ink-1); font-weight: var(--weight-medium); border-bottom-color: var(--ink-1); }
+.nav a[aria-current="page"] { color: var(--ink-1); font-weight: var(--weight-medium); }
+/* The one wine fill in the chrome. Large filled shape → wine, never bright red. */
+.nav__cta, .nav a.nav__cta { font-size: var(--text-sm); font-weight: var(--weight-semibold);
+            color: var(--on-accent); background: var(--wine);
+            border: var(--border-hairline) solid var(--wine);
+            border-radius: var(--radius-pill); padding: 9px var(--space-6);
+            text-decoration: none; }
+.nav a.nav__cta:hover { color: var(--on-accent); filter: brightness(1.3); }
 .masthead__tools { flex: none; }
 
-/* ---- TICKER STRIP ------------------------------------------------------- */
-.ticker { background: var(--surface-strip); border-bottom: var(--border-hairline) solid var(--rule-strong); }
-.ticker__track { display: flex; max-width: var(--content-max); margin-inline: auto; }
-.ticker__item { display: flex; align-items: center; gap: var(--space-3); white-space: nowrap;
-                height: var(--strip-h); padding-inline: var(--space-4);
-                border-right: var(--border-hairline) solid var(--rule); }
-.ticker__item:first-child { padding-inline-start: var(--space-5); }
-.ticker__item--meta { margin-inline-start: auto; border-right: 0; border-left: var(--border-hairline) solid var(--rule); }
-.ticker__sym  { font-size: var(--text-2xs); letter-spacing: var(--tracking-wide);
-                text-transform: uppercase; color: var(--ink-3); font-weight: var(--weight-semibold); }
-.ticker__val  { font-size: var(--text-sm); color: var(--ink-1); font-weight: var(--weight-semibold); }
-.ticker__stamp{ font-size: var(--text-2xs); color: var(--ink-3); letter-spacing: var(--tracking-wide); }
+/* ==========================================================================
+   TICKER BAND — scrolling marquee, tci-marquee 24s linear infinite
+   --------------------------------------------------------------------------
+   The track holds the item run TWICE and translates by exactly -50%, so the
+   second run lands where the first started and the loop is seamless. site.py
+   repeats the series list inside each run until it is comfortably wider than
+   a desktop viewport; a run narrower than the screen would show a bald patch
+   at the right edge on every cycle.
 
-/* the only ambient motion in the product */
-.live-dot { position: relative; inline-size: 7px; block-size: 7px; flex: none;
-            border-radius: var(--radius-pill); background: var(--accent);
-            box-shadow: 0 0 6px 1px var(--accent-glow); }
-.live-dot::after { content: ""; position: absolute; inset: -3px; border-radius: inherit;
-                   border: var(--border-hairline) solid var(--accent);
-                   animation: cri-pulse var(--dur-pulse) var(--ease) infinite; }
-@keyframes cri-pulse { 0% { opacity: .8; transform: scale(.6); } 70%,100% { opacity: 0; transform: scale(1.6); } }
+   The duplicate run is aria-hidden and the whole band is a plain region:
+   assistive tech reads each value once, in order, and never chases it.
+   ========================================================================== */
+.tickerbar { display: flex; align-items: center; background: var(--surface-strip);
+             border-bottom: var(--border-hairline) solid var(--rule-strong);
+             overflow: hidden; }
+.tickerbar__marquee { flex: 1 1 auto; overflow: hidden; min-inline-size: 0; }
+.tickerbar__track { display: flex; inline-size: max-content; white-space: nowrap;
+                    animation: tci-marquee var(--dur-marquee) linear infinite; }
+.tickerbar:hover .tickerbar__track,
+.tickerbar:focus-within .tickerbar__track { animation-play-state: paused; }
+.tickerbar__run { display: flex; }
+.tickerbar__item { display: inline-flex; align-items: center; gap: var(--space-3);
+                   padding: 0 var(--space-5b); block-size: var(--strip-h);
+                   font-family: var(--font-mono); font-size: var(--text-2xs);
+                   color: var(--ink-3); }
+.tickerbar__dot { inline-size: 5px; block-size: 5px; border-radius: var(--radius-pill);
+                  background: var(--red); flex: none; display: inline-block; }
+.tickerbar__sym { color: var(--ink-3); }
+.tickerbar__val { color: var(--ink-1); font-weight: var(--weight-medium); }
+.tickerbar__gap { color: var(--ink-3); letter-spacing: var(--tracking-wide); }
+/* The as-of stamp is pinned, NOT carried past on the marquee: it is the one
+   cell the refresh script rewrites, and a timestamp that scrolls off is a
+   timestamp nobody reads. */
+.tickerbar__stamp { flex: none; display: flex; align-items: center;
+                    block-size: var(--strip-h); padding-inline: var(--space-5);
+                    border-left: var(--border-hairline) solid var(--rule-strong);
+                    background: var(--surface-strip);
+                    font-family: var(--font-mono); font-size: var(--text-2xs);
+                    letter-spacing: var(--tracking-wide); color: var(--ink-3);
+                    white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) {
+  .tickerbar__track { animation: none; transform: none; }
+  .tickerbar__marquee { overflow-x: auto; }
+  .tickerbar__run + .tickerbar__run { display: none; }
+}
+@media (max-width: 720px) { .tickerbar__stamp { display: none; } }
 
-/* ---- DELTA -------------------------------------------------------------- */
+/* The live dot: the brand guide's pulse, and the only ambient motion here. */
+.live-dot { inline-size: 8px; block-size: 8px; flex: none; display: inline-block;
+            border-radius: var(--radius-pill); background: var(--red);
+            animation: tci-pulse var(--dur-pulse) ease-in-out infinite; }
+.live-label { display: inline-flex; align-items: center; gap: var(--space-3);
+              font-family: var(--font-mono); font-size: var(--text-3xs);
+              letter-spacing: var(--tracking-wide); text-transform: uppercase;
+              color: var(--ink-3); }
+
+/* ---- DELTA ---------------------------------------------------------------
+   Sign + arrow + colour: three channels, so a reader who cannot separate the
+   hues loses nothing. Never the bright brand red — a down-tick is not a live
+   mark (tokens.css §6). */
 .delta { display: inline-flex; align-items: center; gap: var(--space-2);
-         font-size: var(--text-xs); font-weight: var(--weight-medium); }
+         font-family: var(--font-mono); font-size: var(--text-2xs);
+         font-weight: var(--weight-medium); }
 .delta .num { font-size: inherit; }
 .delta--up   { color: var(--delta-up); }
 .delta--down { color: var(--delta-down); }
@@ -832,137 +833,436 @@ a:hover { color: var(--accent-ink); text-decoration-color: var(--accent-ink); }
 /* ---- CHIPS & BADGES ----------------------------------------------------- */
 .chip { display: inline-flex; align-items: center; gap: var(--space-2);
         padding: 3px var(--space-3); border-radius: var(--radius-xs);
-        font-size: var(--text-2xs); font-weight: var(--weight-medium);
-        line-height: var(--leading-snug); white-space: nowrap; }
-.chip--good     { color: var(--status-good-ink);     background: var(--status-good-bg); }
-.chip--warning  { color: var(--status-warning-ink);  background: var(--status-warning-bg); }
-.chip--serious  { color: var(--status-serious-ink);  background: var(--status-serious-bg); }
-.chip--critical { color: var(--status-critical-ink); background: var(--status-critical-bg); }
-.chip--neutral  { color: var(--status-neutral-ink);  background: var(--status-neutral-bg); }
+        font-family: var(--font-mono); font-size: var(--text-3xs);
+        font-weight: var(--weight-medium); letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-snug); white-space: nowrap;
+        border: var(--border-hairline) solid transparent; }
+.chip--good     { color: var(--status-good-ink);     background: var(--status-good-bg);
+                  border-color: var(--status-good-bg); }
+.chip--warning  { color: var(--status-warning-ink);  background: var(--status-warning-bg);
+                  border-color: var(--status-warning-bg); }
+.chip--serious  { color: var(--status-serious-ink);  background: var(--status-serious-bg);
+                  border-color: var(--status-serious-bg); }
+.chip--critical { color: var(--status-critical-ink); background: var(--status-critical-bg);
+                  border-color: var(--status-critical-bg); }
+.chip--neutral  { color: var(--status-neutral-ink);  background: var(--status-neutral-bg);
+                  border-color: var(--rule-heavy); }
 
-.badge { display: inline-block; min-inline-size: 26px; padding: 2px var(--space-2);
+/* Tier badges. site.py emits badge--l1/l2/l3 ("L" for the ordinal Level the
+   constituents table prints); v1.0 defined only badge--t1/t2/t3, so seven
+   badges per print rendered unstyled on the live site and every --tier-*
+   token was dead. Both spellings are defined here and kept identical, so the
+   pairing cannot silently break again. */
+.badge { display: inline-block; min-inline-size: 26px; padding: 2px var(--space-3);
          border-radius: var(--radius-xs); font-family: var(--font-mono);
          font-size: var(--text-3xs); font-weight: var(--weight-semibold);
-         letter-spacing: var(--tracking-wide); text-align: center; }
-.badge--t1 { color: var(--tier-1-ink); background: var(--tier-1-bg); }
-.badge--t2 { color: var(--tier-2-ink); background: var(--tier-2-bg); }
-.badge--t3 { color: var(--tier-3-ink); background: var(--tier-3-bg); }
+         letter-spacing: var(--tracking-wide); text-align: center;
+         border: var(--border-hairline) solid transparent; }
+.badge--l1, .badge--t1 { color: var(--tier-1-ink); background: var(--tier-1-bg);
+                         border-color: var(--tier-1-edge); }
+.badge--l2, .badge--t2 { color: var(--tier-2-ink); background: var(--tier-2-bg);
+                         border-color: var(--tier-2-edge); }
+.badge--l3, .badge--t3 { color: var(--tier-3-ink); background: var(--tier-3-bg);
+                         border-color: var(--tier-3-edge); }
 
 .flag { display: inline-block; margin-inline-end: var(--space-2);
-        padding: 1px var(--space-2); border: var(--border-hairline) solid var(--rule-strong);
+        padding: 1px var(--space-2); border: var(--border-hairline) solid var(--rule-heavy);
         border-radius: var(--radius-xs); font-family: var(--font-mono);
         font-size: var(--text-3xs); letter-spacing: var(--tracking-wide); color: var(--ink-3); }
 
+/* Version / attribute badge — the brand guide's outlined mono pill. */
+.vbadge { display: inline-block; font-family: var(--font-mono); font-size: var(--text-3xs);
+          color: var(--ink-2); border: var(--border-hairline) solid var(--rule-heavy);
+          padding: 3px var(--space-3); border-radius: var(--radius-xs); }
+.vbadges { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
 /* ---- CARDS & SECTIONS --------------------------------------------------- */
-.card { background: var(--surface); border: var(--border-hairline) solid var(--rule-strong);
-        border-radius: var(--radius-md); }
+.card { background: transparent; border: var(--border-hairline) solid var(--rule-strong);
+        border-radius: var(--radius-lg); }
 .card__head { display: flex; align-items: baseline; gap: var(--space-4); flex-wrap: wrap;
-              padding: var(--space-4) var(--space-5);
+              padding: var(--space-5) var(--space-5b);
               border-bottom: var(--border-hairline) solid var(--rule); }
-.card__title { margin: 0; font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--ink-1); }
-.card__sub   { margin: 0; font-size: var(--text-xs); color: var(--ink-3); }
-.card__meta  { margin-inline-start: auto; font-size: var(--text-2xs); color: var(--ink-3); }
-.card__body  { padding: var(--space-5); }
+.card__title { margin: 0; font-size: var(--text-lg); font-weight: var(--weight-semibold);
+               color: var(--ink-1); }
+.card__sub   { margin: var(--space-2) 0 0; font-size: var(--text-xs); color: var(--ink-3);
+               line-height: var(--leading-snug); }
+.card__meta  { margin-inline-start: auto; font-family: var(--font-mono);
+               font-size: var(--text-3xs); color: var(--ink-3); }
+.card__body  { padding: var(--space-5b); }
 .card__body--flush { padding: 0; }
 
-.section { padding-block: var(--space-8); }
-.section__head { display: flex; align-items: flex-end; gap: var(--space-4); flex-wrap: wrap;
-                 margin-bottom: var(--space-5); padding-bottom: var(--space-3);
-                 border-bottom: var(--border-hairline) solid var(--rule-heavy); }
+.section { padding-block: var(--space-9); border-top: var(--border-hairline) solid var(--rule-strong); }
+.section:first-of-type { border-top: 0; }
+.section__head { display: flex; align-items: flex-end; gap: var(--space-5); flex-wrap: wrap;
+                 margin-bottom: var(--space-6); }
 .section__h { margin: 0; font-size: var(--text-xl); font-weight: var(--weight-semibold);
-              color: var(--ink-1); letter-spacing: var(--tracking-tight); }
-.section__dek { margin: 0; font-size: var(--text-sm); color: var(--ink-3); max-width: var(--measure-prose); }
-.section__link { margin-inline-start: auto; font-size: var(--text-sm); }
+              color: var(--ink-1); letter-spacing: var(--tracking-tight);
+              line-height: var(--leading-tight); }
+.section__dek { margin: var(--space-3) 0 0; font-size: var(--text-sm); color: var(--ink-3);
+                max-width: var(--measure-prose); line-height: var(--leading-normal); }
+.section__link { margin-inline-start: auto; font-size: var(--text-sm); white-space: nowrap; }
+
+/* ==========================================================================
+   HERO — headline, dek, CTAs, and the wave graphic
+   --------------------------------------------------------------------------
+   The wave is brand furniture, not a chart: no axis, no scale, no readable
+   value, and aria-hidden. It draws in once on load (tci-rise, staggered) and
+   only breathes on hover (tci-wave, staggered) — motion that responds to the
+   reader rather than looping at them.
+   ========================================================================== */
+.hero { position: relative; padding-block: var(--space-10) var(--space-9); overflow: hidden; }
+.hero__inner { position: relative; max-width: 640px; }
+.hero__h { font-family: var(--font-display); font-weight: var(--weight-semibold);
+           font-size: var(--text-display); line-height: 1.25;
+           letter-spacing: var(--tracking-tight); margin: 0 0 var(--space-6);
+           color: var(--ink-1); animation: tci-fadeup var(--dur-fadeup) var(--ease-out) both; }
+.hero__stop { color: var(--red); }
+.hero__dek { font-size: var(--text-md); line-height: var(--leading-prose);
+             color: var(--ink-2); max-width: 460px; margin: 0 0 var(--space-7);
+             animation: tci-fadeup var(--dur-fadeup) var(--ease-out) .1s both; }
+.hero__cta { display: flex; gap: var(--space-4); flex-wrap: wrap;
+             animation: tci-fadeup var(--dur-fadeup) var(--ease-out) .2s both; }
+
+.hero__wave { position: absolute; inset-block: 0; inset-inline-end: 0; inline-size: 62%;
+              display: flex; align-items: flex-end; gap: 9px;
+              padding-inline-end: var(--space-5); pointer-events: auto;
+              -webkit-mask-image: linear-gradient(to left, black 55%, transparent);
+              mask-image: linear-gradient(to left, black 55%, transparent); }
+.wave__col { flex: 1 1 0; display: flex; flex-direction: column; align-items: center;
+             justify-content: flex-end; block-size: 220px; transform-origin: bottom;
+             min-inline-size: 0; }
+.wave__dot { inline-size: var(--dot, 2.5px); block-size: var(--dot, 2.5px);
+             border-radius: var(--radius-pill); background: var(--wave-dot);
+             margin-block-end: 2px; flex: none; }
+.wave__bar { inline-size: 1.5px; flex: none; block-size: var(--h, 90px);
+             background: var(--wave-bar); transform-origin: bottom;
+             animation: tci-rise var(--dur-rise) var(--ease-out) var(--d, 0s) both; }
+/* The bright red marks: small, rationed, and only in the wave's middle third. */
+.wave__col--hi .wave__dot { background: var(--red); }
+.wave__col--hi .wave__bar { background: var(--wave-bar-hi); }
+/* Hover swaps the draw-in for the breathing loop. --dw is a separate stagger from
+   --d: the brand guide staggers the two animations at different rates. */
+.hero__wave:hover .wave__bar {
+  animation: tci-wave var(--wd, 1.5s) ease-in-out var(--dw, 0s) infinite;
+}
+@media (max-width: 900px) { .hero__wave { display: none; } }
+
+/* ---- BUTTONS ------------------------------------------------------------ */
+.btn { display: inline-flex; align-items: center; gap: var(--space-3);
+       padding: 13px var(--space-6); border-radius: var(--radius-md);
+       font-family: var(--font-sans); font-size: var(--text-base);
+       font-weight: var(--weight-semibold); line-height: var(--leading-snug);
+       cursor: pointer; text-decoration: none;
+       border: var(--border-hairline) solid transparent;
+       transition: background var(--dur-fast) var(--ease),
+                   border-color var(--dur-fast) var(--ease),
+                   filter var(--dur-fast) var(--ease); }
+.btn--primary { background: var(--wine); border-color: var(--wine); color: var(--on-accent); }
+.btn--primary:hover { color: var(--on-accent); filter: brightness(1.3); text-decoration: none; }
+.btn--ghost { background: transparent; color: var(--ink-1); border-color: var(--rule-heavy); }
+.btn--ghost:hover { color: var(--ink-1); background: var(--surface-hover);
+                    border-color: var(--ink-3); text-decoration: none; }
+.btn--sm { padding: 8px var(--space-5); font-size: var(--text-sm);
+           border-radius: var(--radius-sm); }
+.btn[disabled] { cursor: not-allowed; color: var(--ink-faint); background: var(--surface-inset);
+                 border-color: var(--rule); }
 
 /* ---- HERO PRINT CARD ---------------------------------------------------- */
-/* The one place the accent becomes structure: a 2px rule across the top. */
-.print { display: grid; grid-template-columns: minmax(0,1fr) 300px;
-         background: var(--texture-dot), var(--surface);
+/* The one card that earns a filled ground and the wine top rule: it is the
+   number the whole site exists to publish. */
+.print { display: grid; grid-template-columns: minmax(0,1fr) 320px;
+         background: var(--surface);
          border: var(--border-hairline) solid var(--rule-strong);
-         border-top: var(--border-marker) solid var(--accent);
-         border-radius: var(--radius-lg); overflow: hidden;
-         box-shadow: var(--shadow-glow); }
-.print__main { padding: var(--space-6); min-width: 0; }
-.print__head { display: flex; gap: var(--space-5); align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
-.print__sym  { margin: var(--space-2) 0 0; font-size: var(--text-lg); font-weight: var(--weight-semibold);
-               color: var(--ink-1); font-family: var(--font-mono); letter-spacing: var(--tracking-normal); }
-.print__desc { margin: var(--space-2) 0 0; font-size: var(--text-xs); color: var(--ink-3); max-width: 46ch; }
+         border-top: var(--border-marker) solid var(--wine);
+         border-radius: var(--radius-xl); overflow: hidden; }
+.print__main { padding: var(--space-6) var(--space-6) var(--space-7); min-width: 0; }
+.print__head { display: flex; gap: var(--space-5); align-items: flex-start;
+               justify-content: space-between; flex-wrap: wrap; }
+.print__sym  { margin: var(--space-3) 0 0; font-size: var(--text-xl);
+               font-weight: var(--weight-semibold); color: var(--ink-1);
+               font-family: var(--font-mono); letter-spacing: var(--tracking-normal); }
+.print__desc { margin: var(--space-3) 0 0; font-size: var(--text-xs); color: var(--ink-3);
+               max-width: 46ch; line-height: var(--leading-normal); }
 
-.print__figure { display: flex; align-items: baseline; gap: var(--space-2); margin-top: var(--space-5); }
-.print__ccy   { font-family: var(--font-mono); font-size: var(--text-2xl); color: var(--ink-3); font-weight: var(--weight-medium); }
-.print__value { font-family: var(--font-mono); font-size: var(--text-hero); line-height: var(--leading-tight);
-                font-weight: var(--weight-semibold); color: var(--ink-1); letter-spacing: var(--tracking-tight); }
+.print__figure { display: flex; align-items: baseline; gap: var(--space-2);
+                 margin-top: var(--space-6); }
+.print__ccy   { font-family: var(--font-mono); font-size: var(--text-2xl);
+                color: var(--ink-3); font-weight: var(--weight-medium); }
+.print__value { font-family: var(--font-mono); font-size: var(--text-hero);
+                line-height: var(--leading-tight); font-weight: var(--weight-semibold);
+                color: var(--ink-1); letter-spacing: var(--tracking-tight); }
 .print__unit  { font-size: var(--text-sm); color: var(--ink-3); }
 
-.print__row { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap;
+.print__row { display: flex; align-items: center; gap: var(--space-5); flex-wrap: wrap;
               margin-top: var(--space-4); font-size: var(--text-xs); }
-.print__abs   { color: var(--delta-up); font-weight: var(--weight-medium); }
+.print__abs   { font-family: var(--font-mono); color: var(--ink-2);
+                font-weight: var(--weight-medium); }
 .print__vs    { color: var(--ink-3); }
 .print__range { color: var(--ink-3); }
-.print__chips { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-5); }
+.print__chips { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-6); }
 
-.print__meta { border-left: var(--border-hairline) solid var(--rule); background: var(--surface-inset);
-               padding: var(--space-5) var(--space-5) var(--space-4); }
+.print__meta { border-left: var(--border-hairline) solid var(--rule);
+               background: var(--surface-inset);
+               padding: var(--space-5) var(--space-5b) var(--space-4); }
 .metagrid { margin: 0; display: grid; gap: 0; }
 .metagrid > div { display: flex; justify-content: space-between; gap: var(--space-3);
-                  padding-block: var(--space-3); border-bottom: var(--border-hairline) solid var(--rule); }
+                  padding-block: var(--space-4);
+                  border-bottom: var(--border-hairline) solid var(--rule); }
 .metagrid > div:last-child { border-bottom: 0; }
-.metagrid dt { font-size: var(--text-2xs); color: var(--ink-3); text-transform: uppercase;
-               letter-spacing: var(--tracking-wide); white-space: nowrap; }
-.metagrid dd { margin: 0; font-size: var(--text-xs); color: var(--ink-2); text-align: right; min-width: 0; }
+.metagrid dt { font-family: var(--font-mono); font-size: var(--text-3xs); color: var(--ink-3);
+               text-transform: uppercase; letter-spacing: var(--tracking-wide);
+               white-space: nowrap; }
+.metagrid dd { margin: 0; font-size: var(--text-xs); color: var(--ink-2); text-align: right;
+               min-width: 0; }
 
 /* ---- SUB-INDEX TILES ---------------------------------------------------- */
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
-.tile { background: var(--surface); border: var(--border-hairline) solid var(--rule-strong);
-        border-radius: var(--radius-md); padding: var(--space-4) var(--space-5) var(--space-4); }
-.tile__sym  { font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: var(--tracking-wide);
-              color: var(--ink-3); font-weight: var(--weight-semibold); }
-.tile__body { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4); margin-top: var(--space-3); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+         gap: var(--space-5); }
+.tile { background: transparent; border: var(--border-hairline) solid var(--rule-strong);
+        border-radius: var(--radius-lg); padding: var(--space-5) var(--space-5b); }
+.tile__sym  { font-family: var(--font-mono); font-size: var(--text-2xs);
+              letter-spacing: var(--tracking-wide); color: var(--ink-2);
+              font-weight: var(--weight-semibold); }
+.tile__body { display: flex; align-items: flex-end; justify-content: space-between;
+              gap: var(--space-4); margin-top: var(--space-4); }
 .tile__num  { display: flex; align-items: baseline; gap: 1px; }
 .tile__ccy  { font-family: var(--font-mono); font-size: var(--text-md); color: var(--ink-3); }
-.tile__val  { font-family: var(--font-mono); font-size: var(--text-2xl); font-weight: var(--weight-semibold);
-              color: var(--ink-1); line-height: var(--leading-tight); }
-.tile__foot { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-3);
-              padding-top: var(--space-3); border-top: var(--border-hairline) solid var(--rule); }
+.tile__val  { font-family: var(--font-mono); font-size: var(--text-2xl);
+              font-weight: var(--weight-semibold); color: var(--ink-1);
+              line-height: var(--leading-tight); }
+.tile__foot { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-4);
+              padding-top: var(--space-4); border-top: var(--border-hairline) solid var(--rule); }
 .tile__note { font-size: var(--text-2xs); color: var(--ink-3); }
 .spark__line { fill: none; stroke: var(--chart-deemph); stroke-width: 1.5;
                stroke-linecap: round; stroke-linejoin: round; }
-.spark__ring { fill: var(--surface); }
+.spark__ring { fill: var(--page); }
 .spark__dot  { fill: var(--chart-marker); }
+
+/* ==========================================================================
+   HEADLINE SERIES TABLE (landing) — the brand guide's flat, ruled register
+   ========================================================================== */
+.stable { inline-size: 100%; min-inline-size: 560px; border-collapse: collapse;
+          font-size: var(--text-base); }
+.stable thead th { font-family: var(--font-mono); font-size: var(--text-3xs);
+                   letter-spacing: var(--tracking-wide); text-transform: uppercase;
+                   color: var(--ink-3); font-weight: var(--weight-semibold);
+                   text-align: left; padding: var(--space-4) 0;
+                   border-bottom: var(--border-hairline) solid var(--rule-strong); }
+.stable thead th.ta-r { text-align: right; }
+.stable tbody td, .stable tbody th { font-family: var(--font-mono); font-weight: var(--weight-regular);
+                   color: var(--ink-1); text-align: left; padding: var(--space-4) 0;
+                   border-bottom: var(--border-hairline) solid var(--rule);
+                   white-space: nowrap; }
+.stable tbody td.ta-r { text-align: right; }
+.stable .stable__reg { font-family: var(--font-sans); color: var(--ink-3); }
+.stable tbody tr:last-child td, .stable tbody tr:last-child th { border-bottom: 0; }
+
+/* ==========================================================================
+   PILLARS — three methodology cards with a wine icon square
+   ========================================================================== */
+.pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+           gap: var(--space-6); }
+.pillar { border: var(--border-hairline) solid var(--rule-strong);
+          border-radius: var(--radius-lg); padding: var(--space-6); }
+.pillar__ico { inline-size: 34px; block-size: 34px; border-radius: var(--radius-md);
+               background: var(--wine-wash-2); display: flex; align-items: center;
+               justify-content: center; margin-bottom: var(--space-5); }
+.pillar__ico i { display: block; background: var(--wine); }
+.pillar__ico--dot  i { inline-size: 12px; block-size: 12px; border-radius: var(--radius-pill); }
+.pillar__ico--sq   i { inline-size: 12px; block-size: 12px; border-radius: 3px; }
+.pillar__ico--rule i { inline-size: 14px; block-size: 2px; }
+.pillar__t { font-size: var(--text-lg); font-weight: var(--weight-semibold);
+             color: var(--ink-1); margin: 0 0 var(--space-3); }
+.pillar__d { margin: 0; font-size: var(--text-sm); line-height: var(--leading-prose);
+             color: var(--ink-2); }
+
+/* ==========================================================================
+   FAMILY OF INDICES — the live card is wine-tinted, the rest are outlines
+   ========================================================================== */
+.famcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--space-5); }
+.fam { border: var(--border-hairline) solid var(--rule-strong);
+       border-radius: var(--radius-lg); padding: var(--space-5b); }
+.fam--live { border-color: var(--wine-edge); background: var(--wine-wash); }
+.fam__status { font-family: var(--font-mono); font-size: var(--text-3xs);
+               letter-spacing: var(--tracking-wide); text-transform: uppercase;
+               color: var(--ink-3); margin-bottom: var(--space-4); display: block; }
+.fam--live .fam__status { color: var(--red); }
+.fam__sym { font-size: var(--text-lg); font-weight: var(--weight-semibold);
+            color: var(--ink-2); margin: 0 0 var(--space-3); font-family: var(--font-mono); }
+.fam--live .fam__sym { color: var(--ink-1); }
+.fam__desc { margin: 0; font-size: var(--text-xs); line-height: var(--leading-prose);
+             color: var(--ink-3); }
+.fam--live .fam__desc { color: var(--ink-2); }
+
+/* ==========================================================================
+   TERMINAL BLOCK — the one place a bright-red highlight is allowed in body
+   ========================================================================== */
+.term { border: var(--border-hairline) solid rgba(255, 255, 255, 0.12);
+        border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-inset); }
+.term__chrome { display: flex; align-items: center; gap: var(--space-3);
+                padding: var(--space-4) var(--space-5);
+                border-bottom: var(--border-hairline) solid var(--rule-strong); }
+.term__chrome i { inline-size: 9px; block-size: 9px; border-radius: var(--radius-pill);
+                  display: inline-block; background: var(--ink-faint); }
+.term__chrome i:nth-child(1) { background: var(--status-critical); }
+.term__chrome i:nth-child(2) { background: var(--status-warning); }
+.term__chrome i:nth-child(3) { background: var(--status-good); }
+.term__name { margin-inline-start: var(--space-3); font-family: var(--font-mono);
+              font-size: var(--text-3xs); color: var(--ink-3); }
+.term__body { padding: var(--space-5) var(--space-5b); font-family: var(--font-mono);
+              font-size: var(--text-xs); color: var(--ink-2); line-height: 1.8;
+              overflow-x: auto; }
+.term__body > div { white-space: pre; }
+.term__c  { color: var(--ink-3); }
+.term__hi { color: var(--red); }
+
+/* ---- TWO-COLUMN TEASER -------------------------------------------------- */
+.teaser { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--space-7);
+          align-items: center; }
+.teaser__h { margin: 0 0 var(--space-4); font-size: var(--text-xl);
+             font-weight: var(--weight-semibold); color: var(--ink-1);
+             letter-spacing: var(--tracking-tight); }
+.teaser__d { margin: 0 0 var(--space-6); font-size: var(--text-sm);
+             line-height: var(--leading-prose); color: var(--ink-2); max-width: 440px; }
+.teaser__cta { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+@media (max-width: 900px) { .teaser { grid-template-columns: 1fr; } }
+
+/* ---- LINK LIST (landing research strip) --------------------------------- */
+.linklist { display: flex; flex-direction: column; }
+.linklist__row { display: flex; justify-content: space-between; gap: var(--space-6);
+                 padding-block: var(--space-5);
+                 border-bottom: var(--border-hairline) solid var(--rule-strong);
+                 text-decoration: none; }
+.linklist__row:hover .linklist__t { text-decoration: underline;
+                                    text-decoration-color: var(--link-rule-hi); }
+.linklist__t { font-size: var(--text-md); font-weight: var(--weight-semibold);
+               color: var(--ink-1); }
+.linklist__when { font-family: var(--font-mono); font-size: var(--text-2xs);
+                  color: var(--ink-3); white-space: nowrap; }
+
+/* ---- DOWNLOAD CARDS (data page) ----------------------------------------- */
+.dlcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+           gap: var(--space-5); }
+.dl { border: var(--border-hairline) solid var(--rule-strong); border-radius: var(--radius-lg);
+      padding: var(--space-5b); display: flex; flex-direction: column; gap: var(--space-4); }
+.dl__t { font-size: var(--text-md); font-weight: var(--weight-semibold); color: var(--ink-1); }
+.dl__d { font-size: var(--text-xs); color: var(--ink-3); line-height: var(--leading-normal);
+         flex: 1; margin: 0; }
+.dl .btn { justify-content: center; }
+
+/* ---- KEY/VALUE DEFINITION TABLE ----------------------------------------- */
+.kv { inline-size: 100%; max-width: 760px; border-collapse: collapse;
+      font-size: var(--text-base); }
+.kv td { font-family: var(--font-mono); padding: var(--space-4) 0;
+         border-bottom: var(--border-hairline) solid var(--rule-strong);
+         color: var(--ink-1); vertical-align: top; }
+.kv td:first-child { color: var(--ink-3); inline-size: 40%; padding-inline-end: var(--space-5); }
+.kv tr:last-child td { border-bottom: 0; }
+
+/* ---- SEGMENT CARDS ------------------------------------------------------ */
+.segcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--space-5); }
+.segcard { border: var(--border-hairline) solid var(--rule-strong);
+           border-radius: var(--radius-md); padding: var(--space-5); }
+.segcard__t { font-size: var(--text-base); font-weight: var(--weight-semibold);
+              color: var(--ink-1); margin: 0 0 var(--space-3); }
+.segcard__l { margin: 0; font-family: var(--font-mono); font-size: var(--text-2xs);
+              color: var(--ink-3); line-height: var(--leading-prose);
+              overflow-wrap: anywhere; }
+
+/* ---- PRECONDITION CHECKLIST + POLICY GRID (governance) ------------------ */
+.preconds { inline-size: 100%; max-width: 820px; border-collapse: collapse;
+            font-size: var(--text-base); }
+.preconds td { padding: var(--space-4) 0; color: var(--ink-2);
+               border-bottom: var(--border-hairline) solid var(--rule-strong);
+               line-height: var(--leading-normal); }
+.preconds td:last-child { text-align: right; white-space: nowrap; padding-inline-start: var(--space-5); }
+.preconds tr:last-child td { border-bottom: 0; }
+.pill { display: inline-block; font-family: var(--font-mono); font-size: var(--text-3xs);
+        letter-spacing: var(--tracking-wide); text-transform: uppercase;
+        border-radius: var(--radius-pill); padding: 3px var(--space-4);
+        border: var(--border-hairline) solid var(--rule-heavy); color: var(--ink-3); }
+.pill--met { color: var(--status-good-ink); border-color: var(--status-good-bg);
+             background: var(--status-good-bg); }
+
+.policygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+              gap: var(--space-5); }
+.policy { border: var(--border-hairline) solid var(--rule-strong);
+          border-radius: var(--radius-lg); padding: var(--space-5b); }
+.policy__t { margin: 0 0 var(--space-3); font-size: var(--text-md);
+             font-weight: var(--weight-semibold); color: var(--ink-1); }
+.policy__d { margin: 0; font-size: var(--text-xs); color: var(--ink-2);
+             line-height: var(--leading-prose); }
+
+/* ---- BRAND CALLOUT (wine-tinted) ---------------------------------------- */
+.callout--brand { border: var(--border-hairline) solid var(--wine-edge);
+                  background: var(--wine-wash); border-radius: var(--radius-lg);
+                  padding: var(--space-6); max-width: 760px; border-left-width: 1px; }
+.callout--brand .eyebrow { color: var(--red); margin-bottom: var(--space-4); display: block; }
+.callout--brand p { margin: 0; font-size: var(--text-base); line-height: var(--leading-prose);
+                    color: var(--ink-2); max-width: none; }
+
+/* ---- TERMS TABLE + CITATION (data page) --------------------------------- */
+.terms { inline-size: 100%; max-width: 820px; border-collapse: collapse;
+         font-size: var(--text-base); }
+.terms th { text-align: left; vertical-align: top; inline-size: 180px;
+            color: var(--ink-1); font-weight: var(--weight-medium);
+            padding: var(--space-4) var(--space-5) var(--space-4) 0;
+            border-bottom: var(--border-hairline) solid var(--rule-strong); }
+.terms td { color: var(--ink-2); line-height: var(--leading-prose);
+            padding: var(--space-4) 0;
+            border-bottom: var(--border-hairline) solid var(--rule-strong); }
+.terms tr:last-child th, .terms tr:last-child td { border-bottom: 0; }
+.cite { margin-top: var(--space-6); border-left: var(--border-marker) solid var(--rule-heavy);
+        padding-left: var(--space-5); font-family: var(--font-mono);
+        font-size: var(--text-xs); color: var(--ink-3); max-width: 640px;
+        line-height: var(--leading-prose); overflow-wrap: anywhere; }
+
+/* ---- SUBSCRIBE (research page) ------------------------------------------ */
+.subscribe { border: var(--border-hairline) solid rgba(255, 255, 255, 0.12);
+             border-radius: var(--radius-lg); padding: var(--space-7); max-width: 600px;
+             display: flex; flex-direction: column; gap: var(--space-4); }
+.subscribe__t { font-size: var(--text-lg); font-weight: var(--weight-semibold); color: var(--ink-1); }
+.subscribe__d { margin: 0; font-size: var(--text-sm); color: var(--ink-2);
+                line-height: var(--leading-prose); }
+.subscribe__cta { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; }
 
 /* ---- DENSE GRID (constituents) ------------------------------------------ */
 .grid { inline-size: 100%; min-inline-size: 780px; border-collapse: collapse;
-        font-size: var(--text-xs); background: var(--surface); }
+        font-size: var(--text-xs); background: transparent; }
 .grid caption { text-align: left; }
 .grid thead th { position: sticky; top: 0; background: var(--surface-inset); z-index: 1;
-                 font-size: var(--text-3xs); text-transform: uppercase;
-                 letter-spacing: var(--tracking-caps); color: var(--ink-3);
-                 font-weight: var(--weight-semibold); text-align: left;
-                 padding: var(--space-3) var(--space-4);
-                 border-bottom: var(--border-hairline) solid var(--rule-heavy); white-space: nowrap; }
+                 font-family: var(--font-mono); font-size: var(--text-3xs);
+                 text-transform: uppercase; letter-spacing: var(--tracking-caps);
+                 color: var(--ink-3); font-weight: var(--weight-semibold); text-align: left;
+                 padding: var(--space-3) var(--space-5);
+                 border-bottom: var(--border-hairline) solid var(--rule-heavy);
+                 white-space: nowrap; }
 .grid thead th.ta-r { text-align: right; }
 .grid thead th.ta-c { text-align: center; }
-.grid tbody td, .grid tbody th { padding: 0 var(--space-4); block-size: var(--row-h-dense);
+.grid tbody td, .grid tbody th { padding: 0 var(--space-5); block-size: var(--row-h-dense);
                                  border-bottom: var(--border-hairline) solid var(--rule);
                                  color: var(--ink-2); font-weight: var(--weight-regular);
                                  white-space: nowrap; vertical-align: middle; }
 .grid tbody tr:hover td, .grid tbody tr:hover th { background: var(--surface-hover); }
 .grid__name { text-align: left; color: var(--ink-1); font-weight: var(--weight-medium);
               font-family: var(--font-mono); }
-.grid tfoot th, .grid tfoot td { padding: var(--space-3) var(--space-4); text-align: left;
+.grid tfoot th, .grid tfoot td { padding: var(--space-4) var(--space-5); text-align: left;
                                  border-top: var(--border-hairline) solid var(--rule-heavy);
-                                 font-size: var(--text-xs); color: var(--ink-2);
+                                 font-size: var(--text-xs); color: var(--ink-1);
                                  font-weight: var(--weight-semibold); white-space: nowrap; }
 .grid tfoot td.ta-r { text-align: right; }
 .grid__flags { white-space: nowrap; }
 .srclink { display: inline-flex; align-items: center; gap: var(--space-2);
-           font-size: var(--text-2xs); color: var(--ink-3); text-decoration: none;
-           letter-spacing: var(--tracking-wide); }
-.srclink:hover { color: var(--accent-ink); text-decoration: underline; }
+           font-family: var(--font-mono); font-size: var(--text-3xs); color: var(--ink-3);
+           text-decoration: none; letter-spacing: var(--tracking-wide); }
+.srclink:hover { color: var(--ink-1); text-decoration: underline; }
 
-/* weight meter: one hue, lighter step of the same ramp as the track */
+/* weight meter: one hue, magnitude only */
 .wcell  { display: inline-flex; align-items: center; gap: var(--space-3); justify-content: flex-end; }
-.meter  { inline-size: 52px; block-size: 4px; background: var(--rule); border-radius: var(--radius-xs); overflow: hidden; }
+.meter  { inline-size: 52px; block-size: 4px; background: var(--rule-strong);
+          border-radius: var(--radius-xs); overflow: hidden; }
 .meter__fill { display: block; block-size: 100%; background: var(--chart-deemph); }
 
 /* ---- CHARTS ------------------------------------------------------------- */
@@ -971,7 +1271,7 @@ a:hover { color: var(--accent-ink); text-decoration-color: var(--accent-ink); }
 .ch-axis  { stroke: var(--chart-axis); stroke-width: 1; }
 .ch-tick  { fill: var(--chart-label); font-family: var(--font-mono);
             font-size: 11px; font-variant-numeric: tabular-nums; }
-.ch-tick--pole { font-family: var(--font-sans); font-size: 9px; letter-spacing: .09em;
+.ch-tick--pole { font-family: var(--font-sans); font-size: 9px; letter-spacing: .08em;
                  font-weight: 600; fill: var(--ink-3); }
 .ch-note  { fill: var(--ink-3); font-family: var(--font-sans); font-size: 11px; }
 .ch-cur   { fill: var(--ink-1); font-family: var(--font-mono); font-size: 13px;
@@ -979,7 +1279,7 @@ a:hover { color: var(--accent-ink); text-decoration-color: var(--accent-ink); }
 .ch-line  { fill: none; stroke: var(--chart-line); stroke-width: 2;
             stroke-linejoin: round; stroke-linecap: round; }
 .ch-area  { fill: var(--chart-wash); stroke: none; }
-.ch-marker-rule { stroke: var(--chart-marker); stroke-width: 1; opacity: .55; }
+.ch-marker-rule { stroke: var(--chart-marker); stroke-width: 1; opacity: .5; }
 .ch-marker-ring { fill: var(--chart-ring); }                    /* 2px surface ring */
 .ch-marker      { fill: var(--chart-marker); }
 
@@ -993,8 +1293,8 @@ a:hover { color: var(--accent-ink); text-decoration-color: var(--accent-ink); }
 .hp:focus-visible .hp-box { stroke: var(--focus-ring); stroke-width: 2; }
 .hp-cross { stroke: var(--chart-crosshair); stroke-width: 1; }
 .hp-dot   { fill: var(--chart-line); stroke: var(--chart-ring); stroke-width: 2; }
-.hp-box   { fill: var(--surface); filter: var(--shadow-raised-svg);
-            stroke: var(--rule-strong); stroke-width: 1; }
+.hp-box   { fill: var(--surface-inset); filter: var(--shadow-raised-svg);
+            stroke: var(--rule-heavy); stroke-width: 1; }
 .hp-key   { stroke: var(--chart-line); stroke-width: 2; stroke-linecap: round; }
 .hp-val   { fill: var(--ink-1); font-family: var(--font-mono); font-size: 13px;
             font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -1032,305 +1332,303 @@ a:hover { color: var(--accent-ink); text-decoration-color: var(--accent-ink); }
 /* ---- TABLE-VIEW TWIN ---------------------------------------------------- */
 /* Every chart ships one. It is the WCAG-clean equivalent and the relief
    channel for any mark below 3:1. */
-.tableview { margin-top: var(--space-4); border-top: var(--border-hairline) solid var(--rule); }
-.tableview > summary { cursor: pointer; padding-block: var(--space-3);
-                       font-size: var(--text-2xs); color: var(--ink-3);
-                       text-transform: uppercase; letter-spacing: var(--tracking-wide);
+.tableview { margin-top: var(--space-5); border-top: var(--border-hairline) solid var(--rule); }
+.tableview > summary { cursor: pointer; padding-block: var(--space-4);
+                       font-family: var(--font-mono); font-size: var(--text-3xs);
+                       color: var(--ink-3); text-transform: uppercase;
+                       letter-spacing: var(--tracking-wide);
                        font-weight: var(--weight-semibold); }
 .tableview > summary:hover { color: var(--ink-1); }
-.tableview__scroll { max-block-size: 260px; overflow: auto; border: var(--border-hairline) solid var(--rule); border-radius: var(--radius-xs); }
+.tableview__scroll { max-block-size: 260px; overflow: auto;
+                     border: var(--border-hairline) solid var(--rule);
+                     border-radius: var(--radius-xs); }
 .tableview table { inline-size: 100%; border-collapse: collapse; font-size: var(--text-2xs); }
-.tableview th, .tableview td { padding: var(--space-2) var(--space-3);
+.tableview th, .tableview td { padding: var(--space-2) var(--space-4);
                                border-bottom: var(--border-hairline) solid var(--rule);
                                color: var(--ink-2); text-align: left; white-space: nowrap; }
 .tableview thead th { position: sticky; top: 0; background: var(--surface-inset);
                       color: var(--ink-3); text-transform: uppercase;
-                      letter-spacing: var(--tracking-wide); font-size: var(--text-3xs); }
+                      letter-spacing: var(--tracking-wide); font-size: var(--text-3xs);
+                      font-family: var(--font-mono); }
 
 /* ---- LEDGER ------------------------------------------------------------- */
-.ledger { list-style: none; margin: 0; padding: 0; counter-reset: none; }
-.ledger__row { display: grid; grid-template-columns: 36px minmax(0,1fr) 88px;
-               gap: var(--space-4); align-items: baseline;
-               padding-block: var(--space-4);
+.ledger { list-style: none; margin: 0; padding: 0; }
+.ledger__row { display: grid; grid-template-columns: 36px minmax(0,1fr) 96px;
+               gap: var(--space-5); align-items: baseline;
+               padding-block: var(--space-5);
                border-bottom: var(--border-hairline) solid var(--rule); }
 .ledger__row:last-child { border-bottom: 0; }
-.ledger__n { font-size: var(--text-2xs); color: var(--ink-3); font-weight: var(--weight-semibold); }
-.ledger__t { margin: 0; font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--ink-1); }
-.ledger__d { margin: var(--space-2) 0 0; font-size: var(--text-xs); color: var(--ink-2);
+.ledger__n { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--ink-3);
+             font-weight: var(--weight-semibold); }
+.ledger__t { margin: 0; font-size: var(--text-base); font-weight: var(--weight-semibold);
+             color: var(--ink-1); }
+.ledger__d { margin: var(--space-3) 0 0; font-size: var(--text-xs); color: var(--ink-2);
              max-width: var(--measure-prose); line-height: var(--leading-prose); }
 .ledger__v { font-family: var(--font-mono); font-variant-numeric: var(--numeric-table);
              font-size: var(--text-xs); color: var(--ink-1); text-align: right;
              font-weight: var(--weight-medium); }
-.fnref { font-family: var(--font-mono); font-size: var(--text-3xs); color: var(--accent-ink);
+.fnref { font-family: var(--font-mono); font-size: var(--text-3xs); color: var(--ink-1);
          font-weight: var(--weight-semibold); margin-inline-start: 2px; }
 sup.fnref { vertical-align: super; line-height: 0; }
 
 /* ---- FOOTNOTE STRIP ----------------------------------------------------- */
 .fnstrip { background: var(--surface-inset); border: var(--border-hairline) solid var(--rule);
-           border-radius: var(--radius-md); padding: var(--space-5); }
-.fnstrip__h { margin: 0 0 var(--space-3); font-size: var(--text-3xs); text-transform: uppercase;
-              letter-spacing: var(--tracking-caps); color: var(--ink-3); font-weight: var(--weight-semibold); }
+           border-radius: var(--radius-lg); padding: var(--space-5b); }
+.fnstrip__h { margin: 0 0 var(--space-3); font-family: var(--font-mono);
+              font-size: var(--text-3xs); text-transform: uppercase;
+              letter-spacing: var(--tracking-caps); color: var(--ink-3);
+              font-weight: var(--weight-semibold); }
 .fnstrip__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
 .fnstrip__list li { display: grid; grid-template-columns: 18px minmax(0,1fr); gap: var(--space-3);
                     font-size: var(--text-xs); color: var(--ink-2);
                     line-height: var(--leading-prose); max-width: var(--measure-prose); }
-.fnstrip__list .num { color: var(--accent-ink); font-weight: var(--weight-semibold); font-size: var(--text-2xs); }
+.fnstrip__list .num { color: var(--ink-1); font-weight: var(--weight-semibold);
+                      font-size: var(--text-2xs); }
 
 /* ---- PROSE, CALLOUT, CODE ----------------------------------------------- */
 .prose { max-width: var(--measure-prose); line-height: var(--leading-prose); color: var(--ink-2); }
-.prose p { margin: 0 0 var(--space-4); }
-.display { font-family: var(--font-serif); font-weight: var(--weight-regular);
+.prose p { margin: 0 0 var(--space-5); }
+.display { font-family: var(--font-display); font-weight: var(--weight-bold);
            font-size: var(--text-3xl); line-height: var(--leading-tight);
-           color: var(--ink-1); letter-spacing: var(--tracking-tight); margin: 0 0 var(--space-4); }
-.dek { font-size: var(--text-md); color: var(--ink-3); max-width: var(--measure-prose);
+           color: var(--ink-1); letter-spacing: var(--tracking-tight);
+           margin: 0 0 var(--space-5); }
+.dek { font-size: var(--text-md); color: var(--ink-2); max-width: var(--measure-prose);
        line-height: var(--leading-prose); margin: 0; }
 .byline { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--ink-3);
-          letter-spacing: var(--tracking-wide); margin: var(--space-4) 0 0; }
+          letter-spacing: var(--tracking-wide); margin: var(--space-5) 0 0; }
 
-.callout { border-left: var(--border-marker) solid var(--accent);
-           background: var(--surface-inset); padding: var(--space-4) var(--space-5);
+.callout { border-left: var(--border-marker) solid var(--wine);
+           background: var(--surface-inset); padding: var(--space-5) var(--space-5b);
            border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 0; }
 .callout > :first-child { margin-top: 0; }
 .callout > :last-child { margin-bottom: 0; }
 .callout__cite { display: block; margin-top: var(--space-3); font-size: var(--text-2xs);
                  color: var(--ink-3); font-style: normal; }
-blockquote.callout p { font-size: var(--text-md); color: var(--ink-1); line-height: var(--leading-prose); }
+blockquote.callout p { font-size: var(--text-md); color: var(--ink-1);
+                       line-height: var(--leading-prose); }
 
-pre.code { margin: 0; background: var(--surface-inset); border: var(--border-hairline) solid var(--rule);
-           border-radius: var(--radius-sm); padding: var(--space-4) var(--space-5);
-           overflow-x: auto; font-size: var(--text-xs); line-height: 1.6; color: var(--ink-2); }
+pre.code { margin: 0; background: var(--surface-inset);
+           border: var(--border-hairline) solid var(--rule-strong);
+           border-radius: var(--radius-md); padding: var(--space-5) var(--space-5b);
+           overflow-x: auto; font-size: var(--text-xs); line-height: 1.8; color: var(--ink-2); }
 pre.code .c { color: var(--ink-3); }
 pre.code .k { color: var(--ink-1); font-weight: var(--weight-semibold); }
-code.inline { background: var(--surface-inset); border: var(--border-hairline) solid var(--rule);
-              border-radius: var(--radius-xs); padding: 1px 4px; font-size: .92em; color: var(--ink-1); }
+code.inline { background: var(--surface-inset);
+              border: var(--border-hairline) solid var(--rule-strong);
+              border-radius: var(--radius-xs); padding: 1px 4px; font-size: .92em;
+              color: var(--ink-1); }
 
-/* ---- CONTROLS ----------------------------------------------------------- */
-.btn { display: inline-flex; align-items: center; gap: var(--space-3);
-       padding: 7px var(--space-4); border-radius: var(--radius-sm);
-       font-family: var(--font-sans); font-size: var(--text-sm);
-       font-weight: var(--weight-medium); line-height: var(--leading-snug);
-       cursor: pointer; border: var(--border-hairline) solid transparent;
-       transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease),
-                   color var(--dur-fast) var(--ease); }
-.btn--primary { background: var(--accent); color: var(--on-accent); }
-.btn--primary:hover { background: var(--accent-ink); }
-.btn--ghost { background: transparent; color: var(--ink-1); border-color: var(--rule-heavy); }
-.btn--ghost:hover { background: var(--surface-hover); border-color: var(--ink-3); }
-.btn[disabled] { cursor: not-allowed; color: var(--ink-faint); background: var(--surface-inset);
-                 border-color: var(--rule); }
-
-/* Rings here are borders, not elevation — the system's one shadow token is
-   reserved for genuinely floating layers (the chart tooltip). */
+/* ---- FORM CONTROLS ------------------------------------------------------ */
 .seg { display: inline-flex; margin: 0; padding: 2px; gap: 2px;
-       border: var(--border-hairline) solid var(--rule);
-       background: var(--surface-inset); border-radius: var(--radius-sm); }
+       border: var(--border-hairline) solid var(--rule-heavy);
+       background: transparent; border-radius: var(--radius-sm); }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
-.seg label { padding: 4px var(--space-3); border-radius: 2px; cursor: pointer;
-             font-size: var(--text-2xs); font-weight: var(--weight-medium);
-             color: var(--ink-3); letter-spacing: var(--tracking-wide);
+.seg label { padding: 5px var(--space-4); border-radius: 3px; cursor: pointer;
+             font-family: var(--font-mono); font-size: var(--text-3xs);
+             font-weight: var(--weight-medium); color: var(--ink-3);
+             letter-spacing: var(--tracking-wide);
              transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
 .seg label:hover { color: var(--ink-1); }
-.seg input:checked + label { background: var(--surface); color: var(--ink-1);
-                             outline: var(--border-hairline) solid var(--rule-strong); outline-offset: -1px; }
-.seg input:focus-visible + label { outline: var(--focus-width) solid var(--focus-ring); outline-offset: 1px; }
+.seg input:checked + label { background: var(--surface-hover); color: var(--ink-1); }
+.seg input:focus-visible + label { outline: var(--focus-width) solid var(--focus-ring);
+                                   outline-offset: 1px; }
 
 .field { display: grid; gap: var(--space-2); max-width: 320px; }
-.field label { font-size: var(--text-2xs); color: var(--ink-3); text-transform: uppercase;
-               letter-spacing: var(--tracking-wide); font-weight: var(--weight-semibold); }
-.field input { font-family: var(--font-sans); font-size: var(--text-sm); color: var(--ink-1);
-               background: var(--surface); border: var(--border-hairline) solid var(--rule-heavy);
-               border-radius: var(--radius-sm); padding: 7px var(--space-3);
+.field label { font-family: var(--font-mono); font-size: var(--text-3xs); color: var(--ink-3);
+               text-transform: uppercase; letter-spacing: var(--tracking-wide);
+               font-weight: var(--weight-semibold); }
+.field input { font-family: var(--font-sans); font-size: var(--text-base); color: var(--ink-1);
+               background: transparent; border: var(--border-hairline) solid var(--rule-heavy);
+               border-radius: var(--radius-sm); padding: 10px var(--space-5);
                transition: border-color var(--dur-fast) var(--ease); }
 .field input.mono { font-family: var(--font-mono); }
 .field input::placeholder { color: var(--ink-faint); }
 .field input:hover { border-color: var(--ink-3); }
-.field input:focus-visible { border-color: var(--accent); outline: var(--focus-width) solid var(--focus-ring); outline-offset: 1px; }
-.field .hint { font-size: var(--text-2xs); color: var(--ink-3); text-transform: none; letter-spacing: 0; }
-
-/* ---- FOOTER ------------------------------------------------------------- */
-.footer { background: var(--texture-dot), var(--surface-chrome); border-top: var(--border-hairline) solid var(--rule-strong);
-          margin-top: var(--space-9); }
-.footer__inner { padding-block: var(--space-7) var(--space-6); }
-.footer__cols { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: var(--space-6);
-                padding-bottom: var(--space-6); border-bottom: var(--border-hairline) solid var(--rule); }
-.footer__tag { margin: var(--space-3) 0 0; font-size: var(--text-xs); color: var(--ink-3); max-width: 34ch; }
-.footer__nav { display: grid; gap: var(--space-2); align-content: start; }
-.footer__nav h4 { margin: 0 0 var(--space-2); font-size: var(--text-3xs); text-transform: uppercase;
-                  letter-spacing: var(--tracking-caps); color: var(--ink-3); font-weight: var(--weight-semibold); }
-.footer__nav a { font-size: var(--text-xs); color: var(--ink-2); text-decoration: none; }
-.footer__nav a:hover { color: var(--accent-ink); text-decoration: underline; }
-.disclaimer { padding-top: var(--space-5); }
-.disclaimer__h { margin: 0 0 var(--space-3); font-size: var(--text-3xs); text-transform: uppercase;
-                 letter-spacing: var(--tracking-caps); color: var(--ink-3); font-weight: var(--weight-semibold); }
-.disclaimer p { margin: 0 0 var(--space-3); font-size: var(--text-2xs); color: var(--ink-3);
-                line-height: var(--leading-prose); max-width: 96ch; }
-.disclaimer strong { color: var(--ink-2); font-weight: var(--weight-semibold); }
-.disclaimer__meta { border-top: var(--border-hairline) solid var(--rule); padding-top: var(--space-3); }
-
-/* ---- RESPONSIVE --------------------------------------------------------- */
-@media (max-width: 1040px) {
-  .print { grid-template-columns: 1fr; }
-  .print__meta { border-left: 0; border-top: var(--border-hairline) solid var(--rule); }
-  .footer__cols { grid-template-columns: 1fr 1fr; }
-  .wordmark__sub { display: none; }
-}
-@media (max-width: 720px) {
-  :root { --text-hero: 44px; }
-  .masthead__inner { flex-wrap: wrap; gap: var(--space-3); padding-block: var(--space-3); }
-  .nav { margin-inline-start: 0; order: 3; flex-basis: 100%; gap: var(--space-4);
-         overflow-x: auto; flex-wrap: nowrap; }
-  .nav a { padding-block: var(--space-2); }
-  .masthead__tools { margin-inline-start: auto; }
-  .footer__cols { grid-template-columns: 1fr; }
-  .section { padding-block: var(--space-6); }
-  .ledger__row { grid-template-columns: 28px minmax(0,1fr); }
-  .ledger__v { grid-column: 2; text-align: left; }
-}
-
-
+.field input:focus-visible { border-color: var(--ink-1);
+                             outline: var(--focus-width) solid var(--focus-ring);
+                             outline-offset: 1px; }
+.field .hint { font-size: var(--text-2xs); color: var(--ink-3); text-transform: none;
+               letter-spacing: 0; }
 
 /* ==========================================================================
-   PRODUCTION-SITE ADDITIONS
-   Components the gallery did not need but the shipped pages do. Same rule as
-   above: every value resolves to a token. Declared after the gallery's
-   responsive block, so each addition carries its own media query.
+   FOOTER — the brand guide's four-column link grid, then the legal block
+   --------------------------------------------------------------------------
+   The mockup's fourth column carries a one-line disclaimer. The full
+   "Important information" block below it is not decoration: it states the
+   not-for-settlement position, the licence position and the print stamp, and
+   it stays on every page.
    ========================================================================== */
+.footer { background: var(--surface-chrome);
+          border-top: var(--border-hairline) solid var(--rule-strong);
+          margin-top: var(--space-10); }
+.footer__inner { padding-block: var(--space-8) var(--space-7); }
+.footer__cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-7);
+                padding-bottom: var(--space-7);
+                border-bottom: var(--border-hairline) solid var(--rule-strong); }
+.footer__brand .brand { margin-bottom: var(--space-5); }
+.footer__tag { margin: 0; font-size: var(--text-xs); color: var(--ink-3);
+               line-height: var(--leading-prose); max-width: 34ch; }
+.footer__nav { display: grid; gap: var(--space-3); align-content: start; }
+.footer__nav h4 { margin: 0 0 var(--space-4); font-family: var(--font-mono);
+                  font-size: var(--text-3xs); text-transform: uppercase;
+                  letter-spacing: var(--tracking-wide); color: var(--ink-3);
+                  font-weight: var(--weight-semibold); }
+.footer__nav a { font-size: var(--text-sm); color: rgba(245, 245, 246, 0.7);
+                 text-decoration: none; }
+.footer__nav a:hover { color: var(--ink-1); text-decoration: underline; }
+.disclaimer { padding-top: var(--space-6); }
+.disclaimer__h { margin: 0 0 var(--space-4); font-family: var(--font-mono);
+                 font-size: var(--text-3xs); text-transform: uppercase;
+                 letter-spacing: var(--tracking-caps); color: var(--ink-3);
+                 font-weight: var(--weight-semibold); }
+.disclaimer p { margin: 0 0 var(--space-4); font-size: var(--text-2xs); color: var(--ink-3);
+                line-height: var(--leading-prose); max-width: 96ch; }
+.disclaimer strong { color: var(--ink-2); font-weight: var(--weight-semibold); }
+.disclaimer__meta { border-top: var(--border-hairline) solid var(--rule);
+                    padding-top: var(--space-4); }
 
 /* ---- BOOT FADE-IN --------------------------------------------------------
    One-shot, JS-gated. `.js-boot` is added to <html> by an inline head script
-   before body paints (same pre-paint idiom as the theme flash-guard above
-   it in site.py) — so with scripting off the class never lands and the page
-   is simply visible from the first frame. `prefers-reduced-motion` already
-   forces every animation-duration to 1ms globally (tokens.css §0), so this
-   collapses to an imperceptible flash there rather than a true fade. */
+   before body paints, so with scripting off the class never lands and the
+   page is simply visible from the first frame. `prefers-reduced-motion`
+   already forces every animation-duration to 1ms globally (tokens.css §14),
+   so this collapses to an imperceptible flash there rather than a true fade. */
 .js-boot body { opacity: 0; animation: cri-boot-in var(--dur-base) var(--ease) forwards; }
 @keyframes cri-boot-in { to { opacity: 1; } }
 
 /* ---- SKIP LINK ---------------------------------------------------------- */
 /* Off-screen until focused. The masthead is sticky, so it lands below it. */
-.skip { position: absolute; left: var(--space-3); top: -100px; z-index: calc(var(--z-sticky) + 1);
-        background: var(--surface); color: var(--ink-1); border: var(--border-hairline) solid var(--rule-heavy);
-        border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4);
+.skip { position: absolute; left: var(--space-3); top: -100px;
+        z-index: calc(var(--z-sticky) + 1);
+        background: var(--surface); color: var(--ink-1);
+        border: var(--border-hairline) solid var(--rule-heavy);
+        border-radius: var(--radius-sm); padding: var(--space-3) var(--space-5);
         font-size: var(--text-sm); text-decoration: none; }
 .skip:focus { top: var(--space-3); }
 
-/* ---- PAGE HEADER (non-dashboard pages) ---------------------------------- */
-.pagehead { padding-block: var(--space-7) var(--space-5);
-            border-bottom: var(--border-hairline) solid var(--rule-heavy); }
-.pagehead__h { margin: var(--space-3) 0 0; font-size: var(--text-2xl); color: var(--ink-1);
-               font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight); }
-.pagehead__h--display { font-family: var(--font-serif); font-weight: var(--weight-regular);
-                        font-size: var(--text-3xl); }
-.pagehead__dek { margin: var(--space-4) 0 0; font-size: var(--text-md); color: var(--ink-3);
+/* ---- PAGE HEADER (non-landing pages) ------------------------------------ */
+.pagehead { padding-block: var(--space-9) var(--space-7); max-width: 760px; }
+.pagehead__h { margin: var(--space-5) 0 0; font-family: var(--font-display);
+               font-size: var(--text-2xl); color: var(--ink-1);
+               font-weight: var(--weight-bold); letter-spacing: var(--tracking-tight);
+               line-height: var(--leading-tight); }
+.pagehead__h--display { font-size: var(--text-3xl); }
+.pagehead__dek { margin: var(--space-5) 0 0; font-size: var(--text-md); color: var(--ink-2);
                  max-width: var(--measure-prose); line-height: var(--leading-prose); }
-.pagehead__meta { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5);
-                  margin-top: var(--space-5); font-size: var(--text-2xs); color: var(--ink-3);
+.pagehead__meta { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6);
+                  margin-top: var(--space-6); font-family: var(--font-mono);
+                  font-size: var(--text-3xs); color: var(--ink-3);
                   letter-spacing: var(--tracking-wide); }
 .pagehead__meta .num { color: var(--ink-2); }
+.pagehead .vbadges { margin-bottom: var(--space-5); }
 
 /* ---- DOC LAYOUT — editorial register with marginalia -------------------- */
 /* Prose is capped at the measure; tables and code break out to full width. */
 .doc { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: var(--space-8);
-       align-items: start; padding-block: var(--space-7) var(--space-8); }
+       align-items: start; padding-block: var(--space-7) var(--space-9); }
 .doc > * { min-inline-size: 0; }
-.toc { position: sticky; top: 96px; font-size: var(--text-xs); }
-.toc__h { margin: 0 0 var(--space-3); font-size: var(--text-3xs); text-transform: uppercase;
-          letter-spacing: var(--tracking-caps); color: var(--ink-3); font-weight: var(--weight-semibold); }
+.toc { position: sticky; top: 110px; font-size: var(--text-xs); }
+.toc__h { margin: 0 0 var(--space-4); font-family: var(--font-mono); font-size: var(--text-3xs);
+          text-transform: uppercase; letter-spacing: var(--tracking-caps);
+          color: var(--ink-3); font-weight: var(--weight-semibold); }
 .toc__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
 .toc__list a { display: block; padding-block: var(--space-2); color: var(--ink-2);
-               text-decoration: none; border-left: var(--border-marker) solid var(--rule);
-               padding-inline-start: var(--space-4); line-height: var(--leading-snug); }
+               text-decoration: none; border-left: var(--border-marker) solid var(--rule-strong);
+               padding-inline-start: var(--space-5); line-height: var(--leading-snug); }
 .toc__list a:hover { color: var(--ink-1); border-left-color: var(--rule-heavy); }
 .toc__list li.is-sub a { font-size: var(--text-2xs); color: var(--ink-3);
                          padding-inline-start: var(--space-6); }
 
 /* ---- RENDERED MARKDOWN -------------------------------------------------- */
-/* The output register of the markdown renderer. Prose measure, breakout
-   tables, no colour except the footnote reference. */
-.md { color: var(--ink-2); line-height: var(--leading-prose); }
+.md { color: var(--ink-2); line-height: var(--leading-prose); font-size: var(--text-md); }
 .md > * { max-width: var(--measure-prose); }
 .md > .scroll-x, .md > pre.code, .md > .fnstrip { max-width: none; }
-.md h2 { margin: var(--space-8) 0 var(--space-4); font-size: var(--text-xl); color: var(--ink-1);
+.md h2 { margin: var(--space-9) 0 var(--space-5); font-size: var(--text-xl); color: var(--ink-1);
          font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight);
-         padding-bottom: var(--space-3); border-bottom: var(--border-hairline) solid var(--rule-heavy);
-         max-width: none; scroll-margin-top: 96px; }
-.md h3 { margin: var(--space-7) 0 var(--space-3); font-size: var(--text-lg); color: var(--ink-1);
-         font-weight: var(--weight-semibold); scroll-margin-top: 96px; }
+         padding-bottom: var(--space-4);
+         border-bottom: var(--border-hairline) solid var(--rule-heavy);
+         max-width: none; scroll-margin-top: 110px; }
+.md h3 { margin: var(--space-7) 0 var(--space-4); font-size: var(--text-lg); color: var(--ink-1);
+         font-weight: var(--weight-semibold); scroll-margin-top: 110px; }
 .md h4 { margin: var(--space-6) 0 var(--space-3); font-size: var(--text-base); color: var(--ink-1);
-         font-weight: var(--weight-semibold); scroll-margin-top: 96px; }
+         font-weight: var(--weight-semibold); scroll-margin-top: 110px; }
 .md h2:first-child, .md h3:first-child { margin-top: 0; }
-.md p  { margin: 0 0 var(--space-4); }
-.md ul, .md ol { margin: 0 0 var(--space-4); padding-inline-start: var(--space-6); }
-.md li { margin-bottom: var(--space-2); }
-.md li > ul, .md li > ol { margin-top: var(--space-2); margin-bottom: 0; }
+.md p  { margin: 0 0 var(--space-5); }
+.md ul, .md ol { margin: 0 0 var(--space-5); padding-inline-start: var(--space-6); }
+.md li { margin-bottom: var(--space-3); }
+.md li > ul, .md li > ol { margin-top: var(--space-3); margin-bottom: 0; }
 .md strong { color: var(--ink-1); font-weight: var(--weight-semibold); }
-.md hr { border: 0; border-top: var(--border-hairline) solid var(--rule);
+.md hr { border: 0; border-top: var(--border-hairline) solid var(--rule-strong);
          margin-block: var(--space-7); max-width: none; }
-.md > blockquote { margin: 0 0 var(--space-5); }
-.md pre.code { margin: 0 0 var(--space-5); }
+.md > blockquote { margin: 0 0 var(--space-6); }
+.md pre.code { margin: 0 0 var(--space-6); }
 
 /* Markdown tables: dense grid register, right-aligned numerals, own scroller. */
 .md-table { inline-size: 100%; min-inline-size: 520px; border-collapse: collapse;
-            font-size: var(--text-xs); background: var(--surface); }
-.md-table thead th { background: var(--surface-inset); font-size: var(--text-3xs);
-                     text-transform: uppercase; letter-spacing: var(--tracking-caps);
-                     color: var(--ink-3); font-weight: var(--weight-semibold); text-align: left;
-                     padding: var(--space-3) var(--space-4);
+            font-size: var(--text-xs); background: transparent; }
+.md-table thead th { background: var(--surface-inset); font-family: var(--font-mono);
+                     font-size: var(--text-3xs); text-transform: uppercase;
+                     letter-spacing: var(--tracking-caps); color: var(--ink-3);
+                     font-weight: var(--weight-semibold); text-align: left;
+                     padding: var(--space-3) var(--space-5);
                      border-bottom: var(--border-hairline) solid var(--rule-heavy); }
-.md-table td, .md-table tbody th { padding: var(--space-3) var(--space-4); text-align: left;
+.md-table td, .md-table tbody th { padding: var(--space-4) var(--space-5); text-align: left;
             border-bottom: var(--border-hairline) solid var(--rule); color: var(--ink-2);
-            vertical-align: top; line-height: var(--leading-snug); font-weight: var(--weight-regular); }
+            vertical-align: top; line-height: var(--leading-snug);
+            font-weight: var(--weight-regular); }
 .md-table tbody tr:hover td, .md-table tbody tr:hover th { background: var(--surface-hover); }
 .md-table .ta-r { text-align: right; }
-.md .scroll-x { margin: 0 0 var(--space-5); border: var(--border-hairline) solid var(--rule-strong);
-                border-radius: var(--radius-md); }
+.md .scroll-x { margin: 0 0 var(--space-6);
+                border: var(--border-hairline) solid var(--rule-strong);
+                border-radius: var(--radius-lg); }
 
 /* ---- LEDGER ADDITIONS --------------------------------------------------- */
 .ledger__row--head { border-bottom: var(--border-hairline) solid var(--rule-heavy);
                      padding-block: var(--space-3); }
-.ledger__row--head span { font-size: var(--text-3xs); text-transform: uppercase;
-                          letter-spacing: var(--tracking-caps); color: var(--ink-3);
-                          font-weight: var(--weight-semibold); }
-.ledger__row--head .ledger__v { text-align: right; font-family: var(--font-sans); }
-.ledger__k { display: block; margin-top: var(--space-2); font-family: var(--font-mono);
-             font-size: var(--text-3xs); color: var(--ink-3); letter-spacing: var(--tracking-wide); }
+.ledger__row--head span { font-family: var(--font-mono); font-size: var(--text-3xs);
+                          text-transform: uppercase; letter-spacing: var(--tracking-caps);
+                          color: var(--ink-3); font-weight: var(--weight-semibold); }
+.ledger__row--head .ledger__v { text-align: right; }
+.ledger__k { display: block; margin-top: var(--space-3); font-family: var(--font-mono);
+             font-size: var(--text-3xs); color: var(--ink-3);
+             letter-spacing: var(--tracking-wide); }
 
 /* ---- STAT / DATA-QUALITY PANEL ------------------------------------------ */
-.qgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; }
+.qgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; }
 .qgrid > * { min-inline-size: 0; }
-.qstat { padding: var(--space-4) var(--space-5);
+.qstat { padding: var(--space-5) var(--space-5b);
          border-right: var(--border-hairline) solid var(--rule); }
 .qstat:last-child { border-right: 0; }
-.qstat__k { display: block; font-size: var(--text-2xs); color: var(--ink-3);
-            text-transform: uppercase; letter-spacing: var(--tracking-wide);
-            font-weight: var(--weight-semibold); }
-.qstat__v { display: block; margin-top: var(--space-3); font-family: var(--font-mono);
+.qstat__k { display: block; font-family: var(--font-mono); font-size: var(--text-3xs);
+            color: var(--ink-3); text-transform: uppercase;
+            letter-spacing: var(--tracking-wide); font-weight: var(--weight-semibold); }
+.qstat__v { display: block; margin-top: var(--space-4); font-family: var(--font-mono);
             font-variant-numeric: var(--numeric-table); font-size: var(--text-xl);
             color: var(--ink-1); font-weight: var(--weight-semibold);
             line-height: var(--leading-tight); }
 .qstat__v .u { font-size: var(--text-sm); font-weight: var(--weight-regular); }
-.qstat__n { display: block; margin-top: var(--space-3); font-size: var(--text-2xs);
+.qstat__n { display: block; margin-top: var(--space-4); font-size: var(--text-2xs);
             color: var(--ink-3); line-height: var(--leading-snug); }
 /* Share bar: one hue, magnitude only. Not a chart — a stat with a scale. */
-.qbar { display: block; margin-top: var(--space-3); block-size: 4px; background: var(--rule);
-        border-radius: var(--radius-xs); overflow: hidden; }
+.qbar { display: block; margin-top: var(--space-4); block-size: 4px;
+        background: var(--rule-strong); border-radius: var(--radius-xs); overflow: hidden; }
 .qbar > i { display: block; block-size: 100%; background: var(--chart-deemph); }
 
 /* ---- MODEL MIX BAR -------------------------------------------------------
    A stacked composition bar — the one place besides an actual chart that the
    categorical palette (tokens.css §6c) is justified: several GPU classes
    genuinely need distinct identity in one whole, not just magnitude. Segment
-   widths sum to 100%; box-sizing:border-box (tokens.css §0) means each
-   segment's own hairline divider is cut from its own fill, never added on
-   top, so the bar can never overflow past its container. */
+   widths sum to 100%; box-sizing:border-box means each segment's own hairline
+   divider is cut from its own fill, never added on top, so the bar can never
+   overflow past its container. */
 .mixbar { display: flex; inline-size: 100%; block-size: 10px;
-          border-radius: var(--radius-xs); overflow: hidden; background: var(--rule); }
+          border-radius: var(--radius-xs); overflow: hidden; background: var(--rule-strong); }
 .mixbar__seg { display: block; block-size: 100%;
                border-right: var(--border-hairline) solid var(--surface); }
 .mixbar__seg:last-child { border-right: 0; }
-.mixlegend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5);
-             margin: var(--space-4) 0 0; padding: 0; list-style: none; }
-.mixlegend li { display: inline-flex; align-items: center; gap: var(--space-2);
+.mixlegend { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6);
+             margin: var(--space-5) 0 0; padding: 0; list-style: none; }
+.mixlegend li { display: inline-flex; align-items: center; gap: var(--space-3);
                 font-size: var(--text-xs); color: var(--ink-2); }
 .mixlegend i { inline-size: 10px; block-size: 10px; border-radius: 2px; flex: none; }
 .mixlegend .num { color: var(--ink-3); }
@@ -1343,8 +1641,8 @@ code.inline { background: var(--surface-inset); border: var(--border-hairline) s
 .tile__dash { font-family: var(--font-mono); font-size: var(--text-2xl); color: var(--ink-faint);
               line-height: var(--leading-tight); }
 .tile__last { font-size: var(--text-2xs); color: var(--ink-3); }
-.gapnote { display: flex; gap: var(--space-3); align-items: flex-start;
-           padding: var(--space-4) var(--space-5); background: var(--surface-inset);
+.gapnote { display: flex; gap: var(--space-4); align-items: flex-start;
+           padding: var(--space-5) var(--space-5b); background: var(--surface-inset);
            border-left: var(--border-marker) solid var(--status-warning);
            border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 .gapnote p { margin: 0; font-size: var(--text-xs); color: var(--ink-2);
@@ -1354,47 +1652,51 @@ code.inline { background: var(--surface-inset); border: var(--border-hairline) s
 /* ---- SOURCES PANEL ------------------------------------------------------ */
 .srcs { display: grid; gap: 0; }
 .srcs__row { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1.4fr) auto;
-             gap: var(--space-4); align-items: baseline; padding: var(--space-4) var(--space-5);
+             gap: var(--space-5); align-items: baseline; padding: var(--space-5) var(--space-5b);
              border-bottom: var(--border-hairline) solid var(--rule); }
 .srcs__row:last-child { border-bottom: 0; }
 .srcs__name { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-1);
               font-weight: var(--weight-medium); }
 .srcs__label { display: block; margin-top: var(--space-2); font-family: var(--font-sans);
-               font-size: var(--text-2xs); color: var(--ink-3); font-weight: var(--weight-regular); }
+               font-size: var(--text-2xs); color: var(--ink-3);
+               font-weight: var(--weight-regular); }
 .srcs__ep { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--ink-2);
             overflow-wrap: anywhere; }
 
 /* ---- RESEARCH INDEX ----------------------------------------------------- */
-.notes { display: grid; gap: 0; border-top: var(--border-hairline) solid var(--rule-heavy); }
+.notes { display: grid; gap: 0; border-top: var(--border-hairline) solid var(--rule-strong); }
 .note { display: grid; grid-template-columns: 120px minmax(0,1fr); gap: var(--space-6);
-        padding-block: var(--space-6); border-bottom: var(--border-hairline) solid var(--rule); }
+        padding-block: var(--space-6);
+        border-bottom: var(--border-hairline) solid var(--rule-strong); }
 .note > * { min-inline-size: 0; }
 .note__when { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--ink-3);
               letter-spacing: var(--tracking-wide); }
-.note__t { margin: 0; font-family: var(--font-serif); font-weight: var(--weight-regular);
-           font-size: var(--text-xl); line-height: var(--leading-tight); color: var(--ink-1);
+.note__t { margin: 0; font-family: var(--font-display); font-weight: var(--weight-semibold);
+           font-size: var(--text-lg); line-height: var(--leading-tight); color: var(--ink-1);
            letter-spacing: var(--tracking-tight); }
 .note__t a { text-decoration: none; }
-.note__t a:hover { text-decoration: underline; text-decoration-color: var(--accent-ink); }
+.note__t a:hover { text-decoration: underline; text-decoration-color: var(--link-rule-hi); }
 .note__dek { margin: var(--space-3) 0 0; font-size: var(--text-sm); color: var(--ink-2);
              line-height: var(--leading-prose); max-width: var(--measure-prose); }
-.note__foot { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center;
-              margin-top: var(--space-4); }
+.note__foot { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center;
+              margin-top: var(--space-5); }
 
 /* ---- CONTENT SLOT ------------------------------------------------------- */
 /* A visible, honest placeholder. Never a silent empty section. */
-.slot { border: var(--border-hairline) solid var(--rule-heavy); border-radius: var(--radius-md);
+.slot { border: var(--border-hairline) solid var(--rule-heavy); border-radius: var(--radius-lg);
         background: var(--surface-inset); padding: var(--space-6); }
-.slot__h { margin: 0 0 var(--space-3); font-size: var(--text-3xs); text-transform: uppercase;
-           letter-spacing: var(--tracking-caps); color: var(--ink-3); font-weight: var(--weight-semibold); }
-.slot p { margin: 0 0 var(--space-3); font-size: var(--text-sm); color: var(--ink-2);
+.slot__h { margin: 0 0 var(--space-4); font-family: var(--font-mono); font-size: var(--text-3xs);
+           text-transform: uppercase; letter-spacing: var(--tracking-caps);
+           color: var(--ink-3); font-weight: var(--weight-semibold); }
+.slot p { margin: 0 0 var(--space-4); font-size: var(--text-sm); color: var(--ink-2);
           max-width: var(--measure-prose); line-height: var(--leading-prose); }
 .slot p:last-child { margin-bottom: 0; }
 
 /* ---- FIGURES ------------------------------------------------------------ */
 figure.fig { margin: 0 0 var(--space-6); }
-figure.fig figcaption { margin-top: var(--space-3); font-size: var(--text-2xs); color: var(--ink-3);
-                        line-height: var(--leading-prose); max-width: var(--measure-prose); }
+figure.fig figcaption { margin-top: var(--space-4); font-size: var(--text-2xs);
+                        color: var(--ink-3); line-height: var(--leading-prose);
+                        max-width: var(--measure-prose); }
 figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibold); }
 
 /* ---- CHART: HONEST GAPS ------------------------------------------------- */
@@ -1402,81 +1704,92 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
    path itself is broken into segments so no stroke crosses a missing print. */
 .ch-gapmark { fill: none; stroke: var(--chart-deemph); stroke-width: 1; }
 
-/* ---- RESPONSIVE (additions) --------------------------------------------- */
-@media (max-width: 1040px) {
-  .doc { grid-template-columns: 1fr; gap: var(--space-6); }
-  .toc { position: static; border-bottom: var(--border-hairline) solid var(--rule);
-         padding-bottom: var(--space-4); }
-  .toc__list { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
-}
-@media (max-width: 720px) {
-  .qstat { border-right: 0; border-bottom: var(--border-hairline) solid var(--rule); }
-  .qstat:last-child { border-bottom: 0; }
-  .srcs__row { grid-template-columns: 1fr; gap: var(--space-2); }
-  .note { grid-template-columns: 1fr; gap: var(--space-3); }
-  .doc { padding-block: var(--space-6); }
-}
-
 /* ---- CURRENCY TOGGLE (CSS-only) ----------------------------------------- */
 /* Both figures are in the markup, so the value is present with scripting off.
    USD is the default render; :has() swaps which one is visible. A browser
-   without :has() simply shows USD and the toggle is inert -- it never shows
+   without :has() simply shows USD and the toggle is inert — it never shows
    two prices at once. */
 .ccy-eur { display: none; }
 .print:has(#ccy-eur:checked) .ccy-eur { display: inline; }
 .print:has(#ccy-eur:checked) .ccy-usd { display: none; }
 
 /* ---- MIN-WIDTH PINS ------------------------------------------------------ */
-/* A grid or flex item defaults to min-width:auto, which is min-CONTENT, so one long
-   unbreakable token (a sha256, a CLI invocation) refuses to shrink and pushes the whole
-   page sideways on a phone. Everything that can hold one is pinned to 0 so its own
-   scroll container clips instead. Verified at 390px on every page. */
-/* Blanket, not enumerated. Every previous attempt at this used a hand-maintained
-   selector list, and every container added afterwards silently reintroduced the bug —
-   most recently a `pre.code` holding a CLI invocation, which blew the methodology page
-   out to 532px at a 390px viewport. A list you must remember to extend is not a fix.
-   Anything that genuinely needs min-content sizing opts back in explicitly below. */
+/* A grid or flex item defaults to min-width:auto, which is min-CONTENT, so one
+   long unbreakable token (a sha256, a CLI invocation) refuses to shrink and
+   pushes the whole page sideways on a phone. Everything that can hold one is
+   pinned to 0 so its own scroll container clips instead. Verified at 390px on
+   every page. Blanket, not enumerated: every previous hand-maintained selector
+   list silently reintroduced the bug the next time a container was added. */
 :where(.wrap, .stack, .card, .card__body, .md, .doc, .grid, .tiles, .pagehead,
-       .ledger, .slot, .print) :where(*) { min-inline-size: 0; }
-.ledger__k, .srcs__ep, .qstat__n { overflow-wrap: anywhere; }
+       .ledger, .slot, .print, .term, .dl, .pillar, .fam, .policy, .segcard)
+       :where(*) { min-inline-size: 0; }
+.ledger__k, .srcs__ep, .qstat__n, .segcard__l, .cite { overflow-wrap: anywhere; }
 
-/* ---- TILE HEAD (production) --------------------------------------------- */
-/* The series description belongs with the symbol, not crammed beside the status
-   chip: at 220px the chip and a 30-character label cannot share a row. */
+/* ---- TILE HEAD ---------------------------------------------------------- */
+/* The series description belongs with the symbol, not crammed beside the
+   status chip: at 220px the chip and a 30-character label cannot share a row. */
 .tile__head { display: grid; gap: var(--space-1); min-block-size: 34px; }
 .tile__head .tile__note { line-height: var(--leading-snug); }
 .tile__foot { flex-wrap: wrap; }
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 1040px) {
+  .print { grid-template-columns: 1fr; }
+  .print__meta { border-left: 0; border-top: var(--border-hairline) solid var(--rule); }
+  .footer__cols { grid-template-columns: 1fr 1fr; }
+  .doc { grid-template-columns: 1fr; gap: var(--space-6); }
+  .toc { position: static; border-bottom: var(--border-hairline) solid var(--rule-strong);
+         padding-bottom: var(--space-5); }
+  .toc__list { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+}
+@media (max-width: 860px) {
+  .wrap { padding-inline: var(--space-6); }
+  .masthead__inner { flex-wrap: wrap; gap: var(--space-4); }
+  .nav { margin-inline-start: 0; order: 3; flex-basis: 100%; gap: var(--space-5);
+         overflow-x: auto; flex-wrap: nowrap; padding-bottom: var(--space-2); }
+  .nav__cta, .nav a.nav__cta { padding: 7px var(--space-5); }
+  .masthead__inner .brand { margin-inline-end: 0; }
+  .masthead__tools { margin-inline-start: auto; }
+}
+@media (max-width: 720px) {
+  :root { --text-hero: 44px; --text-display: 32px; --text-3xl: 30px; --text-2xl: 24px; }
+  .hero { padding-block: var(--space-8) var(--space-7); }
+  .footer__cols { grid-template-columns: 1fr; }
+  .section { padding-block: var(--space-8); }
+  .ledger__row { grid-template-columns: 28px minmax(0,1fr); }
+  .ledger__v { grid-column: 2; text-align: left; }
+  .qstat { border-right: 0; border-bottom: var(--border-hairline) solid var(--rule); }
+  .qstat:last-child { border-bottom: 0; }
+  .srcs__row { grid-template-columns: 1fr; gap: var(--space-2); }
+  .note { grid-template-columns: 1fr; gap: var(--space-3); }
+  .doc { padding-block: var(--space-6); }
+  .brand__name { display: none; }
+  .terms th { display: block; inline-size: auto; border-bottom: 0; padding-bottom: 0; }
+  .terms td { display: block; padding-top: var(--space-2); }
+}
 
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="masthead">
+<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-06T00:20:37Z">AS OF 2026-09-06 00:20:37 UTC</div></div>
   <div class="masthead__bar">
     <div class="wrap masthead__inner">
-      <a class="wordmark" href="../index.html"><svg class="wordmark__mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><rect x="1.5" y="1.5" width="21" height="21" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 16.5 10 10.5 14 13.5 18 7.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="wordmark__text">EU&#8209;CRI</span>
-        <span class="wordmark__sub">European Compute Reference Index</span>
-      </a>
-      <nav class="nav" aria-label="Primary"><a href="../index.html">Index</a><a href="../methodology.html">Methodology</a><a href="../research.html" aria-current="page">Research</a><a href="../governance.html">Governance</a></nav>
-      <div class="masthead__tools">
-        <fieldset class="seg seg--theme">
-          <legend class="vh">Colour theme</legend>
-          <input type="radio" id="th-auto" name="theme" value="auto" checked>
-          <label for="th-auto">Auto</label>
-          <input type="radio" id="th-light" name="theme" value="light">
-          <label for="th-light">Light</label>
-          <input type="radio" id="th-dark" name="theme" value="dark">
-          <label for="th-dark">Dark</label>
-        </fieldset>
-      </div>
+      <a class="brand" href="../index.html"><span class="brand__mark" style="--brand-h:24px" aria-hidden="true"><span class="brand__tc">TC</span><span class="brand__i"><span class="brand__dot"></span><span class="brand__bar"></span></span></span><span class="brand__name">The Compute Indices</span></a>
+      <nav class="nav" aria-label="Primary"><a href="../index.html">Indices</a><a href="../methodology.html">Methodology</a><a href="../data.html">Data</a><a href="../research.html" aria-current="page">Research</a><a href="../governance.html">Governance</a>
+        <a href="mailto:rusch.mh@gmail.com">Contact</a>
+        <a class="nav__cta" href="../index.html#indices">View Indices</a>
+      </nav>
     </div>
   </div>
 </header>
 <main class="wrap" id="main">
   <div class="pagehead">
-    <div class="eyebrow"><a class="link-quiet" href="../research.html">EU-CRI Research</a>
-    </div>
+    <div class="eyebrow"><a class="link-quiet" href="../research.html">TCI
+    Research</a></div>
     <h1 class="pagehead__h pagehead__h--display">When an index measures its own sampling</h1>
     <p class="pagehead__dek">How a 10% move in a compute benchmark turned out to be entirely composition noise — and what the unit definition had to do with it</p>
     <div class="pagehead__meta">
@@ -1489,7 +1802,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
   <div class="doc">
     <nav class="toc" aria-label="On this page"><h2 class="toc__h">On this page</h2><ol class="toc__list"><li><a href="#abstract">Abstract</a></li><li><a href="#1-why-this-note-exists">1. Why this note exists</a></li><li><a href="#2-data">2. Data</a></li><li><a href="#3-finding-1-the-published-series-had-almost-no-price-content">3. Finding 1 — the published series had almost no price content</a></li><li><a href="#4-finding-2-the-move-was-composition-not-price">4. Finding 2 — the move was composition, not price</a></li><li><a href="#5-finding-3-two-thirds-of-the-panel-had-no-influence-at-all">5. Finding 3 — two-thirds of the panel had no influence at all</a></li><li><a href="#6-finding-4-the-root-cause-was-the-unit-definition-not-the-estimator">6. Finding 4 — the root cause was the unit definition, not the estimator</a></li><li class="is-sub"><a href="#61-what-the-market-itself-says-about-node-size">6.1 What the market itself says about node size</a></li><li><a href="#7-finding-5-the-robustness-control-did-not-exist">7. Finding 5 — the robustness control did not exist</a></li><li><a href="#8-finding-6-the-panel-is-bimodal-so-the-average-is-a-fiction">8. Finding 6 — the panel is bimodal, so the average is a fiction</a></li><li><a href="#9-what-changed">9. What changed</a></li><li><a href="#10-what-did-not-change-and-what-we-are-not-claiming">10. What did not change, and what we are not claiming</a></li><li><a href="#11-reproducibility">11. Reproducibility</a></li><li><a href="#12-limitations">12. Limitations</a></li></ol></nav>
     <div><div class="md"><h3 id="abstract">Abstract</h3>
-<p>Between 18 July and 15 August 2026, the EU-CRI-H100 headline moved from $2.99 to $3.29, a rise of 10.03%. Decomposing that move against the underlying constituent set shows the matched-pair market move over the same window was <strong>+0.00%</strong>. Every basis point of the published change came from constituents entering and leaving the panel.</p>
+<p>Between 18 July and 15 August 2026, the TCI-CRI-H100 headline moved from $2.99 to $3.29, a rise of 10.03%. Decomposing that move against the underlying constituent set shows the matched-pair market move over the same window was <strong>+0.00%</strong>. Every basis point of the published change came from constituents entering and leaving the panel.</p>
 <p>The proximate cause was the estimator: a weighted median over roughly six providers has a partial derivative of 1.0 with respect to exactly one constituent and 0.0 with respect to every other. The <em>root</em> cause was the unit definition. A minimum-node-size filter of eight GPUs admitted marketplace inventory on one collection day in ten, discarding a source that had posted nine distinct prices spanning 12.3% — while retaining catalog rate cards that had not moved once in a month.</p>
 <p>The index was not measuring the compute market. It was measuring which of its sources happened to answer.</p>
 <hr>
@@ -1514,7 +1827,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 <h3 id="5-finding-3-two-thirds-of-the-panel-had-no-influence-at-all">5. Finding 3 — two-thirds of the panel had no influence at all</h3>
 <p>Shocking each constituent by +10% on the 2026-08-15 panel (lower weighted median, $3.29):</p>
 <div class="scroll-x"><table class="md-table"><thead><tr><th scope="col">Shock</th><th scope="col" class="num ta-r">Index after</th><th scope="col" class="num ta-r">∂</th></tr></thead><tbody><tr><td>+10% seeweb</td><td class="num ta-r">3.2900</td><td class="num ta-r"><strong>0.00%</strong></td></tr><tr><td>+10% datacrunch</td><td class="num ta-r">3.5750</td><td class="num ta-r">+8.66%</td></tr><tr><td>+10% runpod</td><td class="num ta-r">3.6190</td><td class="num ta-r">+10.00%</td></tr><tr><td>+10% nebius</td><td class="num ta-r">3.2900</td><td class="num ta-r"><strong>0.00%</strong></td></tr><tr><td>+10% gcp</td><td class="num ta-r">3.2900</td><td class="num ta-r"><strong>0.00%</strong></td></tr><tr><td>+10% aws</td><td class="num ta-r">3.2900</td><td class="num ta-r"><strong>0.00%</strong></td></tr></tbody></table></div>
-<p>AWS and GCP — between them a large share of global compute capacity — had exactly zero influence on the print. A hedger short EU-CRI-H100 was, in delta terms, short RunPod&#x27;s rate card and a little DataCrunch.</p>
+<p>AWS and GCP — between them a large share of global compute capacity — had exactly zero influence on the print. A hedger short TCI-CRI-H100 was, in delta terms, short RunPod&#x27;s rate card and a little DataCrunch.</p>
 <p>This is not an argument that medians are bad. SOFR is a volume-weighted median and is among the most robust benchmarks in existence — because its constituent is <em>an observation out of thousands</em>, not <em>a provider out of six</em>. A median is locally smooth over a dense distribution and a step function over a sparse one. Panel density is the variable that matters, and we did not have it.</p>
 <h3 id="6-finding-4-the-root-cause-was-the-unit-definition-not-the-estimator">6. Finding 4 — the root cause was the unit definition, not the estimator</h3>
 <p>The reference unit required a minimum of <strong>eight GPUs</strong> per offer, intended to pin the contract to a standard 8-way SXM training node. Marketplace inventory is not shaped like that. Checking Vast.ai&#x27;s raw EU H100 SXM observations <em>before</em> the filter:</p>
@@ -1543,7 +1856,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 <p>We considered and <strong>rejected</strong> a chain-linked level as the headline. Chain-linking cures composition instability, but a Laspeyres link with a same-day divisor reset contributes exactly zero return on panel entry and exit — which makes in-panel rises permanent while falls taken via exit and re-entry are laundered away. On this panel&#x27;s churn that ratchet is worth roughly +7.8% per cycle for a constituent at the concentration cap. The chained level is published as a labelled companion; the headline is the raw cross-section, which is the number a third party can most easily verify.</p>
 <p>We also <strong>rejected</strong> three series we had specified:</p>
 <ul><li>an <strong>EU-vs-US basis</strong>, because the neocloud tier is globally arbitraged and the spread is approximately zero;</li><li>a <strong>Nordic-vs-Continental basis</strong>, because our own data refutes it — Azure&#x27;s H100 price in Sweden equals West Europe exactly, and the 22.5% dispersion we had cited was Poland against Germany, both Continental;</li><li>a <strong>compute–power spark spread</strong>, because power is 0.9–8.8% of the price, so the spread would be 91–99% one leg.</li></ul>
-<p>And the headline claim is deliberately narrow. EU-CRI has <strong>no transaction feed</strong>. It is a reproducible, spec-locked, publicly auditable <em>price-transparency</em> benchmark, not a settlement benchmark, and it should not be referenced in a financial contract. The conditions that would have to be met before that changed are published, falsifiable, and currently unmet — chiefly ≥15 constituents with ≥50% executable share, against today&#x27;s five constituents and roughly 17%.</p>
+<p>And the headline claim is deliberately narrow. TCI has <strong>no transaction feed</strong>. It is a reproducible, spec-locked, publicly auditable <em>price-transparency</em> benchmark, not a settlement benchmark, and it should not be referenced in a financial contract. The conditions that would have to be met before that changed are published, falsifiable, and currently unmet — chiefly ≥15 constituents with ≥50% executable share, against today&#x27;s five constituents and roughly 17%.</p>
 <h3 id="11-reproducibility">11. Reproducibility</h3>
 <p>Everything above recomputes from the public repository:</p>
 <pre class="code" data-lang="bash"><code>git clone https://github.com/markrusch/Compute-Index
@@ -1555,41 +1868,40 @@ pytest</code></pre>
 <h3 id="12-limitations">12. Limitations</h3>
 <p>The window is 14 collection days and seven providers. The node-size ratios in §6.1 rest on three venue-days for the 2× step and one each for 4× and 8×; they are published as provisional and are deliberately <em>not</em> used as adjustment factors in the calculation path. The bimodality result is a single-day cluster separation, not a formal mixture test. None of these weaken the two central findings — the composition decomposition in §4 and the filter effect in §6 — which are arithmetic rather than inferential.</p>
 <hr>
-<p><em>EU-CRI is a research publication. It is not investment advice and may not be used as a reference price in financial instruments. Author and administrator: Mark Rusch (rusch.mh@gmail.com). Conflicts: the author may hold positions on venues whose prices the index observes; see GOVERNANCE.md.</em></p></div></div>
+<p><em>TCI is a research publication. It is not investment advice and may not be used as a reference price in financial instruments. Author and administrator: Mark Rusch (rusch.mh@gmail.com). Conflicts: the author may hold positions on venues whose prices the index observes; see GOVERNANCE.md.</em></p></div></div>
   </div>
 </main>
 <footer class="footer">
   <div class="wrap footer__inner">
     <div class="footer__cols">
       <div class="footer__brand">
-        <span class="wordmark__text">EU&#8209;CRI</span>
-        <p class="footer__tag">A daily, reproducible reference price for renting AI compute
-        delivered from the EU/EEA. Every print is recomputable from public sources using the
-        published code.</p>
+        <span class="brand"><span class="brand__mark" style="--brand-h:20px" aria-hidden="true"><span class="brand__tc">TC</span><span class="brand__i"><span class="brand__dot"></span><span class="brand__bar"></span></span></span><span class="brand__name">The Compute Indices</span></span>
+        <p class="footer__tag">Reproducible reference prices for renting AI compute. Every
+        print is recomputable from public sources using the published code.</p>
       </div>
-      <nav class="footer__nav" aria-label="Footer, index">
-        <h4>Index</h4>
-        <a href="../index.html">Headline &amp; sub&#8209;indices</a>
-        <a href="../index.html#constituents">Constituents</a>
-        <a href="../index.html#quality">Data quality</a>
-      </nav>
-      <nav class="footer__nav" aria-label="Footer, governance">
-        <h4>Governance</h4>
+      <nav class="footer__nav" aria-label="Footer, product">
+        <h4>Product</h4>
+        <a href="../index.html">Indices</a>
         <a href="../methodology.html">Methodology v0.3.0-dev</a>
-        <a href="../governance.html">Oversight &amp; complaints</a>
-        <a href="../methodology.html#lock">Methodology lock</a>
+        <a href="../governance.html">Governance</a>
       </nav>
-      <nav class="footer__nav" aria-label="Footer, access">
-        <h4>Access</h4>
-        <a href="../data/latest.json">latest.json</a>
+      <nav class="footer__nav" aria-label="Footer, data">
+        <h4>Data</h4>
+        <a href="../data.html">Downloads &amp; terms</a>
         <a href="../data/index_history.csv">index_history.csv</a>
-        <a href="../research.html">Research notes</a>
+        <a href="../data/latest.json">latest.json</a>
+      </nav>
+      <nav class="footer__nav" aria-label="Footer, company">
+        <h4>Company</h4>
+        <a href="../research.html">Research</a>
+        <a href="https://github.com/markrusch/Compute-Index" rel="noopener">GitHub</a>
+        <a href="mailto:rusch.mh@gmail.com">Contact</a>
       </nav>
     </div>
     <div class="disclaimer">
       <h4 class="disclaimer__h">Important information</h4>
-      <p>EU-CRI is a research publication. It is not investment advice and is not administered as a benchmark under EU Regulation 2016/1011; it may not be used as a reference price in financial instruments.</p>
-      <p>EU&#8209;CRI is a <strong>price-transparency benchmark, not a settlement
+      <p>TCI is a research publication. It is not investment advice and is not administered as a benchmark under EU Regulation 2016/1011; it may not be used as a reference price in financial instruments.</p>
+      <p>TCI is a <strong>price-transparency benchmark, not a settlement
       benchmark</strong>. It is not transaction-based, is not administered by an authorised
       benchmark administrator, and must not be referenced in a financial contract. Values are
       derived from third-party public price surfaces believed to be reliable but are
@@ -1602,15 +1914,16 @@ pytest</code></pre>
       is published under CC&#160;BY&#160;4.0, so any print here can be reproduced and
       checked independently. The <strong>index data</strong> is published under separate
       terms: free to use for research, journalism and other non-commercial purposes with
-      attribution. &#8220;EU&#8209;CRI&#8221; is used as the identity of this benchmark and
-      its published values; a fork is welcome and must carry its own name.</p>
-      <p class="disclaimer__meta num">EU&#8209;CRI&#8209;M v0.3.0-dev &#183;
-      methodology hash sha256:903fcfecf9d3&#8230; &#183; generated
-      2026-09-05T11:08:58Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
+      attribution. &#8220;TCI&#8221; and &#8220;TCI-CRI&#8221; are
+      used as the identity of this benchmark family and its published values; a fork is
+      welcome and must carry its own name.</p>
+      <p class="disclaimer__meta num">TCI-CRI&#8209;M v0.3.0-dev
+      &#183; methodology hash sha256:903fcfecf9d3&#8230; &#183; generated
+      2026-09-06T00:20:37Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
       at the ECB reference rate dated on or before the print date.</p>
     </div>
   </div>
 </footer>
-<script>(function(){var r=document.documentElement;var v=r.getAttribute('data-theme')||'auto';var el=document.getElementById('th-'+v);if(el)el.checked=true;document.addEventListener('change',function(e){var t=e.target;if(!t||t.name!=='theme')return;if(t.value==='auto'){r.removeAttribute('data-theme');try{localStorage.removeItem('eucri-theme');}catch(x){}}else{r.setAttribute('data-theme',t.value);try{localStorage.setItem('eucri-theme',t.value);}catch(x){}}});})();</script>
+
 </body>
 </html>

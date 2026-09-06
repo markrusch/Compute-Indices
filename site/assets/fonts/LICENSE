@@ -1,0 +1,45 @@
+Fonts bundled with the TCI site
+===============================
+
+Two typefaces are self-hosted here rather than loaded from a CDN. Both are the
+exact woff2 subsets that fonts.gstatic.com serves (latin and latin-ext, variable
+weight axis), fetched on 2026-09-05 and committed unmodified.
+
+  outfit-latin.woff2            Outfit, latin           wght 400-800
+  outfit-latin-ext.woff2        Outfit, latin-ext       wght 400-800
+  jetbrains-mono-latin.woff2    JetBrains Mono, latin   wght 400-600
+  jetbrains-mono-latin-ext.woff2  JetBrains Mono, latin-ext  wght 400-600
+
+WHY SELF-HOSTED
+---------------
+1. The site makes exactly zero off-origin requests, and a test enforces it
+   (tests/test_site.py::test_pages_are_self_contained). Stylesheets are inlined
+   and every graphic is SVG or DOM; a font <link> would be the only exception.
+2. Embedding Google Fonts sends every visitor's IP address to a third party.
+   For a benchmark administered from the EU that is an avoidable disclosure,
+   and German courts have found the practice unlawful under the GDPR
+   (LG Munchen I, 3 O 17493/20, 20 January 2022).
+3. The Vercel and GitHub Pages mirrors must serve byte-identical pages under a
+   strict CSP. A same-origin font file satisfies both; a CDN reference does not.
+
+Rendering is identical either way: same files, same unicode-ranges, same
+variable axes. Only the host changes.
+
+LICENCE
+-------
+Both families are licensed under the SIL Open Font License, Version 1.1, which
+permits redistribution and bundling in this form provided the fonts are not sold
+on their own and the licence travels with them.
+
+  Outfit           Copyright (c) 2020 The Outfit Project Authors
+                   https://github.com/Outfitio/Outfit-Fonts
+  JetBrains Mono   Copyright (c) 2020 The JetBrains Mono Project Authors
+                   https://github.com/JetBrains/JetBrainsMono
+
+Full licence text: https://openfontlicense.org  (SIL OFL 1.1)
+
+Neither font is modified. Neither is sold. Reserved Font Names, where the
+respective projects declare them, are not used for any derivative.
+
+This directory is NOT covered by the repository's Apache-2.0 licence, which
+applies to the software. See ../../../NOTICE.

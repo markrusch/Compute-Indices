@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Research — TCI</title>
-<meta name="description" content="TCI research notes: what the index measures, what moves it, and what it cannot yet say.">
+<title>Data &amp; downloads — TCI</title>
+<meta name="description" content="TCI data: full CSV history, latest.json, the constituent audit set behind every print, terms of use, and the citation format.">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0c0d">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0c0d'/%3E%3Crect x='6' y='9' width='7' height='16' rx='1' fill='%23f5f5f6'/%3E%3Crect x='17' y='16' width='7' height='9' rx='1' fill='%23f5f5f6'/%3E%3Ccircle cx='20.5' cy='10.5' r='3.5' fill='%23ff0000'/%3E%3C/svg%3E">
@@ -1779,7 +1779,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
   <div class="masthead__bar">
     <div class="wrap masthead__inner">
       <a class="brand" href="index.html"><span class="brand__mark" style="--brand-h:24px" aria-hidden="true"><span class="brand__tc">TC</span><span class="brand__i"><span class="brand__dot"></span><span class="brand__bar"></span></span></span><span class="brand__name">The Compute Indices</span></a>
-      <nav class="nav" aria-label="Primary"><a href="index.html">Indices</a><a href="methodology.html">Methodology</a><a href="data.html">Data</a><a href="research.html" aria-current="page">Research</a><a href="governance.html">Governance</a>
+      <nav class="nav" aria-label="Primary"><a href="index.html">Indices</a><a href="methodology.html">Methodology</a><a href="data.html" aria-current="page">Data</a><a href="research.html">Research</a><a href="governance.html">Governance</a>
         <a href="mailto:rusch.mh@gmail.com">Contact</a>
         <a class="nav__cta" href="index.html#indices">View Indices</a>
       </nav>
@@ -1788,33 +1788,78 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 </header>
 <main class="wrap" id="main">
   <div class="pagehead">
-    <div class="eyebrow">TCI Research</div>
-    <h1 class="pagehead__h pagehead__h--display">Research</h1>
-    <p class="pagehead__dek">The newsletter behind the index: notes on what it measures and
-    what it cannot. Each one is reproducible from the published history in
-    <code class="inline">site/data/index_history.csv</code> and the stored constituent sets;
-    where a note makes a numeric claim, the query that produced it is printed with it.</p>
+    <h1 class="pagehead__h pagehead__h--display">Full history. Every observation. No black
+    box.</h1>
+    <p class="pagehead__dek">Raw observations, daily prints, and the full constituent audit
+    set behind each one — downloadable, versioned since day one, and reproducible from
+    public sources using the published code.</p>
     <div class="pagehead__meta">
-      <span><span class="num">2</span> notes</span>
-      <span>Methodology <span class="num">v0.3.0-dev</span></span>
       <span>As of <span class="num">2026-09-05</span></span>
+      <span>Methodology <span class="num">v0.3.0-dev</span></span>
+      <span>Updated daily <span class="num">11:00 UTC</span></span>
     </div>
   </div>
-  <div class="section">
-    <div class="notes"><article class="note"><div class="note__when num">16 Aug 2026</div><div><h3 class="note__t"><a href="research/hedgeable-benchmark-design.html">What makes a compute benchmark hedgeable</a></h3><p class="note__dek">Design rules from oil, power, freight and repo — and which of them compute can actually satisfy</p><div class="note__foot"><span class="chip chip--good"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8.5 6.2 12.2 13.5 4.4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Published</span></span><span class="u">TCI Research &#183; methodology v0.3.0-dev</span></div></div></article><article class="note"><div class="note__when num">16 Aug 2026</div><div><h3 class="note__t"><a href="research/composition-vs-price.html">When an index measures its own sampling</a></h3><p class="note__dek">How a 10% move in a compute benchmark turned out to be entirely composition noise — and what the unit definition had to do with it</p><div class="note__foot"><span class="chip chip--good"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8.5 6.2 12.2 13.5 4.4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Published</span></span><span class="u">TCI Research &#183; methodology v0.3.0-dev</span></div></div></article></div>
-  </div>
-  <section class="section" aria-labelledby="s-sub">
-    <div class="subscribe">
-      <div class="subscribe__t" id="s-sub">Get the next print note</div>
-      <p class="subscribe__d">One email every two to three weeks, plus a short print note
-      whenever something breaks or moves. The archive is public; the index is published here
-      whether you subscribe or not.</p>
-      <div class="subscribe__cta">
-        <a class="btn btn--primary" href="https://computeindex.substack.com"
-        rel="noopener">Subscribe on Substack</a>
-        <a class="btn btn--ghost" href="https://github.com/markrusch/Compute-Index" rel="noopener">Watch the repo</a>
+
+  <section class="section" aria-labelledby="s-dl">
+    <h2 class="vh" id="s-dl">Downloads</h2>
+    <div class="dlcards"><article class="dl"><h3 class="dl__t">Index history</h3><p class="dl__d">Full daily history of every published series, latest revision per date.</p><a class="btn btn--ghost btn--sm" href="data/index_history.csv">Download CSV</a></article><article class="dl"><h3 class="dl__t">Latest print</h3><p class="dl__d">latest.json — current values across all series, with flags and the FX leg.</p><a class="btn btn--ghost btn--sm" href="data/latest.json">View JSON</a></article><article class="dl"><h3 class="dl__t">Constituent audit</h3><p class="dl__d">Every candidate provider per print, included or not, its weight, and why. Published inside latest.json.</p><a class="btn btn--ghost btn--sm" href="data/latest.json">View audit set</a></article><article class="dl"><h3 class="dl__t">Source code</h3><p class="dl__d">The generator, the collectors and the calculation — Apache-2.0, so any print here can be rebuilt independently.</p><a class="btn btn--ghost btn--sm" href="https://github.com/markrusch/Compute-Index">Open repository</a></article></div>
+  </section>
+
+  <section class="section" aria-labelledby="s-ids">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-ids">Series identifiers</h2>
+      <p class="section__dek">The site publishes the
+      <code class="inline">TCI-CRI&#8209;*</code> names. The data files
+      still carry the original <code class="inline">EU-CRI&#8209;*</code>
+      keys, and will until the rename is executed as a governed change with a published
+      old&#8594;new mapping and an effective date. Until then, read
+      <code class="inline">EU-CRI-H100</code> in the files as
+      <code class="inline">TCI-CRI-H100</code> on this site: same series,
+      same history, same values.</p></div></div>
+    <div class="term">
+      <div class="term__chrome" aria-hidden="true"><i></i><i></i><i></i>
+        <span class="term__name">latest.json</span></div>
+      <div class="term__body">
+        <div class="term__c"># the headline print, and the constituents behind it</div>
+        <div>curl -s ./data/latest.json | jq '.series["EU-CRI-H100"]'</div>
+        <div>curl -s ./data/latest.json | jq '.constituents["EU-CRI-H100"]'</div>
       </div>
     </div>
+  </section>
+
+  <section class="section" aria-labelledby="s-terms">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-terms">Terms of use, in short</h2>
+      <p class="section__dek">The full text is in
+      <code class="inline">DATA-TERMS.md</code>; this is a summary, and the document
+      governs.</p></div></div>
+    <table class="terms">
+      <tbody>
+        <tr><th scope="row">Non-commercial</th><td>Free, no permission needed — research,
+        teaching, journalism, verification, critique, reproducibility packages. Attribution
+        required. Verification is never restricted: if you believe a print is wrong, you may
+        publish everything needed to demonstrate it.</td></tr>
+        <tr><th scope="row">Commercial</th><td>Paid products, terminals, resale, or
+        financial-instrument use require permission — contact
+        <a href="mailto:rusch.mh@gmail.com">rusch.mh@gmail.com</a>. Terms are being
+        finalised; enquiries are welcome now.</td></tr>
+        <tr><th scope="row">Never permitted</th><td>Use as a reference price in a financial
+        instrument or contract. That is a governance restriction, not a commercial one, and
+        it is not for sale at any price.</td></tr>
+        <tr><th scope="row">Software &amp; docs</th><td>The code is Apache&#160;2.0 and the
+        methodology is CC&#160;BY&#160;4.0, so every print here can be recomputed and
+        checked independently.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" aria-labelledby="s-cite">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-cite">How to cite a value</h2>
+      <p class="section__dek">Cite the print date, the methodology version and the lock
+      hash, so the claim is checkable rather than merely attributed.</p></div></div>
+    <div class="cite">Source: TCI (The Compute Indices), Mark Rusch &#183;
+    TCI-CRI-H100, 2026-09-05: $3.25/GPU-hr (v0.3.0-dev, lock sha256:903fcfecf9d3&#8230;)</div>
   </section>
 </main>
 <footer class="footer">
