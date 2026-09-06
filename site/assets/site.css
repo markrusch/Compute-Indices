@@ -258,14 +258,16 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
 .hero__cta { display: flex; gap: var(--space-4); flex-wrap: wrap;
              animation: tci-fadeup var(--dur-fadeup) var(--ease-out) .2s both; }
 
+/* pointer-events:none — the wave is decoration and must never intercept a CTA. The
+   pointer is tracked on .hero instead, so the crest also responds while the cursor is
+   over the headline, not only when it is inside the graphic. */
 .hero__wave { position: absolute; inset-block: 0; inset-inline-end: 0; inline-size: 62%;
               display: flex; align-items: flex-end; gap: 9px;
-              padding-inline-end: var(--space-5); pointer-events: auto;
+              padding-inline-end: var(--space-5); pointer-events: none;
               -webkit-mask-image: linear-gradient(to left, black 55%, transparent);
               mask-image: linear-gradient(to left, black 55%, transparent); }
 .wave__col { flex: 1 1 0; display: flex; flex-direction: column; align-items: center;
-             justify-content: flex-end; block-size: 220px; transform-origin: bottom;
-             min-inline-size: 0; }
+             justify-content: flex-end; block-size: 220px; min-inline-size: 0; }
 .wave__dot { inline-size: var(--dot, 2.5px); block-size: var(--dot, 2.5px);
              border-radius: var(--radius-pill); background: var(--wave-dot);
              margin-block-end: 2px; flex: none; }
@@ -275,10 +277,66 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
 /* The bright red marks: small, rationed, and only in the wave's middle third. */
 .wave__col--hi .wave__dot { background: var(--red); }
 .wave__col--hi .wave__bar { background: var(--wave-bar-hi); }
-/* Hover swaps the draw-in for the breathing loop. --dw is a separate stagger from
-   --d: the brand guide staggers the two animations at different rates. */
-.hero__wave:hover .wave__bar {
+
+/* ---- SCRIPTING OFF: the brand guide's hover loop ------------------------- */
+/* Unchanged fallback. Only applies while `.is-live` is absent, i.e. when the pointer
+   script never ran. --dw is a separate stagger from --d: the guide staggers the
+   draw-in and the breathe at different rates. */
+.hero:hover .hero__wave:not(.is-live) .wave__bar {
   animation: tci-wave var(--wd, 1.5s) ease-in-out var(--dw, 0s) infinite;
+}
+
+/* ==========================================================================
+   CURSOR-TRACKING WAVE (progressive enhancement)
+   --------------------------------------------------------------------------
+   The script writes exactly TWO custom properties on the container per frame —
+   --mx (cursor position across the wave, 0..1) and --amp (how engaged the wave
+   is, 0..1, eased in and out) — and the falloff is computed here in CSS. That
+   is the whole reason it stays smooth: 48 bars respond from two property
+   writes, not 48, so a frame costs one style pass instead of ninety-six.
+
+   --dist is |i − mx| written as max(a−b, b−a), because CSS abs() is younger
+   than max() and this needs no fallback. Squaring --crest at the point of use
+   turns the linear falloff into a bell, which is what makes the crest read as
+   a wave rather than a tent.
+
+   Everything degrades cleanly: --amp defaults to 0, so before the first
+   pointer move (and forever, if the script never runs) the wave sits exactly
+   where the CSS-only version leaves it.
+   ========================================================================== */
+.hero__wave.is-live .wave__col {
+  --dist: max(var(--i) - var(--mx, 0.5), var(--mx, 0.5) - var(--i));
+  --crest: max(0, 1 - var(--dist) * var(--spread, 8));
+}
+.hero__wave.is-live .wave__bar {
+  animation: none;
+  opacity: var(--in, 0);
+  transform: scaleY(calc(
+    var(--in, 0) + var(--crest, 0) * var(--crest, 0) * var(--amp, 0) * 0.95));
+  /* The crest picks up the brand red as it passes — bars are 1.5px, which is
+     the small-mark case the ration is for. color-mix is well supported; where
+     it is not, the declaration is dropped and the bar keeps its base colour. */
+  background: color-mix(in srgb, var(--wave-bar),
+              var(--red) calc(var(--crest, 0) * var(--amp, 0) * 88%));
+  transition: transform 260ms var(--ease-out), opacity 260ms linear,
+              background 200ms linear;
+}
+.hero__wave.is-live .wave__col--hi .wave__bar {
+  background: color-mix(in srgb, var(--wave-bar-hi),
+              var(--red) calc(var(--crest, 0) * var(--amp, 0) * 100%));
+}
+.hero__wave.is-live .wave__dot {
+  transform: scale(calc(1 + var(--crest, 0) * var(--crest, 0) * var(--amp, 0) * 1.5));
+  opacity: calc(0.6 + var(--crest, 0) * var(--amp, 0) * 0.4);
+  transition: transform 260ms var(--ease-out), opacity 260ms linear;
+}
+/* The draw-in, staggered, replayed as a transition rather than a keyframe so the
+   cursor transform can own `transform` afterwards. The script drops .is-intro once
+   the last column has landed, which is what returns the bars to snappy tracking
+   timing instead of a 1.4s staggered lag on every cursor move. */
+.hero__wave.is-live.is-intro .wave__bar {
+  transition: transform var(--dur-rise) var(--ease-out) var(--d, 0s),
+              opacity 600ms linear var(--d, 0s), background 0s linear;
 }
 @media (max-width: 900px) { .hero__wave { display: none; } }
 

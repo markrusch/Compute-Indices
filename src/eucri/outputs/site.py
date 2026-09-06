@@ -711,6 +711,47 @@ document.addEventListener('visibilitychange',function(){
  if(document.visibilityState==='visible')poll();});
 setInterval(poll,300000);})();"""
 
+# The hero wave follows the cursor. Pure enhancement: without it the CSS-only wave
+# still draws in and breathes on hover (site.css, "SCRIPTING OFF"), and nothing on the
+# page depends on this running.
+#
+# Two ideas keep it smooth. First, the script writes only --mx and --amp on the
+# container and lets CSS compute each bar's falloff, so a frame is one style pass over
+# two properties rather than 48 inline transforms. Second, the tracked position is
+# eased toward the raw pointer (a 0.16 lerp) instead of following it exactly, so a fast
+# flick across the hero draws a crest that trails and settles rather than teleporting.
+#
+# Listeners sit on .hero, not on the graphic, so the wave also answers a cursor resting
+# over the headline. Under prefers-reduced-motion the script returns before touching
+# anything, leaving the static wave.
+_WAVE_JS = """(function(){
+var wave=document.querySelector('.hero__wave');if(!wave)return;
+var hero=wave.closest?wave.closest('.hero'):wave.parentNode;if(!hero)return;
+var mq=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
+if(mq&&mq.matches)return;
+wave.classList.add('is-live','is-intro');
+requestAnimationFrame(function(){wave.style.setProperty('--in','1');});
+setTimeout(function(){wave.classList.remove('is-intro');},2600);
+var box=null,tx=0.5,cx=0.5,ta=0,ca=0,raf=0;
+function drop(){box=null;}
+function step(){
+ raf=0;
+ cx+=(tx-cx)*0.16;ca+=(ta-ca)*0.09;
+ wave.style.setProperty('--mx',cx.toFixed(4));
+ wave.style.setProperty('--amp',ca.toFixed(4));
+ if(Math.abs(tx-cx)>0.0004||Math.abs(ta-ca)>0.002)run();}
+function run(){if(!raf)raf=requestAnimationFrame(step);}
+function move(e){
+ if(!box)box=wave.getBoundingClientRect();
+ if(!box.width)return;
+ var x=(e.clientX-box.left)/box.width;
+ tx=x<-0.25?-0.25:(x>1.25?1.25:x);ta=1;run();}
+function out(){ta=0;run();}
+hero.addEventListener('pointermove',move,{passive:true});
+hero.addEventListener('pointerleave',out,{passive:true});
+window.addEventListener('resize',drop,{passive:true});
+window.addEventListener('scroll',drop,{passive:true});})();"""
+
 
 def _css(prefix: str = "") -> str:
     """The whole stylesheet, inlined, with font URLs resolved for this page's depth.
@@ -953,8 +994,13 @@ def _wave() -> str:
         hi = 0.3 < t < 0.7 and i % 3 == 0
         cols.append(
             f'<span class="wave__col{" wave__col--hi" if hi else ""}"'
-            f' style="--h:{height}px;--dot:{4 if hi else 2.5}px;--d:{i * 0.03:.2f}s;'
-            f'--dw:{i * 0.035:.2f}s;--wd:{1.3 + (i % 5) * 0.15:.2f}s">'
+            # --i is this column's position across the wave, 0..1. It is the only
+            # per-column input the cursor maths needs: the falloff against the
+            # pointer is computed in CSS, so a frame writes two properties on the
+            # container instead of ninety-six on the columns.
+            f' style="--i:{t:.4f};--h:{height}px;--dot:{4 if hi else 2.5}px;'
+            f'--d:{i * 0.03:.2f}s;--dw:{i * 0.035:.2f}s;'
+            f'--wd:{1.3 + (i % 5) * 0.15:.2f}s">'
             '<span class="wave__dot"></span><span class="wave__bar"></span></span>'
         )
     return f'<div class="hero__wave" aria-hidden="true">{"".join(cols)}</div>'
@@ -1800,7 +1846,7 @@ def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
         description=description,
         current="index.html",
         body=body,
-        extra_js=_REFRESH_JS,
+        extra_js=_REFRESH_JS + "\n" + _WAVE_JS,
     )
 
 
