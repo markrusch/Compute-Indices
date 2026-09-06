@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from eucri import db
-from eucri.outputs import site, webdata
+from tci import db
+from tci.outputs import site, webdata
 from tests.conftest import insert_run
 
 PAGES = (
@@ -365,7 +365,7 @@ def test_rebrand_renames_prose_but_never_a_pasteable_command():
     """
     out = site._rebrand_doc(
         "EU-CRI is a benchmark; EU-CRI-H100 is its headline.\n\n"
-        "```\npython -m eucri.run constituents --series EU-CRI-H100\n```\n\n"
+        "```\npython -m tci.run constituents --series EU-CRI-H100\n```\n\n"
         "Config lives in `EU-CRI-H100` and prose does not."
     )
     assert out.startswith("TCI is a benchmark; TCI-CRI-H100 is its headline.")

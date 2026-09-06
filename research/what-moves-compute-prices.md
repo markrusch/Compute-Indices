@@ -367,7 +367,7 @@ The constituent set behind any print, including the rejected candidates and the 
 for each:
 
 ```
-python -m eucri.run constituents --date 2026-09-05 --series EU-CRI-H100
+python -m tci.run constituents --date 2026-09-05 --series EU-CRI-H100
 ```
 
 ---

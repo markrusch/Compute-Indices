@@ -18,7 +18,7 @@ jobs:
       - name: Lint
         run: ruff check src tests
       - name: Types
-        run: mypy src/eucri
+        run: mypy src/tci
       - name: Tests (includes methodology-lock guard)
         run: pytest
       - name: Database size check

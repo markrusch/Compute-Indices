@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import pytest
 
-from eucri.index import weighted_median
+from tci.index import weighted_median
 
 
 def test_single_constituent() -> None:

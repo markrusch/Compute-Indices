@@ -1,4 +1,4 @@
-# EU-CRI Index Data — Terms of Use
+# TCI Index Data — Terms of Use
 
 **Version 0.1 (draft, pre-launch) · 4 September 2026 · Mark Rusch, administrator**
 
@@ -15,7 +15,7 @@
 |---|---|
 | `site/data/index_history.csv` | Software — [Apache 2.0](LICENSE) |
 | `site/data/latest.json`, including the constituent audit set | Documentation and methodology — [CC BY 4.0](LICENSE-docs) |
-| `data/eucri.db` (observations, prints, constituents, weight sets) | The name "EU-CRI" — [NOTICE](NOTICE) |
+| `data/eucri.db` (observations, prints, constituents, weight sets) | The name "TCI" — [NOTICE](NOTICE) |
 | Index values reproduced on the project website | |
 
 A licence over source code does not carry rights in the data that code produces, which is
@@ -53,7 +53,7 @@ instrument or contract.
 Contact **rusch.mh@gmail.com**. Commercial terms are being finalised (§5); enquiries are
 welcome now, and reasonable requests are unlikely to be refused.
 
-Separately, and regardless of these terms: EU-CRI **must not be used as a reference price
+Separately, and regardless of these terms: TCI **must not be used as a reference price
 in a financial instrument or contract**. That is a governance restriction, not a
 commercial one, and it is not for sale. See [GOVERNANCE.md](GOVERNANCE.md).
 
@@ -93,12 +93,12 @@ equally careful about what it claims to own.
 
 ## 6. Attribution
 
-> Source: EU-CRI (European Compute Reference Index), Mark Rusch.
+> Source: TCI (The Compute Indices), Mark Rusch.
 > https://markrusch.github.io/Compute-Index/
 
 When citing a specific value, cite the **print date, methodology version and lock hash**
-so the claim is checkable — for example *"EU-CRI-H100, 2026-08-30: $3.25/GPU-hr
-(EU-CRI-M v0.3.0-dev, lock sha256:64d7f6cd88fc…)"*. Machine-readable equivalents are in
+so the claim is checkable — for example *"TCI-CRI-H100, 2026-08-30: $3.25/GPU-hr
+(TCI-CRI-M v0.3.0-dev, lock sha256:64d7f6cd88fc…)"*. Machine-readable equivalents are in
 `latest.json`. See `CITATION.cff` for a formal citation.
 
 ## 7. Changes

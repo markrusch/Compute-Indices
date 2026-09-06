@@ -5,7 +5,7 @@ the research notes actually use, plus the escaping rules that keep the output sa
 
 from __future__ import annotations
 
-from eucri.outputs.markdown import render, slugify
+from tci.outputs.markdown import render, slugify
 
 
 def test_headings_get_stable_slugs_and_plain_text():
@@ -102,8 +102,8 @@ def test_fenced_code_is_escaped_and_keeps_its_language():
 
 
 def test_indented_code_block():
-    doc = render("text\n\n    python -m eucri.run constituents\n\nmore\n")
-    assert '<pre class="code"><code>python -m eucri.run constituents</code></pre>' in doc.html
+    doc = render("text\n\n    python -m tci.run constituents\n\nmore\n")
+    assert '<pre class="code"><code>python -m tci.run constituents</code></pre>' in doc.html
 
 
 def test_blockquote_becomes_a_callout():

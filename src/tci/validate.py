@@ -14,12 +14,12 @@ import sqlite3
 import statistics
 from pathlib import Path
 
-from eucri import config
-from eucri.commands import HEADLINE, _observations_for_date
-from eucri.index import compute_print
-from eucri.normalise import normalise_observations
+from tci import config
+from tci.commands import HEADLINE, _observations_for_date
+from tci.index import compute_print
+from tci.normalise import normalise_observations
 
-log = logging.getLogger("eucri.validate")
+log = logging.getLogger("tci.validate")
 
 CHECK_SERIES_PATH = Path(__file__).resolve().parents[2] / "config" / "check_series.csv"
 

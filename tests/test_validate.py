@@ -8,10 +8,10 @@ import sqlite3
 
 import requests
 
-from eucri.collectors import base
-from eucri.db import utc_now_iso
-from eucri.models import Observation
-from eucri.validate import dropout_sensitivity
+from tci.collectors import base
+from tci.db import utc_now_iso
+from tci.models import Observation
+from tci.validate import dropout_sensitivity
 
 DATE = "2026-07-18"
 

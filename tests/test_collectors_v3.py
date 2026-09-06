@@ -14,11 +14,11 @@ from pathlib import Path
 
 import responses
 
-from eucri.collectors import base
-from eucri.collectors.azure_retail import REGIONS, AzureRetailCollector
-from eucri.collectors.azure_retail import URL as AZURE_URL
-from eucri.collectors.scaleway import URL as SCALEWAY_URL
-from eucri.collectors.scaleway import ZONES, ScalewayCollector
+from tci.collectors import base
+from tci.collectors.azure_retail import REGIONS, AzureRetailCollector
+from tci.collectors.azure_retail import URL as AZURE_URL
+from tci.collectors.scaleway import URL as SCALEWAY_URL
+from tci.collectors.scaleway import ZONES, ScalewayCollector
 
 FIXTURES = Path(__file__).parent / "fixtures"
 SCALEWAY_FIXTURE = json.loads((FIXTURES / "scaleway_fr_par_2.json").read_text(encoding="utf-8"))

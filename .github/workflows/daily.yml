@@ -26,16 +26,16 @@ jobs:
         env:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
           SHADEFORM_API_KEY: ${{ secrets.SHADEFORM_API_KEY }}
-        run: python -m eucri.run daily
+        run: python -m tci.run daily
       - name: Weekly validation report (Mondays, warn-only)
         if: ${{ github.event_name == 'schedule' }}
         run: |
           if [ "$(date -u +%u)" = "1" ]; then
-            python -m eucri.run validate || echo "::warning::validate reported issues"
+            python -m tci.run validate || echo "::warning::validate reported issues"
           fi
       - name: Commit data + outputs
         run: |
-          git config user.name "eucri-bot"
+          git config user.name "tci-bot"
           git config user.email "rusch.mh@gmail.com"
           git add data/eucri.db site/
           if git diff --cached --quiet; then

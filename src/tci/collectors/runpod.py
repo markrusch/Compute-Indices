@@ -33,11 +33,11 @@ import logging
 
 import requests
 
-from eucri.collectors.base import TIMEOUT_SECONDS
-from eucri.db import utc_now_iso
-from eucri.models import Observation
+from tci.collectors.base import TIMEOUT_SECONDS
+from tci.db import utc_now_iso
+from tci.models import Observation
 
-log = logging.getLogger("eucri.collectors.runpod")
+log = logging.getLogger("tci.collectors.runpod")
 
 URL = "https://api.runpod.io/graphql"
 

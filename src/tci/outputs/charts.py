@@ -23,9 +23,9 @@ matplotlib.use("Agg")
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
-from eucri.config import load_factors
+from tci.config import load_factors
 
-log = logging.getLogger("eucri.outputs.charts")
+log = logging.getLogger("tci.outputs.charts")
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CHART_DIR = REPO_ROOT / "site" / "charts"

@@ -16,18 +16,18 @@ from pathlib import Path
 
 import pytest
 
-from eucri import methodology
-from eucri.config import load_factors
+from tci import methodology
+from tci.config import load_factors
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_lock_matches_working_tree() -> None:
     lock = methodology.read_lock()
-    assert lock is not None, "METHODOLOGY.lock missing — run: python -m eucri.run docs"
+    assert lock is not None, "METHODOLOGY.lock missing — run: python -m tci.run docs"
     assert lock["current"]["hash"] == methodology.compute_hash(), (
         "Methodology files changed without regenerating the lock. Follow GOVERNANCE.md §1:"
-        " bump methodology_version, add a CHANGELOG entry, run `python -m eucri.run docs`."
+        " bump methodology_version, add a CHANGELOG entry, run `python -m tci.run docs`."
     )
 
 

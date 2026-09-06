@@ -9,9 +9,9 @@ import sqlite3
 
 import requests
 
-from eucri.collectors.base import TIMEOUT_SECONDS
+from tci.collectors.base import TIMEOUT_SECONDS
 
-log = logging.getLogger("eucri.collectors.fx")
+log = logging.getLogger("tci.collectors.fx")
 
 # canonical host: frankfurter.app 301s to frankfurter.dev/v1 (verified 2026-07-18)
 URL = "https://api.frankfurter.dev/v1/latest?from=EUR&to=USD"

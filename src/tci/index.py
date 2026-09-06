@@ -25,10 +25,10 @@ from collections.abc import Mapping, Sequence
 from datetime import date as date_type
 from datetime import datetime
 
-from eucri.config import Factors
-from eucri.models import Constituent, IndexPrint
-from eucri.normalise import NormalisedObs
-from eucri.weights import apply_concentration_cap
+from tci.config import Factors
+from tci.models import Constituent, IndexPrint
+from tci.normalise import NormalisedObs
+from tci.weights import apply_concentration_cap
 
 
 def trim_clamp(values: Sequence[float], k: int) -> tuple[list[float], float, float]:

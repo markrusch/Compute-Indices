@@ -1,11 +1,11 @@
 # eu-compute-index
 
-**EU-CRI** — a daily, fully reproducible reference price for renting AI compute in the
-EU/EEA. Headline series **EU-CRI-H100**: one NVIDIA H100 SXM 80GB GPU-hour, on-demand,
+**TCI** — a daily, fully reproducible reference price for renting AI compute in the
+EU/EEA. Headline series **TCI-CRI-H100**: one NVIDIA H100 SXM 80GB GPU-hour, on-demand,
 per-GPU, ex-VAT, from an EU/EEA data centre, in USD with a EUR companion at the ECB
 reference rate (T-1). Companion series by market segment (`-MKT` marketplace, `-NC`
 neocloud, `-HS` hyperscaler catalog, `-SOV` EU-incorporated operators), by generation
-(H200, B200, B300, A100, H100-PCIe), and **EU-CRI-COMPUTE**, a chain-linked composite
+(H200, B200, B300, A100, H100-PCIe), and **TCI-CRI-COMPUTE**, a chain-linked composite
 that follows the observed market across hardware generations.
 
 The credibility strategy is reproducibility, not scale: every parameter is a visible
@@ -16,7 +16,7 @@ Principles for Financial Benchmarks (2013) as voluntary best practice — see
 [GOVERNANCE.md](GOVERNANCE.md), [METHODOLOGY.md](METHODOLOGY.md), and
 [SOURCES.md](SOURCES.md).
 
-> **EU-CRI is a price-transparency benchmark, not a settlement benchmark.** It is a
+> **TCI is a price-transparency benchmark, not a settlement benchmark.** It is a
 > research publication, is not investment advice, and may not be used as a reference
 > price in financial instruments. It has **no transaction feed** and does not claim one.
 > The conditions that would have to be met before settlement use is credible are
@@ -31,9 +31,9 @@ Why it was rebuilt in v0.3.0, and what was wrong before:
 python -m venv .venv
 .venv/Scripts/activate            # Windows; source .venv/bin/activate on Linux
 pip install -e .[dev]
-python -m eucri.run migrate       # create data/eucri.db
-python -m eucri.run daily         # collect today's observations + compute all series
-python -m eucri.run constituents --date 2026-07-18
+python -m tci.run migrate       # create data/eucri.db
+python -m tci.run daily         # collect today's observations + compute all series
+python -m tci.run constituents --date 2026-07-18
 pytest
 ```
 
@@ -54,12 +54,12 @@ pytest
 
 - `config/` — all methodology parameters (`factors.yaml`), sovereign constituent list,
   static provider price entries with `last_verified` dates
-- `src/eucri/` — collectors (fail-soft, 1 request/source/day, honest User-Agent),
+- `src/tci/` — collectors (fail-soft, 1 request/source/day, honest User-Agent),
   normalisation, index calculation, outputs
 - `data/eucri.db` — SQLite, committed; observations and prints are append-only
   (trigger-enforced)
 - `site/` — the published site, **regenerated from the database on every daily run** by
-  `src/eucri/outputs/site.py`; do not hand-edit the HTML. Six pages: `index.html`
+  `src/tci/outputs/site.py`; do not hand-edit the HTML. Six pages: `index.html`
   (dashboard), `methodology.html`, `governance.html`, `research.html` and
   `research/*.html`. Plus `assets/` (the design system: `tokens.css`, `site.css`),
   `data/` (CSV history + `latest.json`), and `charts/` (PNGs used by the Substack post,
@@ -101,7 +101,7 @@ Variables** (Project Settings → Environment Variables — never committed to t
 ## Changing the methodology
 
 Not casually. Any change to `config/factors.yaml`, `config/sovereign.yaml`,
-`src/eucri/index.py`, `src/eucri/normalise.py`, or `src/eucri/weights.py` fails CI
+`src/tci/index.py`, `src/tci/normalise.py`, or `src/tci/weights.py` fails CI
 unless the version is bumped, the CHANGELOG has an entry, and the lock is regenerated —
 and takes effect only after one publication's notice. Scheduled weight reviews execute
 a fixed published formula and are data updates, not methodology changes. Procedure:
@@ -122,10 +122,10 @@ The methodology is openly licensed on purpose: a benchmark that cannot be checke
 a benchmark, and this repo already claims every print is recomputable from public sources.
 That claim is only real if you are actually permitted to do it.
 
-**Name.** "EU-CRI" identifies this benchmark and the values published under it. Cite it,
+**Name.** "TCI" identifies this benchmark and the values published under it. Cite it,
 critique it, build on it — but a fork must carry its own name, because a benchmark name
 says who computed the value and under which published methodology. See [NOTICE](NOTICE).
 
-**Status.** EU-CRI is a research publication: not investment advice, not administered by
+**Status.** TCI is a research publication: not investment advice, not administered by
 an authorised benchmark administrator under Regulation (EU) 2016/1011, and not for use as
 a reference price in a financial instrument. See [GOVERNANCE.md](GOVERNANCE.md).

@@ -1,6 +1,15 @@
-# EU-CRI Design System
+# TCI Design System
 
-**European Compute Reference Index — visual specification, v1.1**
+**TCI — The Compute Indices · visual specification**
+
+> **Superseded, 6 September 2026.** This document specifies the v1.1 light system
+> (cool slate + teal, three system font stacks, light/dark theming contract). The site
+> now ships the TCI v2.0 system: a single near-black theme, the two-tone red, and
+> self-hosted Outfit + JetBrains Mono. `site/assets/tokens.css` is the current source of
+> truth for tokens, contrast ratios and the theming contract. The rules below that are
+> *not* about specific colours — accent rationing, colour never load-bearing alone,
+> chart prohibitions, the table-view twin, the measured-contrast discipline — all still
+> hold and carried into v2.0 unchanged.
 
 v1.1 raised the radius ceiling (`--radius-md` 6px → 12px, plus a new
 `--radius-lg` 20px reserved for the hero print card) and added two rationed,
@@ -31,7 +40,7 @@ observable in the comparables: real markets (Nord Pool, EEX, ENTSO-E, Bloomberg)
 run a narrow cool low-saturation base, increase density as you approach the
 actual price, and spend colour almost exclusively on meaning. Vendors *selling
 access* to markets (Argus, S&P) run ordinary enterprise B2B marketing — more
-whitespace, stock photography, softer tone. EU-CRI must read as the former.
+whitespace, stock photography, softer tone. TCI must read as the former.
 
 The single most useful data point in the research: Ornn's shipped stylesheet is
 ~95% cool greyscale — ten grey/black/white values — plus **exactly one saturated
@@ -59,7 +68,7 @@ decorative 50 Hz sine trace. Rejected: ornament pretending to be meaning, and it
 will date. The brief asks for complexity, and complexity should come from
 information density, not graphics. The ribbon instead is:
 
-- **the literal product** — EU-CRI's differentiated object is the *basis*, not
+- **the literal product** — TCI's differentiated object is the *basis*, not
   the level; two US venues already contest the level;
 - **substantively** electricity-native — diverging zonal-spread visualisations
   (nodal price maps, EPAD spreads) are the actual visual signature of power

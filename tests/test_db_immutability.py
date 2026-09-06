@@ -8,7 +8,7 @@ import sqlite3
 
 import pytest
 
-from eucri import db
+from tci import db
 from tests.conftest import insert_run
 
 

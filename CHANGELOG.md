@@ -74,6 +74,38 @@ cause was not the estimator but the unit definition. Changes, in order of impact
   moving without a version change is exactly the kind of thing an audit trail exists to
   explain.
 
+## Repository rename — 2026-09-06 (lock rehashed, editorial, no numeric effect)
+
+The Python package was renamed to match the published brand: import `eucri` → `tci`,
+distribution `eu-compute-index` → `tci-compute-index`, CLI `python -m eucri.run` →
+`python -m tci.run`. The three GitHub Actions workflows were updated in the same commit
+so the scheduled daily run never sees a half-renamed tree.
+
+- **The lock was rehashed and `methodology_version` was deliberately not bumped.** Three
+  hash-locked files (`index.py`, `normalise.py`, `weights.py`) changed, and the lock also
+  hashes each file's relative path, which moved from `src/eucri/` to `src/tci/`. The
+  content diff is **seven import lines and no logic**; the golden print, weighting,
+  normalisation, trim, estimator and FX regression tests all reproduce their pinned values
+  unchanged. This is editorial under GOVERNANCE.md §1's patch definition, and a bump would
+  discard the stored weight review for an import statement. Same precedent as the SPDX
+  headers on 2026-09-04. Hash `903fcfec…` → `5c61ce6b…`.
+- **`data/eucri.db` is deliberately unchanged.** It is a storage path, not a brand
+  surface, and renaming it would move a committed binary the daily job writes to. It is
+  the one remaining `eucri` string in the tree.
+- **Series identifiers are unchanged**: the database, `latest.json` and
+  `index_history.csv` still key on `EU-CRI-*`. That rename is a separate governed change
+  owing an old→new mapping and an effective date, and is not bundled here.
+- **The collector User-Agent changed** from `EU-CRI-collector/x.y.z` to
+  `TCI-CRI-collector/x.y.z`; SOURCES.md is updated to match, since it documents the UA as
+  part of the collection basis.
+- **Forward-looking documents carry the new name** (README, NOTICE, DATA-TERMS,
+  GOVERNANCE, LICENSE-docs, STYLE, SOURCES, DESIGN, METHODOLOGY). This CHANGELOG and
+  research notes 2026-01/02 are **not** rewritten: they record what was true when written.
+  The site rebrands their prose at render instead, holding out code spans.
+- The GitHub repository name and the `markrusch.github.io/Compute-Index/` Pages URL are
+  **unchanged**, on purpose. That URL is the attribution target in DATA-TERMS §6, and it
+  should change exactly once, when a real domain lands.
+
 ## Presentation — 2026-09-06 (no methodology change, no version bump)
 
 The published site was rebranded to **TCI — The Compute Indices** and rebuilt on a new
@@ -113,7 +145,7 @@ and that is the kind of thing an index owes an audit trail even when no number d
 Adaptive, data-driven weighting — standard index procedure (scheduled reviews,
 concentration caps, chain linking) adapted to a young, fast-moving market:
 
-- **Scheduled weight reviews** (new `src/eucri/weights.py`, hash-locked): constituent
+- **Scheduled weight reviews** (new `src/tci/weights.py`, hash-locked): constituent
   weights are recomputed each Monday from the trailing 28-day observation window —
   provider weight = median daily (qualifying capacity × tier multiplier) × presence
   ratio — and held fixed between reviews. Rationale: same-day capacity weighting let a

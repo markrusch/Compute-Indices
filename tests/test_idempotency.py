@@ -8,10 +8,10 @@ import sqlite3
 
 import requests
 
-from eucri.collectors import base
-from eucri.commands import compute_all_series
-from eucri.db import utc_now_iso
-from eucri.models import Observation
+from tci.collectors import base
+from tci.commands import compute_all_series
+from tci.db import utc_now_iso
+from tci.models import Observation
 
 DATE = "2026-07-18"
 

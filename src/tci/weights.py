@@ -26,8 +26,8 @@ from dataclasses import dataclass
 from datetime import date as date_type
 from datetime import timedelta
 
-from eucri.config import Composite, Factors
-from eucri.normalise import NormalisedObs
+from tci.config import Composite, Factors
+from tci.normalise import NormalisedObs
 
 
 @dataclass(frozen=True)

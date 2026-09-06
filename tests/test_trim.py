@@ -14,8 +14,8 @@ import math
 
 import pytest
 
-from eucri.config import load_factors
-from eucri.index import trim_clamp
+from tci.config import load_factors
+from tci.index import trim_clamp
 
 
 def nearest_rank(sorted_values: list[float], pct: float) -> float:

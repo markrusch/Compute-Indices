@@ -40,14 +40,14 @@ from pathlib import Path
 
 import yaml
 
-from eucri import DISCLAIMER
-from eucri.commands import COMPOSITE, HEADLINE, SERIES_7D
-from eucri.config import Factors, load_factors, load_sovereign
-from eucri.db import utc_now_iso
-from eucri.outputs import markdown
-from eucri.outputs.webdata import provider_links, sources_panel
+from tci import DISCLAIMER
+from tci.commands import COMPOSITE, HEADLINE, SERIES_7D
+from tci.config import Factors, load_factors, load_sovereign
+from tci.db import utc_now_iso
+from tci.outputs import markdown
+from tci.outputs.webdata import provider_links, sources_panel
 
-log = logging.getLogger("eucri.outputs.site")
+log = logging.getLogger("tci.outputs.site")
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SITE_DIR = REPO_ROOT / "site"
@@ -255,7 +255,7 @@ def _rebrand_doc(markdown_text: str) -> str:
     half-finished feel the rebrand is meant to remove. But the same documents also print
     commands a reader is meant to paste:
 
-        python -m eucri.run constituents --series EU-CRI-H100
+        python -m tci.run constituents --series EU-CRI-H100
 
     and that argument is a database key, not a brand. Renaming it would hand out a
     command that returns nothing. So fenced blocks and inline-code spans are held out
@@ -2167,13 +2167,13 @@ def _methodology(ctx: SiteContext) -> str:
             us</p></div></div>
           <div class="card__body stack">
             <pre class="code"><code># the full constituent set behind any print
-python -m eucri.run constituents --date {_e(ctx.date)} --series EU-CRI-H100
+python -m tci.run constituents --date {_e(ctx.date)} --series EU-CRI-H100
 
 # the weight review in effect on a date, recomputed from stored observations
-python -m eucri.run weights --date {_e(ctx.date)}
+python -m tci.run weights --date {_e(ctx.date)}
 
 # regenerate this document and the lock from config
-python -m eucri.run docs</code></pre>
+python -m tci.run docs</code></pre>
             <ol class="ledger">
               <li class="ledger__row"><span class="ledger__n num">A1</span>
                 <div class="ledger__body"><h4 class="ledger__t">Methodology lock</h4>

@@ -14,7 +14,7 @@ import sqlite3
 
 import pytest
 
-from eucri.collectors.fx import rate_for
+from tci.collectors.fx import rate_for
 
 RATES = [
     ("2026-07-17", 1.1435),

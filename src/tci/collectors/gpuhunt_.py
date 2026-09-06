@@ -17,10 +17,10 @@ from importlib.metadata import PackageNotFoundError, version
 
 import requests
 
-from eucri.db import utc_now_iso
-from eucri.models import Observation
+from tci.db import utc_now_iso
+from tci.models import Observation
 
-log = logging.getLogger("eucri.collectors.gpuhunt")
+log = logging.getLogger("tci.collectors.gpuhunt")
 
 PROVIDERS = ("aws", "azure", "gcp")
 

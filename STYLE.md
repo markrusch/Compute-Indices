@@ -1,6 +1,6 @@
 # The Compute Index — house style
 
-`The Compute Index` (computeindex.substack.com) is the newsletter. `EU-CRI` is the index
+`The Compute Index` (computeindex.substack.com) is the newsletter. `TCI` is the index family
 it publishes. Keep that distinction in your own head even if readers never notice it:
 the newsletter can have opinions, a voice, and bad days; the index can't. This document
 is about the newsletter's voice. It exists because the single fastest way to lose the
@@ -98,7 +98,7 @@ which are easy to write by accident and easy to cut once you're looking for them
   emphasis.
 - **Sign-off:** "— Mark" (or "— MR, Amsterdam" for a slightly more formal post). Not
   "The Compute Index Team" — there is no team.
-- **Standing footer**, verbatim, every post, no exceptions: the EU-CRI disclaimer
+- **Standing footer**, verbatim, every post, no exceptions: the TCI disclaimer
   ("research publication... not investment advice... not administered as a benchmark
   under EU Regulation 2016/1011...") plus one line on corrections policy. This is the one
   piece of boilerplate allowed to look like boilerplate, because it's a legal/governance

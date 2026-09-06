@@ -16,11 +16,11 @@ from typing import Protocol
 
 import requests
 
-from eucri import USER_AGENT
-from eucri.db import utc_now_iso
-from eucri.models import Observation
+from tci import USER_AGENT
+from tci.db import utc_now_iso
+from tci.models import Observation
 
-log = logging.getLogger("eucri.collectors")
+log = logging.getLogger("tci.collectors")
 
 TIMEOUT_SECONDS = 30
 

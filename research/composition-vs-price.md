@@ -243,8 +243,8 @@ Everything above recomputes from the public repository:
 ```bash
 git clone https://github.com/markrusch/Compute-Index
 cd Compute-Index && pip install -e .[dev]
-python -m eucri.run constituents --date 2026-08-16
-python -m eucri.run backfill --from 2026-07-18 --to 2026-08-15
+python -m tci.run constituents --date 2026-08-16
+python -m tci.run backfill --from 2026-07-18 --to 2026-08-15
 pytest
 ```
 

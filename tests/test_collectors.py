@@ -11,11 +11,11 @@ from pathlib import Path
 import requests
 import responses
 
-from eucri.collectors import base
-from eucri.collectors.static_yaml import StaticYamlCollector
-from eucri.collectors.vast_ai import GPU_MODEL_MAP, VastAiCollector
-from eucri.collectors.vast_ai import URL as VAST_URL
-from eucri.models import Observation
+from tci.collectors import base
+from tci.collectors.static_yaml import StaticYamlCollector
+from tci.collectors.vast_ai import GPU_MODEL_MAP, VastAiCollector
+from tci.collectors.vast_ai import URL as VAST_URL
+from tci.models import Observation
 
 FIXTURE = Path(__file__).parent / "fixtures" / "vast_bundles.json"
 

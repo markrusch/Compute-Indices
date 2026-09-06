@@ -20,11 +20,11 @@ import logging
 
 import requests
 
-from eucri.collectors.base import TIMEOUT_SECONDS
-from eucri.db import utc_now_iso
-from eucri.models import Observation
+from tci.collectors.base import TIMEOUT_SECONDS
+from tci.db import utc_now_iso
+from tci.models import Observation
 
-log = logging.getLogger("eucri.collectors.vast_ai")
+log = logging.getLogger("tci.collectors.vast_ai")
 
 URL = "https://console.vast.ai/api/v0/bundles/"
 

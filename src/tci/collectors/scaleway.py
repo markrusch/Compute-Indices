@@ -28,11 +28,11 @@ import logging
 
 import requests
 
-from eucri.collectors.base import TIMEOUT_SECONDS
-from eucri.db import utc_now_iso
-from eucri.models import Observation
+from tci.collectors.base import TIMEOUT_SECONDS
+from tci.db import utc_now_iso
+from tci.models import Observation
 
-log = logging.getLogger("eucri.collectors.scaleway")
+log = logging.getLogger("tci.collectors.scaleway")
 
 URL = "https://api.scaleway.com/instance/v1/zones/{zone}/products/servers"
 

@@ -36,7 +36,7 @@ def utc_now_iso() -> str:
 def _migration_files() -> list[tuple[int, str, str]]:
     """Return (number, name, sql) for bundled migrations, sorted."""
     out = []
-    for entry in resources.files("eucri.migrations").iterdir():
+    for entry in resources.files("tci.migrations").iterdir():
         m = _MIGRATION_RE.match(entry.name)
         if m:
             out.append((int(m.group(1)), entry.name, entry.read_text(encoding="utf-8")))

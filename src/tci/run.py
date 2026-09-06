@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Mark Rusch
-"""CLI entrypoint: python -m eucri.run <command>."""
+"""CLI entrypoint: python -m tci.run <command>."""
 
 from __future__ import annotations
 
@@ -8,11 +8,11 @@ import argparse
 import logging
 import sys
 
-log = logging.getLogger("eucri")
+log = logging.getLogger("tci")
 
 
 def _cmd_migrate(args: argparse.Namespace) -> int:
-    from eucri import db
+    from tci import db
 
     conn = db.connect()
     applied = db.migrate(conn)
@@ -21,7 +21,7 @@ def _cmd_migrate(args: argparse.Namespace) -> int:
 
 
 def _cmd_docs(args: argparse.Namespace) -> int:
-    from eucri import methodology
+    from tci import methodology
 
     methodology.generate()
     print("METHODOLOGY.md and METHODOLOGY.lock regenerated.")
@@ -32,7 +32,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s"
     )
-    parser = argparse.ArgumentParser(prog="eucri", description=__doc__)
+    parser = argparse.ArgumentParser(prog="tci", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("migrate", help="apply pending database migrations")
@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "docs":
         return _cmd_docs(args)
     if args.command in {"daily", "constituents", "backfill", "weights", "validate", "post"}:
-        from eucri import commands
+        from tci import commands
 
         return commands.dispatch(args)
     parser.error(f"unknown command {args.command!r}")

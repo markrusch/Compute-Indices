@@ -1,8 +1,8 @@
-# EU-CRI Data Sources
+# TCI Data Sources
 
 Collection conduct (all sources): public pages and public APIs only; no scraping behind
 logins; robots.txt respected; **1 request per source per day**; honest User-Agent
-(`EU-CRI-collector/x.y.z (research index; contact: rusch.mh@gmail.com)`); every collector
+(`TCI-CRI-collector/x.y.z (research index; contact: rusch.mh@gmail.com)`); every collector
 fails soft (log + continue — a source outage never fabricates or blocks a print).
 Where a page is hostile to scraping, a manually refreshed static entry with a visible
 `last_verified` date is used instead — more credible than a brittle scraper.

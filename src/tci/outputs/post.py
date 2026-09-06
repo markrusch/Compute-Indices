@@ -10,10 +10,10 @@ import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from eucri import DISCLAIMER
-from eucri.config import load_factors
+from tci import DISCLAIMER
+from tci.config import load_factors
 
-log = logging.getLogger("eucri.outputs.post")
+log = logging.getLogger("tci.outputs.post")
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 POST_PATH = REPO_ROOT / "site" / "substack_post.md"

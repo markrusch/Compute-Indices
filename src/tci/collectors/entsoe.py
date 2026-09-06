@@ -18,9 +18,9 @@ from pathlib import Path
 
 import requests
 
-from eucri.collectors.base import TIMEOUT_SECONDS
+from tci.collectors.base import TIMEOUT_SECONDS
 
-log = logging.getLogger("eucri.collectors.entsoe")
+log = logging.getLogger("tci.collectors.entsoe")
 
 URL = "https://web-api.tp.entsoe.eu/api"
 

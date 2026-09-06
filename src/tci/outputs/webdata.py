@@ -17,12 +17,12 @@ from pathlib import Path
 
 import yaml
 
-from eucri import DISCLAIMER, __version__
-from eucri.commands import COMPOSITE, SERIES_BY_CLASS
-from eucri.config import CONFIG_DIR, load_factors, load_static_providers
-from eucri.db import utc_now_iso
+from tci import DISCLAIMER, __version__
+from tci.commands import COMPOSITE, SERIES_BY_CLASS
+from tci.config import CONFIG_DIR, load_factors, load_static_providers
+from tci.db import utc_now_iso
 
-log = logging.getLogger("eucri.outputs.webdata")
+log = logging.getLogger("tci.outputs.webdata")
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 OUT_PATH = REPO_ROOT / "site" / "data" / "latest.json"
@@ -208,7 +208,7 @@ def generate(conn: sqlite3.Connection) -> Path:
     head = _latest_print(conn, "EU-CRI-H100")
     payload: dict = {
         "generated_at": utc_now_iso(),
-        "eucri_version": __version__,
+        "tci_version": __version__,
         "methodology_version": factors.methodology_version,
         "disclaimer": DISCLAIMER,
         "date": head["date"] if head else None,

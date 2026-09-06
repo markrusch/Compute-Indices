@@ -13,9 +13,9 @@ from typing import Any
 
 import pytest
 
-from eucri.config import load_factors
-from eucri.index import compute_print
-from eucri.normalise import normalise_observations
+from tci.config import load_factors
+from tci.index import compute_print
+from tci.normalise import normalise_observations
 
 FACTORS = load_factors()
 DATE = "2026-07-18"

@@ -6,9 +6,9 @@ from __future__ import annotations
 
 import pytest
 
-from eucri.config import load_factors
-from eucri.normalise import NormalisedObs
-from eucri.weights import (
+from tci.config import load_factors
+from tci.normalise import NormalisedObs
+from tci.weights import (
     apply_concentration_cap,
     chain_link,
     daily_capacity,

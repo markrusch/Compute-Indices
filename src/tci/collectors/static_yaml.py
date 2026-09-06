@@ -16,11 +16,11 @@ from datetime import UTC, datetime
 
 import requests
 
-from eucri.config import load_factors, load_static_providers
-from eucri.db import utc_now_iso
-from eucri.models import Observation
+from tci.config import load_factors, load_static_providers
+from tci.db import utc_now_iso
+from tci.models import Observation
 
-log = logging.getLogger("eucri.collectors.static_yaml")
+log = logging.getLogger("tci.collectors.static_yaml")
 
 
 class StaticYamlCollector:

@@ -31,7 +31,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from eucri.config import Factors
+from tci.config import Factors
 
 
 class RowLike(Protocol):

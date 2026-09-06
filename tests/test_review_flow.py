@@ -17,10 +17,10 @@ import sqlite3
 import pytest
 import requests
 
-from eucri.collectors import base
-from eucri.commands import COMPOSITE, HEADLINE, compute_all_series
-from eucri.db import utc_now_iso
-from eucri.models import Observation
+from tci.collectors import base
+from tci.commands import COMPOSITE, HEADLINE, compute_all_series
+from tci.db import utc_now_iso
+from tci.models import Observation
 
 BASE_PRICES = [2.0, 2.1, 2.2, 2.3, 2.4, 2.5]
 

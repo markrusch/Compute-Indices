@@ -10,10 +10,10 @@ from pathlib import Path
 
 import responses
 
-from eucri.collectors import base
-from eucri.collectors.gpuhunt_ import GpuHuntCollector, _country
-from eucri.collectors.runpod import URL as RUNPOD_URL
-from eucri.collectors.runpod import RunPodCollector
+from tci.collectors import base
+from tci.collectors.gpuhunt_ import GpuHuntCollector, _country
+from tci.collectors.runpod import URL as RUNPOD_URL
+from tci.collectors.runpod import RunPodCollector
 
 FIXTURE = Path(__file__).parent / "fixtures" / "runpod_gputypes.json"
 
@@ -46,7 +46,7 @@ def test_runpod_falls_back_to_a_smaller_demonstrated_node_size() -> None:
     over the modern collector regime that accounted for 7 of 8 headline gaps, and it
     was verified live on 2026-09-04 (H100_SXM: 8x none, 4x Low, 2x Medium).
     """
-    from eucri.collectors.runpod import demonstrated_node_size
+    from tci.collectors.runpod import demonstrated_node_size
 
     assert demonstrated_node_size({"c8": {"stockStatus": "Low"}}) == 8
     # No 8-GPU pod, but a 4-GPU one: the offer is real and must not be discarded.

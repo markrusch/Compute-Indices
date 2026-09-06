@@ -8,8 +8,8 @@ from typing import Any
 
 import pytest
 
-from eucri.config import load_factors
-from eucri.normalise import normalise_observations
+from tci.config import load_factors
+from tci.normalise import normalise_observations
 
 FACTORS = load_factors()
 

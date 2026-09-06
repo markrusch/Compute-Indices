@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from eucri import db
+from tci import db
 
 
 @pytest.fixture()

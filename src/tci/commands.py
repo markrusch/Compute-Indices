@@ -19,20 +19,20 @@ from datetime import UTC, datetime, timedelta
 from datetime import date as date_type
 from pathlib import Path
 
-from eucri import config, db, weights
-from eucri.collectors import base
-from eucri.collectors.azure_retail import AzureRetailCollector
-from eucri.collectors.fx import collect_fx, rate_for
-from eucri.collectors.gpuhunt_ import GpuHuntCollector
-from eucri.collectors.runpod import RunPodCollector
-from eucri.collectors.scaleway import ScalewayCollector
-from eucri.collectors.static_yaml import StaticYamlCollector
-from eucri.collectors.vast_ai import VastAiCollector
-from eucri.index import compute_print
-from eucri.models import Constituent, IndexPrint
-from eucri.normalise import NormalisedObs, normalise_observations
+from tci import config, db, weights
+from tci.collectors import base
+from tci.collectors.azure_retail import AzureRetailCollector
+from tci.collectors.fx import collect_fx, rate_for
+from tci.collectors.gpuhunt_ import GpuHuntCollector
+from tci.collectors.runpod import RunPodCollector
+from tci.collectors.scaleway import ScalewayCollector
+from tci.collectors.static_yaml import StaticYamlCollector
+from tci.collectors.vast_ai import VastAiCollector
+from tci.index import compute_print
+from tci.models import Constituent, IndexPrint
+from tci.normalise import NormalisedObs, normalise_observations
 
-log = logging.getLogger("eucri.commands")
+log = logging.getLogger("tci.commands")
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CSV_PATH = REPO_ROOT / "site" / "data" / "index_history.csv"
@@ -497,7 +497,7 @@ def cmd_daily(args: argparse.Namespace) -> int:
 
     session = base.make_session()
     collect_fx(conn, session)  # fail-soft; calc falls back to last stored rate
-    from eucri.collectors.entsoe import collect_overlay
+    from tci.collectors.entsoe import collect_overlay
 
     collect_overlay(conn, session, utc_date)  # overlay only; skips without token
     statuses = {
@@ -516,7 +516,7 @@ def cmd_daily(args: argparse.Namespace) -> int:
 
 def _maybe_outputs(conn: sqlite3.Connection) -> None:
     """Charts + post + dashboard data + the published site; never blocks the daily run."""
-    from eucri.outputs import charts, post, site, webdata
+    from tci.outputs import charts, post, site, webdata
 
     try:
         charts.generate_all(conn)
@@ -625,7 +625,7 @@ def cmd_backfill(args: argparse.Namespace) -> int:
 
 
 def cmd_post(args: argparse.Namespace) -> int:
-    from eucri.outputs import charts, post
+    from tci.outputs import charts, post
 
     conn = db.connect()
     charts.generate_all(conn)
@@ -645,7 +645,7 @@ def dispatch(args: argparse.Namespace) -> int:
     if args.command == "post":
         return cmd_post(args)
     if args.command == "validate":
-        from eucri.validate import run_validate
+        from tci.validate import run_validate
 
         return run_validate(db.connect())
     raise SystemExit(f"command {args.command!r} is not implemented yet")

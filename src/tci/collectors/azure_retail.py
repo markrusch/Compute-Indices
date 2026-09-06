@@ -24,11 +24,11 @@ import logging
 
 import requests
 
-from eucri.collectors.base import TIMEOUT_SECONDS
-from eucri.db import utc_now_iso
-from eucri.models import Observation
+from tci.collectors.base import TIMEOUT_SECONDS
+from tci.db import utc_now_iso
+from tci.models import Observation
 
-log = logging.getLogger("eucri.collectors.azure_retail")
+log = logging.getLogger("tci.collectors.azure_retail")
 
 NAME = "azure_retail"
 
