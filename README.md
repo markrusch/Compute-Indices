@@ -106,8 +106,8 @@ behave identically rather than one carrying a button the other cannot honour. Th
 endpoint still functions if called directly; to use it, set two Vercel **Environment
 Variables** (Project Settings → Environment Variables — never committed to the repo):
   - `GITHUB_DISPATCH_TOKEN` — a token scoped to just this repo's Actions
-    (read/write), e.g. a fine-grained PAT limited to `markrusch/Compute-Index`
-  - `GITHUB_REPO` — `markrusch/Compute-Index`
+    (read/write), e.g. a fine-grained PAT limited to `markrusch/Compute-Indices`
+  - `GITHUB_REPO` — `markrusch/Compute-Indices`
 
   The refresh endpoint refuses any date other than today (in UTC): these collectors
   report live market prices, not history, so a past date can never be honestly

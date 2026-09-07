@@ -7,8 +7,8 @@
 // Requires two Vercel environment variables (Project Settings -> Environment Variables,
 // never committed to the repo):
 //   GITHUB_DISPATCH_TOKEN  a token scoped to just this repo's Actions (read/write),
-//                          e.g. a fine-grained PAT limited to markrusch/Compute-Index.
-//   GITHUB_REPO            "markrusch/Compute-Index" (owner/repo)
+//                          e.g. a fine-grained PAT limited to markrusch/Compute-Indices.
+//   GITHUB_REPO            "markrusch/Compute-Indices" (owner/repo)
 //
 // No dependencies: Vercel's Node runtime ships a global fetch.
 
@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
   }
 
   const token = process.env.GITHUB_DISPATCH_TOKEN;
-  const repo = process.env.GITHUB_REPO || "markrusch/Compute-Index";
+  const repo = process.env.GITHUB_REPO || "markrusch/Compute-Indices";
   if (!token) {
     res.status(500).json({
       ok: false,

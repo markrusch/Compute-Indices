@@ -65,6 +65,11 @@ BRAND_LINE = (
     "methodology-driven, vendor-neutral, and rebuildable from public sources by anyone."
 )
 CONTACT_EMAIL = "rusch.mh@gmail.com"
+# Still the pre-rebrand Substack address, and still the one that works. Substack keeps
+# the old subdomain redirecting after a rename, but this points at whatever the
+# publication answers on today rather than at a name it might take later: a dead link in
+# the footer of a site about not publishing stale values would be its own small joke.
+# Change this line, and only this line, once the publication moves.
 NEWSLETTER_URL = "https://computeindex.substack.com"
 REPO_URL = "https://github.com/markrusch/Compute-Indices"
 
