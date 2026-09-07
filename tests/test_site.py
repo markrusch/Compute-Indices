@@ -465,6 +465,31 @@ def test_sticky_offsets_are_tokenised_not_hardcoded(built):
     assert "--sticky-h:      110px" in tokens
 
 
+def test_404_is_branded_noindex_and_out_of_the_sitemap(built):
+    """An unmatched path has to land on a page that still looks like the site.
+
+    Before this it fell through to the host's default, which on Vercel is an unstyled
+    white page — the worst possible place to drop a dark-only theme, because someone who
+    mistypes a URL sees a page belonging to nobody.
+
+    Three things have to hold, and each fails silently on its own: it is noindex (a 404
+    that gets indexed competes with pages that exist), it is absent from the sitemap, and
+    it marks no nav item current because none of them is where the reader is.
+    """
+    page = (built / "404.html").read_text(encoding="utf-8")
+    body = page.split("</style>", 1)[1]
+
+    assert '<meta name="robots" content="noindex">' in page
+    assert body.count("<h1") == 1
+    assert body.count('aria-current="page"') == 0
+    assert "404" not in (built / "sitemap.xml").read_text(encoding="utf-8")
+    # Same chrome and the same self-containment rules as every other page.
+    assert "background: var(--page)" in page
+    assert re.findall(r"<script[^>]*\bsrc=\"([^\"]+)\"", page) == ["/_vercel/insights/script.js"]
+    # Links out are relative, so it works on the mirror and from a local checkout too.
+    assert 'href="index.html"' in body
+
+
 def test_rebrand_renames_prose_but_never_a_pasteable_command():
     """The embedded docs print commands whose --series argument is a database key.
 
