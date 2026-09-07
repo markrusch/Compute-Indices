@@ -21,3 +21,7 @@ dist/
 
 # Design handoff working folder (mockups + prototyping runtime, not part of the build)
 Compute Index Branding/
+
+# Rendered brand-asset previews. The source HTML in tools/ is the artefact worth
+# keeping; these are throwaway renders used to check a logo before shipping it.
+tools/out/

@@ -1,0 +1,39 @@
+<!doctype html>
+<meta charset="utf-8">
+<!--
+  Source for the Substack publication logo. Same brand construction as the
+  masthead wordmark (site.py::_wordmark / site.css .brand__*), scaled up and
+  centered on a square canvas rather than the site's inline lockup.
+
+  Substack shows this small and often crops it into a circle (subscriber
+  avatars, email headers, browser tabs), so the mark sits inside a centered
+  ~82%-diameter safe circle and the dark ground fills the full square -- a
+  transparent background would let the near-white letterforms disappear
+  against Substack's own white chrome.
+
+  Regenerate after any brand change:
+    chrome --headless=new --disable-gpu --window-size=1024,1024 \
+           --screenshot=tools/out/substack-logo.png tools/substack-logo.html
+-->
+<style>
+  @font-face { font-family: "Outfit"; src: url("../site/assets/fonts/outfit-latin.woff2") format("woff2");
+               font-weight: 400 800; font-display: block; }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { width: 1024px; height: 1024px; }
+  body { background: #0B0C0D; display: flex; align-items: center; justify-content: center;
+         font-family: "Outfit", system-ui, sans-serif; }
+  /* Safe circle guide at 82% of the canvas -- not rendered, just the budget every
+     glyph and the dot must stay inside. */
+  .mark { display: flex; align-items: flex-end; gap: 14px; height: 440px;
+          margin-top: -45px; }
+  .tc   { font-weight: 800; font-size: 440px; line-height: 440px; letter-spacing: -.01em;
+          color: #F5F5F6; }
+  .i    { display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+          gap: 18px; height: 440px; }
+  .dot  { width: 110px; height: 110px; border-radius: 50%; background: #FF0000; }
+  .bar  { width: 110px; height: 238px; background: #F5F5F6; border-radius: 10px; }
+</style>
+<div class="mark">
+  <span class="tc">TC</span>
+  <span class="i"><span class="dot"></span><span class="bar"></span></span>
+</div>

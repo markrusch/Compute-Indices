@@ -3,6 +3,37 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Research Note 2026-04 — 2026-09-07 — no methodology change
+
+Published *A GPU-hour is a part number, not a unit*, an audit of what the index actually
+records about the quality of the goods it prices. `interconnect` is not read by
+`normalise.py`, `index.py` or `weights.py`, so no hash-locked file changed and no print is
+affected. Three defects found in the audit trail, none fixed in this commit, because the
+measurement is the case for the fix and a fix landing beside its own justification is
+harder for anyone else to check.
+
+- **Found, not fixed: `interconnect` is 100% populated and 0% observed.** Of 7,798 stored
+  observations, none carries a value read from a field a source disclosed. 57.6% carry a
+  constant hardcoded in a collector (`gpuhunt_.py` and `static_yaml.py` both write a
+  literal `"NVLink"`; `runpod.py` and `vast_ai.py` take one from a `GPU_MODEL_MAP`). The
+  other 42.4% is parsed out of a SKU or instance-name string. Remedy: split the column
+  into an observed value plus a provenance marker, and let the observed value be null
+  when nothing supplied one. On today's data that makes it null on every row, which is
+  the honest reading.
+- **Found, not fixed: 805 rows contradict themselves.** 13.4% of all SXM rows assert
+  `gpu_model` ending in `_SXM` and `interconnect='PCIe'` at once, which is impossible:
+  the two are mutually exclusive form factors. 123 are H100, 682 are A100. They come from
+  `azure_retail._interconnect`, whose `else` branch returns `"PCIe"` for any SKU failing
+  two substring tests, including `Standard_ND96is_H100_v5` — an HGX node with NVLink 4.0
+  between its GPUs. Remedy: return null on an unrecognised SKU rather than guessing.
+- **Found, not fixed: the column holds two incommensurable axes.** `NVLink`/`NVL`/`PCIe`
+  describe the intra-node bus; `InfiniBand`/`Ethernet` describe the inter-node fabric.
+  Only Azure ever produces the second, 678 rows of 7,798, so for eight of nine providers
+  the fabric is not unknown but unrepresentable. Remedy: two fields.
+- No source in the panel discloses a fabric, power envelope or thermal limit. Across all
+  7,798 raw payloads the count mentioning InfiniBand, RoCE, NVSwitch, TDP, watts, cooling,
+  fabric, bandwidth or Gbps is zero.
+
 ## Canonical domain — 2026-09-07 — no methodology change
 
 `thecomputeindices.com` was registered and is now the canonical home. No hash-locked file
