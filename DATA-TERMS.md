@@ -94,7 +94,7 @@ equally careful about what it claims to own.
 ## 6. Attribution
 
 > Source: TCI (The Compute Indices), Mark Rusch.
-> https://markrusch.github.io/Compute-Index/
+> https://thecomputeindices.com/
 
 When citing a specific value, cite the **print date, methodology version and lock hash**
 so the claim is checkable — for example *"TCI-CRI-H100, 2026-08-30: $3.25/GPU-hr

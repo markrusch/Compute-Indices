@@ -1,6 +1,7 @@
 # The Compute Index — house style
 
-`The Compute Index` (computeindex.substack.com) is the newsletter. `TCI` is the index family
+`The Compute Indices` (thecomputeindices.com) is the publication; the newsletter
+carries the same name. `TCI` is the index family
 it publishes. Keep that distinction in your own head even if readers never notice it:
 the newsletter can have opinions, a voice, and bad days; the index can't. This document
 is about the newsletter's voice. It exists because the single fastest way to lose the

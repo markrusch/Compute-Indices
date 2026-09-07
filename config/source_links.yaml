@@ -50,5 +50,5 @@ collectors:
     endpoint: "aws/azure/gcp public catalog prices"
   static_yaml:
     label: "Manually verified public pricing pages"
-    url: https://github.com/markrusch/Compute-Index/tree/main/config/providers
+    url: https://github.com/markrusch/Compute-Indices/tree/main/config/providers
     endpoint: "config/providers/*.yaml, refreshed manually with a last_verified date"

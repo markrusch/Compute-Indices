@@ -3,6 +3,42 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Canonical domain — 2026-09-07 — no methodology change
+
+`thecomputeindices.com` was registered and is now the canonical home. No hash-locked file
+changed and no print is affected; this is publishing plumbing.
+
+- **Canonical URLs, social cards and structured data.** Every page now carries
+  `<link rel="canonical">`, Open Graph and Twitter card metadata, and a JSON-LD graph
+  (Organization, WebSite, WebPage, plus Dataset on the dashboard). Before this the site
+  lived at two host-shaped URLs with no canonical, so the mirror competed with the
+  canonical site for the same content, and a shared link rendered as a bare grey URL.
+  The home page's canonical is the bare domain, not `/index.html`, because that is the
+  URL people actually link to.
+- **`sitemap.xml` and `robots.txt` are generated**, the sitemap from the list of pages
+  actually written, so a new page cannot be published and then left out of the index.
+  `lastmod` is the print date rather than the build timestamp: the site regenerates daily
+  whether or not anything changed, and claiming every page changed every day is how a
+  sitemap gets ignored. `components.html` is disallowed — 164 KB, linked from nowhere.
+- **`site/assets/og-card.png`**, rendered from `tools/og-card.html` through headless
+  Chrome so it uses the real brand faces rather than an approximation. It carries no
+  price: platforms cache a card for days, and a stale number presented as current is the
+  one failure this project does not accept.
+- **`CITATION.cff`** added, pinned to the methodology version rather than the package
+  version, since it is the methodology that identifies which construction produced a
+  print.
+- **One `<script src>` now exists**: Vercel Web Analytics, at the same-origin path
+  `/_vercel/insights/script.js`. Vercel already serves the canonical site and so already
+  sees every request to it, so this reaches no party that was not already in the path —
+  the claim the site makes, that no visitor's IP reaches a third party, is unchanged. It
+  is inert on the GitHub Pages mirror, where the file does not exist, and inert
+  everywhere until analytics is switched on in the Vercel project.
+  `test_pages_are_self_contained` now permits exactly this one path and fails on any
+  other, including a second copy of it.
+- Repository URLs point at `markrusch/Compute-Indices`, and the published attribution
+  string in DATA-TERMS.md §6 now names the domain. Anyone who cited the old Pages URL
+  still resolves: GitHub redirects a renamed repository permanently.
+
 ## Unreleased — 2026-09-07 — no methodology change
 
 None of the five hash-locked files changed, so `methodology_version` stays at

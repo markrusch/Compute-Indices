@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+title: "TCI — The Compute Indices"
+message: >-
+  If you cite a value, cite the print date, the methodology version and the lock hash
+  alongside it, so the claim can be checked rather than trusted. The machine-readable
+  equivalents of all three are in site/data/latest.json.
+type: dataset
+abstract: >-
+  A daily, reproducible reference price for renting AI compute delivered from the
+  EU/EEA. The headline series TCI-CRI-H100 prices one NVIDIA H100 SXM 80GB GPU-hour,
+  on-demand, per-GPU, ex-VAT, as a capacity-weighted median over offers, published with
+  its full constituent set. A session below the provider gate is published as a gap and
+  is never back-filled or carried forward.
+authors:
+  - family-names: Rusch
+    given-names: Mark
+    email: rusch.mh@gmail.com
+    city: Amsterdam
+    country: NL
+repository-code: "https://github.com/markrusch/Compute-Indices"
+url: "https://thecomputeindices.com"
+license: Apache-2.0
+keywords:
+  - price index
+  - reference rate
+  - GPU compute
+  - benchmark
+  - IOSCO
+  - reproducible research
+# The methodology version, not the Python package version: it is the methodology that
+# identifies which construction produced a given print. The -dev suffix is load-bearing
+# and means pre-launch, so values may be revised.
+version: 0.3.0-dev
+date-released: "2026-07-18"

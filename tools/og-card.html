@@ -1,0 +1,73 @@
+<!doctype html>
+<meta charset="utf-8">
+<!--
+  Source for site/assets/og-card.png — the Open Graph / Twitter card.
+
+  Rendered rather than drawn so it uses the real brand faces and the real palette
+  instead of an approximation. Regenerate after any brand change:
+
+    chrome --headless=new --disable-gpu --window-size=1200,630 \
+           --default-background-color=00000000 \
+           --screenshot=site/assets/og-card.png tools/og-card.html
+
+  Deliberately carries no price: platforms cache a card for days, so a number here
+  would be stale on arrival, and a stale number presented as current is the one
+  failure this project does not accept.
+-->
+<style>
+  @font-face { font-family: "Outfit"; src: url("../site/assets/fonts/outfit-latin.woff2") format("woff2");
+               font-weight: 400 800; font-display: block; }
+  @font-face { font-family: "JetBrains Mono"; src: url("../site/assets/fonts/jetbrains-mono-latin.woff2") format("woff2");
+               font-weight: 400 600; font-display: block; }
+  * { margin: 0; box-sizing: border-box; }
+  body { width: 1200px; height: 630px; background: #0B0C0D; color: #F5F5F6;
+         font-family: "Outfit", system-ui, sans-serif; overflow: hidden;
+         padding: 72px 80px; display: flex; flex-direction: column;
+         justify-content: space-between; position: relative; }
+  .lock { display: flex; align-items: center; gap: 18px; }
+  .mark { display: flex; align-items: flex-end; gap: 3px; height: 44px; }
+  .tc   { font-weight: 800; font-size: 44px; line-height: 44px; letter-spacing: -.01em; }
+  .i    { display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+          gap: 5px; height: 44px; }
+  .dot  { width: 11px; height: 11px; border-radius: 50%; background: #FF0000; }
+  .bar  { width: 11px; height: 24px; background: #F5F5F6; border-radius: 1px; }
+  .name { font-weight: 600; font-size: 17px; letter-spacing: .16em; color: rgba(245,245,246,.6); }
+  h1    { font-weight: 600; font-size: 68px; line-height: 1.14; letter-spacing: -.015em;
+          max-width: 15ch; position: relative; }
+  h1 .stop { color: #FF0000; }
+  .sub  { font-size: 25px; line-height: 1.5; color: rgba(245,245,246,.6); max-width: 30ch;
+          margin-top: 22px; }
+  .foot { display: flex; align-items: center; gap: 16px;
+          font-family: "JetBrains Mono", monospace; font-size: 19px; color: rgba(245,245,246,.45); }
+  .sep  { width: 4px; height: 4px; border-radius: 50%; background: rgba(245,245,246,.3); }
+  .live { width: 9px; height: 9px; border-radius: 50%; background: #FF0000; }
+  /* The hero wave, frozen. Two summed sines, same curve the site draws. */
+  .wave { position: absolute; right: 0; bottom: 0; width: 560px; height: 400px;
+          display: flex; align-items: flex-end; gap: 9px; padding-right: 80px;
+          -webkit-mask-image: linear-gradient(to left, #000 45%, transparent); }
+  .wave i { flex: 1; background: rgba(245,245,246,.16); border-radius: 1px; }
+</style>
+<div class="lock">
+  <span class="mark"><span class="tc">TC</span>
+    <span class="i"><span class="dot"></span><span class="bar"></span></span></span>
+  <span class="name">THE COMPUTE INDICES</span>
+</div>
+<div>
+  <h1>Independent. Transparent. Built for the compute market<span class="stop">.</span></h1>
+  <p class="sub">Reproducible reference prices for AI and HPC compute.</p>
+</div>
+<div class="foot">
+  <span class="live"></span><span>thecomputeindices.com</span>
+  <span class="sep"></span><span>UPDATED DAILY 11:00 UTC</span>
+</div>
+<div class="wave" id="w"></div>
+<script>
+  var w = document.getElementById('w'), N = 34, h = '';
+  for (var i = 0; i < N; i++) {
+    var t = i / (N - 1);
+    var v = Math.max(10, Math.round(120 + Math.sin(t * Math.PI * 2.2 + 0.5) * 78 + Math.sin(t * Math.PI * 5) * 20));
+    var hi = t > 0.3 && t < 0.7 && i % 3 === 0;
+    h += '<i style="height:' + v + 'px' + (hi ? ';background:rgba(255,0,0,.55)' : '') + '"></i>';
+  }
+  w.innerHTML = h;
+</script>

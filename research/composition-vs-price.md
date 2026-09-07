@@ -242,7 +242,7 @@ constituents and roughly 17%.
 Everything above recomputes from the public repository:
 
 ```bash
-git clone https://github.com/markrusch/Compute-Index
+git clone https://github.com/markrusch/Compute-Indices
 cd Compute-Index && pip install -e .[dev]
 python -m tci.run constituents --date 2026-08-16
 python -m tci.run backfill --from 2026-07-18 --to 2026-08-15

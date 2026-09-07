@@ -99,10 +99,11 @@ def test_gpuhunt_transform() -> None:
         _Item("azure", "ND96isr_H100_v5", "westeurope", 79.0, 8, "H100"),
         _Item("aws", "p5.4xlarge", "eu-west-1", 8.9, 1, "H100"),        # sub-node: dropped
         _Item("aws", "p5.48xlarge", "us-east-1", 55.0, 8, "H100"),      # US: kept, non-EU
-        _Item("aws", "p5.48xlarge", "eu-west-2", 71.5, 8, "H100"),      # GB: country None
+        _Item("aws", "p5.48xlarge", "eu-west-2", 71.5, 8, "H100"),      # GB: kept, non-EEA
+        _Item("aws", "p5.48xlarge", "us-gov-west-1", 61.0, 8, "H100"),  # GovCloud: no country
     ]
     out = GpuHuntCollector().to_observations(items)
-    assert len(out) == 5  # only the 1-GPU instance is dropped at collection
+    assert len(out) == 6  # only the 1-GPU instance is dropped at collection
     by_key = {(o.provider, o.region): o for o in out}
 
     aws_eu = by_key[("aws", "eu-north-1")]
@@ -113,11 +114,18 @@ def test_gpuhunt_transform() -> None:
     assert by_key[("gcp", "europe-west4-b")].country == "NL"  # zone suffix stripped
     assert by_key[("azure", "westeurope")].country == "NL"
     assert by_key[("aws", "us-east-1")].country == "US"       # stored for US-proxy
-    assert by_key[("aws", "eu-west-2")].country is None       # GB unmapped -> excluded later
+    assert by_key[("aws", "eu-west-2")].country == "GB"       # London: UK shadow block
+    assert by_key[("aws", "us-gov-west-1")].country is None   # GovCloud: its own ladder
 
 
 def test_gpuhunt_country_mapping_edges() -> None:
     assert _country("gcp", "europe-west4-c") == "NL"
     assert _country("gcp", "europe-west4") == "NL"
-    assert _country("aws", "eu-central-2") is None  # CH deliberately unmapped
-    assert _country("azure", "uksouth") is None
+    assert _country("aws", "eu-central-2") == "CH"   # Zurich: shadow, never in the headline
+    assert _country("azure", "uksouth") == "GB"
+    assert _country("gcp", "asia-southeast1-b") == "SG"
+    # Still unmapped on purpose: a different buyer, a different price ladder, a different
+    # legal entity. Each one would contaminate the block it landed in.
+    assert _country("aws", "us-gov-west-1") is None
+    assert _country("aws", "us-east-1-atl-1") is None
+    assert _country("aws", "cn-north-1") is None

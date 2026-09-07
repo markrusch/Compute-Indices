@@ -49,6 +49,7 @@ pytest
 | `validate` | source-dropout sensitivity + optional check-series correlation |
 | `post` | regenerate the paste-ready Substack post |
 | `docs` | regenerate METHODOLOGY.md + METHODOLOGY.lock |
+| `sources` | the source register, the review clock, and per-region coverage of what has been collected (`--due`, `--status`, `--block`) |
 
 ## Layout
 
@@ -70,20 +71,34 @@ pytest
 - `research/*.md` — research notes, rendered to `site/research/` by the generator.
 - `config/source_links.yaml` — reference weblinks for the Sources panel and per-constituent
   links. Presentational only; not part of METHODOLOGY.lock.
+- `config/source_registry.yaml` + `config/regions.yaml` — the source register (including
+  everything screened and rejected, with reasons) and the region blocks. One block is
+  published; eight are **shadow**: collected and stored, published nowhere, building the
+  history a future regional index will need. Neither file is read by the calculation path.
+  Maintained by the monthly process in `.claude/skills/source-discovery/`, whose sweeps are
+  written up in `research/source-scans/`.
 
 ## Deploying the dashboard
 
 `site/` is a self-contained static site plus one optional serverless endpoint, so it can
 be hosted anywhere that serves static files. Two targets are wired up:
 
-Both targets serve **byte-identical** content. Every link in the generated site is
-relative, so the site works equally at a subpath (`markrusch.github.io/Compute-Index/`)
-and at a domain root (Vercel), and there are no external requests to differ between them.
+- **Vercel — the canonical home, [thecomputeindices.com](https://thecomputeindices.com).**
+  Import the repo with **Root Directory set to `site`**.
+- **GitHub Pages — the mirror.** `.github/workflows/pages.yml` deploys `site/` on every
+  push that touches it. Served at `https://markrusch.github.io/Compute-Indices/`.
 
-- **GitHub Pages**: `.github/workflows/pages.yml` deploys `site/` on every push that
-  touches it. Served at `https://markrusch.github.io/Compute-Index/`.
-- **Vercel**: import the repo with **Root Directory set to `site`**. Served at the
-  project root.
+Both targets serve **byte-identical** content. Every link in the generated site is
+relative, so the site works equally at a subpath and at a domain root. The one absolute
+self-reference is the canonical URL and the social-card metadata, which name the domain
+on both hosts — that is the point of a canonical, and it stops the mirror competing with
+the canonical site for the same content in search results.
+
+The only `<script src>` on the page is Vercel Web Analytics, at a same-origin path. It is
+inert on Pages, where the file does not exist. Vercel already serves the canonical site
+and so already sees every request to it, so this hands nothing to a party that was not
+already in the path; no visitor's IP reaches a third party, which is the claim the site
+actually makes.
 
 `site/api/refresh.js` is a Vercel-only serverless endpoint that can trigger `daily.yml`
 on demand. **The v0.3.0 dashboard does not surface it** — deliberately, so the two hosts

@@ -28,6 +28,7 @@ published name, so exactly one function has to change when that governed rename 
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 import sqlite3
@@ -65,7 +66,19 @@ BRAND_LINE = (
 )
 CONTACT_EMAIL = "rusch.mh@gmail.com"
 NEWSLETTER_URL = "https://computeindex.substack.com"
-REPO_URL = "https://github.com/markrusch/Compute-Index"
+REPO_URL = "https://github.com/markrusch/Compute-Indices"
+
+# The canonical home. Every page carries a <link rel="canonical"> pointing here, and the
+# social-card URLs are absolute against it, because Open Graph consumers do not resolve
+# relative paths. Until 2026-09-07 the site lived at two host-shaped URLs and had neither
+# a canonical nor a card, so a shared link rendered as a bare grey URL and the two mirrors
+# competed with each other for the same content in search results.
+#
+# This is the ONLY absolute self-reference in the generated markup. Every other link stays
+# relative so the pages still work unchanged at markrusch.github.io/Compute-Indices/ and
+# from a local file:// checkout.
+SITE_URL = "https://thecomputeindices.com"
+OG_IMAGE = "assets/og-card.png"  # relative in the repo, absolutised for the meta tags
 
 # The stored series prefix and its published equivalent. See the module docstring:
 # the DB is not renamed here, only what the reader sees.
@@ -688,6 +701,21 @@ def sparkline(points: list[Point]) -> str:
 # "THEMING CONTRACT"), so there is nothing to restore and no flash to guard against.
 _BOOT_HEAD = "document.documentElement.classList.add('js-boot');"
 
+# Vercel Web Analytics. The one <script src> on the page, and it is deliberate.
+#
+# WHY IT DOES NOT BREAK THE SELF-CONTAINMENT RULE: the path is same-origin. Vercel serves
+# the page, so Vercel already sees every visitor's request; this hands nothing to a party
+# that was not already in the path. The rule the site actually claims -- no visitor's IP
+# reaches a THIRD party -- holds unchanged, and the test that enforces it now allows
+# exactly this one path and nothing else. Vercel Web Analytics sets no cookies and does
+# not fingerprint.
+#
+# On GitHub Pages the file does not exist and the request 404s. That is intended: the two
+# mirrors stay byte-identical, and the mirror simply collects nothing. Analytics also has
+# to be switched on in the Vercel project before the endpoint exists at all -- until then
+# this tag is inert on both hosts.
+_ANALYTICS = '<script defer src="/_vercel/insights/script.js"></script>'
+
 # Same-origin refresh: re-stamps the ticker and the hero if the pipeline has published
 # since the page was served. Pure enhancement — every value is already in the markup.
 _REFRESH_JS = """(function(){
@@ -854,6 +882,87 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
 </footer>"""
 
 
+def _abs(path: str) -> str:
+    """A site-root-relative path as an absolute URL on the canonical domain.
+
+    `index.html` collapses to the bare domain, because that is the URL people visit and
+    share. Declaring a canonical of /index.html while every inbound link points at / is
+    how a site ends up competing with itself for its own home page.
+    """
+    rel = path.lstrip("/")
+    if rel == "index.html":
+        return f"{SITE_URL}/"
+    return f"{SITE_URL}/{rel}"
+
+
+def _structured_data(ctx: SiteContext, canonical: str, *, dataset: bool) -> str:
+    """JSON-LD: who administers this and, on the dashboard, what the dataset is.
+
+    Search engines and citation tools read this; a human never sees it. It is generated
+    rather than hand-written so the version, the licence and the cut-off cannot drift
+    from what the rest of the page says.
+    """
+    org: dict[str, object] = {
+        "@type": "Organization",
+        "@id": f"{SITE_URL}/#administrator",
+        "name": BRAND_FULL,
+        "alternateName": BRAND,
+        "url": SITE_URL,
+        "email": CONTACT_EMAIL,
+        "founder": {"@type": "Person", "name": "Mark Rusch"},
+        "description": BRAND_LINE,
+    }
+    graph: list[dict[str, object]] = [
+        org,
+        {
+            "@type": "WebSite",
+            "@id": f"{SITE_URL}/#website",
+            "url": SITE_URL,
+            "name": BRAND_FULL,
+            "publisher": {"@id": f"{SITE_URL}/#administrator"},
+            "inLanguage": "en",
+        },
+        {"@type": "WebPage", "url": _abs(canonical), "isPartOf": {"@id": f"{SITE_URL}/#website"}},
+    ]
+    if dataset:
+        graph.append(
+            {
+                "@type": "Dataset",
+                "@id": f"{SITE_URL}/#dataset",
+                "name": f"{display_series(HEADLINE)} — {BRAND_FULL}",
+                "description": (
+                    "Daily reference price for one NVIDIA H100 SXM 80GB GPU-hour, on-demand,"
+                    " per-GPU, ex-VAT, delivered from an EU/EEA data centre. USD primary with"
+                    " a EUR companion at the ECB reference rate."
+                ),
+                "creator": {"@id": f"{SITE_URL}/#administrator"},
+                "license": "https://creativecommons.org/licenses/by/4.0/",
+                "isAccessibleForFree": True,
+                "temporalCoverage": f"2026-07-18/{ctx.date}",
+                "measurementTechnique": (
+                    f"Capacity-weighted median over offers, methodology v{ctx.version}"
+                ),
+                "variableMeasured": "USD per GPU-hour",
+                "distribution": [
+                    {
+                        "@type": "DataDownload",
+                        "encodingFormat": "text/csv",
+                        "contentUrl": _abs("data/index_history.csv"),
+                    },
+                    {
+                        "@type": "DataDownload",
+                        "encodingFormat": "application/json",
+                        "contentUrl": _abs("data/latest.json"),
+                    },
+                ],
+            }
+        )
+    payload = json.dumps({"@context": "https://schema.org", "@graph": graph}, indent=None)
+    # A literal "</script>" inside the block would end the element early; escaping the
+    # angle bracket is the standard defence and leaves the JSON valid.
+    return f'<script type="application/ld+json">{payload.replace("<", chr(92) + "u003c")}</script>'
+
+
 def _shell(
     ctx: SiteContext,
     *,
@@ -863,8 +972,13 @@ def _shell(
     body: str,
     prefix: str = "",
     extra_js: str = "",
+    canonical: str | None = None,
+    dataset: bool = False,
 ) -> str:
     scripts = f"<script>{extra_js}</script>" if extra_js else ""
+    # Every page's nav href is also its path, except a research note, which lives one
+    # directory down and marks the research index as current.
+    href = canonical if canonical is not None else current
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -874,7 +988,22 @@ def _shell(
 <meta name="description" content="{_e(description)}">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0c0d">
+<link rel="canonical" href="{_e(_abs(href))}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{_e(BRAND_FULL)}">
+<meta property="og:title" content="{_e(title)}">
+<meta property="og:description" content="{_e(description)}">
+<meta property="og:url" content="{_e(_abs(href))}">
+<meta property="og:image" content="{_e(_abs(OG_IMAGE))}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{_e(title)}">
+<meta name="twitter:description" content="{_e(description)}">
+<meta name="twitter:image" content="{_e(_abs(OG_IMAGE))}">
 <link rel="icon" href="{FAVICON}">
+{_structured_data(ctx, href, dataset=dataset)}
+{_ANALYTICS}
 <script>{_BOOT_HEAD}</script>
 <style>
 {_css(prefix)}
@@ -1736,7 +1865,8 @@ def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
             "</section></div></main>"
         )
         return _shell(
-            ctx, title=title, description=description, current="index.html", body=body
+            ctx, title=title, description=description, current="index.html", body=body,
+            dataset=True,
         )
 
     # The pulsing dot means "there is a price here right now". On a session that gapped
@@ -1850,6 +1980,7 @@ def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
         title=f"{title} — {ctx.date}",
         description=description,
         current="index.html",
+        dataset=True,
         body=body,
         extra_js=_REFRESH_JS + "\n" + _WAVE_JS,
     )
@@ -2718,6 +2849,7 @@ def _research_note(ctx: SiteContext, note: Note) -> str:
         title=f"{note.title} — {BRAND} Research",
         description=note.dek[:200],
         current="research.html",
+        canonical=f"research/{note.slug}.html",
         body=body,
         prefix="../",
     )
@@ -2760,5 +2892,56 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(html_text, encoding="utf-8", newline="\n")
         written.append(path)
-    log.info("site: %d pages -> %s", len(written), SITE_DIR)
+
+    written.append(_write_sitemap(ctx, [p for p, _ in pages]))
+    written.append(_write_robots())
+    log.info("site: %d files -> %s", len(written), SITE_DIR)
     return written
+
+
+def _write_sitemap(ctx: SiteContext, pages: list[Path]) -> Path:
+    """A sitemap over the canonical domain, generated from what was actually written.
+
+    Built from the page list rather than a hand-kept constant, so a new page cannot be
+    published and then quietly left out of the index. `lastmod` is the print date, not
+    the build timestamp: the site is regenerated daily whether or not anything changed,
+    and telling a crawler that every page changed every day is how you get ignored.
+    """
+    urls = []
+    for path in pages:
+        rel = path.relative_to(SITE_DIR).as_posix()
+        # The dashboard is the home page and outranks the rest; notes sit below the
+        # top-level sections.
+        priority = "1.0" if rel == "index.html" else "0.5" if "/" in rel else "0.8"
+        urls.append(
+            f"  <url><loc>{_e(_abs(rel))}</loc>"
+            f"<lastmod>{_e(ctx.date)}</lastmod>"
+            f"<priority>{priority}</priority></url>"
+        )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls)
+        + "\n</urlset>\n"
+    )
+    path = SITE_DIR / "sitemap.xml"
+    path.write_text(xml, encoding="utf-8", newline="\n")
+    return path
+
+
+def _write_robots() -> Path:
+    """Everything is public and crawlable; the only job here is to name the sitemap.
+
+    `components.html` is excluded because it is a 164 KB design-system gallery that is
+    linked from nowhere and would otherwise be the largest page a crawler indexes.
+    """
+    path = SITE_DIR / "robots.txt"
+    path.write_text(
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /components.html\n"
+        f"\nSitemap: {_abs('sitemap.xml')}\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    return path

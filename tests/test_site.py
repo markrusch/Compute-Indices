@@ -234,11 +234,25 @@ def test_pages_are_self_contained(built):
     for name in PAGES:
         html = (built / name).read_text(encoding="utf-8")
         assert '<link rel="stylesheet"' not in html
-        assert "<script src=" not in html
         assert not re.search(r"@import\s+(url\(|[\"'])", html)
         assert not re.search(r"\burl\(\s*['\"]?(https?:)?//", html)
         assert "fonts.googleapis.com" not in html and "fonts.gstatic.com" not in html
         assert "<style>" in html  # tokens + components are inlined
+
+        # Exactly one script src is permitted, and only this one: Vercel Web Analytics,
+        # at a same-origin path. Vercel serves the canonical site and therefore already
+        # sees every request to it, so this reaches no party that was not already in the
+        # path -- which is why it does not break "no visitor's IP reaches a third party".
+        # Anything else, including a second copy of this one, fails here.
+        srcs = re.findall(r"<script[^>]*\bsrc=\"([^\"]+)\"", html)
+        assert srcs == ["/_vercel/insights/script.js"], f"{name}: unexpected script src {srcs}"
+
+    # The absolute URLs in the markup are the canonical and card metadata only. They are
+    # <meta>/<link> values that a crawler resolves, never anything the browser fetches.
+    for name in PAGES:
+        html = (built / name).read_text(encoding="utf-8")
+        body = html.split("</head>", 1)[1]
+        assert "thecomputeindices.com" not in body, f"{name}: absolute URL escaped the head"
 
 
 def test_font_urls_resolve_from_the_page_that_inlines_them(built):
