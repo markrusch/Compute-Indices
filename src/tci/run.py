@@ -28,6 +28,35 @@ def _cmd_docs(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_sources(args: argparse.Namespace) -> int:
+    from datetime import UTC, datetime
+
+    from tci import db, sources
+
+    today = (
+        datetime.strptime(args.date, "%Y-%m-%d").date()
+        if args.date
+        else datetime.now(UTC).date()
+    )
+    registry = sources.load_registry()
+    regions = sources.load_regions()
+    if args.due:
+        due = registry.due_for_review(today)
+        for s in due:
+            age = s.review_age_days(today)
+            print(f"{s.id:<22} {'never reviewed' if age is None else str(age) + 'd ago'}")
+        if not due:
+            print("nothing due")
+        return 0
+    conn = db.connect()
+    print(
+        sources.render_report(
+            conn, registry, regions, today, status=args.status, block=args.block
+        )
+    )
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s"
@@ -57,12 +86,20 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("validate", help="source-dropout sensitivity + check-series correlation")
     sub.add_parser("post", help="regenerate substack_post.md")
 
+    p_src = sub.add_parser("sources", help="source register + region-block coverage")
+    p_src.add_argument("--status", help="show only sources with this status")
+    p_src.add_argument("--block", help="show only sources serving this region block")
+    p_src.add_argument("--due", action="store_true", help="list sources past their review date")
+    p_src.add_argument("--date", help="YYYY-MM-DD to evaluate the review clock against")
+
     args = parser.parse_args(argv)
 
     if args.command == "migrate":
         return _cmd_migrate(args)
     if args.command == "docs":
         return _cmd_docs(args)
+    if args.command == "sources":
+        return _cmd_sources(args)
     if args.command in {"daily", "constituents", "backfill", "weights", "validate", "post"}:
         from tci import commands
 

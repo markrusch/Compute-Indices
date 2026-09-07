@@ -1,0 +1,154 @@
+# Region blocks: every country the pipeline may observe, and what happens to a price once
+# it has been observed there.
+#
+# This file is NOT part of the calculation path and NOT hash-locked. `normalise.py` reads
+# `factors.yaml:eu_eea_countries`, and only that, to decide what enters a published print.
+# This file is the register of everything else the pipeline keeps: prices collected and
+# stored against the day they were seen, published nowhere. If a future version ever wires
+# a block into a published series, this file joins METHODOLOGY.lock and the change follows
+# GOVERNANCE.md 1. A test asserts the EU_EEA block below still matches factors.yaml, so
+# the two cannot drift apart quietly.
+#
+# Why store a price you cannot publish. An index has no value on the day it is announced;
+# it has value once it has history. The settlement-grade preconditions in GOVERNANCE.md
+# ask for 180 consecutive collection days at 95% coverage. A block that starts collecting
+# now is 180 days closer to that than a block that starts collecting the day someone asks
+# for it. Storage is the cheap part: 51 collection days of every source produced a 1.6 MB
+# database.
+#
+# status:
+#   published - a live published series draws on this block
+#   shadow    - collected and stored, never published; history is being accumulated
+#   watch     - not collected yet, and no source registered for it. Listed so a source
+#               discovered for this block has somewhere to go and the gap stays visible
+#   excluded  - never collected. A reason is mandatory and it is not a data-quality one
+#
+# gate: what would have to be true before the block's series could be published at all.
+# Deliberately the same population gate the headline uses (factors.yaml:aggregation),
+# because a thin panel is thin regardless of which continent it is thin on.
+
+schema_version: 1
+
+gate:
+  min_providers: 5        # mirrors factors.yaml aggregation.min_providers
+  min_offers: 5
+  min_collection_days: 180  # GOVERNANCE.md settlement precondition 2
+
+# Every country code below is QUOTED, and that is not a style choice. YAML 1.1 reads the
+# bare token NO as boolean false, so an unquoted Norway silently becomes `False` and
+# vanishes from any membership test. factors.yaml has this bug today (2026-09-07): NO is
+# unquoted there, `'NO' in eu_eea_countries` is False, and all 126 stored Norwegian
+# observations have been dropped from every print since azure norwayeast started
+# reporting on 2026-08-16. Found by the first run of the source-discovery process.
+# load_regions() now rejects a non-string country code outright rather than coercing it.
+blocks:
+  EU_EEA:
+    label: "EU / EEA"
+    status: published
+    series: "TCI-CRI-* (headline family)"
+    countries: ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT",
+                "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", "IS", "LI", "NO"]
+    notes: >-
+      Must stay identical to factors.yaml:eu_eea_countries. CH is deliberately absent:
+      Switzerland is EFTA but not EEA.
+
+  UK:
+    label: "United Kingdom"
+    status: shadow
+    series: "TCI-UK-CRI-H100 (unpublished)"
+    countries: ["GB"]
+    notes: >-
+      The strongest shadow candidate. Post-Brexit the UK left the EEA but not the market:
+      London (aws eu-west-2, gcp europe-west2, azure uksouth) is one of the three deepest
+      GPU regions in Europe and it is already being collected and thrown away, because
+      those regions are unmapped in the collectors' region tables. Mapping them costs no
+      extra requests.
+
+  CH:
+    label: "Switzerland"
+    status: shadow
+    series: "not yet"
+    countries: ["CH"]
+    notes: >-
+      EFTA, not EEA, so excluded from the headline by the unit definition rather than by
+      any judgement about the market. azure switzerlandnorth exists and is unqueried;
+      several Swiss operators sell H100 capacity on public rate cards.
+
+  US:
+    label: "United States"
+    status: shadow
+    series: "TCI-US-CRI-H100 (unpublished)"
+    countries: ["US"]
+    notes: >-
+      Already the largest single-country population in the database (1,566 observations
+      as of 2026-09-06), collected deliberately since the first run. The US is where the
+      liquid venues are, so it is also the block most likely to carry a settlement-grade
+      panel first.
+
+  CA:
+    label: "Canada"
+    status: shadow
+    countries: ["CA"]
+    notes: "aws ca-central-1 and gcp northamerica-northeast1/2 are collected and unmapped."
+
+  LATAM:
+    label: "Latin America"
+    status: shadow
+    countries: ["BR", "MX", "CL", "AR", "CO", "PE", "UY"]
+    notes: "aws sa-east-1 and gcp southamerica-east1 (Sao Paulo) reach the pipeline today."
+
+  APAC_NE:
+    label: "Asia-Pacific, north-east"
+    status: shadow
+    countries: ["JP", "KR", "TW", "HK"]
+    notes: "Tokyo, Osaka, Seoul; gcp asia-northeast1/2/3 already collected and unmapped."
+
+  APAC_SE:
+    label: "Asia-Pacific, south-east"
+    status: shadow
+    countries: ["SG", "MY", "ID", "TH", "VN", "PH"]
+    notes: >-
+      Singapore is the regional pricing point (gcp asia-southeast1 is the single largest
+      unmapped population in the database at 288 observations).
+
+  APAC_S:
+    label: "South Asia"
+    status: shadow
+    countries: ["IN", "BD", "LK", "PK"]
+    notes: >-
+      India is a market worth its own block rather than a footnote in APAC: sovereign
+      GPU procurement under the IndiaAI mission put a lot of H100/H200 capacity on public
+      rate cards at prices that do not track anywhere else.
+
+  OCEANIA:
+    label: "Australia / New Zealand"
+    status: shadow
+    countries: ["AU", "NZ"]
+    notes: "gcp australia-southeast1/2 collected and unmapped."
+
+  MEA:
+    label: "Middle East and Africa"
+    status: shadow
+    countries: ["AE", "SA", "IL", "QA", "BH", "KW", "OM", "JO", "ZA", "KE", "NG", "EG", "MA"]
+    notes: >-
+      Promoted from watch to shadow on 2026-09-07, when the gpuhunt region map was widened
+      to cover Tel Aviv, Dubai, Bahrain, Doha and Johannesburg. Whether those catalogs
+      carry H100 rows at all is an open question the next few daily runs will answer. The
+      Gulf build-out is the most likely place a genuinely new pricing surface appears next.
+
+  EUROPE_NON_EEA:
+    label: "Europe outside the EEA"
+    status: watch
+    countries: ["TR", "RS", "UA", "MD", "AL", "BA", "MK", "ME", "GE", "AM", "AZ"]
+    notes: >-
+      Kept separate from EU_EEA so that a provider advertising 'European' capacity in
+      Istanbul or Belgrade cannot drift into the headline through a loose country map.
+
+  SANCTIONED:
+    label: "Not collected"
+    status: excluded
+    countries: ["RU", "BY", "IR", "KP", "SY", "CU"]
+    reason: >-
+      EU restrictive measures. The administrator is established in the EU, so these are
+      not collected, not stored, and not priced. This is a legal exclusion, not a
+      statement about the data.

@@ -28,6 +28,7 @@ python -m tci.run weights [--date D]
 python -m tci.run validate                     # dropout sensitivity + check-series correlation
 python -m tci.run post                         # regenerate site/substack_post.md
 python -m tci.run docs                         # regenerate METHODOLOGY.md + METHODOLOGY.lock
+python -m tci.run sources [--due|--status S|--block B]   # source register + region coverage
 
 pytest                                         # 165 tests
 pytest tests/test_site.py::test_pages_are_self_contained -q    # a single test
@@ -60,6 +61,11 @@ One direction, and each stage earns its place:
   it directly across all models produces a meaningless number.
 - **`outputs/site.py`** (~2,700 lines) generates every page from the database at build
   time. Every number is baked into the HTML, and the pages work with JavaScript disabled.
+- **`sources.py`** is off to the side of that pipeline and reads no prints. It loads
+  `config/source_registry.yaml` (every source ever screened, rejections included) and
+  `config/regions.yaml` (region blocks; one published, eight shadow) and reports coverage
+  against them. Neither file is hash-locked. The monthly process that maintains them is
+  `.claude/skills/source-discovery/`.
 
 ### Two naming systems, deliberately
 

@@ -3,6 +3,44 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Unreleased — 2026-09-07 — no methodology change
+
+None of the five hash-locked files changed, so `methodology_version` stays at
+`0.3.0-dev` and no print computed to date is affected. Added a repeatable process for
+finding new price sources, and ran it once.
+
+- **New: `config/source_registry.yaml`.** Every price surface the project has screened,
+  including the rejections, each with the reason and a `recheck` line naming what would
+  change the answer. 29 rows against the 10 in `SOURCES.md`, because most rejections here
+  are conditional and conditions expire.
+- **New: `config/regions.yaml`.** Thirteen region blocks, one published (EU/EEA) and eight
+  shadow. A shadow block's prices are collected and stored and published nowhere; the
+  reason is in the file's header. Neither register is read by the calculation path, so
+  neither is hash-locked. `tests/test_sources.py` asserts the EU_EEA block still matches
+  `factors.yaml`, so they cannot drift apart quietly.
+- **New: `python -m tci.run sources`.** Register, review clock, per-block coverage, silent
+  live sources, unclassified provider names, and stored rows whose region never resolved
+  to a country.
+- **gpuhunt region map widened from 25 regions to 90.** 1,518 rows had been collected,
+  stored and dropped for want of a country mapping, including London three times over and
+  288 observations of gcp `asia-southeast1`. Costs nothing: the package downloads whole
+  catalogs and queries them locally. Changes no published print, because `normalise.py`
+  still filters on `eu_eea_countries`. GovCloud, AWS Local Zones and the China regions
+  stay unmapped on purpose, each for a reason recorded in the collector.
+- **Found, not fixed: `factors.yaml` has never contained Norway.** YAML 1.1 reads the bare
+  token `NO` as boolean false, so `eu_eea_countries` holds `False` where it should hold
+  `'NO'` and all 126 stored Norwegian observations have been dropped by the country
+  filter since azure `norwayeast` started reporting on 2026-08-16. The fix is one
+  character, but adding a country to the constituent population is a minor methodology
+  change under GOVERNANCE.md §1 and needs a version bump plus one publication's notice.
+  A strict xfail in `tests/test_sources.py` will fail the moment it is fixed.
+- **Found, not fixed: `gpuhunt_.py` drops offers below 8 GPUs at collection.** The
+  methodology floor has been 2 since v0.3.0, so the collector has been applying a
+  stricter threshold than the published unit, before storage, on a source that cannot be
+  re-collected. Same governance path as the Norway fix and they should share one notice.
+
+Full scan report, including the five candidates found: `research/source-scans/2026-09-07.md`.
+
 ## 0.3.0-dev — 2026-08-16
 
 A structural rebuild. Validation against the stored observations showed the v0.2.0 index

@@ -1,0 +1,571 @@
+# The source ledger: every price surface this project has looked at, including the ones it
+# decided against and the ones it cannot use yet.
+#
+# SOURCES.md is the published, human-facing table of what is actually in the calculation
+# path. This file is the working register behind it, and it is deliberately larger. A
+# source rejected in July is worth keeping, because the reason it was rejected ("needs an
+# API key", "no EU capacity", "JS-only pricing page") is exactly the sort of thing that
+# changes without announcement. A ledger of rejections is the only way to notice when one
+# stops being true.
+#
+# Not part of the calculation path, not hash-locked. Adding a row here changes no print.
+# Promoting a row to status 'live' means writing a collector and following GOVERNANCE.md
+# section 1: version bump, CHANGELOG entry, one publication's notice.
+#
+# status:
+#   live       - in the calculation path today
+#   built      - collector exists and is correct, blocked on something external (a token)
+#   candidate  - passed the admission screen, no collector written yet
+#   watchlist  - known, does not qualify today, worth re-checking. `recheck` says on what
+#   rejected   - screened out. `reason` is mandatory and survives forever
+#   retired    - was live, is gone. The date it stopped is part of the audit trail
+#
+# tier mirrors normalise.py: 'executable' is an ask someone could transact against right
+# now, 'list' is a published rate card, 'reference' never enters a print at all.
+#
+# blocks are keys from config/regions.yaml. A source serving a shadow block is worth
+# building even though nothing is published from it yet - see that file on why.
+
+schema_version: 1
+review_interval_days: 90   # a live or built row unreviewed for longer is flagged by
+                           # `python -m tci.run sources --due`
+
+scans:
+  - date: 2026-09-07
+    added: 20
+    notes: >-
+      First run of the discovery process. Four candidates reachable through a package
+      already installed, plus the Norway bug. research/source-scans/2026-09-07.md
+
+sources:
+  # ---- live -----------------------------------------------------------------
+  - id: vast_ai
+    name: Vast.ai
+    kind: marketplace
+    status: live
+    tier: executable
+    collector: vast_ai
+    homepage: https://cloud.vast.ai/
+    endpoint: "POST https://console.vast.ai/api/v0/bundles/"
+    auth: none
+    blocks: [EU_EEA, US]
+    gpu_classes: [H100, A100]
+    access_basis: >-
+      Public search API used by the site's own search UI; scope limited to
+      datacenter-verified hosts (verification=verified AND hosting_type=1).
+    discovered: 2026-07-18
+    discovered_via: initial-build
+    last_reviewed: 2026-07-18
+    notes: "Offers stored globally; the EU filter lives in the calculation path."
+
+  - id: runpod
+    name: RunPod
+    kind: marketplace
+    status: live
+    tier: executable
+    collector: runpod
+    homepage: https://www.runpod.io/
+    endpoint: "POST https://api.runpod.io/graphql (gpuTypes/securePrice)"
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: [H100, H200, A100]
+    access_basis: "Public GraphQL endpoint; secure cloud only."
+    discovered: 2026-07-18
+    discovered_via: initial-build
+    last_reviewed: 2026-07-18
+    notes: >-
+      Secure pricing is region-flat and deliverable from EU-RO/EU-SE/EU-NL; recorded
+      against EU-RO by convention. Retired without workaround if auth appears.
+
+  - id: gpuhunt
+    name: gpuhunt (dstack catalogs)
+    kind: aggregator
+    status: live
+    tier: list
+    collector: gpuhunt
+    homepage: https://github.com/dstackai/gpuhunt
+    endpoint: "pip package; aws/azure/gcp catalogs"
+    auth: none
+    blocks: [EU_EEA, US, UK, CA, APAC_NE, APAC_SE, APAC_S, OCEANIA, LATAM]
+    gpu_classes: [H100]
+    access_basis: "Open-source package redistributing public catalog prices."
+    discovered: 2026-07-18
+    discovered_via: initial-build
+    last_reviewed: 2026-07-18
+    notes: >-
+      The widest region reach in the panel and the cheapest to widen further: the package
+      queries a downloaded catalog, so an extra region costs zero requests. Known gap: the
+      azure catalog carried no H100 rows on 2026-07-18.
+
+  - id: static_yaml
+    name: Manually verified pricing pages
+    kind: neocloud
+    status: live
+    tier: list
+    collector: static_yaml
+    homepage: https://github.com/markrusch/Compute-Indices/tree/main/config/providers
+    endpoint: "config/providers/*.yaml"
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: [H100]
+    access_basis: "Manual reads of public pages; each entry carries a last_verified date."
+    discovered: 2026-07-18
+    discovered_via: initial-build
+    last_reviewed: 2026-07-18
+    notes: >-
+      8 providers, 3 priced. Warned at 45d, excluded at 90d. This is the row that grows
+      when the discovery process finds a neocloud with a readable rate card and no API.
+
+  - id: scaleway
+    name: Scaleway
+    kind: neocloud
+    status: live
+    tier: list
+    collector: scaleway
+    homepage: https://www.scaleway.com/en/pricing/
+    endpoint: "GET https://api.scaleway.com/instance/v1/zones/{zone}/products/servers"
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: [H100, A100, L4, L40S]
+    access_basis: "Scaleway's own public product-catalog API, the source its console reads."
+    discovered: 2026-08-15
+    discovered_via: "chasing a JS-only pricing page that kept the static entry null"
+    last_reviewed: 2026-08-15
+    notes: >-
+      Quotes EUR per instance. The native amount is authoritative; conversion happens at
+      print time. Supersedes config/providers/scaleway.yaml.
+
+  - id: azure_retail
+    name: Azure Retail Prices API
+    kind: hyperscaler
+    status: live
+    tier: list
+    collector: azure_retail
+    homepage: https://azure.microsoft.com/en-us/pricing/
+    endpoint: "GET https://prices.azure.com/api/retail/prices (OData)"
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: [H100, H200, A100]
+    access_basis: "Microsoft's public, unauthenticated retail price feed."
+    discovered: 2026-08-15
+    discovered_via: "gpuhunt's azure catalog carried no H100 rows"
+    last_reviewed: 2026-08-15
+    notes: >-
+      10 EEA regions, one query each. uksouth and switzerlandnorth are not queried because
+      neither is in the EEA. Both are now shadow blocks, so the regions are available to a
+      future widening.
+
+  - id: ecb_fx
+    name: ECB reference rates (frankfurter.dev)
+    kind: reference
+    status: live
+    tier: reference
+    collector: fx
+    homepage: https://frankfurter.dev/
+    endpoint: "GET https://api.frankfurter.dev/v1/latest?from=EUR&to=USD"
+    auth: none
+    blocks: []
+    gpu_classes: []
+    access_basis: "Free public API redistributing ECB reference rates."
+    discovered: 2026-07-18
+    discovered_via: initial-build
+    last_reviewed: 2026-07-18
+    notes: "FX only. Never a price input."
+
+  # ---- built, blocked -------------------------------------------------------
+  - id: entsoe
+    name: ENTSO-E Transparency Platform
+    kind: reference
+    status: built
+    tier: reference
+    collector: entsoe
+    homepage: https://transparency.entsoe.eu/
+    endpoint: "REST API, day-ahead prices NL / DE-LU / FR / SE3"
+    auth: token
+    blocks: [EU_EEA]
+    gpu_classes: []
+    access_basis: "Public data platform, free registration for a token."
+    discovered: 2026-07-18
+    discovered_via: initial-build
+    last_reviewed: 2026-07-18
+    recheck: "ENTSOE_TOKEN present in the daily workflow secrets"
+    notes: "Overlay only, never an index input. Skips cleanly until the token exists."
+
+  # ---- candidates: reachable through gpuhunt, already installed, zero new requests ----
+  # All four were verified live on 2026-09-07 with a local catalog query. The collector
+  # queries three of gpuhunt's fifteen providers; these are the ones worth the other slots.
+  - id: oci
+    name: Oracle Cloud Infrastructure
+    kind: hyperscaler
+    status: candidate
+    tier: list
+    collector: gpuhunt
+    homepage: https://www.oracle.com/cloud/compute/gpu/
+    endpoint: "gpuhunt offline catalog, provider 'oci'"
+    auth: none
+    blocks: [EU_EEA, UK, MEA, APAC_S, LATAM]
+    gpu_classes: [H100]
+    access_basis: "Same open-source catalog package already in the calculation path."
+    discovered: 2026-09-07
+    discovered_via: "tier-0: gpuhunt providers we do not query"
+    last_reviewed: 2026-09-07
+    notes: >-
+      44 H100 rows on 2026-09-07, every one at 2+ GPUs, including eu-amsterdam-1,
+      eu-stockholm-1, eu-paris-1 and uk-cardiff-1. A fourth hyperscaler for the -HS
+      series, and the only one of the four that adds a name the panel has never had.
+      Also reaches me-abudhabi-1, me-dubai-1, ap-mumbai-1 and sa-bogota-1, which is four
+      shadow blocks from one line of config.
+
+  - id: lambdalabs
+    name: Lambda
+    kind: neocloud
+    status: candidate
+    tier: list
+    collector: gpuhunt
+    homepage: https://lambda.ai/pricing
+    endpoint: "gpuhunt offline catalog, provider 'lambdalabs'"
+    auth: none
+    blocks: [EU_EEA, US, APAC_NE, APAC_S, OCEANIA, MEA]
+    gpu_classes: [H100]
+    access_basis: "Same open-source catalog package already in the calculation path."
+    discovered: 2026-09-07
+    discovered_via: "tier-0: gpuhunt providers we do not query"
+    last_reviewed: 2026-09-07
+    notes: >-
+      90 H100 rows, 54 at 2+ GPUs, including europe-central-1 and me-west-1. Its own
+      pricing page is public too, but the catalog is the better route: no scraper to break.
+      europe-central-1 needs mapping to a country before it counts.
+
+  - id: verda_catalog
+    name: Verda (formerly DataCrunch), via gpuhunt
+    kind: neocloud
+    status: candidate
+    tier: list
+    collector: gpuhunt
+    homepage: https://datacrunch.io/
+    endpoint: "gpuhunt offline catalog, provider 'verda'"
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: [H100]
+    access_basis: "Same open-source catalog package already in the calculation path."
+    discovered: 2026-09-07
+    discovered_via: "tier-0: gpuhunt providers we do not query"
+    last_reviewed: 2026-09-07
+    notes: >-
+      15 rows across FIN-01/02/03, 9 at 2+ GPUs. datacrunch is currently a hand-maintained
+      static entry whose last_verified is 2026-07-18 and which the loader excludes at 90
+      days. This replaces a staleness clock with a feed, for free.
+
+  - id: nebius_catalog
+    name: Nebius, via gpuhunt
+    kind: neocloud
+    status: candidate
+    tier: list
+    collector: gpuhunt
+    homepage: https://nebius.com/prices
+    endpoint: "gpuhunt offline catalog, provider 'nebius'"
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: [H100]
+    access_basis: "Same open-source catalog package already in the calculation path."
+    discovered: 2026-09-07
+    discovered_via: "tier-0: gpuhunt providers we do not query"
+    last_reviewed: 2026-09-07
+    notes: >-
+      Thin: 2 rows in eu-north1, 1 at 2+ GPUs. Same staleness argument as verda but much
+      less data behind it. Take it only alongside verda, not on its own merits.
+
+  # ---- candidates: operators with their own public rate card ------------------
+  - id: sesterce
+    name: Sesterce
+    kind: neocloud
+    status: candidate
+    tier: list
+    homepage: https://www.sesterce.com/
+    endpoint: "https://cloud.sesterce.com (rates surfaced on the homepage)"
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: [H100, H200, B200]
+    access_basis: "Public on-demand rate card, quoted in USD, no account required to read."
+    discovered: 2026-09-07
+    discovered_via: "tier-3 GetDeploying, confirmed on the operator's own page"
+    last_reviewed: 2026-09-07
+    notes: >-
+      French, three sites (Bosquel, Valence, Paris/Equinix). On 2026-09-07 the homepage
+      carried live on-demand USD rates: H100 $1.83, H200 $2.48, B200 $4.11 per GPU-hr.
+      The H100 print is below the panel's current EU minimum ($2.16, seeweb), so this is
+      not a cosmetic addition to the constituent set. Note /pricing 404s -- the homepage
+      is the surface. Check whether the rate is JS-rendered before choosing static entry
+      versus collector.
+
+  # ---- watchlist --------------------------------------------------------------
+  - id: gcore
+    name: Gcore
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://gcore.com/
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: [H100, H200, B300, A100, L40S]
+    discovered: 2026-09-07
+    discovered_via: "tier-3 aggregator name harvest"
+    last_reviewed: 2026-09-07
+    reason: >-
+      Fails gate 2. Luxembourg H100 capacity with InfiniBand is real, but the offer is
+      described as a six-month commitment, which is a different product from the on-demand
+      unit this index measures.
+    recheck: "an on-demand hourly H100 rate on the public pricing page"
+
+  - id: computeprices
+    name: ComputePrices.com
+    kind: aggregator
+    status: watchlist
+    tier: reference
+    homepage: https://computeprices.com/
+    endpoint: "GET https://computeprices.com/api/v1/gpu-prices"
+    auth: key
+    blocks: []
+    gpu_classes: []
+    discovered: 2026-07-18
+    discovered_via: initial-build
+    last_reviewed: 2026-09-07
+    reason: >-
+      Fails gate 1 and gate 5. The API is Bearer-key gated (free tier, 750 req/day), so a
+      reader with no key cannot reproduce a print from it, and it is an aggregator of other
+      people's collection decisions. Stays where it already is: a validation cross-check,
+      never ingested.
+    recheck: "an unauthenticated endpoint, which would still leave gate 5 unresolved"
+
+  - id: getdeploying
+    name: GetDeploying
+    kind: aggregator
+    status: watchlist
+    tier: reference
+    homepage: https://getdeploying.com/gpus
+    auth: none
+    blocks: []
+    gpu_classes: []
+    discovered: 2026-09-07
+    discovered_via: "tier-3 sweep"
+    last_reviewed: 2026-09-07
+    reason: >-
+      Fails gate 5 as a price source and is not proposed as one. Kept because it is the
+      best name-source found: 4,774 prices across 77 providers on 2026-09-07, of which
+      roughly 17 are European. Read it for names, take the prices from the operator.
+    recheck: "n/a -- this row is a channel, not a candidate"
+
+  - id: silicon_data
+    name: Silicon Data GPU rental indices
+    kind: reference
+    status: watchlist
+    tier: reference
+    homepage: https://www.silicondata.com/
+    auth: none
+    blocks: []
+    gpu_classes: [H100, B200]
+    discovered: 2026-09-07
+    discovered_via: "tier-4 competitor scan"
+    last_reviewed: 2026-09-07
+    reason: >-
+      A competing index, not a source. Recorded because CME Group announced on 2026-08-11
+      that Silicon Data H100 and B200 Rental Index Futures list on NYMEX on 2026-10-05,
+      pending regulatory review. Someone else reaches settlement use first, on an index
+      built from 150k daily records across 50-100 platforms in 40-50 countries.
+    recheck: "the published methodology, once the contract specs are public"
+
+  # ---- leads: names harvested 2026-09-07, H100-class product unverified -------
+  # Each fails gate 2 pending one page load. They are recorded so the next sweep is a
+  # diff rather than a rediscovery. Most are general-purpose European clouds that may
+  # carry no H100-class product at all.
+  - id: upcloud
+    name: UpCloud
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://upcloud.com/
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-07
+    discovered_via: "tier-3 GetDeploying European name harvest"
+    last_reviewed: 2026-09-07
+    reason: "Lead only. Finnish; no H100-class on-demand product verified."
+    recheck: "a public on-demand H100-class hourly rate"
+
+  - id: leafcloud
+    name: Leafcloud
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.leaf.cloud/
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-07
+    discovered_via: "tier-3 GetDeploying European name harvest"
+    last_reviewed: 2026-09-07
+    reason: "Lead only. Dutch; no H100-class on-demand product verified."
+    recheck: "a public on-demand H100-class hourly rate"
+
+  - id: exoscale
+    name: Exoscale
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.exoscale.com/
+    blocks: [CH]
+    gpu_classes: []
+    discovered: 2026-09-07
+    discovered_via: "tier-3 GetDeploying European name harvest"
+    last_reviewed: 2026-09-07
+    reason: >-
+      Lead only. Swiss, so outside the EEA and outside the headline by definition -- but
+      the CH shadow block exists precisely for this.
+    recheck: "a public on-demand H100-class hourly rate"
+
+  - id: elastx
+    name: Elastx
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://elastx.se/
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-07
+    discovered_via: "tier-3 GetDeploying European name harvest"
+    last_reviewed: 2026-09-07
+    reason: "Lead only. Swedish; no H100-class on-demand product verified."
+    recheck: "a public on-demand H100-class hourly rate"
+
+  - id: impossible_cloud
+    name: Impossible Cloud
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.impossiblecloud.com/
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-07
+    discovered_via: "tier-3 GetDeploying European name harvest"
+    last_reviewed: 2026-09-07
+    reason: "Lead only. German; no H100-class on-demand product verified."
+    recheck: "a public on-demand H100-class hourly rate"
+
+  - id: contabo
+    name: Contabo
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://contabo.com/
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-07
+    discovered_via: "tier-3 GetDeploying European name harvest"
+    last_reviewed: 2026-09-07
+    reason: "Lead only. German; historically monthly VPS billing, which fails the hourly unit."
+    recheck: "a public on-demand hourly H100-class rate"
+
+  - id: beyond_pl
+    name: Beyond.pl
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://beyond.pl/
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-07
+    discovered_via: "tier-3 GetDeploying European name harvest"
+    last_reviewed: 2026-09-07
+    reason: "Lead only. Polish; no H100-class on-demand product verified."
+    recheck: "a public on-demand H100-class hourly rate"
+
+  - id: koyeb
+    name: Koyeb
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.koyeb.com/
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-07
+    discovered_via: "tier-3 GetDeploying European name harvest"
+    last_reviewed: 2026-09-07
+    reason: "Lead only. French; no H100-class on-demand product verified."
+    recheck: "a public on-demand H100-class hourly rate"
+
+  - id: lyceum
+    name: Lyceum
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://lyceum.technology/
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-07
+    discovered_via: "tier-3 GetDeploying European name harvest"
+    last_reviewed: 2026-09-07
+    reason: "Lead only. German; no H100-class on-demand product verified."
+    recheck: "a public on-demand H100-class hourly rate"
+
+  # ---- rejected -------------------------------------------------------------
+  - id: gpu_ai_index
+    name: GPU.ai price index
+    kind: aggregator
+    status: rejected
+    tier: reference
+    homepage: https://gpu.ai/gpu-price-index
+    endpoint: "public no-auth JSON API linked from the page's Dataset markup"
+    auth: none
+    blocks: []
+    gpu_classes: []
+    discovered: 2026-09-07
+    discovered_via: "tier-3 sweep"
+    last_reviewed: 2026-09-07
+    reason: >-
+      Fails gate 3, which is the one gate a fix cannot route around. The API is
+      unauthenticated and the data is free to cite with attribution, so gate 1 passes
+      cleanly -- but the index publishes floor prices across the whole fleet with no
+      regional or country breakdown at all. A price with no location can enter neither the
+      EU/EEA headline nor any future regional series. Gate 5 would also bite: it is an
+      aggregate of other clouds.
+    recheck: "per-region or per-country breakdown in the published API"
+
+  - id: eurohpc_ai_factories
+    name: EuroHPC AI Factories
+    kind: reference
+    status: rejected
+    tier: reference
+    homepage: https://eurohpc-ju.europa.eu/large-scale-access-ai-factories_en
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: [H100, H200]
+    discovered: 2026-09-07
+    discovered_via: "tier-1 public-sector channel"
+    last_reviewed: 2026-09-07
+    reason: >-
+      Not a market price. Access is free of charge for SMEs and startups and subsidised
+      otherwise, so the rate reflects an allocation policy rather than what a buyer pays.
+      Ingesting it would import a political number into a commercial index. 19 sites, six
+      deploying in 2026 across CZ, LT, NL, PL, RO and ES.
+    recheck: >-
+      commercial arm's-length rates published by a hosting entity, which would be a
+      separate source under that entity's own name
+
+  - id: aws_capacity_blocks
+    name: AWS Capacity Blocks for ML
+    kind: hyperscaler
+    status: rejected
+    tier: executable
+    homepage: https://aws.amazon.com/ec2/capacityblocks/
+    endpoint: "DescribeCapacityBlockOfferings (EC2)"
+    auth: iam
+    blocks: [EU_EEA, US]
+    gpu_classes: [H100, H200, B200]
+    access_basis: "Signed EC2 API action, scoped to the caller's own account and region."
+    discovered: 2026-08-15
+    discovered_via: "looking for a public forward curve"
+    last_reviewed: 2026-08-15
+    reason: >-
+      Not reproducible by a third party. A reader cannot recompute a print from an API
+      that needs our credentials, and reproducibility is the whole claim. Rejected on
+      those grounds, not on availability. The data itself is good.
+    recheck: "AWS publishes capacity-block clearing prices without authentication"

@@ -25,3 +25,27 @@ Silicon Data public prints, Kalshi/Ornn public levels.
 
 Review cadence: each row's ToS basis re-checked when a collector changes, and at the
 annual methodology review at the latest.
+
+## The register behind this table
+
+This table is what is in the calculation path. The working register behind it is
+`config/source_registry.yaml`, which also holds candidates, leads, and every source
+screened and rejected with the reason it failed and the specific thing that would change
+the answer. A rejection is kept because most of them are conditional — "needs an API
+key", "no on-demand rate", "JS-only page" — and conditions expire without announcement.
+
+`config/regions.yaml` says what happens to a price once it is collected. One block is
+published (EU/EEA, the headline family). Eight are **shadow**: collected, stored, and
+published nowhere, accumulating the history a future regional index would need before its
+first print is worth anything. Nothing in a shadow block can reach a published print —
+`normalise.py` filters on `factors.yaml:eu_eea_countries` and only that.
+
+Both files are outside the calculation path and outside `METHODOLOGY.lock`. Adding a row
+to either changes no number. Promoting a source into the calculation path is a minor
+methodology change under GOVERNANCE.md §1.
+
+    python -m tci.run sources          # register, review clock, per-block coverage
+    python -m tci.run sources --due     # sources past their review date
+
+Sources are re-swept monthly by the process in `.claude/skills/source-discovery/`; each
+sweep is written up in `research/source-scans/`.
