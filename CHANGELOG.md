@@ -35,6 +35,10 @@ changed and no print is affected; this is publishing plumbing.
   everywhere until analytics is switched on in the Vercel project.
   `test_pages_are_self_contained` now permits exactly this one path and fails on any
   other, including a second copy of it.
+- **`site/404.html`.** An unmatched path used to fall through to the host's default,
+  which on Vercel is an unstyled white page — the worst place for a dark-only site to
+  drop its theme. Both hosts serve `404.html` automatically, so this needed no routing
+  change. It is noindex and absent from the sitemap.
 - Repository URLs point at `markrusch/Compute-Indices`, and the published attribution
   string in DATA-TERMS.md §6 now names the domain. Anyone who cited the old Pages URL
   still resolves: GitHub redirects a renamed repository permanently.
