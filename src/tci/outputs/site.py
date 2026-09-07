@@ -974,6 +974,7 @@ def _shell(
     extra_js: str = "",
     canonical: str | None = None,
     dataset: bool = False,
+    noindex: bool = False,
 ) -> str:
     scripts = f"<script>{extra_js}</script>" if extra_js else ""
     # Every page's nav href is also its path, except a research note, which lives one
@@ -988,6 +989,7 @@ def _shell(
 <meta name="description" content="{_e(description)}">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0c0d">
+{'<meta name="robots" content="noindex">' if noindex else ""}
 <link rel="canonical" href="{_e(_abs(href))}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{_e(BRAND_FULL)}">
@@ -2860,6 +2862,44 @@ def _research_note(ctx: SiteContext, note: Note) -> str:
 # ==========================================================================
 
 
+def _not_found(ctx: SiteContext) -> str:
+    """The 404. Both hosts serve site/404.html for an unmatched path automatically.
+
+    Until now an unmatched path fell through to the host's own default, which on Vercel
+    is an unstyled white page -- the single worst place for the site to drop its theme,
+    because a reader who mistypes a URL sees a page that looks like it belongs to nobody.
+
+    It is noindex: a 404 that gets indexed competes with the pages that do exist. Links
+    out are relative, so the page also works from the Pages mirror and a local checkout.
+    """
+    body = """<main class="wrap" id="main">
+  <section class="pagehead">
+    <div class="eyebrow">Error 404</div>
+    <h1 class="pagehead__h pagehead__h--display">That page is not here<span
+      style="color:var(--red)">.</span></h1>
+    <p class="pagehead__dek">The address may be mistyped, or it may point at something
+    that moved. Nothing published is ever deleted, so if you followed a link to a print
+    or a research note it still exists somewhere below.</p>
+    <div class="hero__cta" style="margin-top:var(--space-7)">
+      <a class="btn btn--primary" href="index.html">Today&#8217;s print</a>
+      <a class="btn btn--ghost" href="research.html">Research</a>
+      <a class="btn btn--ghost" href="data.html">Data &amp; downloads</a>
+    </div>
+  </section>
+</main>"""
+    return _shell(
+        ctx,
+        title=f"Page not found — {BRAND}",
+        description=(
+            "That page is not here. Every published print and research note remains "
+            "available from the index."
+        ),
+        current="",
+        body=body,
+        noindex=True,
+    )
+
+
 def generate(conn: sqlite3.Connection) -> list[Path]:
     """Render every page into site/. Returns the paths written, newest content first."""
     factors = load_factors()
@@ -2893,7 +2933,13 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         path.write_text(html_text, encoding="utf-8", newline="\n")
         written.append(path)
 
+    # The sitemap is built before 404.html joins the list: a 404 must never be
+    # advertised to a crawler as a page worth indexing.
     written.append(_write_sitemap(ctx, [p for p, _ in pages]))
+
+    not_found = SITE_DIR / "404.html"
+    not_found.write_text(_not_found(ctx), encoding="utf-8", newline="\n")
+    written.append(not_found)
     written.append(_write_robots())
     log.info("site: %d files -> %s", len(written), SITE_DIR)
     return written
