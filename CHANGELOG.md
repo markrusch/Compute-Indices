@@ -3,6 +3,22 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Roadmap and distribution — 2026-09-07 — no methodology change
+
+- **TCI-ERI withdrawn from the published roadmap.** The energy index card said "in
+  development" on the strength of a day-ahead power collector that has never landed a
+  row, which made it an intention advertised as a pipeline. The family is now TCI-CRI
+  (live) and TCI-SRI (planned, and labelled as collecting nothing yet). The ENTSO-E
+  collector stays in the tree; it is the claim on the website that was withdrawn, not
+  the code.
+- **`site/feed.xml`, an Atom feed of the research notes.** The research is the part of
+  this project most likely to reach someone who never opens the dashboard, and there was
+  no way to follow it except by checking the page. Every page advertises it via
+  `<link rel="alternate">`. Only published notes with a date are included, so a planned
+  note never appears as an entry pointing at an empty slot. The feed's `updated` stamp is
+  the newest note rather than the build time, because the site regenerates daily and a
+  feed that claims to change every day gets ignored.
+
 ## Research Note 2026-04 — 2026-09-07 — no methodology change
 
 Published *A GPU-hour is a part number, not a unit*, an audit of what the index actually

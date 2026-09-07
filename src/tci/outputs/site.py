@@ -1008,6 +1008,8 @@ def _shell(
 <meta name="twitter:title" content="{_e(title)}">
 <meta name="twitter:description" content="{_e(description)}">
 <meta name="twitter:image" content="{_e(_abs(OG_IMAGE))}">
+<link rel="alternate" type="application/atom+xml" title="{_e(BRAND)} Research"
+ href="{prefix}feed.xml">
 <link rel="icon" href="{FAVICON}">
 {_structured_data(ctx, href, dataset=dataset)}
 {_ANALYTICS}
@@ -1236,11 +1238,15 @@ def _pillars(ctx: SiteContext) -> str:
 
 
 def _family(ctx: SiteContext) -> str:
-    """The index family. Only the first one exists; the others say so plainly.
+    """The index family. Only the first one exists; the other says so plainly.
 
     A roadmap card is fine; a roadmap card that reads like a shipped product is the same
     failure as a stale print dressed as live, so the status label leads and the copy for
     an unbuilt index never implies a number.
+
+    TCI-ERI (energy) was listed here until 2026-09-07 and was withdrawn. The day-ahead
+    power collector exists and has never landed a row, so the card was advertising an
+    intention rather than a pipeline. The roadmap is compute and storage only.
     """
     classes = len(ctx.factors.model_classes)
     cards = (
@@ -1250,15 +1256,9 @@ def _family(ctx: SiteContext) -> str:
             "published daily with its full constituent set.",
         ),
         (
-            False, "In development", "TCI-ERI",
-            "Energy Reference Index — the power cost behind the compute cost. Day-ahead "
-            "power prices are already collected as an overlay; they do not enter any "
-            "index value.",
-        ),
-        (
             False, "Planned", "TCI-SRI",
-            "Storage Reference Index — reference pricing for high-throughput storage. "
-            "No data is collected for this yet.",
+            "Storage Reference Index — reference pricing for high-throughput storage, "
+            "the other metered cost on a training run. No data is collected for this yet.",
         ),
     )
     return '<div class="famcards">' + "".join(
@@ -2905,6 +2905,54 @@ def _not_found(ctx: SiteContext) -> str:
     )
 
 
+def _write_feed(ctx: SiteContext, notes: list[Note]) -> Path:
+    """An Atom feed of the research notes.
+
+    The research is the part of this project most likely to be read by someone who never
+    opens the dashboard, and until now there was no way to follow it without checking the
+    page by hand. A feed is the open-standard answer to that: no account, no tracking, no
+    platform in the middle, and it costs one file.
+
+    Only published notes with a real date go in. A planned note has no page to link to,
+    and a feed entry pointing at a slot that says "not written yet" is the same failure
+    as a tile showing a stale price.
+    """
+    published = [n for n in notes if n.source is not None and n.date]
+    entries = []
+    for n in published:
+        url = _abs(f"research/{n.slug}.html")
+        entries.append(
+            "  <entry>\n"
+            f"    <title>{_e(n.title)}</title>\n"
+            f'    <link href="{_e(url)}"/>\n'
+            f"    <id>{_e(url)}</id>\n"
+            f"    <updated>{_e(n.date)}T00:00:00Z</updated>\n"
+            f"    <summary>{_e(n.dek)}</summary>\n"
+            "    <author><name>Mark Rusch</name></author>\n"
+            "  </entry>"
+        )
+    # The feed's own timestamp is the newest note, not the build time. The site
+    # regenerates daily whether or not the research changed, and a feed that claims to
+    # have changed every day trains readers to ignore it.
+    updated = (published[0].date if published else ctx.date) + "T00:00:00Z"
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<feed xmlns="http://www.w3.org/2005/Atom">\n'
+        f"  <title>{_e(BRAND_FULL)} — Research</title>\n"
+        f'  <link href="{_e(_abs("research.html"))}"/>\n'
+        f'  <link rel="self" type="application/atom+xml" href="{_e(_abs("feed.xml"))}"/>\n'
+        f"  <id>{_e(_abs('research.html'))}</id>\n"
+        f"  <updated>{_e(updated)}</updated>\n"
+        "  <author><name>Mark Rusch</name></author>\n"
+        f"  <subtitle>{_e(BRAND_LINE)}</subtitle>\n"
+        + "\n".join(entries)
+        + "\n</feed>\n"
+    )
+    path = SITE_DIR / "feed.xml"
+    path.write_text(xml, encoding="utf-8", newline="\n")
+    return path
+
+
 def generate(conn: sqlite3.Connection) -> list[Path]:
     """Render every page into site/. Returns the paths written, newest content first."""
     factors = load_factors()
@@ -2941,6 +2989,7 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
     # The sitemap is built before 404.html joins the list: a 404 must never be
     # advertised to a crawler as a page worth indexing.
     written.append(_write_sitemap(ctx, [p for p, _ in pages]))
+    written.append(_write_feed(ctx, notes))
 
     not_found = SITE_DIR / "404.html"
     not_found.write_text(_not_found(ctx), encoding="utf-8", newline="\n")
