@@ -55,8 +55,16 @@ sources:
       datacenter-verified hosts (verification=verified AND hosting_type=1).
     discovered: 2026-07-18
     discovered_via: initial-build
-    last_reviewed: 2026-07-18
-    notes: "Offers stored globally; the EU filter lives in the calculation path."
+    last_reviewed: 2026-09-08
+    notes: >-
+      Offers stored globally; the EU filter lives in the calculation path. From
+      2026-09-08 also carries the bid price (min_bid) as a second row at
+      tier=interruptible, and stores the venue's measured per-offer capability
+      fields: dlperf, total_flops, gpu_mem_bw, pcie_bw, bw_nvlink, gpu_max_power,
+      gpu_max_temp, disk_bw. This is the only source in the panel publishing a power
+      or thermal envelope. B200 and H200 are offered here and deliberately NOT mapped:
+      both are reference variants of published classes, so admitting them is a
+      constituent change requiring a version bump and a notice.
 
   - id: runpod
     name: RunPod
@@ -134,6 +142,33 @@ sources:
     notes: >-
       Quotes EUR per instance. The native amount is authoritative; conversion happens at
       print time. Supersedes config/providers/scaleway.yaml.
+
+  - id: azure_retail_reservations
+    name: Azure Retail Prices, Reservation and Spot meters
+    kind: hyperscaler
+    status: live
+    tier: list
+    collector: azure_retail
+    homepage: https://azure.microsoft.com/en-us/pricing/
+    endpoint: "GET https://prices.azure.com/api/retail/prices (priceType eq 'Reservation')"
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: [H100, H200, A100, H100P]
+    access_basis: >-
+      Same public unauthenticated feed as the on-demand meters, same query, one extra
+      OData clause. No separate terms apply.
+    discovered: 2026-09-08
+    discovered_via: forward-curve-scan
+    last_reviewed: 2026-09-08
+    notes: >-
+      The only observed term structure available to this index. Azure publishes 1-, 3-
+      and 5-year reservations alongside on-demand, spot and low-priority meters for the
+      same node, giving six price points per SKU per region. Measured westeurope
+      2026-09-08, H100 SXM: on-demand $15.98, 1yr $10.23, 3yr $7.01, 5yr $6.39, spot
+      $2.95 per GPU-hour. The reservation retailPrice is a whole-term UPFRONT TOTAL
+      carrying a "1 Hour" unit label, which is wrong in the feed; the collector divides
+      by term hours and keeps the raw figure for checking. None of these rows can reach
+      a print: normalise.py admits only term=on_demand and tier in (executable, list).
 
   - id: azure_retail
     name: Azure Retail Prices API

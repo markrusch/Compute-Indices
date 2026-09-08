@@ -1,10 +1,28 @@
 # A GPU-hour is a part number, not a unit
 
-**The index records an interconnect for all 7,798 observations and has observed one for none of them, 805 rows assert an SXM part and a PCIe bus at the same time, and no source in the panel has ever disclosed a fabric, a power envelope or a thermal limit.**
+**The index records an interconnect for all 7,798 observations and has observed one for none of them, 805 rows assert an SXM part and a PCIe bus at the same time, and nothing the index had stored described a fabric, a power envelope or a thermal limit.**
 
 TCI Research Note 2026-04 · 7 September 2026 · The Compute Indices
 
 ---
+
+> **Correction, 8 September 2026.** As first published, this note stated that no source in
+> the panel discloses a fabric, a power envelope or a thermal limit. That was measured
+> against what the index had stored, and it was the wrong place to look for it. One source
+> does publish those attributes: vast.ai returns measured deep-learning throughput, total
+> FLOPS, GPU memory bandwidth, PCIe bandwidth, NVLink bandwidth, a power ceiling and a
+> temperature ceiling on every offer. The collector was reducing each offer to 21 pricing
+> fields before storage and discarding the rest, so the audit below saw an absence the
+> market had not created.
+>
+> The measurements in this note are unchanged and reproduce as published: the stored
+> payloads did contain none of those terms, `interconnect` was inferred on every row, and
+> 805 rows still contradict themselves. What was wrong is the attribution. For eight of
+> the nine sources the gap is the market's; for vast.ai it was this project's.
+>
+> The collector now stores those fields, from 2026-09-08. The section headed *What an
+> assay would have to measure* should be read against that: for one venue in the panel,
+> three of its four axes are already being published and are now being kept.
 
 ## Abstract
 
@@ -78,7 +96,8 @@ of this note.
 
 57.6% of the database carries a constant typed into a collector. The remaining 42.4% is
 parsed from a product name, which is a naming convention rather than a specification.
-Nothing is read from a disclosed field, because no source in the panel publishes one.
+Nothing is read from a disclosed field. No source in the panel publishes an
+interconnect as a field; see the correction above for what one of them does publish.
 
 A column that is fully populated and never observed is worse than an empty column. An
 empty column advertises the gap.
@@ -104,8 +123,9 @@ Searching all 7,798 stored payloads for the terms that would matter:
 | `cool` | 0 |
 
 The 264 hits are the string "NVLink" appearing inside a GPU display name on two
-marketplaces, not a fabric specification. No payload in the database describes a fabric, a
-power envelope or a thermal limit.
+marketplaces, not a fabric specification. No payload stored up to this date describes a
+fabric, a power envelope or a thermal limit. As the correction above records, that was a
+statement about what the collectors kept, not about what every source offers.
 
 The most structured source in the panel returns this:
 

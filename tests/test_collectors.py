@@ -33,15 +33,21 @@ def test_vast_parses_fixture() -> None:
         and o.get("gpu_name") in GPU_MODEL_MAP and (o.get("num_gpus") or 0) >= 1
         and o.get("dph_total")
     ]
-    assert len(out) == len(expected) > 0
+    # One ask row per qualifying offer, plus a bid row wherever min_bid differs from the
+    # ask. The bid rows carry tier="interruptible" and are dropped by normalise.py, so
+    # they widen the audit trail without touching a print.
+    asks = [o for o in out if o.tier == "executable"]
+    bids = [o for o in out if o.tier == "interruptible"]
+    assert len(asks) == len(expected) > 0
+    assert len(bids) <= len(asks)
     for o in out:
-        assert o.provider == "vast.ai" and o.tier == "executable"
+        assert o.provider == "vast.ai" and o.tier in ("executable", "interruptible")
         assert o.price_usd_per_gpu_hr > 0
         assert o.country is None or len(o.country) == 2
         raw = json.loads(o.raw_json)
         assert raw["verification"] == "verified" and raw["hosting_type"] == 1
     # per-GPU price = dph_total / num_gpus (verified against the recorded NL 8x node)
-    node = next(o for o in out if o.gpu_count == 8 and o.country == "NL")
+    node = next(o for o in asks if o.gpu_count == 8 and o.country == "NL")
     raw = json.loads(node.raw_json)
     assert abs(node.price_usd_per_gpu_hr - raw["dph_total"] / 8) < 1e-9
 

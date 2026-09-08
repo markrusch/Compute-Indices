@@ -3,6 +3,59 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Tenor and capability collection — 2026-09-08 — no methodology change
+
+A scan for sources that could support a forward curve, and for compute types beyond the
+three vast.ai models mapped so far. No hash-locked file changed. Every row added below is
+structurally unable to reach a print: `normalise.py` admits only
+`term == reference_unit.term` (on_demand) and `tier in (executable, list)`, and drops any
+`gpu_model` that is not a configured reference variant. `tests/test_normalise.py` now pins
+both guarantees, because they are the only thing separating this data from the headline.
+
+- **Azure publishes a real term structure, and the collector was keeping one point of
+  it.** The same OData query that already returns on-demand meters also returns 1-, 3- and
+  5-year reservations, plus spot and low-priority meters. Measured live in westeurope on
+  2026-09-08 for `Standard_ND96isr_H100_v5`: on-demand $15.98, 1-year $10.23, 3-year
+  $7.01, 5-year $6.39, low-priority $3.20, spot $2.95 per GPU-hour. That is six observed
+  points on one node from one request, and it is the only term structure available to this
+  index from any source currently in the panel.
+- **The reservation figure is not an hourly rate.** Azure returns a whole-term upfront
+  total and labels `unitOfMeasure` "1 Hour", which is wrong in their feed. Taken at face
+  value a 1-year reservation reads as roughly $700,000 per GPU-hour. The collector divides
+  by term hours and stores the untouched upfront figure and the divisor in `raw_json`, so
+  the derivation can be checked rather than trusted. A test pins it, because the failure
+  mode is a well-formed, plausible-looking number that is wrong by four orders of
+  magnitude.
+- **Fixed: the Azure page cap was silently truncating.** `MAX_PAGES_PER_REGION` was 8
+  against a 1,000-row page size, and westeurope alone returns 8,675 on-demand rows, so
+  roughly 675 rows a day were being discarded with no log line. The cap is now 20 and
+  hitting it logs a warning naming the region. A missing constituent nobody logged is
+  indistinguishable from one that was never offered.
+- **vast.ai publishes per-offer measured capability, and the collector was discarding
+  it.** `RAW_FIELDS` reduced each offer to 21 pricing fields before storage. It now also
+  keeps `dlperf`, `total_flops`, `gpu_mem_bw`, `pcie_bw`, `bw_nvlink`, `gpu_max_power`,
+  `gpu_max_temp`, `disk_bw`, `inet_down/up`, `compute_cap` and the reliability fields. All
+  were 100% populated on every datacenter-verified offer in a live probe. This is audit
+  data; nothing here is read by the calculation path.
+- **Research Note 2026-04 corrected.** It reported that no source in the panel discloses a
+  fabric, a power envelope or a thermal limit. The measurement was of what the index had
+  stored and reproduces unchanged; the attribution was wrong. For eight of nine sources the
+  gap is the market's, and for vast.ai it was this project's. A dated correction is
+  published at the head of the note.
+- **vast.ai model coverage widened** from 3 mapped models to 16, adding A100 PCIe, L40/L40S,
+  RTX 6000 Ada, RTX PRO 6000 WS, RTX 5090/4090/4080, RTX 3090/3080/3060, A6000 and A40.
+  None is a configured reference variant, so all are collected and none is priced. The
+  `gpu_name` filter was removed from the query so an unmapped model now appears in the logs
+  instead of being invisible server-side.
+- **vast.ai bid prices collected** as a second row per offer at `tier=interruptible`,
+  making the bid-ask spread on the same machine observable rather than inferred.
+
+**Available and deliberately not adopted:** vast.ai offers B200 and H200. `B200_SXM` and
+`H200_SXM` are reference variants of published classes, so mapping them would add a
+constituent to a published series. That is a minor methodology change under GOVERNANCE.md
+§1 and needs a version bump and one publication's notice. It is left for the administrator
+to decide rather than introduced through a collector edit.
+
 ## Methodology notices, and a research register change — 2026-09-08 — no methodology change
 
 - **`config/notices.yaml` and `notices.html`.** GOVERNANCE.md §1 step 5 has always

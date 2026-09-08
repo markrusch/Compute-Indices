@@ -70,6 +70,40 @@ def test_term_committed_excluded() -> None:
     assert not keep(obs(term="1_month"))
 
 
+def test_every_collected_tenor_and_tier_stays_out_of_the_calculation() -> None:
+    """The guarantee the whole tenor dataset rests on.
+
+    From 2026-09-08 the collectors store Azure reservations at three terms, Azure spot
+    and low-priority meters, and vast.ai bid prices. None of it belongs in a headline
+    that prices an on-demand GPU-hour, and none of it is excluded by anything the
+    collectors do: the exclusion lives here, in `term == reference_unit.term` and
+    `tier in (executable, list)`.
+
+    If this test fails, a reserved or interruptible rate has become eligible for the
+    published print, which would report a committed price as a spot one. That is a
+    methodology change and needs a version bump and a notice, not a green test run.
+    """
+    for term in ("reserved_1yr", "reserved_3yr", "reserved_5yr"):
+        assert not keep(obs(term=term)), f"{term} reached the calculation path"
+    for tier in ("spot", "interruptible", "community"):
+        assert not keep(obs(tier=tier)), f"tier {tier} reached the calculation path"
+    # and the reference unit itself still passes, so the filter is not simply rejecting
+    # everything put in front of it
+    assert keep(obs())
+
+
+def test_unconfigured_gpu_models_are_collected_but_never_priced() -> None:
+    """vast.ai now maps RTX and workstation parts. None is a configured class.
+
+    normalise.py drops them at `variants.get(gpu_model)`, so the rows accumulate for a
+    future consumer-class series without touching a published one. Adding any of these
+    to factors.yaml model_classes is what would make them constituents, and that is a
+    governed change.
+    """
+    for model in ("RTX_4090", "RTX_5090", "RTX_PRO_6000_WS", "L40S", "A100_PCIE", "A40"):
+        assert not keep(obs(gpu_model=model)), f"{model} reached the calculation path"
+
+
 def test_non_eu_excluded() -> None:
     assert not keep(obs(country="US"))
     assert not keep(obs(country=None))

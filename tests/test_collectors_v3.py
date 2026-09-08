@@ -130,7 +130,8 @@ def _azure_all_regions(payload: dict | None = None) -> None:
 def test_azure_divides_node_price_by_mapped_gpu_count() -> None:
     _azure_all_regions()
     out = AzureRetailCollector().collect(base.make_session())
-    sxm = [o for o in out if o.gpu_model == "H100_SXM"]
+    sxm = [o for o in out if o.gpu_model == "H100_SXM" and o.term == "on_demand"
+           and o.tier == "list"]
     assert sxm, "no H100 SXM rows parsed"
     prices = sorted({round(o.price_usd_per_gpu_hr, 6) for o in sxm})
     assert prices == [round(119.45 / 8, 6), round(132.232 / 8, 6)]  # 14.93125, 16.529
@@ -139,13 +140,54 @@ def test_azure_divides_node_price_by_mapped_gpu_count() -> None:
 
 
 @responses.activate
-def test_azure_excludes_spot_and_non_hourly() -> None:
-    """Spot is an interruptible tier; a monthly reservation is not the on-demand unit."""
+def test_azure_records_every_tenor_but_only_on_demand_is_priceable() -> None:
+    """Spot and reserved rows are collected, and are structurally unable to reach a print.
+
+    This used to assert that spot was dropped at collection. Storing it is strictly more
+    useful, but only while the exclusion is guaranteed further down: normalise.py admits
+    `term == reference_unit.term` and `tier in (executable, list)`, so anything else is
+    audit data. If that guarantee ever weakened, a spot price would enter the headline
+    and the index would print an interruptible rate as an on-demand one.
+    """
     _azure_all_regions()
     out = AzureRetailCollector().collect(base.make_session())
-    meters = {json.loads(o.raw_json)["meterName"] for o in out}
-    assert not any("Spot" in m for m in meters)
-    assert not any("Reserved" in m for m in meters)
+
+    tiers = {o.tier for o in out}
+    assert "spot" in tiers, "spot meters are no longer being collected"
+    assert "list" in tiers
+
+    # Everything that is not the reference unit must be non-on_demand or non-list.
+    for o in out:
+        meter = json.loads(o.raw_json)["meterName"]
+        if "Spot" in meter:
+            assert o.tier == "spot"
+        if "Low Priority" in meter:
+            assert o.tier == "interruptible"
+        priceable = o.term == "on_demand" and o.tier in ("executable", "list")
+        if priceable:
+            assert "Spot" not in meter and "Low Priority" not in meter
+
+
+@responses.activate
+def test_azure_reservation_is_divided_by_its_term_not_taken_as_hourly() -> None:
+    """Azure returns a whole-term upfront total and labels the unit "1 Hour".
+
+    Taken at face value a 1-year reservation reads as roughly $700,000 per GPU-hour. The
+    divisor is the term length, and this pins it, because the failure is silent: the
+    number is well-formed, plausible-looking in a column of dollars, and wrong by four
+    orders of magnitude.
+    """
+    _azure_all_regions()
+    out = AzureRetailCollector().collect(base.make_session())
+    reserved = [o for o in out if o.term.startswith("reserved_")]
+    for o in reserved:
+        raw = json.loads(o.raw_json)
+        assert raw["divisorHours"] > 1, "a reservation was treated as an hourly rate"
+        expected = raw["retailPrice"] / raw["divisorHours"] / o.gpu_count
+        assert abs(o.price_usd_per_gpu_hr - expected) < 1e-9
+        # A reserved GPU-hour below the on-demand rate is the whole point; one above it,
+        # or one in the hundreds, means the divisor was wrong.
+        assert 0 < o.price_usd_per_gpu_hr < 100
 
 
 @responses.activate
