@@ -8,6 +8,24 @@ is about the newsletter's voice. It exists because the single fastest way to los
 credibility the methodology is built to earn is to sound like everyone's LLM-generated
 finance blog. Read this before every post, not just the first one.
 
+## Two registers, and which one you are in
+
+**The newsletter is a person.** First person, opinions, the week's mess, a sign-off.
+Everything below describes it.
+
+**A research note is the institution.** Anything in `research/` is published by The
+Compute Indices, carries an institutional byline, and may be cited years later by someone
+deciding whether to trust a number. It drops the personal register entirely: no narration
+of how the author arrived at a finding, no section proposing what to fix next, no timing
+explanations. Those belong in CHANGELOG.md or GOVERNANCE.md, not in a document the public
+reads as the administrator's position.
+
+Research notes are essays rather than numbered reports. Headings are prose phrases with no
+numbers, unless a note genuinely needs distant cross-references.
+
+The full rules, and the checklist, are in `.claude/skills/research-note/SKILL.md`. Where
+that file and this one disagree, it wins for `research/`.
+
 ## The one-sentence version
 
 Write like you're explaining today's print to Arjan across the desk, not like you're

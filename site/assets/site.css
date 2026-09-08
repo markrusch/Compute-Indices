@@ -1319,3 +1319,17 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
   .masthead__bar { position: static; }
   :root { --sticky-h: 8px; }
 }
+
+/* ---- METHODOLOGY NOTICE BANNER ------------------------------------------
+   Raised on the dashboard while a change is announced but not yet in effect.
+   It sits directly under the hero, above the print it is going to change,
+   because notice nobody sees is not notice. It uses the wine-tinted callout
+   rather than a status colour: this is not an error state, it is the
+   administrator telling you something in advance. */
+.notice-banner { margin-block: var(--space-7) 0; max-width: none; }
+.notice-banner p { margin: 0 0 var(--space-3); }
+.notice-banner p:last-child { margin-bottom: 0; }
+.notice-banner strong { color: var(--ink-1); font-weight: var(--weight-semibold); }
+.notice-banner__more { font-size: var(--text-sm); }
+/* A notice's one-line summary needs air before the body it introduces. */
+.card__body > .dek { margin-bottom: var(--space-5); }

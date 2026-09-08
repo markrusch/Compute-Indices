@@ -3,28 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TCI — The Compute Indices — 2026-09-07</title>
-<meta name="description" content="TCI: daily, reproducible reference prices for renting AI compute. Weighted median over offers, published with its full constituent set and a gap wherever the panel is too thin to price.">
+<title>Methodology notices — TCI</title>
+<meta name="description" content="Changes to the TCI methodology, announced before the first print computed under them.">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0c0d">
 
-<link rel="canonical" href="https://thecomputeindices.com/">
+<link rel="canonical" href="https://thecomputeindices.com/notices.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="The Compute Indices">
-<meta property="og:title" content="TCI — The Compute Indices — 2026-09-07">
-<meta property="og:description" content="TCI: daily, reproducible reference prices for renting AI compute. Weighted median over offers, published with its full constituent set and a gap wherever the panel is too thin to price.">
-<meta property="og:url" content="https://thecomputeindices.com/">
+<meta property="og:title" content="Methodology notices — TCI">
+<meta property="og:description" content="Changes to the TCI methodology, announced before the first print computed under them.">
+<meta property="og:url" content="https://thecomputeindices.com/notices.html">
 <meta property="og:image" content="https://thecomputeindices.com/assets/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="TCI — The Compute Indices — 2026-09-07">
-<meta name="twitter:description" content="TCI: daily, reproducible reference prices for renting AI compute. Weighted median over offers, published with its full constituent set and a gap wherever the panel is too thin to price.">
+<meta name="twitter:title" content="Methodology notices — TCI">
+<meta name="twitter:description" content="Changes to the TCI methodology, announced before the first print computed under them.">
 <meta name="twitter:image" content="https://thecomputeindices.com/assets/og-card.png">
 <link rel="alternate" type="application/atom+xml" title="TCI Research"
  href="feed.xml">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0c0d'/%3E%3Crect x='6' y='9' width='7' height='16' rx='1' fill='%23f5f5f6'/%3E%3Crect x='17' y='16' width='7' height='9' rx='1' fill='%23f5f5f6'/%3E%3Ccircle cx='20.5' cy='10.5' r='3.5' fill='%23ff0000'/%3E%3C/svg%3E">
-<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://thecomputeindices.com/#administrator", "name": "The Compute Indices", "alternateName": "TCI", "url": "https://thecomputeindices.com", "email": "rusch.mh@gmail.com", "founder": {"@type": "Person", "name": "Mark Rusch"}, "description": "TCI publishes reproducible reference prices for AI and HPC compute \u2014 methodology-driven, vendor-neutral, and rebuildable from public sources by anyone."}, {"@type": "WebSite", "@id": "https://thecomputeindices.com/#website", "url": "https://thecomputeindices.com", "name": "The Compute Indices", "publisher": {"@id": "https://thecomputeindices.com/#administrator"}, "inLanguage": "en"}, {"@type": "WebPage", "url": "https://thecomputeindices.com/", "isPartOf": {"@id": "https://thecomputeindices.com/#website"}}, {"@type": "Dataset", "@id": "https://thecomputeindices.com/#dataset", "name": "TCI-CRI-H100 \u2014 The Compute Indices", "description": "Daily reference price for one NVIDIA H100 SXM 80GB GPU-hour, on-demand, per-GPU, ex-VAT, delivered from an EU/EEA data centre. USD primary with a EUR companion at the ECB reference rate.", "creator": {"@id": "https://thecomputeindices.com/#administrator"}, "license": "https://creativecommons.org/licenses/by/4.0/", "isAccessibleForFree": true, "temporalCoverage": "2026-07-18/2026-09-07", "measurementTechnique": "Capacity-weighted median over offers, methodology v0.3.0-dev", "variableMeasured": "USD per GPU-hour", "distribution": [{"@type": "DataDownload", "encodingFormat": "text/csv", "contentUrl": "https://thecomputeindices.com/data/index_history.csv"}, {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://thecomputeindices.com/data/latest.json"}]}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://thecomputeindices.com/#administrator", "name": "The Compute Indices", "alternateName": "TCI", "url": "https://thecomputeindices.com", "email": "rusch.mh@gmail.com", "founder": {"@type": "Person", "name": "Mark Rusch"}, "description": "TCI publishes reproducible reference prices for AI and HPC compute \u2014 methodology-driven, vendor-neutral, and rebuildable from public sources by anyone."}, {"@type": "WebSite", "@id": "https://thecomputeindices.com/#website", "url": "https://thecomputeindices.com", "name": "The Compute Indices", "publisher": {"@id": "https://thecomputeindices.com/#administrator"}, "inLanguage": "en"}, {"@type": "WebPage", "url": "https://thecomputeindices.com/notices.html", "isPartOf": {"@id": "https://thecomputeindices.com/#website"}}]}</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script>document.documentElement.classList.add('js-boot');</script>
 <style>
@@ -2038,294 +2038,55 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
         <span class="navbtn__bars" aria-hidden="true"></span>
         <span>Menu</span>
       </label>
-      <nav class="nav" aria-label="Primary"><a href="index.html" aria-current="page">Indices</a><a href="methodology.html">Methodology</a><a href="data.html">Data</a><a href="research.html">Research</a><a href="governance.html">Governance</a>
+      <nav class="nav" aria-label="Primary"><a href="index.html">Indices</a><a href="methodology.html">Methodology</a><a href="data.html">Data</a><a href="research.html">Research</a><a href="governance.html" aria-current="page">Governance</a>
         <a href="mailto:rusch.mh@gmail.com">Contact</a>
         <a class="nav__cta" href="index.html#indices">View Indices</a>
       </nav>
     </div>
   </div>
 </header>
-<main id="main">
-  <div class="wrap">
-    <section class="hero">
-  <div class="hero__wave" aria-hidden="true"><span class="wave__col" style="--i:0.0000;--h:119px;--dot:2.5px;--d:0.00s;--dw:0.00s;--wd:1.30s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.0213;--h:131px;--dot:2.5px;--d:0.03s;--dw:0.04s;--wd:1.45s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.0426;--h:143px;--dot:2.5px;--d:0.06s;--dw:0.07s;--wd:1.60s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.0638;--h:152px;--dot:2.5px;--d:0.09s;--dw:0.11s;--wd:1.75s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.0851;--h:159px;--dot:2.5px;--d:0.12s;--dw:0.14s;--wd:1.90s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.1064;--h:163px;--dot:2.5px;--d:0.15s;--dw:0.18s;--wd:1.30s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.1277;--h:163px;--dot:2.5px;--d:0.18s;--dw:0.21s;--wd:1.45s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.1489;--h:161px;--dot:2.5px;--d:0.21s;--dw:0.25s;--wd:1.60s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.1702;--h:157px;--dot:2.5px;--d:0.24s;--dw:0.28s;--wd:1.75s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.1915;--h:150px;--dot:2.5px;--d:0.27s;--dw:0.32s;--wd:1.90s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.2128;--h:142px;--dot:2.5px;--d:0.30s;--dw:0.35s;--wd:1.30s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.2340;--h:133px;--dot:2.5px;--d:0.33s;--dw:0.39s;--wd:1.45s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.2553;--h:124px;--dot:2.5px;--d:0.36s;--dw:0.42s;--wd:1.60s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.2766;--h:115px;--dot:2.5px;--d:0.39s;--dw:0.46s;--wd:1.75s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.2979;--h:107px;--dot:2.5px;--d:0.42s;--dw:0.49s;--wd:1.90s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col wave__col--hi" style="--i:0.3191;--h:100px;--dot:4px;--d:0.45s;--dw:0.53s;--wd:1.30s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.3404;--h:94px;--dot:2.5px;--d:0.48s;--dw:0.56s;--wd:1.45s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.3617;--h:89px;--dot:2.5px;--d:0.51s;--dw:0.60s;--wd:1.60s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col wave__col--hi" style="--i:0.3830;--h:85px;--dot:4px;--d:0.54s;--dw:0.63s;--wd:1.75s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.4043;--h:82px;--dot:2.5px;--d:0.57s;--dw:0.67s;--wd:1.90s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.4255;--h:79px;--dot:2.5px;--d:0.60s;--dw:0.70s;--wd:1.30s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col wave__col--hi" style="--i:0.4468;--h:75px;--dot:4px;--d:0.63s;--dw:0.74s;--wd:1.45s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.4681;--h:70px;--dot:2.5px;--d:0.66s;--dw:0.77s;--wd:1.60s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.4894;--h:65px;--dot:2.5px;--d:0.69s;--dw:0.81s;--wd:1.75s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col wave__col--hi" style="--i:0.5106;--h:59px;--dot:4px;--d:0.72s;--dw:0.84s;--wd:1.90s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.5319;--h:52px;--dot:2.5px;--d:0.75s;--dw:0.88s;--wd:1.30s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.5532;--h:45px;--dot:2.5px;--d:0.78s;--dw:0.91s;--wd:1.45s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col wave__col--hi" style="--i:0.5745;--h:38px;--dot:4px;--d:0.81s;--dw:0.95s;--wd:1.60s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.5957;--h:31px;--dot:2.5px;--d:0.84s;--dw:0.98s;--wd:1.75s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.6170;--h:26px;--dot:2.5px;--d:0.87s;--dw:1.02s;--wd:1.90s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col wave__col--hi" style="--i:0.6383;--h:22px;--dot:4px;--d:0.90s;--dw:1.05s;--wd:1.30s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.6596;--h:21px;--dot:2.5px;--d:0.93s;--dw:1.09s;--wd:1.45s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.6809;--h:22px;--dot:2.5px;--d:0.96s;--dw:1.12s;--wd:1.60s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.7021;--h:26px;--dot:2.5px;--d:0.99s;--dw:1.16s;--wd:1.75s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.7234;--h:33px;--dot:2.5px;--d:1.02s;--dw:1.19s;--wd:1.90s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.7447;--h:42px;--dot:2.5px;--d:1.05s;--dw:1.23s;--wd:1.30s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.7660;--h:54px;--dot:2.5px;--d:1.08s;--dw:1.26s;--wd:1.45s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.7872;--h:67px;--dot:2.5px;--d:1.11s;--dw:1.30s;--wd:1.60s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.8085;--h:80px;--dot:2.5px;--d:1.14s;--dw:1.33s;--wd:1.75s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.8298;--h:94px;--dot:2.5px;--d:1.17s;--dw:1.37s;--wd:1.90s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.8511;--h:107px;--dot:2.5px;--d:1.20s;--dw:1.40s;--wd:1.30s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.8723;--h:119px;--dot:2.5px;--d:1.23s;--dw:1.44s;--wd:1.45s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.8936;--h:129px;--dot:2.5px;--d:1.26s;--dw:1.47s;--wd:1.60s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.9149;--h:136px;--dot:2.5px;--d:1.29s;--dw:1.51s;--wd:1.75s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.9362;--h:142px;--dot:2.5px;--d:1.32s;--dw:1.54s;--wd:1.90s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.9574;--h:144px;--dot:2.5px;--d:1.35s;--dw:1.58s;--wd:1.30s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:0.9787;--h:145px;--dot:2.5px;--d:1.38s;--dw:1.61s;--wd:1.45s"><span class="wave__dot"></span><span class="wave__bar"></span></span><span class="wave__col" style="--i:1.0000;--h:144px;--dot:2.5px;--d:1.41s;--dw:1.65s;--wd:1.60s"><span class="wave__dot"></span><span class="wave__bar"></span></span></div>
-  <div class="hero__inner">
-    <h1 class="hero__h">Independent. Transparent.<br>Built for the compute
-    market<span class="hero__stop">.</span></h1>
-    <p class="hero__dek">TCI publishes reproducible reference prices for AI and HPC compute — methodology-driven, vendor-neutral, and rebuildable from public sources by anyone.</p>
-    <div class="hero__cta">
-      <a class="btn btn--primary" href="#indices">View Indices</a>
-      <a class="btn btn--ghost" href="methodology.html">Our Methodology</a>
-    </div>
-  </div>
-</section>
-  </div>
-<div class="wrap"><div class="callout--brand notice-banner" role="region"
-  aria-labelledby="notice-h">
-  <span class="eyebrow" id="notice-h">Announced change to the methodology</span>
-  <p><strong>Norway restored to the EU/EEA constituent population, and the collection-time node-size floor aligned to the published floor</strong> Takes effect 15 Sep 2026 with methodology v0.4.0. Two defects found in the source audit of 7 September, both of which have been silently narrowing the constituent population against the published methodology. They are announced together because they take effect in the same version bump.</p>
-  <p class="notice-banner__more"><a href="notices.html">Read the full notice</a></p>
-</div></div>
-
-  <div class="wrap">
-  <section class="section" id="indices" aria-labelledby="s-today">
-    <div class="section__head"><div>
-      <h2 class="section__h" id="s-today">Headline series &#8212; today</h2>
-      <p class="section__dek">One row per class the index prices, for the
-      7 Sep 2026 session. A class below the provider gate keeps its row and
-      states the gate it missed; the last good value is never promoted into today's slot.
-      </p></div>
-      <div class="section__link"><div class="live-label"><span class="live-dot" aria-hidden="true"></span><span>Live &#183; updated daily 11:00 UTC</span></div></div></div>
-    <div class="scroll-x"><table class="stable">
-  <caption class="vh">TCI class series, print for 2026-09-07</caption>
-  <thead><tr>
-    <th scope="col">Series</th><th scope="col">Region</th>
-    <th scope="col" class="ta-r">$/GPU&#8209;hr</th>
-    <th scope="col" class="ta-r">30d &#916;</th>
-  </tr></thead>
-  <tbody><tr><th scope="row">TCI&#8209;CRI&#8209;H100</th><td class="stable__reg">EU/EEA</td><td class="ta-r">$3.25</td><td class="ta-r"><span class="delta delta--flat"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M3 8h10" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg><span class="num">&#177;0.00%</span></span></td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;H200</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;B200</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">not computed</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;B300</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;A100</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;H100&#8209;PCIE</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr></tbody>
-</table></div>
+<main id="main"><div class="wrap">
+  <section class="pagehead">
+    <div class="eyebrow">Governance</div>
+    <h1 class="pagehead__h">Methodology notices</h1>
+    <p class="pagehead__dek">Every change that would alter a published print is announced
+    here before the first print computed under it, as required by
+    <a href="governance.html">GOVERNANCE.md &#167;1</a>. Prints keep the methodology
+    version they were computed under, so a transition is auditable after the fact rather
+    than only announced before it.</p>
   </section>
-
-  <section class="section" aria-labelledby="print-h">
-    <section class="print" aria-labelledby="print-h">
-  <div class="print__main">
-    <div class="print__head">
-      <div>
-        <div class="eyebrow">Headline index</div>
-        <h2 class="print__sym" id="print-h">TCI&#8209;CRI&#8209;H100</h2>
-        <p class="print__desc">NVIDIA H100 SXM 80GB, on-demand, EU/EEA regions. Weighted median over offers, per GPU-hour, ex-VAT.</p>
-      </div>
-      <fieldset class="seg seg--ccy"><legend class="vh">Quote currency</legend><input type="radio" id="ccy-usd" name="ccy" value="usd" checked><label for="ccy-usd">USD</label><input type="radio" id="ccy-eur" name="ccy" value="eur"><label for="ccy-eur">EUR</label></fieldset>
-    </div>
-    <div class="print__figure" aria-live="polite"><span class="print__ccy ccy-usd" aria-hidden="true">$</span><span class="print__ccy ccy-eur" aria-hidden="true">&#8364;</span><span class="print__value num ccy-usd" id="hero-usd">3.25</span><span class="print__value num ccy-eur" id="hero-eur">2.80</span><span class="print__unit">/GPU&#8209;hr</span></div>
-    <div class="print__row"><span class="delta delta--flat"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M3 8h10" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg><span class="num">&#177;0.00%</span></span><span class="print__abs num">+0.00</span><span class="print__vs">vs 6 Sep 2026 print</span></div>
-    <div class="print__chips"><span class="chip chip--good"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8.5 6.2 12.2 13.5 4.4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Index live &#183; 5 of 5 providers</span></span><span class="chip chip--neutral"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><rect x="2.8" y="6.9" width="10.4" height="7.3" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.4 6.9V4.8a2.6 2.6 0 0 1 5.2 0v2.1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Hash&#8209;locked <span class="num">v0.3.0-dev</span></span></span><span class="chip chip--neutral"><span>4 executable inputs</span></span></div>
+  <section class="section"><div class="stack"><article class="card" id="2026-N1">
+  <div class="card__head"><div>
+    <h2 class="card__title">Norway restored to the EU/EEA constituent population, and the collection-time node-size floor aligned to the published floor</h2>
+    <p class="card__sub">Notice 2026-N1 &#183; announced
+      8 Sep 2026 &#183; methodology v0.4.0</p>
   </div>
-  <div class="print__meta">
-    <dl class="metagrid">
-      <div><dt>Print date</dt><dd class="num">2026-09-07</dd></div>
-      <div><dt>EUR companion</dt><dd class="num">&#8364;2.796421</dd></div>
-      <div><dt>ECB EUR/USD</dt><dd class="num">1.1622 @ 2026-09-04</dd></div>
-      <div><dt>Providers</dt><dd class="num">5 in panel</dd></div>
-      <div><dt>Estimator</dt><dd>weighted median</dd>
-      </div>
-      <div><dt>Methodology</dt><dd><a href="methodology.html">
-        TCI-CRI&#8209;M v0.3.0-dev</a></dd></div>
-    </dl>
-  </div>
-</section>
-  </section>
-
-  <section class="section" aria-labelledby="s-sub">
-    <div class="section__head"><div>
-      <h2 class="section__h" id="s-sub">Sub-indices</h2>
-      <p class="section__dek">The segment and variant cuts of the headline. A series below
-      the provider gate keeps its slot and shows a gap with the reason.</p></div></div>
-    <div class="tiles"><article class="tile tile--gap"><div class="tile__head"><span class="tile__sym">TCI&#8209;CRI&#8209;H200</span><span class="tile__note">H200 SXM 141GB</span></div><div class="tile__body"><div class="tile__gap"><span class="tile__dash">&#8212;&#8212;</span><span class="tile__last">never published</span></div></div><div class="tile__foot"><span class="chip chip--warning"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8h3M10.5 8h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>below the provider gate</span></span></div></article><article class="tile tile--gap"><div class="tile__head"><span class="tile__sym">TCI&#8209;CRI&#8209;B300</span><span class="tile__note">B300 SXM</span></div><div class="tile__body"><div class="tile__gap"><span class="tile__dash">&#8212;&#8212;</span><span class="tile__last">never published</span></div></div><div class="tile__foot"><span class="chip chip--warning"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8h3M10.5 8h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>below the provider gate</span></span></div></article><article class="tile tile--gap"><div class="tile__head"><span class="tile__sym">TCI&#8209;CRI&#8209;A100</span><span class="tile__note">A100 SXM 80GB</span></div><div class="tile__body"><div class="tile__gap"><span class="tile__dash">&#8212;&#8212;</span><span class="tile__last">never published</span></div></div><div class="tile__foot"><span class="chip chip--warning"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8h3M10.5 8h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>below the provider gate</span></span></div></article><article class="tile tile--gap"><div class="tile__head"><span class="tile__sym">TCI&#8209;CRI&#8209;H100&#8209;PCIE</span><span class="tile__note">H100 PCIe — priced as its own class</span></div><div class="tile__body"><div class="tile__gap"><span class="tile__dash">&#8212;&#8212;</span><span class="tile__last">never published</span></div></div><div class="tile__foot"><span class="chip chip--warning"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8h3M10.5 8h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>below the provider gate</span></span></div></article><article class="tile tile--gap"><div class="tile__head"><span class="tile__sym">TCI&#8209;CRI&#8209;H100&#8209;SOV</span><span class="tile__note">EU/EEA-headquartered operators</span></div><div class="tile__body"><div class="tile__gap"><span class="tile__dash">&#8212;&#8212;</span><span class="tile__last">never published</span></div></div><div class="tile__foot"><span class="chip chip--warning"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8h3M10.5 8h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>below the provider gate</span></span></div></article><article class="tile tile--gap"><div class="tile__head"><span class="tile__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tile__note">Marketplace segment only</span></div><div class="tile__body"><div class="tile__gap"><span class="tile__dash">&#8212;&#8212;</span><span class="tile__last">never published</span></div></div><div class="tile__foot"><span class="chip chip--warning"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8h3M10.5 8h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>below the provider gate</span></span></div></article><article class="tile tile--gap"><div class="tile__head"><span class="tile__sym">TCI&#8209;CRI&#8209;H100&#8209;NC</span><span class="tile__note">Neocloud segment only</span></div><div class="tile__body"><div class="tile__gap"><span class="tile__dash">&#8212;&#8212;</span><span class="tile__last">never published</span></div></div><div class="tile__foot"><span class="chip chip--warning"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8h3M10.5 8h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>below the provider gate</span></span></div></article><article class="tile tile--gap"><div class="tile__head"><span class="tile__sym">TCI&#8209;CRI&#8209;H100&#8209;HS</span><span class="tile__note">Hyperscaler catalog segment</span></div><div class="tile__body"><div class="tile__gap"><span class="tile__dash">&#8212;&#8212;</span><span class="tile__last">never published</span></div></div><div class="tile__foot"><span class="chip chip--warning"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8h3M10.5 8h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>below the provider gate</span></span></div></article></div>
-  </section>
-
-  <section class="section" aria-labelledby="s-chart">
-    <div class="section__head"><div>
-      <h2 class="section__h" id="s-chart">Headline, 30 sessions</h2>
-      <p class="section__dek">Truncated y-axis, so this is a line and never an area fill.
-      Hover or tab through the plot for the crosshair readout; it is CSS-only and works with
-      scripting disabled.</p></div></div>
-    <div class="card">
-  <div class="card__head">
-    <div><h3 class="card__title">TCI&#8209;CRI&#8209;H100</h3>
-    <p class="card__sub">USD per GPU-hour &#183; 30 sessions to
-    7 Sep 2026 &#183; 16 published, 14
-    gapped</p></div>
-    <span class="card__meta num">Last $3.25 &#183; high $3.29 &#183; low $3.25</span>
+  <span class="card__meta"><span class="chip chip--warning">
+    <span>Takes effect 15 Sep 2026</span></span></span>
   </div>
   <div class="card__body">
-    <div class="scroll-x"><svg class="chart" viewBox="0 0 880 300" role="group" aria-label="TCI-CRI-H100, 30 sessions to 7 Sep 2026. 16 published, 14 gapped. Latest $3.25."><g aria-hidden="true"><line class="ch-grid" x1="8.0" y1="268.0" x2="816.0" y2="268.0"/><line class="ch-grid" x1="8.0" y1="217.6" x2="816.0" y2="217.6"/><line class="ch-grid" x1="8.0" y1="167.2" x2="816.0" y2="167.2"/><line class="ch-grid" x1="8.0" y1="116.8" x2="816.0" y2="116.8"/><line class="ch-grid" x1="8.0" y1="66.4" x2="816.0" y2="66.4"/><line class="ch-grid" x1="8.0" y1="16.0" x2="816.0" y2="16.0"/><line class="ch-axis" x1="8.0" y1="268.0" x2="816.0" y2="268.0"/></g><path class="ch-line" d="M203.0 91.6 L230.9 91.6"/><path class="ch-line" d="M370.2 91.6C379.5 91.6,388.8 91.6,398.1 91.6C407.4 91.6,416.6 91.6,425.9 91.6C435.2 91.6,444.5 91.6,453.8 91.6"/><path class="ch-line" d="M509.5 91.6C518.8 125.2,528.1 192.4,537.4 192.4C546.7 192.4,555.9 91.6,565.2 91.6C574.5 91.6,583.8 192.4,593.1 192.4C602.4 192.4,611.7 125.2,621.0 91.6"/><path class="ch-line" d="M760.3 192.4C769.6 192.4,778.8 192.4,788.1 192.4C797.4 192.4,806.7 192.4,816.0 192.4"/><circle class="ch-marker-ring" cx="35.9" cy="192.4" r="4.5"/><circle cx="35.9" cy="192.4" r="2.6" fill="var(--chart-line)"/><circle class="ch-marker-ring" cx="314.5" cy="91.6" r="4.5"/><circle cx="314.5" cy="91.6" r="2.6" fill="var(--chart-line)"/><g aria-hidden="true"><line class="ch-gapmark" x1="8.0" y1="264.0" x2="8.0" y2="272.0"/><line class="ch-gapmark" x1="63.7" y1="264.0" x2="63.7" y2="272.0"/><line class="ch-gapmark" x1="91.6" y1="264.0" x2="91.6" y2="272.0"/><line class="ch-gapmark" x1="119.4" y1="264.0" x2="119.4" y2="272.0"/><line class="ch-gapmark" x1="147.3" y1="264.0" x2="147.3" y2="272.0"/><line class="ch-gapmark" x1="175.2" y1="264.0" x2="175.2" y2="272.0"/><line class="ch-gapmark" x1="258.8" y1="264.0" x2="258.8" y2="272.0"/><line class="ch-gapmark" x1="286.6" y1="264.0" x2="286.6" y2="272.0"/><line class="ch-gapmark" x1="342.3" y1="264.0" x2="342.3" y2="272.0"/><line class="ch-gapmark" x1="481.7" y1="264.0" x2="481.7" y2="272.0"/><line class="ch-gapmark" x1="648.8" y1="264.0" x2="648.8" y2="272.0"/><line class="ch-gapmark" x1="676.7" y1="264.0" x2="676.7" y2="272.0"/><line class="ch-gapmark" x1="704.6" y1="264.0" x2="704.6" y2="272.0"/><line class="ch-gapmark" x1="732.4" y1="264.0" x2="732.4" y2="272.0"/><text class="ch-tick" x="826" y="272.0">$3.22</text><text class="ch-tick" x="826" y="221.6">$3.24</text><text class="ch-tick" x="826" y="171.2">$3.26</text><text class="ch-tick" x="826" y="120.8">$3.28</text><text class="ch-tick" x="826" y="70.4">$3.30</text><text class="ch-tick" x="826" y="20.0">$3.32</text><text class="ch-tick" x="8.0" y="288" text-anchor="start">9 Aug</text><text class="ch-tick" x="203.0" y="288" text-anchor="middle">16 Aug</text><text class="ch-tick" x="425.9" y="288" text-anchor="middle">24 Aug</text><text class="ch-tick" x="621.0" y="288" text-anchor="middle">31 Aug</text><text class="ch-tick" x="816.0" y="288" text-anchor="end">7 Sep</text><text class="ch-cur" x="808.0" y="180.4" text-anchor="end">$3.25</text><text class="ch-note" x="43.9" y="222.4" text-anchor="start">30-day low $3.25</text></g><line class="ch-marker-rule" x1="8.0" y1="192.4" x2="816.0" y2="192.4"/><circle class="ch-marker-ring" cx="816.0" cy="192.4" r="6"/><circle class="ch-marker" cx="816.0" cy="192.4" r="4"/><g class="hp-layer"><g class="hp" tabindex="0" role="img" aria-label="10 Aug 2026: $3.25 per GPU-hour"><line class="hp-cross" x1="35.9" y1="16.0" x2="35.9" y2="268.0"/><circle class="hp-dot" cx="35.9" cy="192.4" r="4.5"/><g class="hp-tip" transform="translate(47.9 168.4)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.25</text><text class="hp-lab" x="11" y="37">10 Aug 2026</text></g><rect class="hp-hit" x="22.0" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="16 Aug 2026: $3.29 per GPU-hour"><line class="hp-cross" x1="203.0" y1="16.0" x2="203.0" y2="268.0"/><circle class="hp-dot" cx="203.0" cy="91.6" r="4.5"/><g class="hp-tip" transform="translate(215.0 67.6)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.29</text><text class="hp-lab" x="11" y="37">16 Aug 2026</text></g><rect class="hp-hit" x="189.1" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="17 Aug 2026: $3.29 per GPU-hour"><line class="hp-cross" x1="230.9" y1="16.0" x2="230.9" y2="268.0"/><circle class="hp-dot" cx="230.9" cy="91.6" r="4.5"/><g class="hp-tip" transform="translate(242.9 67.6)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.29</text><text class="hp-lab" x="11" y="37">17 Aug 2026</text></g><rect class="hp-hit" x="217.0" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="20 Aug 2026: $3.29 per GPU-hour"><line class="hp-cross" x1="314.5" y1="16.0" x2="314.5" y2="268.0"/><circle class="hp-dot" cx="314.5" cy="91.6" r="4.5"/><g class="hp-tip" transform="translate(326.5 67.6)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.29</text><text class="hp-lab" x="11" y="37">20 Aug 2026</text></g><rect class="hp-hit" x="300.6" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="22 Aug 2026: $3.29 per GPU-hour"><line class="hp-cross" x1="370.2" y1="16.0" x2="370.2" y2="268.0"/><circle class="hp-dot" cx="370.2" cy="91.6" r="4.5"/><g class="hp-tip" transform="translate(382.2 67.6)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.29</text><text class="hp-lab" x="11" y="37">22 Aug 2026</text></g><rect class="hp-hit" x="356.3" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="23 Aug 2026: $3.29 per GPU-hour"><line class="hp-cross" x1="398.1" y1="16.0" x2="398.1" y2="268.0"/><circle class="hp-dot" cx="398.1" cy="91.6" r="4.5"/><g class="hp-tip" transform="translate(410.1 67.6)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.29</text><text class="hp-lab" x="11" y="37">23 Aug 2026</text></g><rect class="hp-hit" x="384.2" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="24 Aug 2026: $3.29 per GPU-hour"><line class="hp-cross" x1="425.9" y1="16.0" x2="425.9" y2="268.0"/><circle class="hp-dot" cx="425.9" cy="91.6" r="4.5"/><g class="hp-tip" transform="translate(437.9 67.6)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.29</text><text class="hp-lab" x="11" y="37">24 Aug 2026</text></g><rect class="hp-hit" x="412.0" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="25 Aug 2026: $3.29 per GPU-hour"><line class="hp-cross" x1="453.8" y1="16.0" x2="453.8" y2="268.0"/><circle class="hp-dot" cx="453.8" cy="91.6" r="4.5"/><g class="hp-tip" transform="translate(465.8 67.6)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.29</text><text class="hp-lab" x="11" y="37">25 Aug 2026</text></g><rect class="hp-hit" x="439.9" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="27 Aug 2026: $3.29 per GPU-hour"><line class="hp-cross" x1="509.5" y1="16.0" x2="509.5" y2="268.0"/><circle class="hp-dot" cx="509.5" cy="91.6" r="4.5"/><g class="hp-tip" transform="translate(521.5 67.6)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.29</text><text class="hp-lab" x="11" y="37">27 Aug 2026</text></g><rect class="hp-hit" x="495.6" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="28 Aug 2026: $3.25 per GPU-hour"><line class="hp-cross" x1="537.4" y1="16.0" x2="537.4" y2="268.0"/><circle class="hp-dot" cx="537.4" cy="192.4" r="4.5"/><g class="hp-tip" transform="translate(549.4 168.4)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.25</text><text class="hp-lab" x="11" y="37">28 Aug 2026</text></g><rect class="hp-hit" x="523.5" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="29 Aug 2026: $3.29 per GPU-hour"><line class="hp-cross" x1="565.2" y1="16.0" x2="565.2" y2="268.0"/><circle class="hp-dot" cx="565.2" cy="91.6" r="4.5"/><g class="hp-tip" transform="translate(577.2 67.6)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.29</text><text class="hp-lab" x="11" y="37">29 Aug 2026</text></g><rect class="hp-hit" x="551.3" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="30 Aug 2026: $3.25 per GPU-hour"><line class="hp-cross" x1="593.1" y1="16.0" x2="593.1" y2="268.0"/><circle class="hp-dot" cx="593.1" cy="192.4" r="4.5"/><g class="hp-tip" transform="translate(605.1 168.4)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.25</text><text class="hp-lab" x="11" y="37">30 Aug 2026</text></g><rect class="hp-hit" x="579.2" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="31 Aug 2026: $3.29 per GPU-hour"><line class="hp-cross" x1="621.0" y1="16.0" x2="621.0" y2="268.0"/><circle class="hp-dot" cx="621.0" cy="91.6" r="4.5"/><g class="hp-tip" transform="translate(633.0 67.6)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.29</text><text class="hp-lab" x="11" y="37">31 Aug 2026</text></g><rect class="hp-hit" x="607.1" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="5 Sep 2026: $3.25 per GPU-hour"><line class="hp-cross" x1="760.3" y1="16.0" x2="760.3" y2="268.0"/><circle class="hp-dot" cx="760.3" cy="192.4" r="4.5"/><g class="hp-tip" transform="translate(596.3 168.4)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.25</text><text class="hp-lab" x="11" y="37">5 Sep 2026</text></g><rect class="hp-hit" x="746.4" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="6 Sep 2026: $3.25 per GPU-hour"><line class="hp-cross" x1="788.1" y1="16.0" x2="788.1" y2="268.0"/><circle class="hp-dot" cx="788.1" cy="192.4" r="4.5"/><g class="hp-tip" transform="translate(624.1 168.4)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.25</text><text class="hp-lab" x="11" y="37">6 Sep 2026</text></g><rect class="hp-hit" x="774.2" y="16.0" width="27.9" height="252.0"/></g><g class="hp" tabindex="0" role="img" aria-label="7 Sep 2026: $3.25 per GPU-hour"><line class="hp-cross" x1="816.0" y1="16.0" x2="816.0" y2="268.0"/><circle class="hp-dot" cx="816.0" cy="192.4" r="4.5"/><g class="hp-tip" transform="translate(652.0 168.4)"><rect class="hp-box" width="152" height="46" rx="3"/><line class="hp-key" x1="11" y1="18" x2="25" y2="18"/><text class="hp-val" x="31" y="22">$3.25</text><text class="hp-lab" x="11" y="37">7 Sep 2026</text></g><rect class="hp-hit" x="802.1" y="16.0" width="27.9" height="252.0"/></g></g></svg></div>
-    <p class="ledger__d" style="margin-top:var(--space-4)">A gapped session is drawn as a
-    hairline tick on the baseline and the line breaks across it. Nothing is interpolated:
-    the index publishes a gap rather than a value it cannot defend.</p>
-    <details class="tableview"><summary>Table view &#8212; 30 sessions</summary>
-      <div class="tableview__scroll"><table><caption class="vh">Every session in the window,
-      published or gapped</caption><thead><tr><th scope="col">Session</th>
-      <th scope="col" class="ta-r">USD/GPU-hr</th><th scope="col">State</th></tr></thead>
-      <tbody><tr><td class="num">9 Aug 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate · revised</td></tr><tr><td class="num">10 Aug 2026</td><td class="num ta-r">3.25</td><td>published</td></tr><tr><td class="num">11 Aug 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate · revised</td></tr><tr><td class="num">12 Aug 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate · revised</td></tr><tr><td class="num">13 Aug 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate · revised</td></tr><tr><td class="num">14 Aug 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate · revised</td></tr><tr><td class="num">15 Aug 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate · revised</td></tr><tr><td class="num">16 Aug 2026</td><td class="num ta-r">3.29</td><td>published</td></tr><tr><td class="num">17 Aug 2026</td><td class="num ta-r">3.29</td><td>published</td></tr><tr><td class="num">18 Aug 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate</td></tr><tr><td class="num">19 Aug 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate</td></tr><tr><td class="num">20 Aug 2026</td><td class="num ta-r">3.29</td><td>published</td></tr><tr><td class="num">21 Aug 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate</td></tr><tr><td class="num">22 Aug 2026</td><td class="num ta-r">3.29</td><td>published</td></tr><tr><td class="num">23 Aug 2026</td><td class="num ta-r">3.29</td><td>published</td></tr><tr><td class="num">24 Aug 2026</td><td class="num ta-r">3.29</td><td>published</td></tr><tr><td class="num">25 Aug 2026</td><td class="num ta-r">3.29</td><td>published</td></tr><tr><td class="num">26 Aug 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate</td></tr><tr><td class="num">27 Aug 2026</td><td class="num ta-r">3.29</td><td>published</td></tr><tr><td class="num">28 Aug 2026</td><td class="num ta-r">3.25</td><td>published</td></tr><tr><td class="num">29 Aug 2026</td><td class="num ta-r">3.29</td><td>published</td></tr><tr><td class="num">30 Aug 2026</td><td class="num ta-r">3.25</td><td>published</td></tr><tr><td class="num">31 Aug 2026</td><td class="num ta-r">3.29</td><td>published</td></tr><tr><td class="num">1 Sep 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate</td></tr><tr><td class="num">2 Sep 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate</td></tr><tr><td class="num">3 Sep 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate</td></tr><tr><td class="num">4 Sep 2026</td><td class="num ta-r u">&#8212;</td><td>gap &#183; below the provider gate</td></tr><tr><td class="num">5 Sep 2026</td><td class="num ta-r">3.25</td><td>published</td></tr><tr><td class="num">6 Sep 2026</td><td class="num ta-r">3.25</td><td>published</td></tr><tr><td class="num">7 Sep 2026</td><td class="num ta-r">3.25</td><td>published</td></tr></tbody></table></div>
-    </details>
+    <p class="dek">Two defects found in the source audit of 7 September, both of which have been silently narrowing the constituent population against the published methodology. They are announced together because they take effect in the same version bump.</p>
+    <div class="md"><p><strong>Norway.</strong> <code class="inline">config/factors.yaml</code> lists the EU/EEA constituent countries, and it has never contained Norway. The token <code class="inline">NO</code> is read by YAML 1.1 as boolean false, so <code class="inline">eu_eea_countries</code> holds <code class="inline">False</code> where it should hold the string <code class="inline">NO</code>. Every Norwegian observation collected since Azure&#x27;s <code class="inline">norwayeast</code> region began reporting on 2026-08-16 has been dropped by the country filter: 126 observations as of the date of this notice. Norway is in the EEA, the published unit definition says EU/EEA, and the index has therefore been narrower than its own stated scope.</p>
+<p><strong>Node-size floor.</strong> <code class="inline">filters.min_gpu_count</code> has been 2 since v0.3.0, which is the floor the methodology publishes. The <code class="inline">gpuhunt_</code> collector has continued to discard offers below 8 GPUs at collection time, before storage. Because collectors record live prices that cannot honestly be re-collected for a past date, those offers are not recoverable; the correction applies from the effective date forward.</p>
+<p>Both are corrections toward the published methodology rather than changes to it. Neither alters the unit definition, the estimator, the trim or the weighting. They are handled as a minor version bump because each changes the constituent population, which is a parameter change under GOVERNANCE.md §1.</p>
+<p>Prints computed before the effective date remain valid under the version they record in <code class="inline">daily_index.methodology_version</code> and are not restated. A gap stays a gap.</p></div>
+    <div class="fnstrip" style="margin-top:var(--space-6)">
+      <h4 class="fnstrip__h">Expected effect on the level</h4>
+      <p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+        line-height:var(--leading-prose)">Expected to lower the headline slightly or leave it unchanged. Both defects currently exclude supply, so correcting them can only add offers to the panel, and added offers at the marketplace end of the distribution pull a weighted median down rather than up. The size cannot be stated in advance: it depends on how many Norwegian and sub-8-GPU offers qualify on the day, which is not known until the first print under v0.4.0. Both legs will be quantified against the prior version in the CHANGELOG entry for that print.</p>
+    </div>
   </div>
-</div>
-  </section>
-
-  <section class="section" aria-labelledby="s-cons" id="constituents">
+</article></div></section>
+  <section class="section">
     <div class="section__head"><div>
-      <h2 class="section__h" id="s-cons">Constituents at the 2026-09-07 print</h2>
-      <p class="section__dek">Every candidate the index saw, including the ones it rejected
-      and why. Tier is ordinal: L1 executable quote, L2 neocloud list, L3 hyperscaler
-      catalog.</p></div>
-      <a class="section__link" href="methodology.html#3-aggregation-exact-algorithm">
-      How the median is taken</a></div>
-    <div class="card card__body--flush">
-<div class="scroll-x">
-<table class="grid">
-  <caption class="vh">TCI-CRI-H100 constituents at the
-  2026-09-07 print</caption>
-  <thead><tr>
-    <th scope="col">Provider</th>
-    <th scope="col">Segment</th>
-    <th scope="col" class="ta-c">Tier</th>
-    <th scope="col" class="ta-r">Price <span class="u">USD/GPU&#8209;hr</span></th>
-    <th scope="col" class="ta-r">Weight</th>
-    <th scope="col">Flags</th>
-    <th scope="col" class="ta-r">Source</th>
-  </tr></thead>
-  <tbody><tr><th scope="row" class="grid__name">seeweb</th><td class="u">neocloud</td><td class="ta-c"><span class="badge badge--l2" title="Published neocloud list price">L2</span></td><td class="ta-r num strong">2.1600</td><td class="ta-r"><span class="wcell"><span class="num">16.7%</span><span class="meter" aria-hidden="true"><span class="meter__fill" style="width:66.7%"></span></span></span></td><td class="grid__flags"><span class="flag" title="Clamped to the k-th order statistic by the trim">TRIM</span><span class="flag" title="EU/EEA-headquartered operator">SOV</span></td><td class="ta-r"><a class="srclink" href="https://www.seeweb.it/en/products/cloud-server-gpu" rel="noopener">static_yaml<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></td></tr><tr><th scope="row" class="grid__name">vast.ai</th><td class="u">marketplace</td><td class="ta-c"><span class="badge badge--l1" title="Executable marketplace quote">L1</span></td><td class="ta-r num strong">2.2669</td><td class="ta-r"><span class="wcell"><span class="num">25.0%</span><span class="meter" aria-hidden="true"><span class="meter__fill" style="width:100.0%"></span></span></span></td><td class="grid__flags"><span class="flag" title="Weight limited by the 25% concentration cap">CAP</span></td><td class="ta-r"><a class="srclink" href="https://cloud.vast.ai/" rel="noopener">vast_ai<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></td></tr><tr><th scope="row" class="grid__name">datacrunch</th><td class="u">neocloud</td><td class="ta-c"><span class="badge badge--l2" title="Published neocloud list price">L2</span></td><td class="ta-r num strong">3.2500</td><td class="ta-r"><span class="wcell"><span class="num">16.7%</span><span class="meter" aria-hidden="true"><span class="meter__fill" style="width:66.7%"></span></span></span></td><td class="grid__flags"><span class="flag" title="EU/EEA-headquartered operator">SOV</span></td><td class="ta-r"><a class="srclink" href="https://verda.com/pricing" rel="noopener">static_yaml<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></td></tr><tr><th scope="row" class="grid__name">runpod</th><td class="u">marketplace</td><td class="ta-c"><span class="badge badge--l1" title="Executable marketplace quote">L1</span></td><td class="ta-r num strong">3.4900</td><td class="ta-r"><span class="wcell"><span class="num">25.0%</span><span class="meter" aria-hidden="true"><span class="meter__fill" style="width:100.0%"></span></span></span></td><td class="grid__flags"><span class="flag" title="Weight limited by the 25% concentration cap">CAP</span></td><td class="ta-r"><a class="srclink" href="https://www.runpod.io/console/gpu-cloud" rel="noopener">runpod<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></td></tr><tr><th scope="row" class="grid__name">nebius</th><td class="u">neocloud</td><td class="ta-c"><span class="badge badge--l2" title="Published neocloud list price">L2</span></td><td class="ta-r num strong">3.8500</td><td class="ta-r"><span class="wcell"><span class="num">16.7%</span><span class="meter" aria-hidden="true"><span class="meter__fill" style="width:66.7%"></span></span></span></td><td class="grid__flags"><span class="flag" title="Clamped to the k-th order statistic by the trim">TRIM</span><span class="flag" title="EU/EEA-headquartered operator">SOV</span></td><td class="ta-r"><a class="srclink" href="https://nebius.com/prices" rel="noopener">static_yaml<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></td></tr><tr><th scope="row" class="grid__name">aws</th><td class="u">hyperscaler</td><td class="ta-c"><span class="badge badge--l3" title="Hyperscaler catalog list price">L3</span></td><td class="ta-r u">&#8212;</td><td class="ta-r num u">0.0%</td><td class="grid__flags"><span class="flag" title="Excluded: out of population">OOP</span></td><td class="ta-r"><a class="srclink" href="https://aws.amazon.com/ec2/instance-types/p5/" rel="noopener">page<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></td></tr><tr><th scope="row" class="grid__name">azure</th><td class="u">hyperscaler</td><td class="ta-c"><span class="badge badge--l3" title="Hyperscaler catalog list price">L3</span></td><td class="ta-r u">&#8212;</td><td class="ta-r num u">0.0%</td><td class="grid__flags"><span class="flag" title="Excluded: out of population">OOP</span></td><td class="ta-r"><a class="srclink" href="https://learn.microsoft.com/en-us/azure/virtual-machines/nd-h100-v5-series" rel="noopener">page<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></td></tr><tr><th scope="row" class="grid__name">gcp</th><td class="u">hyperscaler</td><td class="ta-c"><span class="badge badge--l3" title="Hyperscaler catalog list price">L3</span></td><td class="ta-r u">&#8212;</td><td class="ta-r num u">0.0%</td><td class="grid__flags"><span class="flag" title="Excluded: out of population">OOP</span></td><td class="ta-r"><a class="srclink" href="https://cloud.google.com/compute/gpus-pricing" rel="noopener">page<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></td></tr></tbody>
-  <tfoot><tr>
-    <th scope="row" colspan="3">Weighted median over offers</th>
-    <td class="ta-r num strong">3.2500</td>
-    <td class="ta-r num strong">100.0%</td>
-    <td colspan="2" class="u">Trim k=1 each end &#183; 25% concentration cap</td>
-  </tr></tfoot>
-</table>
-</div></div>
+      <h2 class="section__h">What a notice does not cover</h2>
+      <p class="section__dek">Scheduled weight reviews run a fixed published formula on a
+      fixed schedule with no discretion. They are data updates, not methodology changes,
+      and are not announced here. Corrections to an individual print are handled under the
+      correction policy and published as a new revision, never as an edit.</p>
+    </div></div>
   </section>
-
-  <section class="section" aria-labelledby="s-q">
-    <div class="section__head"><div>
-      <h2 class="section__h" id="s-q">Data quality and sources</h2>
-      <p class="section__dek">The publication gate, the executable share, and the collectors
-      behind them. A gap is credible; a fabricated print is fatal.</p></div></div>
-    <div class="stack">
-      <div class="card" id="quality">
-  <div class="card__head">
-    <div><h3 class="card__title">Data quality</h3>
-    <p class="card__sub">Everything that decides whether this session publishes at all</p>
-    </div>
-    <span class="card__meta"><span class="chip chip--good"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8.5 6.2 12.2 13.5 4.4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Gate met</span></span></span>
-  </div>
-  <div class="qgrid">
-    <div class="qstat">
-      <span class="qstat__k">Publication gate</span>
-      <span class="qstat__v">5<span class="u"> / 5</span></span>
-      <span class="qstat__n">Qualifying providers against the minimum. Below it the value is
-      null and the session is flagged, never estimated.</span>
-    </div>
-    <div class="qstat">
-      <span class="qstat__k">Executable share</span>
-      <span class="qstat__v">50.0<span class="u">%</span></span>
-      <span class="qbar" aria-hidden="true"><i style="width:50.0%"></i>
-      </span>
-      <span class="qstat__n">Share of index weight from executable marketplace quotes;
-      the rest is published list price.</span>
-    </div>
-    <div class="qstat">
-      <span class="qstat__k">Session coverage</span>
-      <span class="qstat__v">16<span class="u"> / 30</span></span>
-      <span class="qbar" aria-hidden="true">
-      <i style="width:53.3%"></i></span>
-      <span class="qstat__n">Sessions in the last 30 days that cleared the gate.
-      The remainder are published as gaps.</span>
-    </div>
-    <div class="qstat">
-      <span class="qstat__k">FX vintage</span>
-      <span class="qstat__v">T&#8722;3</span>
-      <span class="qstat__n">ECB reference rate 1.1622 dated
-      2026-09-04. The ECB publishes after the cut-off, so the EUR leg is
-      T&#8722;1 by construction.</span>
-    </div>
-    <div class="qstat">
-      <span class="qstat__k">Concentration cap</span>
-      <span class="qstat__v">BOUND</span>
-      <span class="qstat__n">The 25% per-provider cap bound on this print; it is
-      mathematically inert at n=4 and binds only from n=5.</span>
-    </div>
-    <div class="qstat">
-      <span class="qstat__k">Trim</span>
-      <span class="qstat__v">k=1</span>
-      <span class="qstat__n">Count-based: the k highest and k lowest offers are clamped to the
-      k-th order statistic. Percentile winsorising is inert at this panel size.</span>
-    </div>
-  </div>
-</div>
-      <div class="card">
-  <div class="card__head">
-    <div><h3 class="card__title">Model mix</h3>
-    <p class="card__sub">Composite weight by GPU class, effective 2026-09-07 &#183; same
-    basket as the ledger below</p></div>
-  </div>
-  <div class="card__body">
-    <div class="mixbar" role="img"
-    aria-label="Composite weight by GPU class: H100 68.0%, A100 16.3%, H100P 7.9%, H200 7.9%"><span class="mixbar__seg" style="inline-size:68.0071%;background:var(--series-1)"></span><span class="mixbar__seg" style="inline-size:16.2645%;background:var(--series-2)"></span><span class="mixbar__seg" style="inline-size:7.8642%;background:var(--series-3)"></span><span class="mixbar__seg" style="inline-size:7.8642%;background:var(--series-4)"></span></div>
-    <ul class="mixlegend"><li><i style="background:var(--series-1)"></i><span>H100</span><span class="num">68.0%</span></li><li><i style="background:var(--series-2)"></i><span>A100</span><span class="num">16.3%</span></li><li><i style="background:var(--series-3)"></i><span>H100P</span><span class="num">7.9%</span></li><li><i style="background:var(--series-4)"></i><span>H200</span><span class="num">7.9%</span></li></ul>
-  </div>
-</div>
-      <div class="card">
-  <div class="card__head">
-    <div><h3 class="card__title">Composite basket, effective 2026-09-07</h3>
-    <p class="card__sub">Window 2026-08-10 to 2026-09-06 &#183; 28 collection
-    days &#183; recomputed by a fixed published formula, stored append-only</p></div>
-    <span class="card__meta num">rev 1</span>
-  </div>
-  <div class="card__body"><ol class="ledger"><li class="ledger__row"><span class="ledger__n num">01</span><div class="ledger__body"><h4 class="ledger__t">H100 class share</h4><p class="ledger__d">Share of total observed qualifying capacity over the review window, floored at 5% and capped at 75%.</p></div><span class="ledger__v num">68.0%</span></li><li class="ledger__row"><span class="ledger__n num">02</span><div class="ledger__body"><h4 class="ledger__t">A100 class share</h4><p class="ledger__d">Share of total observed qualifying capacity over the review window, floored at 5% and capped at 75%.</p></div><span class="ledger__v num">16.3%</span></li><li class="ledger__row"><span class="ledger__n num">03</span><div class="ledger__body"><h4 class="ledger__t">H100P class share</h4><p class="ledger__d">Share of total observed qualifying capacity over the review window, floored at 5% and capped at 75%.</p></div><span class="ledger__v num">7.9%</span></li><li class="ledger__row"><span class="ledger__n num">04</span><div class="ledger__body"><h4 class="ledger__t">H200 class share</h4><p class="ledger__d">Share of total observed qualifying capacity over the review window, floored at 5% and capped at 75%.</p></div><span class="ledger__v num">7.9%</span></li></ol></div>
-</div>
-      <div class="card" id="sources">
-  <div class="card__head">
-    <div><h3 class="card__title">Sources</h3>
-    <p class="card__sub">Every collector the index reads. Overlay data (power prices) is
-    published beside the index and never enters the calculation.</p></div>
-  </div>
-  <div class="srcs"><div class="srcs__row"><div><span class="srcs__name">vast_ai</span><span class="srcs__label">Vast.ai marketplace API</span></div><div class="srcs__ep">POST console.vast.ai/api/v0/bundles/</div><a class="srclink" href="https://cloud.vast.ai/" rel="noopener">Site<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div><div class="srcs__row"><div><span class="srcs__name">runpod</span><span class="srcs__label">RunPod GraphQL API</span></div><div class="srcs__ep">POST api.runpod.io/graphql</div><a class="srclink" href="https://www.runpod.io/" rel="noopener">Site<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div><div class="srcs__row"><div><span class="srcs__name">gpuhunt</span><span class="srcs__label">gpuhunt (dstack open-source catalogs)</span></div><div class="srcs__ep">aws/azure/gcp public catalog prices</div><a class="srclink" href="https://github.com/dstackai/gpuhunt" rel="noopener">Site<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div><div class="srcs__row"><div><span class="srcs__name">static_yaml</span><span class="srcs__label">Manually verified public pricing pages</span></div><div class="srcs__ep">config/providers/*.yaml, refreshed manually with a last_verified date</div><a class="srclink" href="https://github.com/markrusch/Compute-Indices/tree/main/config/providers" rel="noopener">Site<svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6.5 3H3.2v9.8H13V9.5M9.4 2.6H13.4V6.6M13.2 2.8 7.4 8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></div>
-</div>
-    </div>
-  </section>
-
-  <section class="section" id="methodology" aria-labelledby="s-pillars">
-    <div class="section__head"><div>
-      <h2 class="section__h" id="s-pillars">How the number is made</h2>
-      <p class="section__dek">Three commitments, each one checkable against the repository
-      rather than taken on trust.</p></div>
-      <a class="section__link" href="methodology.html">Full methodology</a></div>
-    <div class="pillars"><article class="pillar"><span class="pillar__ico pillar__ico--dot" aria-hidden="true"><i></i></span><h3 class="pillar__t">Reproducible</h3><p class="pillar__d">Every parameter is a visible config value, and the five files that can change a print are hash-locked. Every print can be rebuilt from public sources by anyone with the repo.</p></article><article class="pillar"><span class="pillar__ico pillar__ico--sq" aria-hidden="true"><i></i></span><h3 class="pillar__t">Vendor-neutral</h3><p class="pillar__d">A weighted median over offers from marketplaces, neoclouds and sovereign operators, gated at 5 providers, with a 25% concentration cap — no single source sets the price.</p></article><article class="pillar"><span class="pillar__ico pillar__ico--rule" aria-hidden="true"><i></i></span><h3 class="pillar__t">Open methodology</h3><p class="pillar__d">Design follows the IOSCO Principles for Financial Benchmarks as voluntary best practice — published, versioned, and change-controlled, with the full constituent set behind every print.</p></article></div>
-  </section>
-
-  <section class="section" aria-labelledby="s-family">
-    <div class="section__head"><div>
-      <h2 class="section__h" id="s-family">A family of indices</h2>
-      <p class="section__dek">One index is published today. The rest are stated as what they
-      are — in development or planned — and carry no numbers until they do.</p></div></div>
-    <div class="famcards"><article class="fam fam--live"><span class="fam__status">Live</span><h3 class="fam__sym">TCI&#8209;CRI</h3><p class="fam__desc">Compute Reference Index — GPU-hour pricing across 6 hardware classes, published daily with its full constituent set.</p></article><article class="fam"><span class="fam__status">Planned</span><h3 class="fam__sym">TCI&#8209;SRI</h3><p class="fam__desc">Storage Reference Index — reference pricing for high-throughput storage, the other metered cost on a training run. No data is collected for this yet.</p></article></div>
-  </section>
-
-  <section class="section" aria-labelledby="data">
-    <div class="teaser">
-  <div>
-    <h2 class="teaser__h" id="data">Full history. CSV and JSON.</h2>
-    <p class="teaser__d">Every observation, every print, every constituent set — the
-    candidates that were rejected as well as the ones that counted, and the reason for
-    each. Downloadable and versioned since day one.</p>
-    <div class="teaser__cta">
-      <a class="btn btn--primary" href="data/index_history.csv">Download CSV</a>
-      <a class="btn btn--ghost" href="data.html">Data &amp; terms</a>
-    </div>
-  </div>
-  <div class="term">
-    <div class="term__chrome" aria-hidden="true"><i></i><i></i><i></i>
-      <span class="term__name">latest.json</span></div>
-    <div class="term__body">
-      <div class="term__c"># today's print, straight from the published JSON</div>
-      <div>curl -s ./data/latest.json | jq '.series["EU-CRI-H100"]'</div>
-      <div class="term__hi">{&quot;date&quot;:&quot;2026-09-07&quot;,&quot;value_usd&quot;:3.25,&quot;flags&quot;:&quot;&quot;}</div>
-    </div>
-  </div>
-</div>
-  </section>
-
-  <section class="section" aria-labelledby="s-research">
-    <div class="section__head"><div>
-      <h2 class="section__h" id="s-research">Latest research</h2>
-      <p class="section__dek">Notes on what the index measures and what it cannot.</p>
-      </div><a class="section__link" href="research.html">All notes</a></div>
-    <div class="linklist"><a class="linklist__row" href="research/a-gpu-hour-is-a-part-number.html"><span class="linklist__t">A GPU-hour is a part number, not a unit</span><span class="linklist__when num">2026-09-07</span></a><a class="linklist__row" href="research/what-moves-compute-prices.html"><span class="linklist__t">Compute prices barely move. Where you buy moves everything.</span><span class="linklist__when num">2026-09-06</span></a><a class="linklist__row" href="research/hedgeable-benchmark-design.html"><span class="linklist__t">What makes a compute benchmark hedgeable</span><span class="linklist__when num">2026-08-16</span></a></div>
-  </section>
-  </div>
-</main>
+</div></main>
 <footer class="footer">
   <div class="wrap footer__inner">
     <div class="footer__cols">
@@ -2380,52 +2141,6 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
     </div>
   </div>
 </footer>
-<script>(function(){
-var stamp=document.getElementById('asof'),hero=document.getElementById('hero-usd');
-if(!stamp||!hero)return;
-var baked=stamp.getAttribute('data-generated');
-function paint(d){
- var s=d.series&&d.series['EU-CRI-H100'];if(!s||s.value_usd==null)return;
- var v=s.value_usd.toFixed(2);
- if(v!==hero.textContent){hero.textContent=v;hero.classList.remove('is-ticked');
-  void hero.offsetWidth;hero.classList.add('is-ticked');}
- var eur=document.getElementById('hero-eur');
- if(eur&&s.value_eur!=null)eur.textContent=s.value_eur.toFixed(2);
- stamp.textContent='AS OF '+d.generated_at.replace('T',' ').replace('Z',' UTC');
- stamp.setAttribute('data-generated',d.generated_at);}
-function poll(){fetch('data/latest.json',{cache:'no-store'}).then(function(r){
- return r.ok?r.json():null;}).then(function(d){
- if(d&&d.generated_at&&d.generated_at!==baked){baked=d.generated_at;paint(d);}
- }).catch(function(){});}
-document.addEventListener('visibilitychange',function(){
- if(document.visibilityState==='visible')poll();});
-setInterval(poll,300000);})();
-(function(){
-var wave=document.querySelector('.hero__wave');if(!wave)return;
-var hero=wave.closest?wave.closest('.hero'):wave.parentNode;if(!hero)return;
-var mq=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
-if(mq&&mq.matches)return;
-wave.classList.add('is-live','is-intro');
-requestAnimationFrame(function(){wave.style.setProperty('--in','1');});
-setTimeout(function(){wave.classList.remove('is-intro');},2600);
-var box=null,tx=0.5,cx=0.5,ta=0,ca=0,raf=0;
-function drop(){box=null;}
-function step(){
- raf=0;
- cx+=(tx-cx)*0.16;ca+=(ta-ca)*0.09;
- wave.style.setProperty('--mx',cx.toFixed(4));
- wave.style.setProperty('--amp',ca.toFixed(4));
- if(Math.abs(tx-cx)>0.0004||Math.abs(ta-ca)>0.002)run();}
-function run(){if(!raf)raf=requestAnimationFrame(step);}
-function move(e){
- if(!box)box=wave.getBoundingClientRect();
- if(!box.width)return;
- var x=(e.clientX-box.left)/box.width;
- tx=x<-0.25?-0.25:(x>1.25?1.25:x);ta=1;run();}
-function out(){ta=0;run();}
-hero.addEventListener('pointermove',move,{passive:true});
-hero.addEventListener('pointerleave',out,{passive:true});
-window.addEventListener('resize',drop,{passive:true});
-window.addEventListener('scroll',drop,{passive:true});})();</script>
+
 </body>
 </html>

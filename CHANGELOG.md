@@ -3,6 +3,34 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Methodology notices, and a research register change — 2026-09-08 — no methodology change
+
+- **`config/notices.yaml` and `notices.html`.** GOVERNANCE.md §1 step 5 has always
+  required one publication's notice before the first print under a new methodology
+  version, and that requirement had no public surface: a change could satisfy every other
+  step and still leave a reader to discover it in a changelog afterwards. Notices are now
+  published on their own page, and any notice still awaiting its effective date raises a
+  banner on the dashboard, directly above the print it is going to change. Every notice
+  must state an expected effect on the level; "may affect the level" is explicitly not an
+  acceptable value. A notice is never deleted, only withdrawn, because a reader who saw
+  the announcement is owed the retraction. The register is not hash-locked and does not
+  enter the calculation path.
+- **Notice 2026-N1 published**, announcing the Norway and node-size-floor corrections
+  recorded as found-not-fixed on 2026-09-07. Effective 2026-09-15 with methodology
+  v0.4.0.
+- **Research notes move to an institutional register.** Note 2026-04 was published with a
+  personal byline, first-person process narration and a section proposing what to fix
+  next, which reads as an internal document rather than an administrator's position. It
+  has been revised: institutional byline, no first-person, unnumbered essay headings, and
+  the remediation section removed. The remedies were already recorded in this changelog,
+  which is where they belong. No figure, table or finding changed.
+- **New `.claude/skills/research-note/` skill** carrying the register, the essay
+  structure, the rule against publishing internal reasoning, and a pre-publication
+  checklist. STYLE.md now separates the two registers explicitly: the newsletter is a
+  person, a research note is the institution. The three earlier notes keep their numbered
+  sections, because each cross-references its own section numbers internally and
+  de-numbering them mechanically would break those references.
+
 ## Roadmap and distribution — 2026-09-07 — no methodology change
 
 - **TCI-ERI withdrawn from the published roadmap.** The energy index card said "in

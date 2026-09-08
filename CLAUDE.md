@@ -129,6 +129,23 @@ to sound like everyone's LLM-generated finance blog.
 
 **Run the `humanizer` skill** over any prose longer than a paragraph before committing it.
 
+**Never publish internal reasoning.** Anything the public reads — a research note, site
+copy, the methodology or governance pages — states findings and positions, not the process
+that produced them. No narration of what was tried, how it felt, what surprised you, what
+you plan to fix next, in what order, or why publication was timed a certain way. A
+remediation plan inside a published document reads as an internal file that escaped.
+
+Where that material belongs: a defect and its remedy go in `CHANGELOG.md` as
+found-not-fixed; a procedure goes in `GOVERNANCE.md`; a change that will move a print gets
+a notice in `config/notices.yaml` before it takes effect. If a published finding implies
+work, state the finding and stop.
+
+The two registers are different and the distinction is load-bearing. The **newsletter** is
+one person with a voice, per `STYLE.md`. A **research note** is the institution speaking:
+institutional byline, no first-person process, essay structure with unnumbered prose
+headings. `.claude/skills/research-note/SKILL.md` has the full rules and a
+pre-publication checklist — load it before writing anything in `research/`.
+
 `STYLE.md` is the authority. The tells it bans:
 
 - The rule-of-three reflex. Real reasoning is lumpy: sometimes one reason, sometimes five,

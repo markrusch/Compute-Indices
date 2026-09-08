@@ -1,0 +1,64 @@
+# Notices of change to the index methodology.
+#
+# GOVERNANCE.md §1 step 5 requires one publication's notice before the first print
+# computed under a new methodology version. Until now that requirement had no public
+# surface: a change could satisfy every other step and still leave a reader to discover
+# it in a changelog after the fact. This file is that surface. It is rendered to
+# notices.html, and any notice still awaiting its effective date raises a banner on the
+# dashboard.
+#
+# This register is NOT hash-locked and is not read by the calculation path. It announces
+# what a change will do; METHODOLOGY.lock is what proves what the code actually does.
+#
+# status:
+#   announced  published, effective date not yet reached. Raises the dashboard banner.
+#   in_effect  the first print under the new version has been computed.
+#   withdrawn  announced and then not proceeded with. Never delete a notice; withdraw it,
+#              because a reader who saw the announcement is owed the retraction.
+#
+# effect_on_level is mandatory and must be specific. "May affect the level" is not an
+# answer; either state the expected direction and rough size, or state that it is not
+# yet quantifiable and why.
+
+notices:
+  - id: 2026-N1
+    title: Norway restored to the EU/EEA constituent population, and the collection-time
+      node-size floor aligned to the published floor
+    announced: 2026-09-08
+    effective: 2026-09-15
+    version: 0.4.0
+    status: announced
+    summary: >-
+      Two defects found in the source audit of 7 September, both of which have been
+      silently narrowing the constituent population against the published methodology.
+      They are announced together because they take effect in the same version bump.
+    effect_on_level: >-
+      Expected to lower the headline slightly or leave it unchanged. Both defects
+      currently exclude supply, so correcting them can only add offers to the panel,
+      and added offers at the marketplace end of the distribution pull a weighted median
+      down rather than up. The size cannot be stated in advance: it depends on how many
+      Norwegian and sub-8-GPU offers qualify on the day, which is not known until the
+      first print under v0.4.0. Both legs will be quantified against the prior version
+      in the CHANGELOG entry for that print.
+    body: |
+      **Norway.** `config/factors.yaml` lists the EU/EEA constituent countries, and it has
+      never contained Norway. The token `NO` is read by YAML 1.1 as boolean false, so
+      `eu_eea_countries` holds `False` where it should hold the string `NO`. Every
+      Norwegian observation collected since Azure's `norwayeast` region began reporting on
+      2026-08-16 has been dropped by the country filter: 126 observations as of the date
+      of this notice. Norway is in the EEA, the published unit definition says EU/EEA, and
+      the index has therefore been narrower than its own stated scope.
+
+      **Node-size floor.** `filters.min_gpu_count` has been 2 since v0.3.0, which is the
+      floor the methodology publishes. The `gpuhunt_` collector has continued to discard
+      offers below 8 GPUs at collection time, before storage. Because collectors record
+      live prices that cannot honestly be re-collected for a past date, those offers are
+      not recoverable; the correction applies from the effective date forward.
+
+      Both are corrections toward the published methodology rather than changes to it.
+      Neither alters the unit definition, the estimator, the trim or the weighting. They
+      are handled as a minor version bump because each changes the constituent
+      population, which is a parameter change under GOVERNANCE.md §1.
+
+      Prints computed before the effective date remain valid under the version they
+      record in `daily_index.methodology_version` and are not restated. A gap stays a gap.

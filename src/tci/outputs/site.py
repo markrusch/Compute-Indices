@@ -845,6 +845,7 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <a href="{prefix}index.html">Indices</a>
         <a href="{prefix}methodology.html">Methodology v{_e(ctx.version)}</a>
         <a href="{prefix}governance.html">Governance</a>
+        <a href="{prefix}notices.html">Methodology notices</a>
       </nav>
       <nav class="footer__nav" aria-label="Footer, data">
         <h4>Data</h4>
@@ -1894,6 +1895,7 @@ def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
   <div class="wrap">
     {_hero()}
   </div>
+{_notice_banner(_load_notices())}
 
   <div class="wrap">
   <section class="section" id="indices" aria-labelledby="s-today">
@@ -2441,6 +2443,158 @@ def _policy_grid() -> str:
     ) + "</div>"
 
 
+@dataclass(frozen=True)
+class Notice:
+    """One announced change to the methodology, as published under GOVERNANCE.md §1."""
+
+    id: str
+    title: str
+    announced: str
+    effective: str
+    version: str
+    status: str
+    summary: str
+    effect_on_level: str
+    body: str
+
+    @property
+    def pending(self) -> bool:
+        """Announced, effective date not yet reached. These raise the dashboard banner."""
+        return self.status == "announced"
+
+
+def _load_notices() -> list[Notice]:
+    """The notice register, newest first.
+
+    GOVERNANCE.md §1 step 5 requires one publication's notice before the first print
+    under a new methodology version. That requirement had no public surface until this
+    existed: a change could satisfy every other step and still leave a reader to find out
+    from a changelog afterwards.
+
+    The register is not hash-locked and never enters the calculation path. It states what
+    a change is intended to do; METHODOLOGY.lock is what proves what the code does.
+    """
+    path = REPO_ROOT / "config" / "notices.yaml"
+    if not path.exists():
+        return []
+    raw = yaml.safe_load(_read(path)) or {}
+    out = [
+        Notice(
+            id=str(n.get("id", "")),
+            title=str(n.get("title", "")),
+            announced=str(n.get("announced", "")),
+            effective=str(n.get("effective", "")),
+            version=str(n.get("version", "")),
+            status=str(n.get("status", "announced")),
+            summary=str(n.get("summary", "")).strip(),
+            effect_on_level=str(n.get("effect_on_level", "")).strip(),
+            body=str(n.get("body", "")).strip(),
+        )
+        for n in (raw.get("notices") or [])
+    ]
+    return sorted(out, key=lambda n: (n.announced, n.id), reverse=True)
+
+
+_NOTICE_STATUS = {
+    "announced": ("chip--warning", "Takes effect"),
+    "in_effect": ("chip--good", "In effect since"),
+    "withdrawn": ("chip--neutral", "Withdrawn, was to take effect"),
+}
+
+
+def _notice_banner(notices: list[Notice], prefix: str = "") -> str:
+    """A standing banner on the dashboard while any change is announced but not yet live.
+
+    Notice is worth nothing if it is only reachable from a page nobody visits, so it sits
+    above the print it is going to change, on the page everyone lands on.
+    """
+    pending = [n for n in notices if n.pending]
+    if not pending:
+        return ""
+    items = "".join(
+        f"<p><strong>{_e(n.title)}</strong> Takes effect {_e(_human_date(n.effective))}"
+        f" with methodology v{_e(n.version)}. {_e(n.summary)}</p>"
+        for n in pending
+    )
+    plural = "changes" if len(pending) > 1 else "change"
+    return f"""<div class="wrap"><div class="callout--brand notice-banner" role="region"
+  aria-labelledby="notice-h">
+  <span class="eyebrow" id="notice-h">Announced {plural} to the methodology</span>
+  {items}
+  <p class="notice-banner__more"><a href="{prefix}notices.html">Read the full notice</a></p>
+</div></div>"""
+
+
+def _notices(ctx: SiteContext) -> str:
+    notices = _load_notices()
+    if not notices:
+        cards = (
+            '<div class="slot"><h3 class="slot__h">No notices</h3>'
+            "<p>No change to the methodology is currently announced. Every change that "
+            "would alter a published print appears here before the first print computed "
+            "under it.</p></div>"
+        )
+    else:
+        blocks = []
+        for n in notices:
+            cls, verb = _NOTICE_STATUS.get(n.status, _NOTICE_STATUS["announced"])
+            blocks.append(
+                f"""<article class="card" id="{_e(n.id)}">
+  <div class="card__head"><div>
+    <h2 class="card__title">{_e(n.title)}</h2>
+    <p class="card__sub">Notice {_e(n.id)} &#183; announced
+      {_e(_human_date(n.announced))} &#183; methodology v{_e(n.version)}</p>
+  </div>
+  <span class="card__meta"><span class="chip {cls}">
+    <span>{verb} {_e(_human_date(n.effective))}</span></span></span>
+  </div>
+  <div class="card__body">
+    <p class="dek">{_e(n.summary)}</p>
+    <div class="md">{markdown.render(_rebrand_doc(n.body)).html}</div>
+    <div class="fnstrip" style="margin-top:var(--space-6)">
+      <h4 class="fnstrip__h">Expected effect on the level</h4>
+      <p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+        line-height:var(--leading-prose)">{_e(n.effect_on_level)}</p>
+    </div>
+  </div>
+</article>"""
+            )
+        cards = '<div class="stack">' + "".join(blocks) + "</div>"
+
+    body = f"""<main id="main"><div class="wrap">
+  <section class="pagehead">
+    <div class="eyebrow">Governance</div>
+    <h1 class="pagehead__h">Methodology notices</h1>
+    <p class="pagehead__dek">Every change that would alter a published print is announced
+    here before the first print computed under it, as required by
+    <a href="governance.html">GOVERNANCE.md &#167;1</a>. Prints keep the methodology
+    version they were computed under, so a transition is auditable after the fact rather
+    than only announced before it.</p>
+  </section>
+  <section class="section">{cards}</section>
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">What a notice does not cover</h2>
+      <p class="section__dek">Scheduled weight reviews run a fixed published formula on a
+      fixed schedule with no discretion. They are data updates, not methodology changes,
+      and are not announced here. Corrections to an individual print are handled under the
+      correction policy and published as a new revision, never as an edit.</p>
+    </div></div>
+  </section>
+</div></main>"""
+    return _shell(
+        ctx,
+        title=f"Methodology notices — {BRAND}",
+        description=(
+            "Changes to the TCI methodology, announced before the first print computed "
+            "under them."
+        ),
+        current="governance.html",
+        canonical="notices.html",
+        body=body,
+    )
+
+
 def _governance(ctx: SiteContext) -> str:
     doc = markdown.render(_rebrand_doc(_read(REPO_ROOT / "GOVERNANCE.md")), heading_offset=1)
     preconds = _preconditions(ctx)
@@ -2974,6 +3128,7 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         (SITE_DIR / "methodology.html", _methodology(ctx)),
         (SITE_DIR / "data.html", _data(ctx)),
         (SITE_DIR / "governance.html", _governance(ctx)),
+        (SITE_DIR / "notices.html", _notices(ctx)),
         (SITE_DIR / "research.html", _research_index(ctx, notes)),
     ]
     pages += [
