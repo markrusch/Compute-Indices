@@ -3,6 +3,47 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Daily run restored after four dark sessions — 2026-09-11 — no methodology change
+
+The daily workflow failed on 8, 9, 10 and 11 September. No hash-locked file changed and
+no published value was wrong; the index simply stopped producing one. Root cause and the
+three fixes:
+
+- **Cause.** The tenor work of 2026-09-08 made the collectors emit `tier='spot'` and
+  `tier='interruptible'`, against an `observations` CHECK constraint that allowed
+  `('executable','list')` only. Every run died on an IntegrityError. The full test suite
+  stayed green throughout, because the collector tests assert on returned objects and the
+  normalise tests assert on dicts: nothing in the suite ever wrote a row, so nothing
+  looked at the seam between what a collector produces and what the database accepts.
+- **Fix 1, schema (`0003_tenor_vocabulary.sql`).** The tier vocabulary is widened to
+  include spot, interruptible and community, and `term` gains the CHECK it never had,
+  covering on_demand and the three reserved tenors. Both stay closed lists: the
+  constraint's value is catching a typo at write time, and `term` having no constraint at
+  all is why a mistyped tenor would have stored silently. Index eligibility is unchanged
+  and does not live in the schema — `normalise.py` decides it, and
+  `tests/test_normalise.py` pins that.
+- **Fix 2, failure isolation (`collectors/base.py`).** `run_collector` guarded the fetch
+  but not the insert, so a persistence error escaped and aborted the whole run: no index
+  computed, no site regenerated, nothing committed, for every other source too. Fetch and
+  insert now share one fail-soft boundary, and a failed run records the reason in
+  `runs.notes` rather than only in a CI log that ages out and is not public.
+- **Fix 3, the workflow.** The commit step now runs even when the daily step fails.
+  Observations are live prices that cannot honestly be re-collected for a past date, so a
+  day's raw data is irreplaceable once the runner is torn down. Four sessions of
+  collection were discarded because this step was skipped on failure. A commit made after
+  a failed run is marked as partial in its message, and a new diagnostic step prints the
+  per-source status and reason while the job is still on screen.
+- **New `tests/test_collector_persistence.py`.** Eight tests covering the seam that was
+  unwatched: every collector's fixture output is inserted into a real migrated database,
+  every tier and term the collectors emit is asserted storable, the vocabulary is asserted
+  still closed against junk values, one unstorable collector is asserted not to stop the
+  others, and a rejected batch is asserted to leave nothing behind. Verified to fail
+  against the pre-fix code.
+- **8, 9 and 10 September are recorded as gaps** with `n_sources = 0`, backfilled so the
+  outage appears in the published history rather than as three dates with no row at all.
+  No observations exist for those days and none can be recovered; the collectors report
+  live prices, and a past day cannot honestly be re-collected.
+
 ## Tenor and capability collection — 2026-09-08 — no methodology change
 
 A scan for sources that could support a forward curve, and for compute types beyond the

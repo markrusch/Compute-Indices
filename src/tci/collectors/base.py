@@ -67,31 +67,48 @@ def run_collector(
         (run_id, utc_date, collector.name, utc_now_iso()),
     )
     conn.commit()
+    # Fetch AND persist inside one fail-soft boundary.
+    #
+    # Until 2026-09-11 only the fetch was guarded, and the insert sat outside it. A
+    # collector could therefore return data the schema refused, and the resulting
+    # IntegrityError escaped this function and killed the whole daily run: no index
+    # computed, no site regenerated, nothing committed, for every other source too. That
+    # is exactly what happened when the tenor collectors began emitting tier='spot'
+    # against a CHECK that allowed only executable and list. Four sessions went dark for
+    # one collector's bad row.
+    #
+    # A source that cannot be collected, parsed OR stored is a source that did not report
+    # today. That is a gap, the index already knows how to publish gaps, and it is not a
+    # reason to stop publishing the sources that did report.
     try:
         observations = collector.collect(session or make_session())
-    except Exception:
-        log.exception("%s: collection failed (fail-soft, continuing)", collector.name)
+        with conn:
+            conn.executemany(
+                "INSERT INTO observations (run_id, ts_utc, source, provider, gpu_model,"
+                " gpu_count, price_usd_per_gpu_hr, region, country, interconnect, tier,"
+                " term, raw_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [
+                    (
+                        run_id, o.ts_utc, o.source, o.provider, o.gpu_model, o.gpu_count,
+                        o.price_usd_per_gpu_hr, o.region, o.country, o.interconnect,
+                        o.tier, o.term, o.raw_json,
+                    )
+                    for o in observations
+                ],
+            )
+    except Exception as exc:
+        log.exception("%s: run failed (fail-soft, continuing)", collector.name)
         with conn:
             conn.execute(
-                "UPDATE runs SET status = 'failed', finished_utc = ? WHERE run_id = ?",
-                (utc_now_iso(), run_id),
+                "UPDATE runs SET status = 'failed', finished_utc = ?, notes = ?"
+                " WHERE run_id = ?",
+                # The reason is stored, not just logged. CI logs age out and are not
+                # public; `runs` is committed, so a failure stays diagnosable later.
+                (utc_now_iso(), f"{type(exc).__name__}: {exc}"[:500], run_id),
             )
         return "failed"
 
     with conn:
-        conn.executemany(
-            "INSERT INTO observations (run_id, ts_utc, source, provider, gpu_model,"
-            " gpu_count, price_usd_per_gpu_hr, region, country, interconnect, tier,"
-            " term, raw_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-                (
-                    run_id, o.ts_utc, o.source, o.provider, o.gpu_model, o.gpu_count,
-                    o.price_usd_per_gpu_hr, o.region, o.country, o.interconnect,
-                    o.tier, o.term, o.raw_json,
-                )
-                for o in observations
-            ],
-        )
         conn.execute(
             "UPDATE runs SET status = 'ok', finished_utc = ?, notes = ? WHERE run_id = ?",
             (utc_now_iso(), f"{len(observations)} observations", run_id),

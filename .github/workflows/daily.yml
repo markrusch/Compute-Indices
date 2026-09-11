@@ -33,10 +33,38 @@ jobs:
           if [ "$(date -u +%u)" = "1" ]; then
             python -m tci.run validate || echo "::warning::validate reported issues"
           fi
+      # Diagnose before committing, and only when something went wrong. A failed run
+      # now records its reason in `runs.notes`, but CI logs age out and are not public,
+      # so surface it here while the job is still on screen.
+      - name: Why did it fail
+        if: failure()
+        run: |
+          python - <<'EOF'
+          from tci import db
+          conn = db.connect()
+          rows = conn.execute(
+              "SELECT source, status, notes FROM runs WHERE utc_date = date('now')"
+              " ORDER BY source"
+          ).fetchall()
+          for r in rows:
+              print(f"{r['source']:16} {r['status']:8} {r['notes'] or ''}")
+          EOF
+
+      # Runs even when the step above failed. Observations are live prices that cannot
+      # honestly be re-collected for a past date, so a day's raw data is irreplaceable
+      # the moment the runner is torn down. Committing it is strictly better than losing
+      # it: the worst case is a database with rows and no recomputed print, which the
+      # next run fixes, and `backfill` can recompute from stored observations at any
+      # time. Four sessions of collection were thrown away in September 2026 because
+      # this step was skipped whenever anything upstream failed.
       - name: Commit data + outputs
+        if: success() || failure()
         run: |
           git config user.name "tci-bot"
           git config user.email "rusch.mh@gmail.com"
+          # Mark a commit made after a failed run so the history says so plainly.
+          SUFFIX=""
+          if [ "${{ job.status }}" != "success" ]; then SUFFIX=" (partial: run failed)"; fi
           git add data/eucri.db site/
           if git diff --cached --quiet; then
             echo "nothing to commit"
@@ -44,7 +72,7 @@ jobs:
             # commit locally before pulling: `git pull --rebase` refuses to run
             # with staged changes in the index, which silently discarded every
             # day's real print from 2026-07-22 onward (computed, never persisted).
-            git commit -m "daily: $(date -u +%F)"
+            git commit -m "daily: $(date -u +%F)${SUFFIX}"
             git pull --rebase origin main
             git push origin main
           fi
