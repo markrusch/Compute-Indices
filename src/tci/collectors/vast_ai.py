@@ -6,17 +6,24 @@ Collection scope (documented in SOURCES.md): datacenter-verified hosts only
 (verification == 'verified' AND hosting_type == 1); community/hobbyist inventory is
 outside the index universe entirely. Offers are stored globally — EU/EEA, minimum
 GPU count, and price-band filters are applied in the calculation path (normalise.py)
-so per-day exclusions stay auditable; non-EU rows feed the future US-proxy series.
+so per-day exclusions stay auditable; non-EU rows feed the US reference block.
 
 Field semantics verified against a live response on 2026-07-18:
 dph_total is the whole-instance $/hr (divide by num_gpus); geolocation is
 'Region, CC'; hosting_type 1 = datacenter.
+
+Request budget: one POST per chip in CHIPS, plus one more for a chip whose ascending
+book comes back full, spaced REQUEST_SPACING_SECONDS apart. That is 9-18 requests a
+day where the source policy used to say one; the reason is the server's page clamp,
+explained above CHIPS, and SOURCES.md records the exception.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import time
+from typing import Any
 
 import requests
 
@@ -28,48 +35,66 @@ log = logging.getLogger("tci.collectors.vast_ai")
 
 URL = "https://console.vast.ai/api/v0/bundles/"
 
-# No gpu_name filter. The endpoint returns a bounded universe (~60-130 offers), and
-# fetching it whole means a GPU model this collector does not yet map still shows up in
-# the logs instead of being invisible server-side. New silicon reaches this marketplace
-# before it reaches a rate card, and the first place that should be noticed is here.
-QUERY = {
-    "rentable": {"eq": True},
-    "type": "on-demand",
-    "limit": 1000,
-    "order": [["dph_total", "asc"]],
-}
+# One query per chip, not one query for the whole marketplace.
+#
+# WHY. On 2026-09-08 the per-chip `gpu_name` filter was removed so that unmapped silicon
+# would show up in the logs. The endpoint clamps every response (Computable measured the
+# clamp on 2026-08-22: limit=400 returned 64 offers), and the query was ordered by
+# dph_total ascending, so what came back was the cheapest slice of the whole marketplace,
+# which is consumer cards. On 2026-09-11, the first run after that change to store
+# anything, vast.ai contributed two rows, both RTX 3060s in the US; the headline lost its
+# only executable constituent and gapped at 4 of 5 providers. Nothing failed loudly,
+# because an empty book is a legal answer.
+#
+# The shape below is the one Computable hardened live (their observatory/sources/vast.py,
+# Apache-2.0): one chip per request, ascending by instance total, and a second
+# descending read only when the ascending one comes back full. Ascending order truncates the LARGEST
+# instance totals first, which are exactly the cheap-per-GPU 8x nodes, so a full
+# ascending book is never trusted alone.
+#
+# FETCH_LIMIT must stay below the server's own clamp. If it were above it, a truncated
+# book could never be detected: the response would always look shorter than the limit.
+FETCH_LIMIT = 50
+REQUEST_SPACING_SECONDS = 0.75
+
+# Datacenter chips queried, in order. Each is one request (two if its book is full).
+CHIPS: tuple[str, ...] = (
+    "H100 SXM", "H100 NVL", "H100 PCIE", "A100 SXM4", "A100 PCIE",
+    "H200", "H200 NVL", "B200", "B300",
+)
+
+
+def chip_query(gpu_name: str, order: str = "asc") -> dict:
+    # `in` with one element rather than `eq`: `in` is the operator this collector ran live
+    # against this POST endpoint from 2026-07-18 to 2026-09-07. Computable's proven `eq`
+    # form uses the GET variant of the same endpoint; the two are equivalent in intent, and
+    # this keeps the request shape the one already proven on this transport.
+    return {
+        "gpu_name": {"in": [gpu_name]},
+        "rentable": {"eq": True},
+        "type": "on-demand",
+        "order": [["dph_total", order]],
+        "limit": FETCH_LIMIT,
+    }
+
 
 # vast.ai gpu_name -> (canonical variant, intra-node bus).
 #
-# WHAT IS DELIBERATELY ABSENT: "B200" and "H200" are offered here and are NOT mapped.
-# `B200_SXM` and `H200_SXM` are the reference variants of published classes in
-# factors.yaml, so mapping them would add a constituent to a published series, which is a
-# methodology change under GOVERNANCE.md §1 and needs a version bump and one
-# publication's notice. It is announced in config/notices.yaml rather than slipped in
-# through a collector edit.
-#
-# Everything below maps to a variant that is NOT a configured reference variant, so
-# normalise.py drops it at `variants.get(gpu_model)` and no published print can move.
-# The rows accumulate against the day a consumer/workstation class is defined.
+# Mapping a chip to a reference variant does NOT admit it to a print. Admission is
+# decided by the methodology's explicit panel (factors.yaml `panel`), which names the
+# classes each provider may contribute to. H200, B200, B300 and H100 PCIe are mapped
+# here so their history starts accumulating now; they reach a published series only
+# when a methodology version admits vast.ai to those classes, after a notice.
 GPU_MODEL_MAP = {
-    # Already mapped, already constituents. Unchanged.
     "H100 SXM": ("H100_SXM", "NVLink"),
     "H100 NVL": ("H100_NVL_94GB", "NVL"),
+    "H100 PCIE": ("H100_PCIE", "PCIe"),
     "A100 SXM4": ("A100_SXM", "NVLink"),
-    # Added 2026-09-08. None is a configured reference variant.
     "A100 PCIE": ("A100_PCIE", "PCIe"),
-    "L40S": ("L40S", "PCIe"),
-    "L40": ("L40", "PCIe"),
-    "RTX 6000Ada": ("RTX_6000_ADA", "PCIe"),
-    "RTX PRO 6000 WS": ("RTX_PRO_6000_WS", "PCIe"),
-    "RTX 5090": ("RTX_5090", "PCIe"),
-    "RTX 4090": ("RTX_4090", "PCIe"),
-    "RTX 4080": ("RTX_4080", "PCIe"),
-    "RTX 3090": ("RTX_3090", "PCIe"),
-    "RTX 3080": ("RTX_3080", "PCIe"),
-    "RTX 3060": ("RTX_3060", "PCIe"),
-    "A6000": ("A6000", "PCIe"),
-    "A40": ("A40", "PCIe"),
+    "H200": ("H200_SXM", "NVLink"),
+    "H200 NVL": ("H200_NVL", "NVL"),
+    "B200": ("B200_SXM", "NVLink"),
+    "B300": ("B300_SXM", "NVLink"),
 }
 
 # raw_json keeps the pricing-relevant subset of the ~100-field offer (audit without bloat).
@@ -106,32 +131,104 @@ def _country(geolocation: str | None) -> str | None:
     return code if len(code) == 2 else None
 
 
+def merge_books(asc: list[dict], desc: list[dict]) -> list[dict]:
+    """Union of the two reads, deduplicated by offer id, ascending read first."""
+    seen: set = set()
+    out: list[dict] = []
+    for offer in [*asc, *desc]:
+        key = offer.get("id")
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(offer)
+    return out
+
+
+def book_stats(asc: list[dict], desc: list[dict] | None) -> dict:
+    """What was read for one chip, stored with every row so a thin book is visible.
+
+    `possibly_truncated` is True when both reads came back full and did not overlap:
+    offers priced between the two ends may exist that neither read returned.
+    """
+    asc_ids = {o.get("id") for o in asc}
+    desc_ids = {o.get("id") for o in desc or []}
+    return {
+        "asc_count": len(asc),
+        "desc_count": None if desc is None else len(desc),
+        "fetch_limit": FETCH_LIMIT,
+        "possibly_truncated": bool(
+            desc is not None and len(desc) >= FETCH_LIMIT and not (asc_ids & desc_ids)
+        ),
+    }
+
+
 class VastAiCollector:
     name = "vast_ai"
 
-    def collect(self, session: requests.Session) -> list[Observation]:
-        resp = session.post(URL, json=QUERY, timeout=TIMEOUT_SECONDS)
+    def __init__(self, spacing_seconds: float = REQUEST_SPACING_SECONDS) -> None:
+        self.spacing_seconds = spacing_seconds
+
+    def _read(self, session: requests.Session, gpu_name: str, order: str) -> list[dict]:
+        resp = session.post(URL, json=chip_query(gpu_name, order), timeout=TIMEOUT_SECONDS)
         resp.raise_for_status()
-        offers = resp.json()["offers"]
+        offers = resp.json().get("offers") or []
+        # Identity pin: keep only offers the server itself labels with the queried chip.
+        # If the eq filter ever stops discriminating, the wrong silicon must not be
+        # recorded under this chip's name.
+        return [o for o in offers if o.get("gpu_name") == gpu_name]
+
+    def collect(self, session: requests.Session) -> list[Observation]:
         ts = utc_now_iso()
         out: list[Observation] = []
-        unmapped: set[str] = set()
+        failures: list[str] = []
+        total_read = 0
+        for i, gpu_name in enumerate(CHIPS):
+            if i and self.spacing_seconds:
+                time.sleep(self.spacing_seconds)
+            try:
+                asc = self._read(session, gpu_name, "asc")
+                desc = None
+                if len(asc) >= FETCH_LIMIT:
+                    time.sleep(self.spacing_seconds)
+                    desc = self._read(session, gpu_name, "desc")
+            except (requests.RequestException, ValueError) as exc:
+                # One chip failing is a partial read, not a failed source.
+                failures.append(f"{gpu_name}: {type(exc).__name__}")
+                continue
+            offers = merge_books(asc, desc or [])
+            total_read += len(offers)
+            stats = book_stats(asc, desc)
+            if stats["possibly_truncated"]:
+                log.warning("vast_ai: %s book possibly truncated (%s)", gpu_name, stats)
+            out.extend(self.to_observations(offers, ts, gpu_name, stats))
+        if total_read == 0:
+            # Nine datacenter chips and not one offer is not a quiet market, it is a
+            # changed API or a filter that stopped matching. Fail loudly so the run is
+            # recorded as failed with a reason, instead of 'ok, 0 observations'.
+            raise RuntimeError(f"vast_ai: zero offers read across all chips {failures}")
+        if failures:
+            log.warning("vast_ai: partial read, failed chips: %s", failures)
+        log.info("vast_ai: %d rows from %d offers across %d chips", len(out), total_read,
+                 len(CHIPS))
+        return out
+
+    def to_observations(
+        self, offers: list[dict], ts: str, queried: str, stats: dict
+    ) -> list[Observation]:
+        out: list[Observation] = []
         for offer in offers:
             if offer.get("verification") != "verified" or offer.get("hosting_type") != 1:
                 continue
-            name = offer.get("gpu_name", "")
-            model_map = GPU_MODEL_MAP.get(name)
+            model_map = GPU_MODEL_MAP.get(offer.get("gpu_name", ""))
             num_gpus = offer.get("num_gpus") or 0
             dph_total = offer.get("dph_total")
-            if model_map is None:
-                if name:
-                    unmapped.add(name)
-                continue
-            if num_gpus < 1 or not dph_total:
+            if model_map is None or num_gpus < 1 or not dph_total:
                 continue
             gpu_model, interconnect = model_map
-            raw = json.dumps({k: offer.get(k) for k in RAW_FIELDS})
-            common = {
+            raw = {k: offer.get(k) for k in RAW_FIELDS}
+            raw["queried_gpu_name"] = queried
+            raw["book"] = stats
+            common: dict[str, Any] = {
                 "ts_utc": ts,
                 "source": self.name,
                 "provider": "vast.ai",
@@ -140,7 +237,7 @@ class VastAiCollector:
                 "region": offer.get("geolocation"),
                 "country": _country(offer.get("geolocation")),
                 "interconnect": interconnect,
-                "raw_json": raw,
+                "raw_json": json.dumps(raw),
             }
             out.append(
                 Observation(
@@ -150,11 +247,9 @@ class VastAiCollector:
                     **common,
                 )
             )
-            # The bid price for the same machine. This is the interruptible leg of a
-            # two-sided quote, and storing it alongside the ask is what makes the
-            # spread between them observable rather than inferred. `interruptible` is
-            # in factors.filters.exclude_tiers and is dropped by normalise.py before any
-            # print, so this cannot move a published number.
+            # The bid price for the same machine: the interruptible leg of a two-sided
+            # quote. `interruptible` is excluded by normalise.py before any print, so this
+            # widens the audit trail without touching a number.
             min_bid = offer.get("min_bid")
             if min_bid and float(min_bid) > 0 and float(min_bid) != float(dph_total):
                 out.append(
@@ -165,10 +260,4 @@ class VastAiCollector:
                         **common,
                     )
                 )
-        if unmapped:
-            # Not an error. New silicon appears on a marketplace before it appears on a
-            # rate card, and this line is the earliest signal the index gets that a model
-            # it does not price is being offered.
-            log.info("vast_ai: unmapped gpu_name values seen: %s", ", ".join(sorted(unmapped)))
-        log.info("vast_ai: %d/%d offers kept (datacenter-verified)", len(out), len(offers))
         return out
