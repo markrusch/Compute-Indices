@@ -268,6 +268,13 @@ def _digitalocean_regions(variant: str) -> list[tuple[str, str]] | None:
     return DIGITALOCEAN_REGIONS.get(variant)
 
 
+def _voltagepark_country(obs: dict[str, Any]) -> str | None:
+    # "Voltage Park owns high-performance GPU clusters in Texas, Virginia, Washington, and
+    # Utah." (voltagepark.com/neocloud, read 2026-09-11). Its location API returns opaque
+    # ids, so the country is the provider's own statement that it operates only in the US.
+    return "US"
+
+
 def _voltagepark_count(obs: dict[str, Any]) -> int | None:
     # Priced per GPU but sold as 8-GPU nodes ("(8x per node)" in the recipe's notes).
     return 8 if "8x per node" in str(obs.get("notes") or "") else None
@@ -280,7 +287,7 @@ def computable_collectors() -> list[ComputableSource]:
         ComputableSource("civo", "civo", "civo"),
         ComputableSource("coreweave", "coreweave", "coreweave"),
         ComputableSource("voltagepark", "voltagepark", "voltagepark",
-                         gpu_count_of=_voltagepark_count),
+                         country_of=_voltagepark_country, gpu_count_of=_voltagepark_count),
         ComputableSource("digitalocean", "digitalocean", "digitalocean",
                          variant_override=_digitalocean_variant,
                          regions_of=_digitalocean_regions),

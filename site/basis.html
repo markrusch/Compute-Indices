@@ -3,28 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>When an index measures its own sampling — TCI Research</title>
-<meta name="description" content="How a 10% move in a compute benchmark turned out to be entirely composition noise, and what the unit definition had to do with it">
+<title>EU-US basis — TCI</title>
+<meta name="description" content="The EU/EEA H100 reference price minus a US series priced with the same rules: the regional basis a European buyer carries against US compute futures.">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0c0d">
 
-<link rel="canonical" href="https://thecomputeindices.com/research/composition-vs-price.html">
+<link rel="canonical" href="https://thecomputeindices.com/basis.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="The Compute Indices">
-<meta property="og:title" content="When an index measures its own sampling — TCI Research">
-<meta property="og:description" content="How a 10% move in a compute benchmark turned out to be entirely composition noise, and what the unit definition had to do with it">
-<meta property="og:url" content="https://thecomputeindices.com/research/composition-vs-price.html">
+<meta property="og:title" content="EU-US basis — TCI">
+<meta property="og:description" content="The EU/EEA H100 reference price minus a US series priced with the same rules: the regional basis a European buyer carries against US compute futures.">
+<meta property="og:url" content="https://thecomputeindices.com/basis.html">
 <meta property="og:image" content="https://thecomputeindices.com/assets/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="When an index measures its own sampling — TCI Research">
-<meta name="twitter:description" content="How a 10% move in a compute benchmark turned out to be entirely composition noise, and what the unit definition had to do with it">
+<meta name="twitter:title" content="EU-US basis — TCI">
+<meta name="twitter:description" content="The EU/EEA H100 reference price minus a US series priced with the same rules: the regional basis a European buyer carries against US compute futures.">
 <meta name="twitter:image" content="https://thecomputeindices.com/assets/og-card.png">
 <link rel="alternate" type="application/atom+xml" title="TCI Research"
- href="../feed.xml">
+ href="feed.xml">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0c0d'/%3E%3Crect x='6' y='9' width='7' height='16' rx='1' fill='%23f5f5f6'/%3E%3Crect x='17' y='16' width='7' height='9' rx='1' fill='%23f5f5f6'/%3E%3Ccircle cx='20.5' cy='10.5' r='3.5' fill='%23ff0000'/%3E%3C/svg%3E">
-<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://thecomputeindices.com/#administrator", "name": "The Compute Indices", "alternateName": "TCI", "url": "https://thecomputeindices.com", "email": "rusch.mh@gmail.com", "founder": {"@type": "Person", "name": "Mark Rusch"}, "description": "TCI publishes reproducible reference prices for AI and HPC compute \u2014 methodology-driven, vendor-neutral, and rebuildable from public sources by anyone."}, {"@type": "WebSite", "@id": "https://thecomputeindices.com/#website", "url": "https://thecomputeindices.com", "name": "The Compute Indices", "publisher": {"@id": "https://thecomputeindices.com/#administrator"}, "inLanguage": "en"}, {"@type": "WebPage", "url": "https://thecomputeindices.com/research/composition-vs-price.html", "isPartOf": {"@id": "https://thecomputeindices.com/#website"}}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://thecomputeindices.com/#administrator", "name": "The Compute Indices", "alternateName": "TCI", "url": "https://thecomputeindices.com", "email": "rusch.mh@gmail.com", "founder": {"@type": "Person", "name": "Mark Rusch"}, "description": "TCI publishes reproducible reference prices for AI and HPC compute \u2014 methodology-driven, vendor-neutral, and rebuildable from public sources by anyone."}, {"@type": "WebSite", "@id": "https://thecomputeindices.com/#website", "url": "https://thecomputeindices.com", "name": "The Compute Indices", "publisher": {"@id": "https://thecomputeindices.com/#administrator"}, "inLanguage": "en"}, {"@type": "WebPage", "url": "https://thecomputeindices.com/basis.html", "isPartOf": {"@id": "https://thecomputeindices.com/#website"}}]}</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script>document.documentElement.classList.add('js-boot');</script>
 <style>
@@ -99,7 +99,7 @@
    fallback behaviour match a Google-hosted <link> precisely.
 
    The stylesheet is inlined into every page, so `url()` here is resolved
-   against the PAGE, not this file. site.py rewrites ../assets/fonts/ to the correct
+   against the PAGE, not this file. site.py rewrites assets/fonts/ to the correct
    relative prefix per page depth (research/ notes sit one level down).
 
    font-display: swap — text paints immediately in the fallback stack and
@@ -112,7 +112,7 @@
   font-style: normal;
   font-weight: 400 800;
   font-display: swap;
-  src: url("../assets/fonts/outfit-latin.woff2") format("woff2");
+  src: url("assets/fonts/outfit-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
                  U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
                  U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
@@ -122,7 +122,7 @@
   font-style: normal;
   font-weight: 400 800;
   font-display: swap;
-  src: url("../assets/fonts/outfit-latin-ext.woff2") format("woff2");
+  src: url("assets/fonts/outfit-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
                  U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
                  U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
@@ -132,7 +132,7 @@
   font-style: normal;
   font-weight: 400 600;
   font-display: swap;
-  src: url("../assets/fonts/jetbrains-mono-latin.woff2") format("woff2");
+  src: url("assets/fonts/jetbrains-mono-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
                  U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
                  U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
@@ -142,7 +142,7 @@
   font-style: normal;
   font-weight: 400 600;
   font-display: swap;
-  src: url("../assets/fonts/jetbrains-mono-latin-ext.woff2") format("woff2");
+  src: url("assets/fonts/jetbrains-mono-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
                  U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
                  U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
@@ -2032,103 +2032,100 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 <div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-11T21:13:29Z">AS OF 2026-09-11 21:13:29 UTC</div></div>
   <div class="masthead__bar">
     <div class="wrap masthead__inner">
-      <a class="brand" href="../index.html"><span class="brand__mark" style="--brand-h:24px" aria-hidden="true"><span class="brand__tc">TC</span><span class="brand__i"><span class="brand__dot"></span><span class="brand__bar"></span></span></span><span class="brand__name">The Compute Indices</span></a>
+      <a class="brand" href="index.html"><span class="brand__mark" style="--brand-h:24px" aria-hidden="true"><span class="brand__tc">TC</span><span class="brand__i"><span class="brand__dot"></span><span class="brand__bar"></span></span></span><span class="brand__name">The Compute Indices</span></a>
       <input type="checkbox" id="navtoggle" class="navtoggle">
       <label class="navbtn" for="navtoggle">
         <span class="navbtn__bars" aria-hidden="true"></span>
         <span>Menu</span>
       </label>
-      <nav class="nav" aria-label="Primary"><a href="../index.html">Indices</a><a href="../basis.html">Basis</a><a href="../methodology.html">Methodology</a><a href="../data.html">Data</a><a href="../research.html" aria-current="page">Research</a><a href="../governance.html">Governance</a>
+      <nav class="nav" aria-label="Primary"><a href="index.html">Indices</a><a href="basis.html" aria-current="page">Basis</a><a href="methodology.html">Methodology</a><a href="data.html">Data</a><a href="research.html">Research</a><a href="governance.html">Governance</a>
         <a href="mailto:rusch.mh@gmail.com">Contact</a>
-        <a class="nav__cta" href="../index.html#indices">View Indices</a>
+        <a class="nav__cta" href="index.html#indices">View Indices</a>
       </nav>
     </div>
   </div>
 </header>
 <main class="wrap" id="main">
   <div class="pagehead">
-    <div class="eyebrow"><a class="link-quiet" href="../research.html">TCI
-    Research</a></div>
-    <h1 class="pagehead__h pagehead__h--display">When an index measures its own sampling</h1>
-    <p class="pagehead__dek">How a 10% move in a compute benchmark turned out to be entirely composition noise, and what the unit definition had to do with it</p>
-    <div class="pagehead__meta">
-      <span class="num">16 Aug 2026</span>
-      <span>Methodology <span class="num">v0.3.0-dev</span></span>
-      <span>Published</span>
-      <span>Mark Rusch</span>
+    <div class="eyebrow">EU&#8211;US basis</div>
+    <h1 class="pagehead__h pagehead__h--display">What a European buyer carries when the
+    hedge is priced in the US.</h1>
+    <p class="pagehead__dek">CME Group plans to list compute futures on 5 October 2026,
+    pending regulatory review, that settle in cash on Silicon Data's H100 and B200 rental
+    indices. A European buyer who hedges with them is exposed to the
+    difference between what the EU/EEA population of sellers charges and what the
+    reference population charges. TCI&#8209;CRI&#8209;H100&#8209;BASIS&#8209;US is that difference for one
+    H100 SXM GPU-hour: the EU/EEA headline minus a US series priced with exactly the same
+    rules.</p>
+    <div class="pagehead__meta"><span><span class="chip chip--warning"><span>First print 1 Oct 2026</span></span></span>
+      <span><a href="methodology.html">Methodology</a></span>
+      <span><a href="notices.html#2026-N3">Notice 2026-N3</a></span>
+      <span><a href="data/latest.json">latest.json</a></span></div>
+  </div>
+
+  <section class="section" aria-labelledby="s-now">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-now">The two legs and the spread</h2>
+      <p class="section__dek">Each leg publishes only with five qualifying sellers; the
+      spread publishes only when both legs do.</p></div></div>
+    <div class="tiles">
+      <article class="tile tile--gap"><div class="tile__head"><span class="tile__sym">TCI&#8209;CRI&#8209;H100</span><span class="tile__note">EU/EEA</span></div><div class="tile__body"><div class="tile__gap"><span class="tile__dash">&#8212;&#8212;</span></div></div><div class="tile__foot"><span class="chip chip--warning"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M2.5 8h3M10.5 8h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>below the provider gate</span></span></div></article>
+      <article class="tile tile--gap"><div class="tile__head"><span class="tile__sym">TCI&#8209;CRI&#8209;H100&#8209;US</span><span class="tile__note">United States</span></div><div class="tile__body"><div class="tile__gap"><span class="tile__dash">&#8212;&#8212;</span></div></div><div class="tile__foot"><span class="chip chip--neutral"><span>Not yet computed</span></span></div></article>
+      <article class="tile tile--gap"><div class="tile__head"><span class="tile__sym">TCI&#8209;CRI&#8209;H100&#8209;BASIS&#8209;US</span><span class="tile__note">EU minus US</span></div><div class="tile__body"><div class="tile__gap"><span class="tile__dash">&#8212;&#8212;</span></div></div><div class="tile__foot"><span class="chip chip--neutral"><span>Not yet computed</span></span></div></article>
     </div>
-  </div>
-  <div class="doc">
-    <nav class="toc" aria-label="On this page"><h2 class="toc__h">On this page</h2><ol class="toc__list"><li><a href="#abstract">Abstract</a></li><li><a href="#1-why-this-note-exists">1. Why this note exists</a></li><li><a href="#2-data">2. Data</a></li><li><a href="#3-finding-1-the-published-series-had-almost-no-price-content">3. Finding 1: the published series had almost no price content</a></li><li><a href="#4-finding-2-the-move-was-composition-not-price">4. Finding 2: the move was composition, not price</a></li><li><a href="#5-finding-3-two-thirds-of-the-panel-had-no-influence-at-all">5. Finding 3: two-thirds of the panel had no influence at all</a></li><li><a href="#6-finding-4-the-root-cause-was-the-unit-definition-not-the-estimator">6. Finding 4: the root cause was the unit definition, not the estimator</a></li><li class="is-sub"><a href="#61-what-the-market-itself-says-about-node-size">6.1 What the market itself says about node size</a></li><li><a href="#7-finding-5-the-robustness-control-did-not-exist">7. Finding 5: the robustness control did not exist</a></li><li><a href="#8-finding-6-the-panel-is-bimodal-so-the-average-is-a-fiction">8. Finding 6: the panel is bimodal, so the average is a fiction</a></li><li><a href="#9-what-changed">9. What changed</a></li><li><a href="#10-what-did-not-change-and-what-i-am-not-claiming">10. What did not change, and what I am not claiming</a></li><li><a href="#11-reproducibility">11. Reproducibility</a></li><li><a href="#12-limitations">12. Limitations</a></li></ol></nav>
-    <div><div class="md"><h3 id="abstract">Abstract</h3>
-<p>Between 18 July and 15 August 2026, the TCI-CRI-H100 headline moved from $2.99 to $3.29, a rise of 10.03%. Decomposing that move against the underlying constituent set shows the matched-pair market move over the same window was <strong>+0.00%</strong>. Every basis point of the published change came from constituents entering and leaving the panel.</p>
-<p>The proximate cause was the estimator. A weighted median over roughly six providers has a partial derivative of 1.0 with respect to exactly one constituent and 0.0 with respect to every other. The <em>root</em> cause was the unit definition. A minimum-node-size filter of eight GPUs admitted marketplace inventory on one collection day in ten, discarding a source that had posted nine distinct prices spanning 12.3%, while retaining catalog rate cards that had not moved once in a month.</p>
-<p>The index was not measuring the compute market. It was measuring which of its sources happened to answer.</p>
-<hr>
-<h3 id="1-why-this-note-exists">1. Why this note exists</h3>
-<p>Compute became a listed commodity this year. CME Group lists Silicon Data H100 and B200 Rental Index Futures on NYMEX on 5 October 2026, cash-settled on a monthly average of a daily $/GPU-hour index. ICE has announced competing contracts on the Ornn Compute Price Index. Both are US venues, both USD, both global in scope.</p>
-<p>That makes the construction of compute benchmarks a question with money attached, and it makes the failure modes worth publishing rather than quietly patching. What follows is a post-mortem of my own index, using my own data, with the code and the database public.</p>
-<hr>
-<h3 id="2-data">2. Data</h3>
-<p>All figures derive from <code class="inline">data/eucri.db</code> in the public repository, covering 14 collection days between 2026-07-18 and 2026-08-15. Seven providers were ever observed: two executable marketplaces (Vast.ai, RunPod), three neocloud rate cards (Nebius, DataCrunch, Seeweb) and two hyperscaler catalogs (AWS, GCP via the <code class="inline">gpuhunt</code> package).</p>
-<p>Every query below is reproducible from the committed database.</p>
-<hr>
-<h3 id="3-finding-1-the-published-series-had-almost-no-price-content">3. Finding 1: the published series had almost no price content</h3>
-<p>Prices observed per provider across all 14 days:</p>
-<div class="scroll-x"><table class="md-table"><thead><tr><th scope="col">Provider</th><th scope="col">Tier</th><th scope="col">Price(s) observed, USD/GPU-hr</th></tr></thead><tbody><tr><td>aws</td><td>list</td><td>7.3616</td></tr><tr><td>datacrunch</td><td>list</td><td>3.2500</td></tr><tr><td>gcp</td><td>list</td><td>5.4424</td></tr><tr><td>nebius</td><td>list</td><td>3.8500</td></tr><tr><td>seeweb</td><td>list</td><td>2.1600</td></tr><tr><td>vast.ai</td><td>executable</td><td>2.2003</td></tr><tr><td><strong>runpod</strong></td><td>executable</td><td><strong>2.99 → 3.29</strong></td></tr></tbody></table></div>
-<p>Six of seven providers show exactly one price for the entire history. The whole dataset contains one price move, at one provider.</p>
-<p>At the time this looked like a fact about the market, that EU H100 rental prices are sticky. Section 6 shows it was a fact about my filter.</p>
-<h3 id="4-finding-2-the-move-was-composition-not-price">4. Finding 2: the move was composition, not price</h3>
-<p>Chain-linking on matched pairs (providers present on both days) isolates the price effect from the composition effect:</p>
-<div class="scroll-x"><table class="md-table"><thead><tr><th scope="col">Date</th><th scope="col" class="num ta-r">n</th><th scope="col" class="num ta-r">Matched</th><th scope="col" class="num ta-r">Matched return</th><th scope="col" class="num ta-r">Chained $</th><th scope="col" class="num ta-r">Published $</th><th scope="col">Panel change</th></tr></thead><tbody><tr><td>07-18</td><td class="num ta-r">7</td><td class="num ta-r">base</td><td class="num ta-r"></td><td class="num ta-r">2.9900</td><td class="num ta-r">2.9900</td><td></td></tr><tr><td>07-19</td><td class="num ta-r">6</td><td class="num ta-r">6</td><td class="num ta-r">+0.000%</td><td class="num ta-r">2.9900</td><td class="num ta-r">3.2500</td><td>−vast.ai</td></tr><tr><td>07-21</td><td class="num ta-r">6</td><td class="num ta-r">6</td><td class="num ta-r">+0.000%</td><td class="num ta-r">2.9900</td><td class="num ta-r">3.2500</td><td></td></tr><tr><td>08-05</td><td class="num ta-r">5</td><td class="num ta-r">5</td><td class="num ta-r">+0.000%</td><td class="num ta-r">2.9900</td><td class="num ta-r">3.8500</td><td>−runpod</td></tr><tr><td>08-06</td><td class="num ta-r">5</td><td class="num ta-r">5</td><td class="num ta-r">+0.000%</td><td class="num ta-r">2.9900</td><td class="num ta-r">3.8500</td><td></td></tr><tr><td>08-07</td><td class="num ta-r">6</td><td class="num ta-r">5</td><td class="num ta-r">+0.000%</td><td class="num ta-r">2.9900</td><td class="num ta-r">3.2900</td><td>+runpod</td></tr><tr><td>08-08 to 08-15</td><td class="num ta-r">6</td><td class="num ta-r">6</td><td class="num ta-r">+0.000%</td><td class="num ta-r">2.9900</td><td class="num ta-r">3.2900</td><td></td></tr></tbody></table></div>
-<p><strong>Published: +10.03%. Matched-pair: +0.00%.</strong></p>
-<p>Realised volatility of the published series over the window was 107.5% annualised, of which 100% is composition and 0.00% is price. Anyone who had sold options on this series would have been short a pure jump process with no diffusion to hedge.</p>
-<h3 id="5-finding-3-two-thirds-of-the-panel-had-no-influence-at-all">5. Finding 3: two-thirds of the panel had no influence at all</h3>
-<p>Shocking each constituent by +10% on the 2026-08-15 panel (lower weighted median, $3.29):</p>
-<div class="scroll-x"><table class="md-table"><thead><tr><th scope="col">Shock</th><th scope="col" class="num ta-r">Index after</th><th scope="col" class="num ta-r">∂</th></tr></thead><tbody><tr><td>+10% seeweb</td><td class="num ta-r">3.2900</td><td class="num ta-r"><strong>0.00%</strong></td></tr><tr><td>+10% datacrunch</td><td class="num ta-r">3.5750</td><td class="num ta-r">+8.66%</td></tr><tr><td>+10% runpod</td><td class="num ta-r">3.6190</td><td class="num ta-r">+10.00%</td></tr><tr><td>+10% nebius</td><td class="num ta-r">3.2900</td><td class="num ta-r"><strong>0.00%</strong></td></tr><tr><td>+10% gcp</td><td class="num ta-r">3.2900</td><td class="num ta-r"><strong>0.00%</strong></td></tr><tr><td>+10% aws</td><td class="num ta-r">3.2900</td><td class="num ta-r"><strong>0.00%</strong></td></tr></tbody></table></div>
-<p>AWS and GCP, between them a large share of global compute capacity, had exactly zero influence on the print. A hedger short TCI-CRI-H100 was, in delta terms, short RunPod&#x27;s rate card and a little DataCrunch.</p>
-<p>This is not an argument that medians are bad. SOFR is a volume-weighted median and is among the most robust benchmarks in existence, because its constituent is <em>an observation out of thousands</em> rather than <em>a provider out of six</em>. A median is locally smooth over a dense distribution and a step function over a sparse one. Panel density is the variable that matters, and I did not have it.</p>
-<h3 id="6-finding-4-the-root-cause-was-the-unit-definition-not-the-estimator">6. Finding 4: the root cause was the unit definition, not the estimator</h3>
-<p>The reference unit required a minimum of <strong>eight GPUs</strong> per offer, intended to pin the contract to a standard 8-way SXM training node. Marketplace inventory is not shaped like that. Checking Vast.ai&#x27;s raw EU H100 SXM observations <em>before</em> the filter:</p>
-<div class="scroll-x"><table class="md-table"><thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead><tbody><tr><td>Distinct EU H100 prices posted</td><td><strong>9</strong></td></tr><tr><td>Price range</td><td><strong>+12.3%</strong></td></tr><tr><td>Implied annualised volatility</td><td><strong>~179%</strong></td></tr><tr><td>Observations passing the ≥8-GPU filter</td><td><strong>1</strong></td></tr><tr><td>Collection days with any passing offer</td><td><strong>1 of 10</strong></td></tr></tbody></table></div>
-<p>The price discovery was in the data the whole time. The unit definition removed it and left the rate cards behind.</p>
-<p>The general lesson is not specific to compute: <strong>a specification filter that correlates with the source of variance will silently convert a price index into a catalog index.</strong> The filter looked conservative. It was the single most destructive parameter in the methodology.</p>
-<h4 id="61-what-the-market-itself-says-about-node-size">6.1 What the market itself says about node size</h4>
-<p>Because Vast.ai posts several node sizes simultaneously, the node-size effect is directly measurable within one venue on one day, with no cross-provider or cross-time confounding:</p>
-<div class="scroll-x"><table class="md-table"><thead><tr><th scope="col" class="num ta-r">Node</th><th scope="col" class="num ta-r">USD/GPU-hr (2026-07-18)</th><th scope="col" class="num ta-r">Ratio vs 1×</th></tr></thead><tbody><tr><td class="num ta-r">1×</td><td class="num ta-r">2.4027</td><td class="num ta-r">1.000</td></tr><tr><td class="num ta-r">2×</td><td class="num ta-r">2.2007</td><td class="num ta-r">0.951</td></tr><tr><td class="num ta-r">4×</td><td class="num ta-r">2.2006</td><td class="num ta-r">0.916</td></tr><tr><td class="num ta-r">8×</td><td class="num ta-r">2.2003</td><td class="num ta-r">0.916</td></tr></tbody></table></div>
-<p>The per-GPU discount <strong>saturates at two GPUs</strong>. A 2-GPU offer and an 8-GPU offer differ by under 4% per GPU. The meaningful premium is on the single-GPU order (~9%), which is a small-order effect rather than a fabric effect.</p>
-<p>So the eight-GPU floor was not buying comparability. It was buying almost nothing, at the cost of nearly all the data.</p>
-<h3 id="7-finding-5-the-robustness-control-did-not-exist">7. Finding 5: the robustness control did not exist</h3>
-<p>The methodology winsorised the constituent set at the nearest-rank 5th and 95th percentiles. At n = 6, nearest-rank p5 resolves to the minimum and p95 to the maximum:</p>
-<div class="scroll-x"><table class="md-table"><thead><tr><th scope="col" class="num ta-r">n</th><th scope="col">p5/p95</th><th scope="col">p10/p90</th><th scope="col">p20/p80</th></tr></thead><tbody><tr><td class="num ta-r">6</td><td>no-op</td><td>no-op</td><td>clamps</td></tr><tr><td class="num ta-r">8</td><td>no-op</td><td>no-op</td><td>clamps</td></tr><tr><td class="num ta-r">10</td><td>clamps (upper only)</td><td>clamps (upper only)</td><td>clamps</td></tr></tbody></table></div>
-<p>The clamp performed no work on any print in the index&#x27;s history, and even at n = 10 it protects only the upper tail. A percentile control is inert at small n. Small panels need count-based trimming, which binds deterministically at every n.</p>
-<p>I had shipped a robustness parameter that was decorative, and it sat in config looking as though it were doing something.</p>
-<h3 id="8-finding-6-the-panel-is-bimodal-so-the-average-is-a-fiction">8. Finding 6: the panel is bimodal, so the average is a fiction</h3>
-<p>The 2026-08-15 constituent set:</p>
-<pre class="code"><code>neocloud/marketplace [2.16  3.25  3.29  3.85] │ gap │ hyperscaler [5.44  7.36]</code></pre>
-<p>Cluster separation is <strong>5.4 standard deviations</strong>. A weighted mean across the full panel returns $4.03 to $4.23, which falls inside the empty interval between the two clusters. It is a number no participant in this market quotes or could transact at.</p>
-<p>This is why the fix is not &quot;use a mean instead of a median&quot;. Across a bimodal population both estimators are wrong in different ways: the mean invents a price, and the median picks a real price but responds to only one name. The fix is to stop averaging across the gap. Hyperscaler catalog rates belong in a hyperscaler series where they are the object of measurement, not a drag on someone else&#x27;s print.</p>
-<h3 id="9-what-changed">9. What changed</h3>
-<p>Methodology v0.3.0, in order of measured impact:</p>
-<ol><li><strong>Node-size floor 8 → 2 GPUs.</strong> Recovers marketplace price discovery at a measured comparability cost under 4%; the ~9% single-GPU small-order premium stays excluded.</li><li><strong>Aggregation over offers, not providers.</strong> Restores a non-degenerate delta vector by making the panel dense. This is the SOFR construction, applied at the level where it works.</li><li><strong>Market-segment segregation.</strong> Headline population is marketplace + neocloud; hyperscaler catalogs move to their own series.</li><li><strong>Count-based trim replaces percentile winsorising.</strong> A control that binds.</li><li><strong>Tier-only provider weighting.</strong> Capacity is unobservable for list sources; weighting by a default made a rate card that discloses nothing outrank a marketplace disclosing a real 2-GPU offer.</li><li><strong>No assumed variant factors.</strong> Removed an unmeasured <code class="inline">H100_NVL_94GB: 1.0</code>; H100 PCIe became its own class. Factors must be measured from same-venue, same-day pairs.</li><li><strong>FX look-ahead fixed.</strong> Two backfilled prints had used a rate published after their own print date.</li></ol>
-<h3 id="10-what-did-not-change-and-what-i-am-not-claiming">10. What did not change, and what I am not claiming</h3>
-<p>I considered and <strong>rejected</strong> a chain-linked level as the headline. Chain-linking cures composition instability, but a Laspeyres link with a same-day divisor reset contributes exactly zero return on panel entry and exit, which makes in-panel rises permanent while falls taken via exit and re-entry are laundered away. On this panel&#x27;s churn that ratchet is worth roughly +7.8% per cycle for a constituent at the concentration cap. The chained level is published as a labelled companion. The headline is the raw cross-section, which is the number a third party can most easily verify.</p>
-<p>I also <strong>rejected</strong> three series I had specified:</p>
-<ul><li>an <strong>EU-vs-US basis</strong>, because the neocloud tier is globally arbitraged and the spread is approximately zero;</li><li>a <strong>Nordic-vs-Continental basis</strong>, because my own data refutes it. Azure&#x27;s H100 price in Sweden equals West Europe exactly, and the 22.5% dispersion I had cited was Poland against Germany, both Continental;</li><li>a <strong>compute–power spark spread</strong>, because power is 0.9–8.8% of the price, so the spread would be 91–99% one leg.</li></ul>
-<p>And the headline claim is deliberately narrow. TCI has <strong>no transaction feed</strong>. It is a reproducible, spec-locked, publicly auditable <em>price-transparency</em> benchmark, not a settlement benchmark, and it should not be referenced in a financial contract. The conditions that would have to be met before that changed are published, falsifiable, and currently unmet, chiefly ≥15 constituents with ≥50% executable share, against today&#x27;s five constituents and roughly 17%.</p>
-<h3 id="11-reproducibility">11. Reproducibility</h3>
-<p>Everything above recomputes from the public repository:</p>
-<pre class="code" data-lang="bash"><code>git clone https://github.com/markrusch/Compute-Indices
-cd Compute-Index &amp;&amp; pip install -e .[dev]
-python -m tci.run constituents --date 2026-08-16
-python -m tci.run backfill --from 2026-07-18 --to 2026-08-15
-pytest</code></pre>
-<p>Raw observations and published prints are append-only, enforced by database triggers. Every print records the methodology version it was computed under, so the v0.2.0 series discussed here remains queryable alongside its v0.3.0 recomputation.</p>
-<h3 id="12-limitations">12. Limitations</h3>
-<p>The window is 14 collection days and seven providers. The node-size ratios in §6.1 rest on three venue-days for the 2× step and one each for 4× and 8×; they are published as provisional and are deliberately <em>not</em> used as adjustment factors in the calculation path. The bimodality result is a single-day cluster separation, not a formal mixture test. None of these weaken the two central findings, the composition decomposition in §4 and the filter effect in §6, which are arithmetic rather than inferential.</p>
-<hr>
-<p><em>TCI is a research publication. It is not investment advice and may not be used as a reference price in financial instruments. Author and administrator: Mark Rusch (rusch.mh@gmail.com). Conflicts: the author may hold positions on venues whose prices the index observes; see GOVERNANCE.md.</em></p></div></div>
-  </div>
+    <p class="section__dek">The month-to-date average starts with the first print on 1 Oct 2026. Each
+    CME contract covers a month of rent (730 GPU-hours), so the month is the unit a
+    hedger's basis is measured in.</p>
+  </section>
+
+  <section class="section" aria-labelledby="s-hist">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-hist">Last 60 sessions</h2></div></div>
+    <div class="card"><div class="card__body"><div class="gapnote"><svg class="ico" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M8 1.6 15.2 14H0.8Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6v3.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.9" r="1" fill="currentColor"/></svg><p>The basis publishes from 1 Oct 2026 under methodology v0.6.0 (notice <a href="notices.html#2026-N3">2026-N3</a>). There is no value before that date, and none is back-filled.</p></div></div></div>
+  </section>
+
+  <section class="section" aria-labelledby="s-what">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-what">What the spread measures, and what it does not</h2>
+      <p class="section__dek">Both legs use the same unit definition, node floor, weighted
+      median over offers, trim, tier weights, concentration cap and publication gate. Only
+      the region differs, which is what makes the spread a regional basis rather than a
+      comparison of two methods.</p></div></div>
+    <div class="md"><p>It is <strong>not</strong> the basis to the Silicon Data index the
+    CME contracts settle on. That index's methodology is not public, and a spread against
+    it would mix a regional difference with a methodological one that nobody outside can
+    measure. What is published here is the regional part, with the method held
+    constant.</p>
+    <p>The US leg draws on five candidate sellers (vast.ai, RunPod, Lambda, DigitalOcean,
+    Voltage Park) against a gate of five. On any day one of them has no qualifying offer,
+    the US leg gaps and so does the spread, with the reason in the audit set.</p>
+    <p>RunPod and DigitalOcean charge one price in every region, so on a day both qualify
+    in both legs the same two prices sit on each side of the spread. That pulls the basis
+    toward zero, and it is correct: a buyer can rent from either at the same price on
+    either side of the Atlantic. A basis driven by the other sellers is the one that
+    reflects regional pricing.</p></div>
+    <div class="card card__body--flush"><div class="scroll-x"><table class="grid">
+  <caption class="vh">Sellers admitted to the H100 class, v0.6.0</caption>
+  <thead><tr><th scope="col">Seller</th><th scope="col">Segment</th>
+  <th scope="col">Collector</th><th scope="col">H100 SXM rows, last 30 days</th></tr></thead>
+  <tbody><tr><td>digitalocean</td><td>neocloud</td><td class="num">digitalocean</td><td>not yet seen</td></tr><tr><td>genesis_cloud</td><td>neocloud</td><td class="num">static_yaml</td><td>not yet seen</td></tr><tr><td>hetzner</td><td>neocloud</td><td class="num">static_yaml</td><td>not yet seen</td></tr><tr><td>lambdalabs</td><td>neocloud</td><td class="num">gpuhunt</td><td>not yet seen</td></tr><tr><td>leaseweb</td><td>neocloud</td><td class="num">static_yaml</td><td>not yet seen</td></tr><tr><td>nebius</td><td>neocloud</td><td class="num">gpuhunt</td><td>not yet seen</td></tr><tr><td>runpod</td><td>marketplace</td><td class="num">runpod</td><td>EU/EEA</td></tr><tr><td>scaleway</td><td>neocloud</td><td class="num">scaleway</td><td>EU/EEA</td></tr><tr><td>seeweb</td><td>neocloud</td><td class="num">static_yaml</td><td>EU/EEA</td></tr><tr><td>vast.ai</td><td>marketplace</td><td class="num">vast_ai</td><td>EU/EEA + US</td></tr><tr><td>verda</td><td>neocloud</td><td class="num">gpuhunt</td><td>not yet seen</td></tr><tr><td>voltagepark</td><td>neocloud</td><td class="num">voltagepark</td><td>not yet seen</td></tr></tbody></table></div></div>
+  </section>
+
+  <section class="section" aria-labelledby="s-where">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-where">Where a region-flat price is placed</h2></div></div>
+    <div class="md"><ul>
+      <li><strong>vast.ai</strong>: every offer carries its own location.</li>
+      <li><strong>Lambda</strong>: catalogue rows carry a region (europe-central-1 is
+      Germany).</li>
+      <li><strong>DigitalOcean</strong>: one price, recorded once for each region its
+      availability page lists for the H100 (Amsterdam, New York, Toronto).</li>
+      <li><strong>RunPod</strong>: one price everywhere. A US row is recorded only on a day
+      RunPod reports stock of that GPU type in a US datacentre.</li>
+      <li><strong>Voltage Park</strong>: sells only in the United States, by its own
+      statement.</li>
+    </ul></div>
+  </section>
 </main>
 <footer class="footer">
   <div class="wrap footer__inner">
@@ -2140,20 +2137,20 @@ pytest</code></pre>
       </div>
       <nav class="footer__nav" aria-label="Footer, product">
         <h4>Product</h4>
-        <a href="../index.html">Indices</a>
-        <a href="../methodology.html">Methodology v0.3.0-dev</a>
-        <a href="../governance.html">Governance</a>
-        <a href="../notices.html">Methodology notices</a>
+        <a href="index.html">Indices</a>
+        <a href="methodology.html">Methodology v0.3.0-dev</a>
+        <a href="governance.html">Governance</a>
+        <a href="notices.html">Methodology notices</a>
       </nav>
       <nav class="footer__nav" aria-label="Footer, data">
         <h4>Data</h4>
-        <a href="../data.html">Downloads &amp; terms</a>
-        <a href="../data/index_history.csv">index_history.csv</a>
-        <a href="../data/latest.json">latest.json</a>
+        <a href="data.html">Downloads &amp; terms</a>
+        <a href="data/index_history.csv">index_history.csv</a>
+        <a href="data/latest.json">latest.json</a>
       </nav>
       <nav class="footer__nav" aria-label="Footer, company">
         <h4>Company</h4>
-        <a href="../research.html">Research</a>
+        <a href="research.html">Research</a>
         <a href="https://github.com/markrusch/Compute-Indices" rel="noopener">GitHub</a>
         <a href="mailto:rusch.mh@gmail.com">Contact</a>
       </nav>

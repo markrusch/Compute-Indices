@@ -82,7 +82,9 @@ def _variant_map(factors: Factors) -> dict[str, tuple[str, float]]:
     }
 
 
-def unadmitted_providers(rows: Iterable[RowLike], factors: Factors) -> dict[str, set[str]]:
+def unadmitted_providers(
+    rows: Iterable[RowLike], factors: Factors, countries: frozenset[str] | None = None
+) -> dict[str, set[str]]:
     """Providers seen today in a class the panel does not admit them to: provider -> classes.
 
     Only rows that would otherwise qualify on unit and location are counted, so the audit
@@ -99,7 +101,7 @@ def unadmitted_providers(rows: Iterable[RowLike], factors: Factors) -> dict[str,
             continue
         if row["term"] != factors.reference_unit.term or row["tier"] not in ("executable", "list"):
             continue
-        if row["country"] not in factors.eu_eea_countries:
+        if row["country"] not in (countries if countries is not None else factors.eu_eea_countries):
             continue
         out.setdefault(row["provider"], set()).add(model_class)
     return out
@@ -109,14 +111,20 @@ def normalise_observations(
     rows: Iterable[RowLike],
     factors: Factors,
     fx_eur_usd: float | None = None,
+    countries: frozenset[str] | None = None,
 ) -> list[NormalisedObs]:
     """Apply the unit definition to every offer. Order of checks mirrors METHODOLOGY.md §1.
 
     `fx_eur_usd` is USD per 1 EUR (the ECB reference convention). Required only if
     non-USD rows are present; without it those rows are excluded, never converted at a
     guessed rate.
+
+    `countries` is the region block being priced: the EU/EEA by default, which is the
+    headline family's unit. Every other rule of the unit definition is the same in every
+    block, which is what makes a spread between two blocks a like-for-like comparison.
     """
     reference = factors.reference_unit
+    block = countries if countries is not None else factors.eu_eea_countries
     variants = _variant_map(factors)
     out: list[NormalisedObs] = []
     for row in rows:
@@ -138,7 +146,7 @@ def normalise_observations(
             continue
 
         country = row["country"]
-        if country not in factors.eu_eea_countries:
+        if country not in block:
             continue
 
         gpu_count = row["gpu_count"]

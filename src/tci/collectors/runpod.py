@@ -91,6 +91,11 @@ def demonstrated_node_size(gpu_type: dict) -> int | None:
     return None
 
 
+def us_datacentres(ids: list[str] | None) -> list[str]:
+    """RunPod datacentre ids in the United States (ids are prefixed by location, 'US-TX-3')."""
+    return [i for i in ids or [] if i.upper().startswith("US-")]
+
+
 def parse_datacentre_stock(payload: dict) -> dict[str, list[str]]:
     """gpuTypeId -> sorted datacentre ids reporting that type available with stock."""
     out: dict[str, set[str]] = {}
@@ -160,6 +165,29 @@ class RunPodCollector:
                     ),
                 )
             )
+            # The same region-flat price, deliverable from the United States: recorded as a
+            # second row ONLY when RunPod itself reports stock of this type in a US
+            # datacentre today. The EU row above keeps its documented convention (country
+            # RO) so no stored print changes meaning; this row feeds the US block.
+            in_stock = None if stock_by_type is None else stock_by_type.get(gt.get("id", ""))
+            us = us_datacentres(in_stock)
+            if us:
+                out.append(
+                    Observation(
+                        ts_utc=ts,
+                        source=self.name,
+                        provider="runpod",
+                        gpu_model=gpu_model,
+                        gpu_count=node_size,
+                        price_usd_per_gpu_hr=float(gt["securePrice"]),
+                        region="secure-cloud US (" + ", ".join(us) + ")",
+                        country="US",
+                        interconnect=interconnect,
+                        tier="executable",
+                        term="on_demand",
+                        raw_json=json.dumps({**gt, "datacentres_in_stock": in_stock}),
+                    )
+                )
         sized = sum(1 for o in out if o.gpu_count is not None)
         if stock_by_type is None:
             log.warning("runpod: datacentre stock query failed; prices recorded without it")

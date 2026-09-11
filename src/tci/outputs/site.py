@@ -43,7 +43,13 @@ import yaml
 
 from tci import DISCLAIMER
 from tci.commands import COMPOSITE, HEADLINE, SERIES_7D
-from tci.config import Factors, load_factors, load_sovereign
+from tci.config import (
+    Factors,
+    SuccessionEntry,
+    load_factors,
+    load_sovereign,
+    load_succession,
+)
 from tci.db import utc_now_iso
 from tci.outputs import markdown
 from tci.outputs.webdata import provider_links, sources_panel
@@ -96,6 +102,7 @@ CUTOFF_UTC = "11:00 UTC"
 
 NAV: tuple[tuple[str, str], ...] = (
     ("index.html", "Indices"),
+    ("basis.html", "Basis"),
     ("methodology.html", "Methodology"),
     ("data.html", "Data"),
     ("research.html", "Research"),
@@ -2245,8 +2252,6 @@ def _live_methodology_doc(version: str) -> Path:
 
 def _succession_card(ctx: SiteContext) -> str:
     """Every methodology version, its effective date, and which one computed today's print."""
-    from tci.config import load_succession
-
     today = ctx.generated_at[:10]
     rows = []
     for e in load_succession():
@@ -2906,6 +2911,239 @@ def _data(ctx: SiteContext) -> str:
     )
 
 
+# ---- basis ----------------------------------------------------------------
+
+BASIS_SERIES = "EU-CRI-H100-BASIS-US"
+US_SERIES = "EU-CRI-H100-US"
+
+
+def _basis_entry() -> SuccessionEntry | None:
+    """The first methodology version that defines a basis series (its effective date)."""
+    return next(
+        (e for e in load_succession() if load_factors(e.params_dir).basis_series), None
+    )
+
+
+def _basis_tile(ctx: SiteContext, series: str, label: str, signed: bool = False) -> str:
+    row = current_print(ctx.conn, series, ctx.date)
+    head = (
+        f'<div class="tile__head"><span class="tile__sym">{_nbsp_series(series)}</span>'
+        f'<span class="tile__note">{_e(label)}</span></div>'
+    )
+    dash = (
+        '<div class="tile__body"><div class="tile__gap">'
+        '<span class="tile__dash">&#8212;&#8212;</span></div></div>'
+    )
+    if row is None:
+        return (
+            f'<article class="tile tile--gap">{head}{dash}<div class="tile__foot">'
+            '<span class="chip chip--neutral"><span>Not yet computed</span></span></div>'
+            "</article>"
+        )
+    if row["value_usd"] is None:
+        return (
+            f'<article class="tile tile--gap">{head}{dash}<div class="tile__foot">'
+            f'<span class="chip chip--warning">{_icon("gap")}'
+            f'<span>{_e(_flag_words(row["flags"]) or "gapped")}</span></span></div></article>'
+        )
+    v = row["value_usd"]
+    sign = ("+" if v > 0 else "&#8722;" if v < 0 else "") if signed else ""
+    unit = "legs" if series == BASIS_SERIES else "providers"
+    return (
+        f'<article class="tile">{head}<div class="tile__body"><div class="tile__num">'
+        f'<span class="tile__ccy" aria-hidden="true">{sign}$</span>'
+        f'<span class="tile__val num">{_num(abs(v) if signed else v)}</span></div></div>'
+        f'<div class="tile__foot"><span class="tile__note">{_e(row["n_sources"])} {unit}'
+        f' &#183; {_e(_human_date(row["date"]))}</span></div></article>'
+    )
+
+
+def _month_average(ctx: SiteContext, series: str, first: str | None = None) -> str:
+    """Calendar month to date: the mean of the published daily prints and its coverage.
+
+    Shown because each CME compute contract covers a month of rent (730 GPU-hours), so a
+    hedger's basis is a monthly quantity. Computed on the page from published prints;
+    it is not a separate series and no gap is filled.
+    """
+    month = ctx.date[:7]
+    pts = series_history(ctx.conn, series, since=f"{month}-01")
+    vals = [p.value for p in pts if p.value is not None and p.date[:7] == month]
+    day_of_month = int(ctx.date[8:10])
+    if not vals and first and ctx.date < first:
+        return f"The month-to-date average starts with the first print on {_e(_human_date(first))}."
+    if not vals:
+        return (
+            f"No published {_e(display_series(series))} print yet in {_e(month)}: "
+            f"0 of {day_of_month} sessions."
+        )
+    mean = sum(vals) / len(vals)
+    return (
+        f"{_e(month)} to date: mean ${_num(mean)}/GPU-hr over {len(vals)} of "
+        f"{day_of_month} sessions published. Gaps are not filled."
+    )
+
+
+def _leg_table(ctx: SiteContext, entry: SuccessionEntry) -> str:
+    """Which sellers the legs can draw on, and where each was actually seen pricing.
+
+    The panel is region-agnostic: a seller admitted to the class feeds whichever leg its
+    rows are located in. The last column is read from stored observations, not asserted,
+    so a collector that has never run in production shows as not yet seen.
+    """
+    f = load_factors(entry.params_dir)
+    pop = f.population_for("headline")
+    eu = f.eu_eea_countries
+    us = f.blocks.get("US", frozenset())
+    since = (date_type.fromisoformat(ctx.date) - timedelta(days=30)).isoformat()
+    seen: dict[tuple[str, str], set[str]] = {}
+    for provider, source, country in ctx.conn.execute(
+        "SELECT DISTINCT provider, source, country FROM observations "
+        "WHERE gpu_model = 'H100_SXM' AND ts_utc >= ? AND tier IN ('executable','list')",
+        (since,),
+    ):
+        block = "EU/EEA" if country in eu else "US" if country in us else None
+        if block:
+            seen.setdefault((provider, source), set()).add(block)
+    rows = []
+    for provider, pe in sorted((f.panel or {}).items()):
+        if pe.segment not in pop:
+            continue
+        collectors = sorted(src for src, classes in pe.sources.items() if "H100" in classes)
+        if not collectors:
+            continue
+        blocks: set[str] = set()
+        for src in collectors:
+            blocks |= seen.get((provider, src), set())
+        where = " + ".join(b for b in ("EU/EEA", "US") if b in blocks) or "not yet seen"
+        rows.append(
+            f'<tr><td>{_e(provider)}</td><td>{_e(pe.segment)}</td>'
+            f'<td class="num">{_e(", ".join(collectors))}</td><td>{_e(where)}</td></tr>'
+        )
+    return f"""<div class="card card__body--flush"><div class="scroll-x"><table class="grid">
+  <caption class="vh">Sellers admitted to the H100 class, v{_e(f.methodology_version)}</caption>
+  <thead><tr><th scope="col">Seller</th><th scope="col">Segment</th>
+  <th scope="col">Collector</th><th scope="col">H100 SXM rows, last 30 days</th></tr></thead>
+  <tbody>{"".join(rows)}</tbody></table></div></div>"""
+
+
+def _basis(ctx: SiteContext) -> str:
+    entry = _basis_entry()
+    if entry is None:
+        return ""
+    effective = entry.effective_from
+    live = effective <= ctx.generated_at[:10]
+    dates = _window(ctx.date, 60)
+    notice = _e(entry.notice or "")
+    if live:
+        status = (
+            '<span class="chip chip--good"><span>In effect since '
+            f"{_e(_human_date(effective))}</span></span>"
+        )
+        chart = line_chart(
+            _windowed(series_history(ctx.conn, BASIS_SERIES, since=dates[0]), dates),
+            symbol=display_series(BASIS_SERIES),
+        )
+    else:
+        status = (
+            '<span class="chip chip--warning"><span>First print '
+            f"{_e(_human_date(effective))}</span></span>"
+        )
+        chart = (
+            '<div class="gapnote">' + _icon("warn", 14)
+            + f"<p>The basis publishes from {_e(_human_date(effective))} under methodology "
+            f'v{_e(entry.version)} (notice <a href="notices.html#{notice}">{notice}</a>). '
+            "There is no value before that date, and none is back-filled.</p></div>"
+        )
+    body = f"""<main class="wrap" id="main">
+  <div class="pagehead">
+    <div class="eyebrow">EU&#8211;US basis</div>
+    <h1 class="pagehead__h pagehead__h--display">What a European buyer carries when the
+    hedge is priced in the US.</h1>
+    <p class="pagehead__dek">CME Group plans to list compute futures on 5 October 2026,
+    pending regulatory review, that settle in cash on Silicon Data's H100 and B200 rental
+    indices. A European buyer who hedges with them is exposed to the
+    difference between what the EU/EEA population of sellers charges and what the
+    reference population charges. {_nbsp_series(BASIS_SERIES)} is that difference for one
+    H100 SXM GPU-hour: the EU/EEA headline minus a US series priced with exactly the same
+    rules.</p>
+    <div class="pagehead__meta"><span>{status}</span>
+      <span><a href="methodology.html">Methodology</a></span>
+      <span><a href="notices.html#{notice}">Notice {notice}</a></span>
+      <span><a href="data/latest.json">latest.json</a></span></div>
+  </div>
+
+  <section class="section" aria-labelledby="s-now">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-now">The two legs and the spread</h2>
+      <p class="section__dek">Each leg publishes only with five qualifying sellers; the
+      spread publishes only when both legs do.</p></div></div>
+    <div class="tiles">
+      {_basis_tile(ctx, HEADLINE, "EU/EEA")}
+      {_basis_tile(ctx, US_SERIES, "United States")}
+      {_basis_tile(ctx, BASIS_SERIES, "EU minus US", signed=True)}
+    </div>
+    <p class="section__dek">{_month_average(ctx, BASIS_SERIES, entry.effective_from)} Each
+    CME contract covers a month of rent (730 GPU-hours), so the month is the unit a
+    hedger's basis is measured in.</p>
+  </section>
+
+  <section class="section" aria-labelledby="s-hist">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-hist">Last 60 sessions</h2></div></div>
+    <div class="card"><div class="card__body">{chart}</div></div>
+  </section>
+
+  <section class="section" aria-labelledby="s-what">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-what">What the spread measures, and what it does not</h2>
+      <p class="section__dek">Both legs use the same unit definition, node floor, weighted
+      median over offers, trim, tier weights, concentration cap and publication gate. Only
+      the region differs, which is what makes the spread a regional basis rather than a
+      comparison of two methods.</p></div></div>
+    <div class="md"><p>It is <strong>not</strong> the basis to the Silicon Data index the
+    CME contracts settle on. That index's methodology is not public, and a spread against
+    it would mix a regional difference with a methodological one that nobody outside can
+    measure. What is published here is the regional part, with the method held
+    constant.</p>
+    <p>The US leg draws on five candidate sellers (vast.ai, RunPod, Lambda, DigitalOcean,
+    Voltage Park) against a gate of five. On any day one of them has no qualifying offer,
+    the US leg gaps and so does the spread, with the reason in the audit set.</p>
+    <p>RunPod and DigitalOcean charge one price in every region, so on a day both qualify
+    in both legs the same two prices sit on each side of the spread. That pulls the basis
+    toward zero, and it is correct: a buyer can rent from either at the same price on
+    either side of the Atlantic. A basis driven by the other sellers is the one that
+    reflects regional pricing.</p></div>
+    {_leg_table(ctx, entry)}
+  </section>
+
+  <section class="section" aria-labelledby="s-where">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-where">Where a region-flat price is placed</h2></div></div>
+    <div class="md"><ul>
+      <li><strong>vast.ai</strong>: every offer carries its own location.</li>
+      <li><strong>Lambda</strong>: catalogue rows carry a region (europe-central-1 is
+      Germany).</li>
+      <li><strong>DigitalOcean</strong>: one price, recorded once for each region its
+      availability page lists for the H100 (Amsterdam, New York, Toronto).</li>
+      <li><strong>RunPod</strong>: one price everywhere. A US row is recorded only on a day
+      RunPod reports stock of that GPU type in a US datacentre.</li>
+      <li><strong>Voltage Park</strong>: sells only in the United States, by its own
+      statement.</li>
+    </ul></div>
+  </section>
+</main>"""
+    return _shell(
+        ctx,
+        title=f"EU-US basis — {BRAND}",
+        description=(
+            "The EU/EEA H100 reference price minus a US series priced with the same rules: "
+            "the regional basis a European buyer carries against US compute futures."
+        ),
+        current="basis.html",
+        body=body,
+    )
+
+
 # ---- research -------------------------------------------------------------
 
 
@@ -3234,6 +3472,7 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
 
     pages: list[tuple[Path, str]] = [
         (SITE_DIR / "index.html", _dashboard(ctx, notes)),
+        (SITE_DIR / "basis.html", _basis(ctx)),
         (SITE_DIR / "methodology.html", _methodology(ctx)),
         (SITE_DIR / "data.html", _data(ctx)),
         (SITE_DIR / "governance.html", _governance(ctx)),

@@ -21,6 +21,54 @@
 # yet quantifiable and why.
 
 notices:
+  - id: 2026-N3
+    title: A US reference series priced exactly like the headline, and the EU-US basis
+      between them
+    announced: 2026-09-11
+    effective: 2026-10-01
+    version: 0.6.0
+    status: announced
+    summary: >-
+      Two new series. TCI-CRI-H100-US prices the United States with the headline's unit,
+      estimator, weights and publication gate. TCI-CRI-H100-BASIS-US is the EU/EEA headline
+      minus that US series, in USD per GPU-hour, published only on days both print. No
+      existing series changes.
+    effect_on_level: >-
+      None on any existing series. The EU/EEA headline, its segment and class series, the
+      7-day companion and the composite are computed exactly as under v0.5.0; the
+      additions are rows the EU/EEA filter already excludes (RunPod rows recorded against
+      the United States, and Voltage Park, which sells only there). The US series draws on
+      five candidate sellers (vast.ai, RunPod, Lambda, DigitalOcean, Voltage Park) against a
+      gate of five, so it will gap on any day one of them does not qualify, and the basis
+      gaps with it. That is stated here so a gap is not read as an outage.
+    body: |
+      **Why.** CME Group plans to list compute futures on 5 October 2026, pending
+      regulatory review, that settle in cash on Silicon Data's H100 and B200 rental
+      indices. A European buyer who hedges with them carries a basis: the difference
+      between what the EU/EEA population of sellers charges and what the reference
+      population charges. Nobody publishes that difference.
+
+      **What is measured.** `EU-CRI-H100-US` applies the headline's unit definition (one
+      H100 SXM GPU-hour, on-demand, datacenter-hosted, at least 2 GPUs per offer), its
+      weighted median over offers, its trim, its tier weights, its concentration cap and
+      its five-provider gate to offers delivered from data centres in the United States.
+      `EU-CRI-H100-BASIS-US` is `EU-CRI-H100` minus `EU-CRI-H100-US`, with a EUR companion
+      at the day's FX. A day on which either leg gaps is a gap in the basis, with the
+      reason; the basis is never computed against a carried-forward leg.
+
+      **What it is not.** It is not the basis to the Silicon Data index behind the CME
+      contracts. That index's methodology is not public, and a spread against it would
+      mix a regional difference with a methodological one that nobody outside can
+      measure. This series measures the regional part, with the method held constant.
+
+      **Where the US rows come from.** vast.ai offers carry their own location. Lambda's
+      catalogue rows carry a region. DigitalOcean sells its H100 Droplets in New York at the
+      same price as in Amsterdam. RunPod's price is the same in every region; a US row is
+      recorded only on days RunPod reports stock of that GPU type in a US datacentre.
+      Voltage Park operates only in the United States (its own statement: clusters in
+      Texas, Virginia, Washington and Utah).
+
+
   - id: 2026-N2
     title: Verda, Nebius, Lambda and DigitalOcean enter the EU/EEA panel, Oracle joins the
       hyperscaler segment, OVHcloud joins the H100 PCIe class, and the EUR leg becomes T-1

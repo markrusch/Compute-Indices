@@ -80,6 +80,13 @@ from its first day without moving any number; admitting it is a constituent chan
 follows this procedure. Rows collected before admission are never admitted
 retroactively.
 
+Three panel entries (Hetzner, Genesis Cloud and Leaseweb, via `static_yaml`) are
+admitted but have no price on file, because none had a verifiable H100 hourly rate
+when last checked. A first price for any of them would move the print exactly as
+a new constituent does, so it is treated as one: it needs a notice and an effective date
+like any other constituent change, even though the panel line already exists. Refreshing
+a price that is already on file is not a constituent change.
+
 **Code changes must reproduce the record.** The calculation code is shared by every
 version in the succession. A code change that would alter any stored print, under any
 version, is a methodology change for the versions it alters and is refused in that form;

@@ -46,7 +46,8 @@ def test_no_version_takes_effect_before_the_day_after_its_notice() -> None:
 @pytest.mark.parametrize(
     ("day", "version"),
     [("2026-07-18", "0.3.0-dev"), ("2026-09-14", "0.3.0-dev"), ("2026-09-15", "0.4.0"),
-     ("2026-09-21", "0.4.0"), ("2026-09-22", "0.5.0")],
+     ("2026-09-21", "0.4.0"), ("2026-09-22", "0.5.0"), ("2026-09-30", "0.5.0"),
+     ("2026-10-01", "0.6.0")],
 )
 def test_the_version_live_on_a_date(day: str, version: str) -> None:
     assert version_for(day).version == version

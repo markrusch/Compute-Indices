@@ -31,6 +31,7 @@ HASHED_FILES = (
     "src/tci/index.py",
     "src/tci/normalise.py",
     "src/tci/weights.py",
+    "src/tci/basis.py",
 )
 
 # The files that make up one version's parameter set. The head version's live at
@@ -195,6 +196,35 @@ is a constituent change under GOVERNANCE.md §1.
         " ECB publication picks up the same-day rate. The rate a print used is recorded"
         " with it and is what `reproduce` converts at"
     )
+    regional_rows = "".join(
+        f"\n| `{name}` | the headline's unit, estimator, weights and gate, {rs.block}"
+        f" block ({', '.join(sorted(f.countries_of(rs.block)))}) |"
+        for name, rs in f.regional_series.items()
+    ) + "".join(
+        f"\n| `{name}` | `{bs.lead}` minus `{bs.reference}`, USD per GPU-hour; a gap on any"
+        " day either leg gaps |"
+        for name, bs in f.basis_series.items()
+    )
+    if f.basis_series:
+        basis_section = """
+### 4.1 The US reference block and the EU-US basis
+
+The US series prices one H100 SXM GPU-hour delivered from the United States with exactly
+the rules above: the same unit definition, node floor, weighted median over offers, trim,
+tier weights, concentration cap and publication gate. The basis series is the EU/EEA
+headline minus the US series on the same day. Holding the method constant is what makes
+the spread a regional basis rather than a comparison of two methods.
+
+It is **not** the basis to the Silicon Data index on which the CME compute futures settle.
+That index's methodology is not public, and a spread against it would mix a regional
+difference with a methodological one that nobody outside can measure.
+
+Region-flat prices are placed only where the seller itself says it sells: DigitalOcean's
+H100 is recorded once per region on its availability page, and RunPod's US row exists only
+on a day RunPod reports stock of that GPU type in a US datacentre.
+"""
+    else:
+        basis_section = ""
     succession_rows = "\n".join(
         f"| {e['version']} | {e['effective_from']} | {e['notice'] or '—'} |"
         for e in succession_record(REPO_ROOT)
@@ -339,8 +369,9 @@ never jumps the published level:
 | `EU-CRI-H100-HS` | hyperscaler catalog segment only |
 | `EU-CRI-H100-PCIE` | H100 PCIe, priced as its own class (no assumed SXM factor) |
 | class series (`EU-CRI-A100`, `EU-CRI-H200`, `EU-CRI-B300`, …) | one per observed class in §1; published once ≥{f.aggregation.min_providers} providers exist (gapped, with audit trail, before that) |
-| `EU-CRI-COMPUTE` | chain-linked composite of class series (§3.2); a level, not a $/hr price |
+| `EU-CRI-COMPUTE` | chain-linked composite of class series (§3.2); a level, not a $/hr price |{regional_rows}
 
+{basis_section}
 `EU-CRI-H100-CLOUD` was **retired in v0.3.0** and is not published. Its historical
 values remain in `index_history.csv` under the methodology version that produced them.
 

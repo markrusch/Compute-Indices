@@ -20,6 +20,7 @@ from datetime import date as date_type
 from pathlib import Path
 
 from tci import config, db, weights
+from tci.basis import compute_basis
 from tci.collectors import base
 from tci.collectors.azure_retail import AzureRetailCollector
 from tci.collectors.computable_sources import computable_collectors
@@ -436,6 +437,7 @@ def compute_all_series(
                 cls, headline_pop, (lambda c: (lambda o: o.model_class == c))(cls)
             )
 
+    computed: dict[str, IndexPrint] = {}
     for series, (cls, population, predicate) in definitions.items():
         subset: list[NormalisedObs] = [o for o in normalised if predicate(o)]
         result = compute_print(
@@ -444,12 +446,39 @@ def compute_all_series(
             prev_prices=_prev_prices(conn, series, utc_date),
             not_in_panel=frozenset(p for p, classes in unadmitted.items() if cls in classes),
         )
+        computed[series] = result
         revision = _store_print(conn, result, version, run_id, series_extra)
         log.info(
             "%s %s rev%d: %s (n=%d%s)", utc_date, series, revision,
             result.value_usd, result.n_sources,
             f", flags={result.flags}" if result.flags else "",
         )
+
+    # Series in other region blocks (v0.6.0+): the same unit, estimator and gate, drawn
+    # from another block's countries. Defined in factors.yaml, so hash-locked.
+    fx_rate = fx[0] if fx else None
+    for series, rs in factors.regional_series.items():
+        countries = factors.countries_of(rs.block)
+        block_rows = normalise_observations(rows, factors, fx_eur_usd=fx_rate, countries=countries)
+        block_unadmitted = unadmitted_providers(rows, factors, countries)
+        result = compute_print(
+            utc_date, series,
+            [o for o in block_rows if o.model_class == rs.model_class],
+            factors, fx,
+            population=factors.population_for(rs.population),
+            prev_prices=_prev_prices(conn, series, utc_date),
+            not_in_panel=frozenset(
+                p for p, classes in block_unadmitted.items() if rs.model_class in classes
+            ),
+        )
+        computed[series] = result
+        _store_print(conn, result, version, run_id, series_extra)
+    for series, bs in factors.basis_series.items():
+        result = compute_basis(
+            utc_date, series, computed.get(bs.lead), computed.get(bs.reference), fx
+        )
+        computed[series] = result
+        _store_print(conn, result, version, run_id, series_extra)
 
     if rw is not None:
         composite = _compute_composite(conn, utc_date, factors, rw)

@@ -38,6 +38,8 @@ ALL_SERIES = [
     "EU-CRI-H100", "EU-CRI-H100-7D", "EU-CRI-H100-SOV", "EU-CRI-H100-MKT",
     "EU-CRI-H100-NC", "EU-CRI-H100-HS", "EU-CRI-H100-PCIE",
     "EU-CRI-H200", "EU-CRI-B200", "EU-CRI-B300", "EU-CRI-A100", COMPOSITE,
+    # v0.6.0: the US reference leg and the EU-US basis (value = EU minus US, $/GPU-hr).
+    "EU-CRI-H100-US", "EU-CRI-H100-BASIS-US",
 ]
 
 

@@ -131,6 +131,23 @@ class PanelEntry:
 
 
 @dataclass(frozen=True)
+class RegionalSeries:
+    """A series priced exactly like the headline family, in another region block."""
+
+    block: str
+    model_class: str
+    population: str  # a series_populations role, e.g. 'headline'
+
+
+@dataclass(frozen=True)
+class BasisSeries:
+    """A spread between two published series: value = lead - reference, per GPU-hour."""
+
+    lead: str
+    reference: str
+
+
+@dataclass(frozen=True)
 class Factors:
     methodology_version: str
     reference_unit: ReferenceUnit
@@ -150,6 +167,16 @@ class Factors:
     # None only for parameter sets that predate the explicit panel; every version from
     # 0.3.0-dev onward carries one (0.3.0-dev's was made explicit on 2026-09-11).
     panel: dict[str, PanelEntry] | None = None
+    # Region blocks other than EU/EEA (whose countries are eu_eea_countries), and the
+    # series priced in them. Empty before v0.6.0.
+    blocks: dict[str, frozenset[str]] = field(default_factory=dict)
+    regional_series: dict[str, RegionalSeries] = field(default_factory=dict)
+    basis_series: dict[str, BasisSeries] = field(default_factory=dict)
+
+    def countries_of(self, block: str) -> frozenset[str]:
+        if block == "EU_EEA":
+            return self.eu_eea_countries
+        return self.blocks[block]
 
     @property
     def headline_class(self) -> str:
@@ -355,6 +382,21 @@ def load_factors(config_dir: Path | None = None, *, for_date: str | None = None)
         measured_factors=dict(raw.get("measured_factors") or {}),
         eu_eea_countries=frozenset(raw["eu_eea_countries"]),
         panel=panel,
+        blocks={
+            name: frozenset(str(c) for c in countries)
+            for name, countries in (raw.get("blocks") or {}).items()
+        },
+        regional_series={
+            name: RegionalSeries(
+                block=str(d["block"]), model_class=str(d["class"]),
+                population=str(d["population"]),
+            )
+            for name, d in (raw.get("regional_series") or {}).items()
+        },
+        basis_series={
+            name: BasisSeries(lead=str(d["lead"]), reference=str(d["reference"]))
+            for name, d in (raw.get("basis_series") or {}).items()
+        },
     )
 
 

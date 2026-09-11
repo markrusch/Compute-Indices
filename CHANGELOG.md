@@ -3,6 +3,21 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## 0.6.0 — announced 2026-09-11, effective 2026-10-01 (notice 2026-N3)
+
+- **US reference block.** `blocks.US` and `regional_series.EU-CRI-H100-US` in factors.yaml:
+  the headline's unit, estimator, weights and gate applied to offers delivered from the
+  United States. `normalise.py` takes the block's countries as a parameter (default
+  EU/EEA, so every existing series computes exactly as before; verified by
+  `reproduce`). Voltage Park enters the panel; it has no EU/EEA rows.
+- **EU-US basis.** `basis_series.EU-CRI-H100-BASIS-US` = `EU-CRI-H100` minus
+  `EU-CRI-H100-US`, USD per GPU-hour with a EUR companion, computed by the new
+  hash-locked `src/tci/basis.py`. A day on which either leg gaps is a gap in the basis.
+- **Collection.** RunPod records a second, US row for a GPU type only when its own
+  datacentre-stock query reports stock in a US datacentre that day. Voltage Park rows
+  carry country US, on the provider's statement that it operates only there.
+- 0.5.0 frozen under `config/methodology/0.5.0/`.
+
 ## 0.5.0 — announced 2026-09-11, effective 2026-09-22 (notice 2026-N2)
 
 Constituent changes, and one correction to the FX rule. Full text and expected effect in

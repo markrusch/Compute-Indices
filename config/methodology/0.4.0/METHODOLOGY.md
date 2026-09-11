@@ -169,6 +169,7 @@ never jumps the published level:
 | class series (`EU-CRI-A100`, `EU-CRI-H200`, `EU-CRI-B300`, …) | one per observed class in §1; published once ≥5 providers exist (gapped, with audit trail, before that) |
 | `EU-CRI-COMPUTE` | chain-linked composite of class series (§3.2); a level, not a $/hr price |
 
+
 `EU-CRI-H100-CLOUD` was **retired in v0.3.0** and is not published. Its historical
 values remain in `index_history.csv` under the methodology version that produced them.
 
@@ -396,6 +397,7 @@ date (`config/methodology/succession.yaml`).
 | 0.3.0-dev | 2026-07-18 | — |
 | 0.4.0 | 2026-09-15 | 2026-N1 |
 | 0.5.0 | 2026-09-22 | 2026-N2 |
+| 0.6.0 | 2026-10-01 | 2026-N3 |
 
 ---
 

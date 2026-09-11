@@ -1,7 +1,7 @@
 # EU-CRI methodology parameters. Every number that affects a published print lives here.
 # Changing anything in this file (or sovereign.yaml, index.py, normalise.py, weights.py)
 # requires a methodology_version bump + CHANGELOG entry - enforced by CI (see GOVERNANCE.md).
-methodology_version: "0.6.0"       # effective 2026-10-01 (notice 2026-N3). See
+methodology_version: "0.5.0"       # effective 2026-09-22 (notice 2026-N2). See
                                     # config/methodology/succession.yaml for every version
                                     # and the date it takes effect.
 
@@ -55,8 +55,6 @@ model_classes:
 #   - ovhcloud enters through its public order-catalogue API, in the H100P class only:
 #     its H100 instances are PCIe ("80 GB HBM2e - PCIe 5.0"), never the SXM unit.
 #   - vast.ai is admitted to the H100P, H200, B200 and B300 classes it already lists.
-# v0.6.0 (notice 2026-N3): voltagepark, which sells only in the United States, enters for
-# the US reference block below. It cannot reach an EU/EEA print: it has no EU/EEA rows.
 panel:
   vast.ai:       {segment: marketplace, sources: {vast_ai: [H100, A100, H100P, H200, B200, B300]}}
   runpod:        {segment: marketplace, sources: {runpod: [H100, A100]}}
@@ -71,7 +69,6 @@ panel:
   lambdalabs:    {segment: neocloud, sources: {gpuhunt: [H100, H200, B200, A100]}}
   ovhcloud:      {segment: neocloud, sources: {ovh: [H100P, H200]}}
   digitalocean:  {segment: neocloud, sources: {digitalocean: [H100]}}
-  voltagepark:   {segment: neocloud, sources: {voltagepark: [H100]}}
   seeweb:        {segment: neocloud, sources: {static_yaml: [H100]}}
   hetzner:       {segment: neocloud, sources: {static_yaml: [H100]}}
   genesis_cloud: {segment: neocloud, sources: {static_yaml: [H100]}}
@@ -186,23 +183,3 @@ eu_eea_countries: ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "
                    "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK",
                    "SI", "ES", "SE", "IS", "LI", "NO"]
 # NOTE: CH (Switzerland) is deliberately absent - Switzerland is in EFTA but NOT the EEA.
-
-# ---------------------------------------------------------------------------------------
-# v0.6.0: THE US REFERENCE BLOCK AND THE EU-US BASIS (notice 2026-N3)
-#
-# CME Group plans to list compute futures on 5 October 2026 that settle in cash on Silicon
-# Data's H100 and B200 rental indices. A European buyer who hedges with them carries a basis: the difference between what the
-# European population of sellers charges and what the reference population charges. This
-# section prices the United States with exactly the headline's unit definition, estimator,
-# trim, weights and publication gate, so that the spread between the two is a basis and
-# not a comparison of two methods. It is not the basis to the Silicon Data index itself,
-# whose methodology is not public; METHODOLOGY.md says so beside the series.
-blocks:
-  US: ["US"]
-
-regional_series:
-  EU-CRI-H100-US: {block: US, class: H100, population: headline}
-
-# value = lead - reference, USD per GPU-hour, published only on a day both legs publish.
-basis_series:
-  EU-CRI-H100-BASIS-US: {lead: EU-CRI-H100, reference: EU-CRI-H100-US}
