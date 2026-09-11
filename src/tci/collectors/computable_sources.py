@@ -176,9 +176,11 @@ class ComputableSource:
                 "price_native_per_gpu_hr": native,
                 "recipe": f"computable/{self.module_name}",
             }
-            placements: list[tuple[str | None, str | None]] = list(
-                (self.regions_of(variant) if self.regions_of else None)
-                or [(str(obs.get("region") or "") or None, self.country_of(obs))]
+            regional = self.regions_of(variant) if self.regions_of else None
+            placements: list[tuple[str | None, str | None]] = (
+                [(r, c) for r, c in regional]
+                if regional
+                else [(str(obs.get("region") or "") or None, self.country_of(obs))]
             )
             for region, country in placements:
                 out.append(
