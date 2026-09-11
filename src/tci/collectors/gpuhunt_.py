@@ -1,12 +1,21 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Mark Rusch
-"""Hyperscaler list prices via the open-source gpuhunt package (dstack catalogs).
+"""List prices from dstack's published gpuhunt catalogs.
 
-Scope: aws / azure / gcp only (other gpuhunt providers are covered directly or are
-out of scope), 8-GPU H100 instances only (the unit is an 8-GPU NVLink node price),
-on-demand (spot=False). Catalog item price is per instance-hour -> divide by count.
+Scope: the catalogs gpuhunt ships offline — aws, azure, gcp, oci, lambdalabs, verda and
+nebius — for the H100, H200, B200, B300 and A100 classes, on-demand only (spot=False).
+Catalog item price is per instance-hour -> divide by the provider's own GPU count.
 Regions are mapped to countries below; unmapped regions yield country=None and are
 excluded by the normaliser — the safe default for new/unknown regions.
+
+Which of these rows can reach a print is decided by the methodology's panel, not here.
+Until 2026-09-11 only aws/azure/gcp H100 rows were collected; the other four providers
+and four classes were added so their history starts accumulating before any version
+admits them (see config/notices.yaml).
+
+A caveat recorded rather than hidden: for some providers gpuhunt builds the catalog as
+every instance type times every location (verda does this explicitly), so a location in
+the catalog is where the provider sells, not proof that stock existed there that day.
 
 The collector is global and always has been: the package downloads whole catalogs and
 queries them locally, so the request cost does not change with how many regions we keep.
@@ -27,7 +36,18 @@ from tci.models import Observation
 
 log = logging.getLogger("tci.collectors.gpuhunt")
 
-PROVIDERS = ("aws", "azure", "gcp")
+PROVIDERS = ("aws", "azure", "gcp", "oci", "lambdalabs", "verda", "nebius")
+GPU_NAMES = ["H100", "H200", "B200", "B300", "A100"]
+
+# The node-size floor at collection. Until v0.4.0 this collector discarded every instance
+# below 8 GPUs, while the published methodology floor had been 2 since v0.3.0: the
+# collection was narrower than the method (notice 2026-N1). The providers that were
+# already constituents keep the old floor until that notice takes effect, so rows that
+# 0.3.0-dev never saw cannot reach a print computed under it.
+MIN_GPU_COUNT = 2
+LEGACY_FLOOR = 8
+LEGACY_FLOOR_PROVIDERS = frozenset({"aws", "azure", "gcp"})
+LEGACY_FLOOR_UNTIL = "2026-09-15"  # first collection day at the published floor
 
 # Region -> ISO country. An unmapped region yields country=None, which the normaliser
 # drops, so this table decides what the pipeline can ever use. It was EU/EEA plus a few US
@@ -47,6 +67,16 @@ PROVIDERS = ("aws", "azure", "gcp")
 #   cn-*, china*          operated by separate legal entities on separate price lists
 REGION_COUNTRY = {
     # -- EU / EEA: the published population --------------------------------------
+    # oci (region-flat prices; gpuhunt lists every region a shape is sold in)
+    "eu-frankfurt-1": "DE", "eu-amsterdam-1": "NL", "eu-stockholm-1": "SE",
+    "eu-paris-1": "FR", "eu-marseille-1": "FR", "eu-milan-1": "IT", "eu-madrid-1": "ES",
+    # lambdalabs (docs.lambda.ai, checked 2026-09-11: europe-central-1 is Germany)
+    "europe-central-1": "DE",
+    # verda (FIN-* Finland, ICE-* Iceland; both EEA)
+    "fin-01": "FI", "fin-02": "FI", "fin-03": "FI", "ice-01": "IS",
+    # nebius (docs.nebius.com, checked 2026-09-11). eu-north2 is a private region in
+    # Iceland; its rows are kept, whether they are sold on-demand is the panel's question.
+    "eu-north1": "FI", "eu-west1": "FR", "eu-north2": "IS", "eu-west2": "FR",
     # aws
     "eu-west-1": "IE", "eu-west-3": "FR", "eu-central-1": "DE", "eu-north-1": "SE",
     "eu-south-1": "IT", "eu-south-2": "ES",
@@ -62,16 +92,20 @@ REGION_COUNTRY = {
     "europe-west10": "DE",
 
     # -- US ----------------------------------------------------------------------
+    "us-ashburn-1": "US", "us-phoenix-1": "US", "us-chicago-1": "US", "us-sanjose-1": "US",
+    "us-east-3": "US", "us-midwest-1": "US", "us-south-1": "US", "us-south-2": "US",
+    "us-south-3": "US", "us-west-3": "US", "us-north1": "US",
     "us-east-1": "US", "us-east-2": "US", "us-west-1": "US", "us-west-2": "US",
     "eastus": "US", "eastus2": "US", "westus3": "US", "southcentralus": "US",
     "us-east4": "US", "us-east5": "US", "us-central1": "US", "us-west1": "US",
     "us-west4": "US",
 
     # -- UK ----------------------------------------------------------------------
+    "uk-london-1": "GB", "uk-cardiff-1": "GB", "uk-south1": "GB", "uk-south2": "GB",
     "eu-west-2": "GB", "uksouth": "GB", "ukwest": "GB", "europe-west2": "GB",
 
     # -- Switzerland -------------------------------------------------------------
-    "eu-central-2": "CH", "switzerlandnorth": "CH", "switzerlandwest": "CH",
+    "eu-zurich-1": "CH", "eu-central-2": "CH", "switzerlandnorth": "CH", "switzerlandwest": "CH",
     "europe-west6": "CH",
 
     # -- Canada ------------------------------------------------------------------
@@ -83,27 +117,34 @@ REGION_COUNTRY = {
     "southamerica-west1": "CL",
 
     # -- Asia-Pacific, north-east ------------------------------------------------
+    "ap-tokyo-1": "JP", "ap-osaka-1": "JP", "asia-northeast-2": "JP",
     "ap-northeast-1": "JP", "ap-northeast-3": "JP", "japaneast": "JP", "japanwest": "JP",
-    "asia-northeast1": "JP", "asia-northeast2": "JP",
+    "asia-northeast1": "JP", "asia-northeast2": "JP", "asia-northeast-1": "JP",
+    "asia-south-1": "IN",
     "ap-northeast-2": "KR", "koreacentral": "KR", "koreasouth": "KR",
     "asia-northeast3": "KR",
     "ap-east-1": "HK", "eastasia": "HK", "asia-east2": "HK",
     "asia-east1": "TW",
 
     # -- Asia-Pacific, south-east ------------------------------------------------
-    "ap-southeast-1": "SG", "southeastasia": "SG", "asia-southeast1": "SG",
+    "ap-singapore-1": "SG", "ap-southeast-1": "SG", "southeastasia": "SG", "asia-southeast1": "SG",
     "ap-southeast-3": "ID", "asia-southeast2": "ID",
 
     # -- South Asia --------------------------------------------------------------
+    "ap-mumbai-1": "IN", "ap-hyderabad-1": "IN",
     "ap-south-1": "IN", "ap-south-2": "IN", "centralindia": "IN", "southindia": "IN",
     "westindia": "IN", "asia-south1": "IN", "asia-south2": "IN",
 
     # -- Oceania -----------------------------------------------------------------
+    "ap-sydney-1": "AU", "ap-melbourne-1": "AU", "australia-east-1": "AU",
     "ap-southeast-2": "AU", "ap-southeast-4": "AU", "australiaeast": "AU",
     "australiasoutheast": "AU", "australia-southeast1": "AU", "australia-southeast2": "AU",
 
     # -- Middle East and Africa --------------------------------------------------
-    "il-central-1": "IL", "israelcentral": "IL", "me-west1": "IL",
+    "il-central-1": "IL", "israelcentral": "IL", "me-west1": "IL", "me-west-1": "IL",
+    "il-jerusalem-1": "IL", "me-dubai-1": "AE", "me-abudhabi-1": "AE",
+    "af-johannesburg-1": "ZA", "sa-saopaulo-1": "BR", "sa-bogota-1": "CO",
+    "ca-toronto-1": "CA", "ca-montreal-1": "CA",
     "me-central-1": "AE", "uaenorth": "AE",
     "me-south-1": "BH",
     "qatarcentral": "QA", "me-central1": "QA",
@@ -125,6 +166,58 @@ def _gpuhunt_version() -> str:
         return "unknown"
 
 
+def variant_of(provider: str, instance_name: str, gpu_name: str,
+               gpu_memory: float | None, gpu_count: int) -> str | None:
+    """Canonical variant for a catalog row, or None when it cannot be pinned.
+
+    gpuhunt reports a chip family ("H100") and a memory size, not a form factor, so the
+    form factor is read from the provider's own instance name. A row that no rule below
+    identifies is skipped and logged, never guessed: an H100 NVL or PCIe card recorded as
+    SXM would be a different product priced as the reference unit.
+    """
+    name = instance_name.lower()
+    mem = float(gpu_memory or 0)
+    family = gpu_name.upper()
+    if family == "A100":
+        if mem and mem < 60:
+            return "A100_SXM_40GB" if "pcie" not in name else "A100_PCIE_40GB"
+        return "A100_PCIE" if "pcie" in name else "A100_SXM"
+    if family == "H100":
+        if 90 <= mem <= 100 or "nvl" in name:
+            return "H100_NVL_94GB"
+        if "pcie" in name:
+            return "H100_PCIE"
+        if "sxm" in name:
+            return "H100_SXM"
+        # Platforms whose H100 instances are HGX/SXM by construction.
+        if provider == "aws" and name.startswith("p5"):
+            return "H100_SXM"
+        if provider == "gcp" and name.startswith("a3-"):
+            return "H100_SXM"
+        if provider == "azure" and name.lower().startswith(("standard_nd", "nd")):
+            return "H100_SXM"
+        if provider == "oci" and name.startswith("bm.gpu.h100"):
+            return "H100_SXM"
+        if provider == "verda":
+            return "H100_SXM"  # gpuhunt maps only 'H100 SXM5 80GB' descriptions to H100
+        return None
+    if family == "H200":
+        if "nvl" in name or "pcie" in name:
+            return "H200_NVL"
+        return "H200_SXM"
+    if family == "B200":
+        return "B200_SXM"
+    if family == "B300":
+        return "B300_SXM"
+    return None
+
+
+def collection_floor(provider: str, utc_date: str) -> int:
+    if provider in LEGACY_FLOOR_PROVIDERS and utc_date < LEGACY_FLOOR_UNTIL:
+        return LEGACY_FLOOR
+    return MIN_GPU_COUNT
+
+
 class GpuHuntCollector:
     name = "gpuhunt"
 
@@ -132,29 +225,40 @@ class GpuHuntCollector:
         # session unused: gpuhunt fetches dstack's published catalog files itself
         import gpuhunt
 
-        items = gpuhunt.query(gpu_name=["H100"], provider=list(PROVIDERS), spot=False)
+        items = gpuhunt.query(gpu_name=GPU_NAMES, provider=list(PROVIDERS), spot=False)
         return self.to_observations(items)
 
-    def to_observations(self, items: list) -> list[Observation]:
+    def to_observations(self, items: list, utc_date: str | None = None) -> list[Observation]:
         ts = utc_now_iso()
+        day = utc_date or ts[:10]
         pkg_version = _gpuhunt_version()
         out: list[Observation] = []
+        unpinned: set[str] = set()
         for item in items:
             gpu_count = int(item.gpu_count or 0)
-            if gpu_count < 8:
-                continue  # unit is an 8-GPU node; smaller instances never match
+            if gpu_count < collection_floor(item.provider, day):
+                continue
+            if getattr(item, "spot", False):
+                continue
+            variant = variant_of(
+                item.provider, item.instance_name or "", item.gpu_name or "",
+                getattr(item, "gpu_memory", None), gpu_count,
+            )
+            if variant is None:
+                unpinned.add(f"{item.provider}:{item.instance_name}")
+                continue
             country = _country(item.provider, item.location or "")
             out.append(
                 Observation(
                     ts_utc=ts,
                     source=self.name,
                     provider=item.provider,
-                    gpu_model="H100_SXM",  # 8x hyperscaler H100 nodes are SXM/HGX
+                    gpu_model=variant,
                     gpu_count=gpu_count,
                     price_usd_per_gpu_hr=float(item.price) / gpu_count,
                     region=item.location,
                     country=country,
-                    interconnect="NVLink",
+                    interconnect="NVLink" if variant.endswith("_SXM") else "PCIe",
                     tier="list",
                     term="on_demand",
                     raw_json=json.dumps(
@@ -169,5 +273,8 @@ class GpuHuntCollector:
                     ),
                 )
             )
-        log.info("gpuhunt: %d 8-GPU H100 instances (all regions)", len(out))
+        if unpinned:
+            log.info("gpuhunt: %d rows with no pinnable form factor, skipped: %s",
+                     len(unpinned), ", ".join(sorted(unpinned)[:20]))
+        log.info("gpuhunt: %d rows across %s", len(out), ", ".join(PROVIDERS))
         return out

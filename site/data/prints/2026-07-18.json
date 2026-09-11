@@ -1,0 +1,513 @@
+{
+ "date": "2026-07-18",
+ "note": "Digest = sha256 over the canonical print (sorted keys, numbers as 6-decimal strings). Verify: python -m tci.run reproduce --published",
+ "series": {
+  "EU-CRI-A100": {
+   "constituents": [
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "1.490000",
+     "provider": "runpod",
+     "source": "runpod",
+     "tier": "executable",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.667407",
+     "provider": "vast.ai",
+     "source": "vast_ai",
+     "tier": "executable",
+     "weight": "0.000000"
+    }
+   ],
+   "date": "2026-07-18",
+   "digest": "sha256:6727760fe2d5cafd19b33ae8166ac95f4939bc8de2ff91b325f44064891aa091",
+   "flags": "insufficient_sources,correction",
+   "fx_date": "2026-07-17",
+   "fx_rate": "1.143500",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 6,
+   "n_sources": 2,
+   "revision": 2,
+   "series": "EU-CRI-A100",
+   "value_eur": null,
+   "value_usd": null
+  },
+  "EU-CRI-H100": {
+   "constituents": [
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "aws",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": null,
+     "flags": "",
+     "included": true,
+     "price_usd": "3.250000",
+     "provider": "datacrunch",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "16.666667"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "gcp",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "trimmed",
+     "flags": "",
+     "included": true,
+     "price_usd": "3.850000",
+     "provider": "nebius",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "16.666667"
+    },
+    {
+     "exclusion_reason": null,
+     "flags": "weight_capped",
+     "included": true,
+     "price_usd": "2.990000",
+     "provider": "runpod",
+     "source": "runpod",
+     "tier": "executable",
+     "weight": "25.000000"
+    },
+    {
+     "exclusion_reason": "trimmed",
+     "flags": "",
+     "included": true,
+     "price_usd": "2.160000",
+     "provider": "seeweb",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "16.666667"
+    },
+    {
+     "exclusion_reason": null,
+     "flags": "weight_capped",
+     "included": true,
+     "price_usd": "2.200278",
+     "provider": "vast.ai",
+     "source": "vast_ai",
+     "tier": "executable",
+     "weight": "25.000000"
+    }
+   ],
+   "date": "2026-07-18",
+   "digest": "sha256:60eaafdfcc1a33123091fc29cb2559e03d80ae9d80a7a6335939ae009a3faf01",
+   "flags": "correction",
+   "fx_date": "2026-07-17",
+   "fx_rate": "1.143500",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 4,
+   "n_sources": 5,
+   "revision": 2,
+   "series": "EU-CRI-H100",
+   "value_eur": "2.614779",
+   "value_usd": "2.990000"
+  },
+  "EU-CRI-H100-7D": {
+   "constituents": [],
+   "date": "2026-07-18",
+   "digest": "sha256:0fb595b0faadaa78a5e40ecfb1be4685ceea1d3e4b2ee93ea41b49f9e490444d",
+   "flags": "insufficient_history,correction",
+   "fx_date": "2026-07-17",
+   "fx_rate": "1.143500",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 0,
+   "n_sources": 1,
+   "revision": 2,
+   "series": "EU-CRI-H100-7D",
+   "value_eur": null,
+   "value_usd": null
+  },
+  "EU-CRI-H100-CLOUD": {
+   "constituents": [
+    {
+     "exclusion_reason": null,
+     "flags": "",
+     "included": true,
+     "price_usd": "7.361600",
+     "provider": "aws",
+     "source": "gpuhunt",
+     "tier": "list",
+     "weight": "20.000000"
+    },
+    {
+     "exclusion_reason": null,
+     "flags": "",
+     "included": true,
+     "price_usd": "3.250000",
+     "provider": "datacrunch",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "20.000000"
+    },
+    {
+     "exclusion_reason": null,
+     "flags": "",
+     "included": true,
+     "price_usd": "5.442394",
+     "provider": "gcp",
+     "source": "gpuhunt",
+     "tier": "list",
+     "weight": "20.000000"
+    },
+    {
+     "exclusion_reason": null,
+     "flags": "",
+     "included": true,
+     "price_usd": "3.850000",
+     "provider": "nebius",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "20.000000"
+    },
+    {
+     "exclusion_reason": null,
+     "flags": "",
+     "included": true,
+     "price_usd": "2.160000",
+     "provider": "seeweb",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "20.000000"
+    }
+   ],
+   "date": "2026-07-18",
+   "digest": "sha256:1967343ac944ed7ef670e7a751fe1d6f8f30a89a1d8826855c89645e7c035dd8",
+   "flags": "bootstrap_weights",
+   "fx_date": "2026-07-21",
+   "fx_rate": "1.141800",
+   "methodology_version": "0.2.0-dev",
+   "n_executable": 0,
+   "n_sources": 5,
+   "revision": 1,
+   "series": "EU-CRI-H100-CLOUD",
+   "value_eur": "3.371869",
+   "value_usd": "3.850000"
+  },
+  "EU-CRI-H100-HS": {
+   "constituents": [
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "7.361600",
+     "provider": "aws",
+     "source": "gpuhunt",
+     "tier": "list",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "datacrunch",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "5.442394",
+     "provider": "gcp",
+     "source": "gpuhunt",
+     "tier": "list",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "nebius",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "runpod",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "seeweb",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "vast.ai",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    }
+   ],
+   "date": "2026-07-18",
+   "digest": "sha256:40269e5ba23b1fbb0083b51661fbdfe214f64c92c35ba1ef24754ce7bfb2ee85",
+   "flags": "insufficient_sources,correction",
+   "fx_date": "2026-07-17",
+   "fx_rate": "1.143500",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 0,
+   "n_sources": 2,
+   "revision": 1,
+   "series": "EU-CRI-H100-HS",
+   "value_eur": null,
+   "value_usd": null
+  },
+  "EU-CRI-H100-MKT": {
+   "constituents": [
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "aws",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "datacrunch",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "gcp",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "nebius",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "2.990000",
+     "provider": "runpod",
+     "source": "runpod",
+     "tier": "executable",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "seeweb",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "2.200278",
+     "provider": "vast.ai",
+     "source": "vast_ai",
+     "tier": "executable",
+     "weight": "0.000000"
+    }
+   ],
+   "date": "2026-07-18",
+   "digest": "sha256:8dcdacc65ba6169592db59dc7475024271751c373c5918d9352e1dbb904c7b32",
+   "flags": "insufficient_sources,correction",
+   "fx_date": "2026-07-17",
+   "fx_rate": "1.143500",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 4,
+   "n_sources": 2,
+   "revision": 2,
+   "series": "EU-CRI-H100-MKT",
+   "value_eur": null,
+   "value_usd": null
+  },
+  "EU-CRI-H100-NC": {
+   "constituents": [
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "aws",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "3.250000",
+     "provider": "datacrunch",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "gcp",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "3.850000",
+     "provider": "nebius",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "runpod",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "2.160000",
+     "provider": "seeweb",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "out_of_population",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "vast.ai",
+     "source": "",
+     "tier": "",
+     "weight": "0.000000"
+    }
+   ],
+   "date": "2026-07-18",
+   "digest": "sha256:493607b0fb5b152e5916d834bfc9a66bb805c9f111a2baeb42e8285af0861944",
+   "flags": "insufficient_sources,correction",
+   "fx_date": "2026-07-17",
+   "fx_rate": "1.143500",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 0,
+   "n_sources": 3,
+   "revision": 1,
+   "series": "EU-CRI-H100-NC",
+   "value_eur": null,
+   "value_usd": null
+  },
+  "EU-CRI-H100-SOV": {
+   "constituents": [
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "3.250000",
+     "provider": "datacrunch",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "3.850000",
+     "provider": "nebius",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "0.000000"
+    },
+    {
+     "exclusion_reason": "insufficient_sources",
+     "flags": "",
+     "included": false,
+     "price_usd": "2.160000",
+     "provider": "seeweb",
+     "source": "static_yaml",
+     "tier": "list",
+     "weight": "0.000000"
+    }
+   ],
+   "date": "2026-07-18",
+   "digest": "sha256:0c8651547dc4b64001eb3dabcdb25f074ef0846c9481f48150b67d3375ee78d5",
+   "flags": "insufficient_sources,correction",
+   "fx_date": "2026-07-17",
+   "fx_rate": "1.143500",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 0,
+   "n_sources": 3,
+   "revision": 2,
+   "series": "EU-CRI-H100-SOV",
+   "value_eur": null,
+   "value_usd": null
+  }
+ }
+}

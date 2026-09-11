@@ -59,7 +59,7 @@ def _collect_history(conn: sqlite3.Connection) -> None:
         base.run_collector(conn, _MarketCollector("fake_market", _six()), f"2026-07-{day}")
 
 
-def test_review_weights_and_composite_chain(conn: sqlite3.Connection) -> None:
+def test_review_weights_and_composite_chain(conn: sqlite3.Connection, unpanelled: None) -> None:
     _collect_history(conn)
     compute_all_series(conn, "2026-07-20")
 
@@ -123,7 +123,7 @@ def test_review_weights_and_composite_chain(conn: sqlite3.Connection) -> None:
     assert link["weight"] == 100.0 and link["included"] == 1
 
 
-def test_review_set_is_idempotent_and_immutable(conn: sqlite3.Connection) -> None:
+def test_review_set_is_idempotent_and_immutable(conn: sqlite3.Connection, unpanelled: None) -> None:
     _collect_history(conn)
     compute_all_series(conn, "2026-07-20")
     compute_all_series(conn, "2026-07-20")  # recompute: prints get revisions...
@@ -139,7 +139,7 @@ def test_review_set_is_idempotent_and_immutable(conn: sqlite3.Connection) -> Non
         conn.execute("DELETE FROM weight_sets")
 
 
-def test_bootstrap_below_min_history(conn: sqlite3.Connection) -> None:
+def test_bootstrap_below_min_history(conn: sqlite3.Connection, unpanelled: None) -> None:
     # only 2 collection days in the window -> bootstrap weighting, no review stored
     for day in (18, 19):
         base.run_collector(conn, _MarketCollector("fake_market", _six()), f"2026-07-{day}")

@@ -45,12 +45,14 @@ As of methodology v0.3.0 none of 1, 2, 4, 5, 6 or 7 is met.
 
 ## 1. Methodology change procedure (IOSCO P12)
 
-The methodology is everything that can change a published print: `config/factors.yaml`,
-`config/sovereign.yaml`, `src/tci/index.py`, `src/tci/normalise.py`,
-`src/tci/weights.py`. A sha256 over these files is recorded in `METHODOLOGY.lock`;
-CI fails whenever the working tree no longer matches the lock, and the lock generator
-refuses to record a changed hash under an unchanged released version. A methodology
-change therefore requires, in one commit:
+The methodology is everything that can change a published print: the parameters
+(`config/factors.yaml`, `config/sovereign.yaml`), the order in which versions take effect
+(`config/methodology/succession.yaml`), and the calculation code (`src/tci/index.py`,
+`src/tci/normalise.py`, `src/tci/weights.py`). A sha256 over these files is recorded in
+`METHODOLOGY.lock`, together with one hash per superseded version's frozen parameters. CI
+fails whenever the working tree no longer matches the lock; the lock generator refuses to
+record a changed hash under an unchanged released version, and refuses any change to a
+frozen version. A methodology change therefore requires, in one commit:
 
 1. The change itself.
 2. A `methodology_version` bump in `config/factors.yaml`
@@ -58,12 +60,42 @@ change therefore requires, in one commit:
    major = unit definition or aggregation change).
 3. A CHANGELOG.md entry describing the change and its motivation.
 4. `python -m tci.run docs` to regenerate METHODOLOGY.md and the lock.
-5. **One publication's notice**: the change is announced in a published post before the
-   first print computed under the new version. Prints record the version they were
-   computed under (`daily_index.methodology_version`), so the transition is auditable.
+5. **One publication's notice**: the change is announced in `config/notices.yaml`, which
+   the site publishes, before the first print computed under the new version. Prints
+   record the version they were computed under (`daily_index.methodology_version`), so
+   the transition is auditable.
+6. **An effective date in the succession.** The previous head's parameters are frozen
+   under `config/methodology/<version>/`, and the new version is added to
+   `succession.yaml` with the effective date its notice states. A test refuses an
+   effective date earlier than the day after the notice.
 
-Versions with a `-dev` suffix (pre-launch construction) are exempt from the refusal
-rule; the exemption ends at launch when the suffix is dropped.
+Effective dates are enforced in code. A print is computed under the version whose
+effective date is the latest on or before the print date, so an announced version can be
+committed on the day of its notice and applies from its effective date whenever the
+commit lands. Nothing about the timing depends on someone merging on the right day.
+
+**The panel.** A provider contributes to a print only if the version's `panel` names it,
+the collector that observed it, and the class. A new collector therefore stores rows
+from its first day without moving any number; admitting it is a constituent change and
+follows this procedure. Rows collected before admission are never admitted
+retroactively.
+
+Three panel entries (Hetzner, Genesis Cloud and Leaseweb, via `static_yaml`) are
+admitted but have no price on file, because none had a verifiable H100 hourly rate
+when last checked. A first price for any of them would move the print exactly as
+a new constituent does, so it is treated as one: it needs a notice and an effective date
+like any other constituent change, even though the panel line already exists. Refreshing
+a price that is already on file is not a constituent change.
+
+**Code changes must reproduce the record.** The calculation code is shared by every
+version in the succession. A code change that would alter any stored print, under any
+version, is a methodology change for the versions it alters and is refused in that form;
+`tests/test_reproduce.py` recomputes every stored print in CI and fails on any
+difference. `python -m tci.run reproduce --published` is the same check, runnable by
+anyone.
+
+Versions with a `-dev` suffix (pre-launch construction) were exempt from the refusal
+rule. The exemption ended with v0.4.0, the first version without the suffix.
 
 **Scheduled weight reviews are not methodology changes.** Constituent weights and the
 composite's class basket shares are recomputed on a fixed schedule by a fixed published
@@ -86,6 +118,14 @@ candidate provider, its price, its weight, whether it was included, and the excl
 reason if not. Any reader can request it; it is reproduced with:
 
     python -m tci.run constituents --date YYYY-MM-DD [--series NAME]
+
+Every print is also published as `site/data/prints/YYYY-MM-DD.json` with a sha256 digest
+of its content, and the whole record is checked end to end, observations to prints to
+published files, with:
+
+    python -m tci.run reproduce --published
+
+The FX rate a print used is recorded with it and is an input to its reproduction.
 
 ## 4. Conflicts of interest (IOSCO P4–P5)
 

@@ -78,7 +78,7 @@ def _obs(**over: object) -> Observation:
 @pytest.mark.parametrize(
     ("collector", "url", "method", "fixture"),
     [
-        (VastAiCollector(), VAST_URL, responses.POST, "vast_bundles.json"),
+        (VastAiCollector(spacing_seconds=0), VAST_URL, responses.POST, "vast_bundles.json"),
         (RunPodCollector(), RUNPOD_URL, responses.POST, "runpod_gputypes.json"),
         (AzureRetailCollector(), AZURE_URL, responses.GET, "azure_westeurope.json"),
     ],
@@ -118,7 +118,8 @@ def test_every_tier_and_term_the_collectors_emit_is_accepted(
             conn, _Static(f"t_{tier}", [_obs(tier=tier, source=f"t_{tier}")]), "2026-09-11"
         ) == "ok", f"tier {tier!r} was rejected by the schema"
 
-    for term in ("on_demand", "reserved_1yr", "reserved_3yr", "reserved_5yr"):
+    for term in ("on_demand", "commit_1mo", "commit_3mo", "commit_6mo", "reserved_1yr",
+                 "reserved_2yr", "reserved_3yr", "reserved_5yr", "reserved_unspecified"):
         assert base.run_collector(
             conn, _Static(f"m_{term}", [_obs(term=term, source=f"m_{term}")]), "2026-09-11"
         ) == "ok", f"term {term!r} was rejected by the schema"
@@ -135,7 +136,7 @@ def test_the_vocabulary_is_still_closed(conn: sqlite3.Connection) -> None:
         assert base.run_collector(
             conn, _Static("bad_tier", [_obs(tier=bad)]), "2026-09-11"
         ) == "failed", f"schema accepted junk tier {bad!r}"
-    for bad in ("reserved_2yr", "1_month", "ON_DEMAND"):
+    for bad in ("reserved_4yr", "1_month", "ON_DEMAND", "commit_1mo "):
         assert base.run_collector(
             conn, _Static("bad_term", [_obs(term=bad)]), "2026-09-11"
         ) == "failed", f"schema accepted junk term {bad!r}"

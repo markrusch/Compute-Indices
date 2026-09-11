@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
 import pytest
@@ -11,7 +12,9 @@ import pytest
 from tci.config import load_factors
 from tci.normalise import normalise_observations
 
-FACTORS = load_factors()
+# Panel off: these tests pin unit and aggregation mechanics with synthetic providers.
+# The panel is tested in tests/test_panel.py.
+FACTORS = replace(load_factors(), panel=None)
 
 
 def obs(**overrides: Any) -> dict[str, Any]:

@@ -36,14 +36,16 @@ from tci.config import CONFIG_DIR
 
 # Ordered worst-to-best-known, and the report sorts by this. A frozenset would render
 # the register in a different order on different runs, which is no way to read a diff.
-STATUS_ORDER = ("live", "built", "candidate", "watchlist", "rejected", "retired")
+# shadow: a collector runs daily and stores rows, but the methodology panel does not admit
+# them to any print yet (history accumulating ahead of a governed promotion).
+STATUS_ORDER = ("live", "shadow", "built", "candidate", "watchlist", "rejected", "retired")
 SOURCE_STATUSES = frozenset(STATUS_ORDER)
 BLOCK_STATUSES = frozenset({"published", "shadow", "watch", "excluded"})
 TIERS = frozenset({"executable", "list", "reference"})
 
 # Statuses whose `last_reviewed` date the review clock applies to. A rejected row is not
 # on a clock -- it is re-examined by the discovery sweep, which reads `recheck`.
-REVIEWED_STATUSES = frozenset({"live", "built", "candidate"})
+REVIEWED_STATUSES = frozenset({"live", "shadow", "built", "candidate"})
 
 
 @dataclass(frozen=True)

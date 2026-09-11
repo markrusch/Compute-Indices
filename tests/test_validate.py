@@ -33,7 +33,7 @@ class _SourceCollector:
         ]
 
 
-def test_dropout_sensitivity(conn: sqlite3.Connection) -> None:
+def test_dropout_sensitivity(conn: sqlite3.Connection, unpanelled: None) -> None:
     base.run_collector(
         conn, _SourceCollector("src_a", [("a1", 2.0), ("a2", 2.2), ("a3", 2.4)]), DATE
     )
@@ -50,7 +50,7 @@ def test_dropout_sensitivity(conn: sqlite3.Connection) -> None:
     assert by_source["src_a"]["deviation_pct"] is None
 
 
-def test_dropout_deviation_computed(conn: sqlite3.Connection) -> None:
+def test_dropout_deviation_computed(conn: sqlite3.Connection, unpanelled: None) -> None:
     base.run_collector(
         conn,
         _SourceCollector(

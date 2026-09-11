@@ -1,0 +1,17 @@
+# Commitment discounts that a seller publishes as a schedule of percentages rather than as
+# prices. Read only by the research table on term.html (src/tci/term.py); never by the
+# calculation path, and not part of METHODOLOGY.lock.
+#
+# An entry is used only while `last_verified` is within `max_age_days` of the table's
+# date, the same limit at which a static price is excluded from the index. Re-verify on
+# the seller's page and update the date; never extend a date without looking.
+max_age_days: 90
+
+schedules:
+  - provider: verda
+    url: https://verda.com/pricing
+    applies_to: self-service GPU instances
+    last_verified: 2026-09-11
+    # "Commitment Discount: 1 month 2% off on-demand, 3 months 3%, 6 months 4%,
+    # 1 year 8%, 2 years 25%" (read on the live page, 2026-09-11).
+    discounts: {1: 0.02, 3: 0.03, 6: 0.04, 12: 0.08, 24: 0.25}

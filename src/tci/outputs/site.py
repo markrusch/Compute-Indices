@@ -43,10 +43,16 @@ import yaml
 
 from tci import DISCLAIMER
 from tci.commands import COMPOSITE, HEADLINE, SERIES_7D
-from tci.config import Factors, load_factors, load_sovereign
+from tci.config import (
+    Factors,
+    SuccessionEntry,
+    load_factors,
+    load_sovereign,
+    load_succession,
+)
 from tci.db import utc_now_iso
 from tci.outputs import markdown
-from tci.outputs.webdata import provider_links, sources_panel
+from tci.outputs.webdata import provider_links, sources_panel, term_dates, term_tables
 
 log = logging.getLogger("tci.outputs.site")
 
@@ -96,6 +102,8 @@ CUTOFF_UTC = "11:00 UTC"
 
 NAV: tuple[tuple[str, str], ...] = (
     ("index.html", "Indices"),
+    ("basis.html", "Basis"),
+    ("term.html", "Term"),
     ("methodology.html", "Methodology"),
     ("data.html", "Data"),
     ("research.html", "Research"),
@@ -1044,6 +1052,14 @@ class SiteContext:
     generated_at: str
     head: sqlite3.Row | None
     date: str
+
+
+def _lock_head_version() -> str:
+    path = REPO_ROOT / "METHODOLOGY.lock"
+    if not path.exists():
+        return "?"
+    data = yaml.safe_load(_read(path)) or {}
+    return str((data.get("current") or {}).get("version", "?"))
 
 
 def _lock_hash() -> str:
@@ -2223,8 +2239,54 @@ def _aggregation_term(ctx: SiteContext) -> str:
 </div>"""
 
 
+def _live_methodology_doc(version: str) -> Path:
+    """The rendered document for the version live today.
+
+    METHODOLOGY.md at the repository root describes the HEAD of the succession, which can
+    be announced and not yet in effect. The page must show the rules today's print was
+    computed under, so a superseded-or-current snapshot's own copy is used when the head
+    is still ahead.
+    """
+    snap = REPO_ROOT / "config" / "methodology" / version / "METHODOLOGY.md"
+    return snap if snap.exists() else REPO_ROOT / "METHODOLOGY.md"
+
+
+def _succession_card(ctx: SiteContext) -> str:
+    """Every methodology version, its effective date, and which one computed today's print."""
+    today = ctx.generated_at[:10]
+    rows = []
+    for e in load_succession():
+        if e.version == ctx.version:
+            state = '<span class="chip chip--good"><span>In effect</span></span>'
+        elif e.effective_from > today:
+            state = '<span class="chip chip--warning"><span>Announced</span></span>'
+        else:
+            state = '<span class="chip chip--neutral"><span>Superseded</span></span>'
+        notice = (
+            f'<a href="notices.html#{_e(e.notice)}">{_e(e.notice)}</a>' if e.notice else "&#8212;"
+        )
+        rows.append(
+            f"<tr><td class=\"num\">v{_e(e.version)}</td>"
+            f"<td class=\"num\">{_e(_human_date(e.effective_from))}</td>"
+            f"<td>{notice}</td><td>{state}</td></tr>"
+        )
+    return f"""<div class="card">
+  <div class="card__head"><div>
+    <h2 class="card__title" id="versions-h">Versions and effective dates</h2>
+    <p class="card__sub">Each print is computed under the version whose effective date is
+    the latest on or before the print date. An announced version is in the repository
+    from the day of its notice and applies only from its effective date; superseded
+    versions are frozen and hash-locked.</p></div></div>
+  <div class="card__body card__body--flush"><div class="scroll-x"><table class="grid">
+    <thead><tr><th>Version</th><th>Effective from</th><th>Notice</th><th>Status</th></tr></thead>
+    <tbody>{"".join(rows)}</tbody></table></div></div>
+</div>"""
+
+
 def _methodology(ctx: SiteContext) -> str:
-    doc = markdown.render(_rebrand_doc(_read(REPO_ROOT / "METHODOLOGY.md")), heading_offset=1)
+    doc = markdown.render(
+        _rebrand_doc(_read(_live_methodology_doc(ctx.version))), heading_offset=1
+    )
     lock = ctx.lock_hash
     ru = ctx.factors.reference_unit
     head_pop = ", ".join(sorted(ctx.factors.population_for("headline")))
@@ -2304,6 +2366,9 @@ def _methodology(ctx: SiteContext) -> str:
           <div class="card__body">{_parameter_ledger(ctx)}</div>
         </div>
       </section>
+      <section aria-labelledby="versions-h" style="margin-bottom:var(--space-8)">
+        {_succession_card(ctx)}
+      </section>
       <section aria-labelledby="audit-h" style="margin-bottom:var(--space-8)">
         <div class="card">
           <div class="card__head"><div>
@@ -2311,7 +2376,11 @@ def _methodology(ctx: SiteContext) -> str:
             <p class="card__sub">How a third party checks this print without asking
             us</p></div></div>
           <div class="card__body stack">
-            <pre class="code"><code># the full constituent set behind any print
+            <pre class="code"><code># recompute every stored print under the version live on its
+# date, and check every published digest against the database
+python -m tci.run reproduce --published
+
+# the full constituent set behind any print
 python -m tci.run constituents --date {_e(ctx.date)} --series EU-CRI-H100
 
 # the weight review in effect on a date, recomputed from stored observations
@@ -2322,16 +2391,21 @@ python -m tci.run docs</code></pre>
             <ol class="ledger">
               <li class="ledger__row"><span class="ledger__n num">A1</span>
                 <div class="ledger__body"><h4 class="ledger__t">Methodology lock</h4>
-                <p class="ledger__d">A sha256 over factors.yaml, sovereign.yaml, index.py,
-                normalise.py and weights.py. CI fails whenever the working tree stops matching
-                it.<span class="ledger__k">sha256:{_e(lock)}</span></p></div>
-                <span class="ledger__v num">v{_e(ctx.version)}</span></li>
+                <p class="ledger__d">A sha256 over the head parameters (factors.yaml,
+                sovereign.yaml), the succession of versions, and the calculation code (index.py,
+                normalise.py, weights.py), plus one hash per frozen version. CI fails whenever
+                the working tree stops matching it, and the lock refuses any edit to a frozen
+                version.<span class="ledger__k">sha256:{_e(lock)}</span></p></div>
+                <span class="ledger__v num">head v{_e(_lock_head_version())}</span></li>
               <li class="ledger__row"><span class="ledger__n num">A2</span>
                 <div class="ledger__body"><h4 class="ledger__t">Machine-readable prints</h4>
                 <p class="ledger__d">The full published history, latest revision per date and
-                series, plus today's snapshot with its constituent set.</p></div>
+                series; today's snapshot; and one file per print date with every series, its
+                constituent set, and a digest that <code class="inline">reproduce
+                --published</code> checks.</p></div>
                 <span class="ledger__v num"><a href="data/index_history.csv">CSV</a> &#183;
-                <a href="data/latest.json">JSON</a></span></li>
+                <a href="data/latest.json">JSON</a> &#183;
+                <a href="data/prints/{_e(ctx.date)}.json">print file</a></span></li>
               <li class="ledger__row"><span class="ledger__n num">A3</span>
                 <div class="ledger__body"><h4 class="ledger__t">Complaints</h4>
                 <p class="ledger__d">Any print may be challenged. Acknowledged within 7 days;
@@ -2459,8 +2533,19 @@ class Notice:
 
     @property
     def pending(self) -> bool:
-        """Announced, effective date not yet reached. These raise the dashboard banner."""
-        return self.status == "announced"
+        """Announced, effective date not yet reached. These raise the dashboard banner.
+
+        Derived from the date, not only the stored status: effective dates are enforced
+        in code (config/methodology/succession.yaml), so a notice whose date has passed is
+        in effect whether or not anyone has edited its status field.
+        """
+        return self.status == "announced" and self.effective > utc_now_iso()[:10]
+
+    @property
+    def shown_status(self) -> str:
+        if self.status == "announced" and not self.pending:
+            return "in_effect"
+        return self.status
 
 
 def _load_notices() -> list[Notice]:
@@ -2537,7 +2622,7 @@ def _notices(ctx: SiteContext) -> str:
     else:
         blocks = []
         for n in notices:
-            cls, verb = _NOTICE_STATUS.get(n.status, _NOTICE_STATUS["announced"])
+            cls, verb = _NOTICE_STATUS.get(n.shown_status, _NOTICE_STATUS["announced"])
             blocks.append(
                 f"""<article class="card" id="{_e(n.id)}">
   <div class="card__head"><div>
@@ -2686,6 +2771,11 @@ def _data(ctx: SiteContext) -> str:
     reader discover it inside a CSV costs the citation.
     """
     head = ctx.head
+    from tci.reproduce import print_digest
+
+    pd = print_digest(ctx.conn, ctx.date, HEADLINE) if head is not None else None
+    digest_full = pd[1] if pd else ""
+    print_version = pd[0]["methodology_version"] if pd else ctx.version
     stamp = (
         f'{_e(display_series(HEADLINE))}, {_e(ctx.date)}: '
         + (
@@ -2693,16 +2783,16 @@ def _data(ctx: SiteContext) -> str:
             if head is not None and head["value_usd"] is not None
             else "no print (gap)"
         )
-        + f" (v{_e(ctx.version)}, lock sha256:{_e(ctx.lock_hash[:12])}&#8230;)"
+        + f" (v{_e(print_version)}, print digest {_e(digest_full[:19])}&#8230;)"
     )
     cards = (
         ("Index history", "Full daily history of every published series, latest revision "
          "per date.", "data/index_history.csv", "Download CSV"),
         ("Latest print", "latest.json — current values across all series, with flags and "
          "the FX leg.", "data/latest.json", "View JSON"),
-        ("Constituent audit", "Every candidate provider per print, included or not, its "
-         "weight, and why. Published inside latest.json.", "data/latest.json",
-         "View audit set"),
+        ("Print files", "One file per print date: every series, its full constituent audit "
+         "set, and a digest of exactly that content.", f"data/prints/{ctx.date}.json",
+         "View today's file"),
         ("Source code", "The generator, the collectors and the calculation — Apache-2.0, "
          "so any print here can be rebuilt independently.", REPO_URL, "Open repository"),
     )
@@ -2728,6 +2818,29 @@ def _data(ctx: SiteContext) -> str:
   <section class="section" aria-labelledby="s-dl">
     <h2 class="vh" id="s-dl">Downloads</h2>
     <div class="dlcards">{dl}</div>
+  </section>
+
+  <section class="section" aria-labelledby="s-verify">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-verify">Verify a print</h2>
+      <p class="section__dek">Every stored print can be recomputed from the stored
+      observations with the published code, under the methodology version that was live on
+      its date, and compared field by field with what was published: value, EUR value, FX
+      rate, provider counts, flags, and every constituent. Each print file carries a
+      sha256 digest of its content, so a copy of this site can be checked against the
+      database it claims to come from. Exit status 0 means every print matched.</p></div></div>
+    <div class="term">
+      <div class="term__chrome" aria-hidden="true"><i></i><i></i><i></i>
+        <span class="term__name">reproduce</span></div>
+      <div class="term__body">
+        <div>git clone {_e(REPO_URL)}</div>
+        <div>pip install -e .</div>
+        <div>python -m tci.run reproduce --published</div>
+        <div class="term__c"># or one day: python -m tci.run reproduce --date {_e(ctx.date)}</div>
+      </div>
+    </div>
+    <p class="section__dek">Today's headline digest:
+    <code class="inline" style="word-break:break-all">{_e(digest_full or "no print")}</code></p>
   </section>
 
   <section class="section" aria-labelledby="s-ids">
@@ -2795,6 +2908,504 @@ def _data(ctx: SiteContext) -> str:
             "every print, terms of use, and the citation format."
         ),
         current="data.html",
+        body=body,
+    )
+
+
+# ---- basis ----------------------------------------------------------------
+
+BASIS_SERIES = "EU-CRI-H100-BASIS-US"
+US_SERIES = "EU-CRI-H100-US"
+
+
+def _basis_entry() -> SuccessionEntry | None:
+    """The first methodology version that defines a basis series (its effective date)."""
+    return next(
+        (e for e in load_succession() if load_factors(e.params_dir).basis_series), None
+    )
+
+
+def _basis_tile(ctx: SiteContext, series: str, label: str, signed: bool = False) -> str:
+    row = current_print(ctx.conn, series, ctx.date)
+    head = (
+        f'<div class="tile__head"><span class="tile__sym">{_nbsp_series(series)}</span>'
+        f'<span class="tile__note">{_e(label)}</span></div>'
+    )
+    dash = (
+        '<div class="tile__body"><div class="tile__gap">'
+        '<span class="tile__dash">&#8212;&#8212;</span></div></div>'
+    )
+    if row is None:
+        return (
+            f'<article class="tile tile--gap">{head}{dash}<div class="tile__foot">'
+            '<span class="chip chip--neutral"><span>Not yet computed</span></span></div>'
+            "</article>"
+        )
+    if row["value_usd"] is None:
+        return (
+            f'<article class="tile tile--gap">{head}{dash}<div class="tile__foot">'
+            f'<span class="chip chip--warning">{_icon("gap")}'
+            f'<span>{_e(_flag_words(row["flags"]) or "gapped")}</span></span></div></article>'
+        )
+    v = row["value_usd"]
+    sign = ("+" if v > 0 else "&#8722;" if v < 0 else "") if signed else ""
+    unit = "legs" if series == BASIS_SERIES else "providers"
+    return (
+        f'<article class="tile">{head}<div class="tile__body"><div class="tile__num">'
+        f'<span class="tile__ccy" aria-hidden="true">{sign}$</span>'
+        f'<span class="tile__val num">{_num(abs(v) if signed else v)}</span></div></div>'
+        f'<div class="tile__foot"><span class="tile__note">{_e(row["n_sources"])} {unit}'
+        f' &#183; {_e(_human_date(row["date"]))}</span></div></article>'
+    )
+
+
+def _month_average(ctx: SiteContext, series: str, first: str | None = None) -> str:
+    """Calendar month to date: the mean of the published daily prints and its coverage.
+
+    Shown because each CME compute contract covers a month of rent (730 GPU-hours), so a
+    hedger's basis is a monthly quantity. Computed on the page from published prints;
+    it is not a separate series and no gap is filled.
+    """
+    month = ctx.date[:7]
+    pts = series_history(ctx.conn, series, since=f"{month}-01")
+    vals = [p.value for p in pts if p.value is not None and p.date[:7] == month]
+    day_of_month = int(ctx.date[8:10])
+    if not vals and first and ctx.date < first:
+        return f"The month-to-date average starts with the first print on {_e(_human_date(first))}."
+    if not vals:
+        return (
+            f"No published {_e(display_series(series))} print yet in {_e(month)}: "
+            f"0 of {day_of_month} sessions."
+        )
+    mean = sum(vals) / len(vals)
+    return (
+        f"{_e(month)} to date: mean ${_num(mean)}/GPU-hr over {len(vals)} of "
+        f"{day_of_month} sessions published. Gaps are not filled."
+    )
+
+
+def matched_sellers(conn: sqlite3.Connection, date: str, lead: str, reference: str
+                    ) -> list[tuple[str, float, float]]:
+    """Sellers included in both legs on `date`: (provider, lead price, reference price).
+
+    A median of one population minus a median of another does not split additively into
+    a price part and a mix part, so no such split is published. What can be shown without
+    an assumption is what the sellers present on both sides charged on each side.
+    """
+    def legs(series: str) -> dict[str, float]:
+        rows = conn.execute(
+            "SELECT provider, price_usd FROM constituents c WHERE date = ? AND series = ?"
+            " AND included = 1 AND revision = (SELECT MAX(revision) FROM constituents"
+            " WHERE date = c.date AND series = c.series)",
+            (date, series),
+        ).fetchall()
+        return {r[0]: float(r[1]) for r in rows}
+
+    a, b = legs(lead), legs(reference)
+    return [(p, a[p], b[p]) for p in sorted(a.keys() & b.keys())]
+
+
+def _matched_section(ctx: SiteContext) -> str:
+    # This session's print only, as on the tiles: an older day's sellers must not sit on
+    # the page as though they were today's.
+    row = current_print(ctx.conn, BASIS_SERIES, ctx.date)
+    if row is None or row["value_usd"] is None:
+        return ('<p class="section__dek">Shown on each day the basis publishes: the sellers '
+                "that qualify in both legs, and what each charged on each side. There is "
+                "no basis print this session.</p>")
+    date = row["date"]
+    both = matched_sellers(ctx.conn, date, HEADLINE, US_SERIES)
+    if not both:
+        return (f'<p class="section__dek">On {_e(_human_date(date))} no seller qualified in '
+                "both legs, so the basis on that day is entirely a difference between two "
+                "different sets of sellers.</p>")
+    rows = "".join(
+        f'<tr><td>{_e(p)}</td><td class="ta-r num">${_num(eu)}</td>'
+        f'<td class="ta-r num">${_num(us)}</td><td class="ta-r num">'
+        f'{"+" if eu - us > 0 else "&#8722;" if eu - us < 0 else ""}${_num(abs(eu - us))}'
+        "</td></tr>"
+        for p, eu, us in both
+    )
+    return f"""<p class="section__dek">{_e(_human_date(date))}: sellers that qualified in
+    both legs, at the price each contributed to each leg. A basis larger than these
+    differences comes from which sellers are in each leg, not from what they charge.</p>
+    <div class="card card__body--flush"><div class="scroll-x">
+  <table class="grid grid--narrow">
+  <caption class="vh">Sellers in both legs of the basis</caption>
+  <thead><tr><th scope="col">Seller</th><th scope="col" class="ta-r">EU/EEA</th>
+  <th scope="col" class="ta-r">US</th><th scope="col" class="ta-r">EU minus US</th></tr>
+  </thead><tbody>{rows}</tbody></table></div></div>"""
+
+
+def _leg_table(ctx: SiteContext, entry: SuccessionEntry) -> str:
+    """Which sellers the legs can draw on, and where each was actually seen pricing.
+
+    The panel is region-agnostic: a seller admitted to the class feeds whichever leg its
+    rows are located in. The last column is read from stored observations, not asserted,
+    so a collector that has never run in production shows as not yet seen.
+    """
+    f = load_factors(entry.params_dir)
+    pop = f.population_for("headline")
+    eu = f.eu_eea_countries
+    us = f.blocks.get("US", frozenset())
+    since = (date_type.fromisoformat(ctx.date) - timedelta(days=30)).isoformat()
+    seen: dict[tuple[str, str], set[str]] = {}
+    for provider, source, country in ctx.conn.execute(
+        "SELECT DISTINCT provider, source, country FROM observations "
+        "WHERE gpu_model = 'H100_SXM' AND ts_utc >= ? AND tier IN ('executable','list')",
+        (since,),
+    ):
+        block = "EU/EEA" if country in eu else "US" if country in us else None
+        if block:
+            seen.setdefault((provider, source), set()).add(block)
+    rows = []
+    for provider, pe in sorted((f.panel or {}).items()):
+        if pe.segment not in pop:
+            continue
+        collectors = sorted(src for src, classes in pe.sources.items() if "H100" in classes)
+        if not collectors:
+            continue
+        blocks: set[str] = set()
+        for src in collectors:
+            blocks |= seen.get((provider, src), set())
+        where = " + ".join(b for b in ("EU/EEA", "US") if b in blocks) or "not yet seen"
+        rows.append(
+            f'<tr><td>{_e(provider)}</td><td>{_e(pe.segment)}</td>'
+            f'<td class="num">{_e(", ".join(collectors))}</td><td>{_e(where)}</td></tr>'
+        )
+    return f"""<div class="card card__body--flush"><div class="scroll-x"><table class="grid">
+  <caption class="vh">Sellers admitted to the H100 class, v{_e(f.methodology_version)}</caption>
+  <thead><tr><th scope="col">Seller</th><th scope="col">Segment</th>
+  <th scope="col">Collector</th><th scope="col">H100 SXM rows, last 30 days</th></tr></thead>
+  <tbody>{"".join(rows)}</tbody></table></div></div>"""
+
+
+def _basis(ctx: SiteContext) -> str:
+    entry = _basis_entry()
+    if entry is None:
+        return ""
+    effective = entry.effective_from
+    live = effective <= ctx.generated_at[:10]
+    dates = _window(ctx.date, 60)
+    notice = _e(entry.notice or "")
+    if live:
+        status = (
+            '<span class="chip chip--good"><span>In effect since '
+            f"{_e(_human_date(effective))}</span></span>"
+        )
+        chart = line_chart(
+            _windowed(series_history(ctx.conn, BASIS_SERIES, since=dates[0]), dates),
+            symbol=display_series(BASIS_SERIES),
+        )
+    else:
+        status = (
+            '<span class="chip chip--warning"><span>First print '
+            f"{_e(_human_date(effective))}</span></span>"
+        )
+        chart = (
+            '<div class="gapnote">' + _icon("warn", 14)
+            + f"<p>The basis publishes from {_e(_human_date(effective))} under methodology "
+            f'v{_e(entry.version)} (notice <a href="notices.html#{notice}">{notice}</a>). '
+            "There is no value before that date, and none is back-filled.</p></div>"
+        )
+    body = f"""<main class="wrap" id="main">
+  <div class="pagehead">
+    <div class="eyebrow">EU&#8211;US basis</div>
+    <h1 class="pagehead__h pagehead__h--display">What a European buyer carries when the
+    hedge is priced in the US.</h1>
+    <p class="pagehead__dek">CME Group plans to list compute futures on 5 October 2026,
+    pending regulatory review, that settle in cash on Silicon Data's H100 and B200 rental
+    indices. A European buyer who hedges with them is exposed to the
+    difference between what the EU/EEA population of sellers charges and what the
+    reference population charges. {_nbsp_series(BASIS_SERIES)} is that difference for one
+    H100 SXM GPU-hour: the EU/EEA headline minus a US series priced with exactly the same
+    rules.</p>
+    <div class="pagehead__meta"><span>{status}</span>
+      <span><a href="methodology.html">Methodology</a></span>
+      <span><a href="notices.html#{notice}">Notice {notice}</a></span>
+      <span><a href="data/latest.json">latest.json</a></span></div>
+  </div>
+
+  <section class="section" aria-labelledby="s-now">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-now">The two legs and the spread</h2>
+      <p class="section__dek">Each leg publishes only with five qualifying sellers; the
+      spread publishes only when both legs do.</p></div></div>
+    <div class="tiles">
+      {_basis_tile(ctx, HEADLINE, "EU/EEA")}
+      {_basis_tile(ctx, US_SERIES, "United States")}
+      {_basis_tile(ctx, BASIS_SERIES, "EU minus US", signed=True)}
+    </div>
+    <p class="section__dek">{_month_average(ctx, BASIS_SERIES, entry.effective_from)} Each
+    CME contract covers a month of rent (730 GPU-hours), so the month is the unit a
+    hedger's basis is measured in.</p>
+  </section>
+
+  <section class="section" aria-labelledby="s-hist">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-hist">Last 60 sessions</h2></div></div>
+    <div class="card"><div class="card__body">{chart}</div></div>
+  </section>
+
+  <section class="section" aria-labelledby="s-what">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-what">What the spread measures, and what it does not</h2>
+      <p class="section__dek">Both legs use the same unit definition, node floor, weighted
+      median over offers, trim, tier weights, concentration cap and publication gate. Only
+      the region differs, which is what makes the spread a regional basis rather than a
+      comparison of two methods.</p></div></div>
+    <div class="md"><p>It is <strong>not</strong> the basis to the Silicon Data index the
+    CME contracts settle on. That index's methodology is not public, and a spread against
+    it would mix a regional difference with a methodological one that nobody outside can
+    measure. What is published here is the regional part, with the method held
+    constant.</p>
+    <p>The US leg draws on five candidate sellers (vast.ai, RunPod, Lambda, DigitalOcean,
+    Voltage Park) against a gate of five. On any day one of them has no qualifying offer,
+    the US leg gaps and so does the spread, with the reason in the audit set.</p>
+    <p>RunPod and DigitalOcean charge one price in every region, so on a day both qualify
+    in both legs the same two prices sit on each side of the spread. That pulls the basis
+    toward zero, and it is correct: a buyer can rent from either at the same price on
+    either side of the Atlantic. A basis driven by the other sellers is the one that
+    reflects regional pricing.</p></div>
+    {_leg_table(ctx, entry)}
+  </section>
+
+  <section class="section" aria-labelledby="s-both">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-both">Sellers in both legs</h2></div></div>
+    {_matched_section(ctx)}
+  </section>
+
+  <section class="section" aria-labelledby="s-where">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-where">Where a region-flat price is placed</h2></div></div>
+    <div class="md"><ul>
+      <li><strong>vast.ai</strong>: every offer carries its own location.</li>
+      <li><strong>Lambda</strong>: catalogue rows carry a region (europe-central-1 is
+      Germany).</li>
+      <li><strong>DigitalOcean</strong>: one price, recorded once for each region its
+      availability page lists for the H100 (Amsterdam, New York, Toronto).</li>
+      <li><strong>RunPod</strong>: one price everywhere. A US row is recorded only on a day
+      RunPod reports stock of that GPU type in a US datacentre.</li>
+      <li><strong>Voltage Park</strong>: sells only in the United States, by its own
+      statement.</li>
+    </ul></div>
+  </section>
+</main>"""
+    return _shell(
+        ctx,
+        title=f"EU-US basis — {BRAND}",
+        description=(
+            "The EU/EEA H100 reference price minus a US series priced with the same rules: "
+            "the regional basis a European buyer carries against US compute futures."
+        ),
+        current="basis.html",
+        body=body,
+    )
+
+
+# ---- term -----------------------------------------------------------------
+
+TERM_TENORS = (1, 3, 6, 12, 24, 36, 60)
+TERM_FAMILIES = ("H100", "H200", "B200", "B300", "GB200", "GB300", "A100")
+CONTRIBUTED_PATH = SITE_DIR / "data" / "term" / "contributed.json"
+
+
+def _tenor_label(months: int) -> str:
+    return f"{months // 12}y" if months % 12 == 0 else f"{months}m"
+
+
+def _term_schedule_table(schedule: list[dict]) -> str:
+    rows: dict[tuple[str, str, str], dict[int, dict]] = {}
+    for r in schedule:
+        if not r["gpu_model"].startswith(TERM_FAMILIES):
+            continue
+        rows.setdefault((r["provider"], r["segment"], r["gpu_model"]), {})[
+            r["tenor_months"]] = r
+    tenors = [m for m in TERM_TENORS if any(m in v for v in rows.values())]
+    body = []
+    for (provider, segment, gpu), by_tenor in sorted(rows.items(), key=lambda kv: (
+            kv[0][2], kv[0][1], kv[0][0])):
+        cells = []
+        for m in tenors:
+            cell = by_tenor.get(m)
+            if cell is None:
+                cells.append('<td class="ta-r num">&#8212;</td>')
+                continue
+            disc = round((1 - cell["median_ratio"]) * 100)
+            lo, hi = round((1 - cell["max_ratio"]) * 100), round((1 - cell["min_ratio"]) * 100)
+            note = f' <span class="u">({lo}&#8211;{hi})</span>' if lo != hi else ""
+            cells.append(f'<td class="ta-r num">{disc}%{note}</td>')
+        body.append(
+            f'<tr><td>{_e(gpu)}</td><td>{_e(provider)} <span class="u">'
+            f"{_e(segment)}</span></td>" + "".join(cells) + "</tr>"
+        )
+    if not body:
+        return ('<p class="section__dek">No seller in the collected sources published a term'
+                " price for these GPUs on that date.</p>")
+    head = "".join(f'<th scope="col" class="ta-r">{_tenor_label(m)}</th>' for m in tenors)
+    return f"""<div class="card card__body--flush"><div class="scroll-x">
+  <table class="grid grid--narrow">
+  <caption class="vh">Published discount to the same product's on-demand price</caption>
+  <thead><tr><th scope="col">GPU</th><th scope="col">Seller</th>{head}</tr></thead>
+  <tbody>{"".join(body)}</tbody></table></div></div>"""
+
+
+def _contributed_section() -> str:
+    link = f"{REPO_URL}/blob/main/CONTRIBUTING-PRICES.md"
+    intro = f"""<div class="md"><p>The term prices a lender or a buyer needs are in contracts and
+    firm quotes, not on rate cards. Sellers, buyers and brokers can contribute them under
+    the rules in <a href="{_e(link)}">CONTRIBUTING-PRICES.md</a>: stored outside the
+    public repository, one price per contributor, a median published only with three
+    contributors and no contributor above half the volume, quartiles only with five.
+    Contributed figures cannot be recomputed from public data and are labelled so.</p></div>"""
+    try:
+        data = json.loads(CONTRIBUTED_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return intro + '<p class="section__dek">No contributed cell has been published.</p>'
+    rows = []
+    for c in data.get("cells", []):
+        value = (f"${_num(c['median'])}" if c.get("published") and c.get("median") is not None
+                 else _e(c.get("reason") or "suppressed"))
+        rows.append(
+            f"<tr><td>{_e(c['gpu_model'])}</td>"
+            f"<td class=\"ta-r num\">{_e(_tenor_label(c['tenor_months']))}</td>"
+            f"<td>{_e(c['region'])}</td><td>{_e(c['currency'])}</td>"
+            f"<td class=\"ta-r num\">{_e(c['n_contributors'])}</td><td>{value}</td></tr>"
+        )
+    window = data.get("window", {})
+    return intro + f"""<p class="section__dek">Window {_e(window.get('from', ''))} to
+    {_e(window.get('to', ''))}.</p>
+    <div class="card card__body--flush"><div class="scroll-x">
+  <table class="grid grid--narrow">
+  <caption class="vh">Contributed term prices, aggregated</caption>
+  <thead><tr><th scope="col">GPU</th><th scope="col" class="ta-r">Tenor</th>
+  <th scope="col">Region</th><th scope="col">Currency</th>
+  <th scope="col" class="ta-r">Contributors</th>
+  <th scope="col">Median per GPU-hour</th></tr></thead>
+  <tbody>{"".join(rows)}</tbody></table></div></div>"""
+
+
+def _term(ctx: SiteContext) -> str:
+    # Research beside the index: if the table cannot be built, the page says so and the
+    # rest of the site is still generated.
+    try:
+        dates = term_dates(ctx.conn)
+        tables = term_tables(ctx.conn, dates[-1]) if dates else None
+    except Exception:  # noqa: BLE001
+        log.exception("site: term table not built")
+        dates, tables, failed = [], None, True
+    else:
+        failed = False
+    if tables:
+        status = ('<span class="chip"><span>Collected '
+                  f"{_e(_human_date(tables['date']))}</span></span>")
+        cells = tables["cells"]
+        published = [c for c in cells if c["published"]]
+        most = max((c["n_sellers"] for c in cells), default=0)
+        if published:
+            pooled = "".join(
+                f"<li>{_e(c['gpu_model'])} {_e(_tenor_label(c['tenor_months']))}, "
+                f"{_e(c['segment'])}: median {round((1 - c['median_ratio']) * 100)}% below "
+                f"on-demand across {_e(c['n_sellers'])} sellers</li>" for c in published
+            )
+            pooled = f'<div class="md"><ul>{pooled}</ul></div>'
+        else:
+            pooled = (
+                '<div class="md"><p>None. A pooled figure needs three sellers in one '
+                "segment publishing the same GPU at the same tenor; on "
+                f"{_e(_human_date(tables['date']))} the best-covered cell had {most}.</p></div>"
+            )
+        schedule = _term_schedule_table(tables["schedule"])
+        pub = tables.get("published_schedules") or []
+        if pub:
+            items = "".join(
+                f'<li><strong>{_e(sc["provider"])}</strong> ({_e(sc["segment"])}), '
+                f'{_e(sc["applies_to"])}: '
+                + ", ".join(f"{_tenor_label(int(m))} {round(d * 100)}%"
+                            for m, d in sorted(sc["discounts"].items(),
+                                               key=lambda kv: int(kv[0])))
+                + f' off on-demand. <a href="{_e(sc["url"])}">Checked '
+                f'{_e(_human_date(sc["last_verified"]))}</a>.</li>'
+                for sc in pub
+            )
+            schedule += (
+                '<div class="md"><p>Stated by the seller as percentages rather than '
+                "prices, and applied in the table above to each GPU it priced on demand "
+                f"that day:</p><ul>{items}</ul></div>"
+            )
+        n_excl = len(tables["excluded"])
+    else:
+        label = "Not built today" if failed else "Not yet collected"
+        status = f'<span class="chip chip--warning"><span>{label}</span></span>'
+        pooled = ('<p class="section__dek">The term table could not be built from the stored'
+                  " prices on this run; the index is unaffected.</p>" if failed else
+                  '<p class="section__dek">No term prices have been collected yet.</p>')
+        schedule = ""
+        n_excl = 0
+    excl = (f" {n_excl} pair{'s' if n_excl != 1 else ''} on that date priced the commitment "
+            "above on-demand and were left out." if n_excl else "")
+    body = f"""<main class="wrap" id="main">
+  <div class="pagehead">
+    <div class="eyebrow">Term prices</div>
+    <h1 class="pagehead__h pagehead__h--display">What a commitment is worth, from the
+    prices sellers publish.</h1>
+    <p class="pagehead__dek">For each seller that publishes both, the committed price as a
+    discount to the same product's on-demand price on the same day. Taken within one
+    seller, one product and one currency, a discount needs no FX and carries no mix of
+    sellers. It is a research table beside the index, not a series in it, and nothing on
+    this page enters a print.</p>
+    <div class="pagehead__meta"><span>{status}</span>
+      <span><a href="data/term/latest.json">latest.json</a></span>
+      <span><a href="data/term/history.csv">history.csv</a></span></div>
+  </div>
+
+  <section class="section" aria-labelledby="s-sched">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-sched">Discount to on-demand, by seller</h2>
+      <p class="section__dek">One figure per seller, GPU and tenor: the median across that
+      seller's products and regions, with the range in brackets where they differ. Each
+      row restates one seller's own rate card.</p></div></div>
+    {schedule}
+  </section>
+
+  <section class="section" aria-labelledby="s-pool">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-pool">Pooled across sellers</h2></div></div>
+    {pooled}
+    <div class="md"><p>Hyperscaler reservations and neocloud commitments are shown
+    separately and never pooled: they are different products at very different
+    discounts.</p></div>
+  </section>
+
+  <section class="section" aria-labelledby="s-contrib">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-contrib">Contributed term prices</h2></div></div>
+    {_contributed_section()}
+  </section>
+
+  <section class="section" aria-labelledby="s-rules">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-rules">What is left out</h2></div></div>
+    <div class="md"><ul>
+      <li>Prices quoted as a range or a floor with no stated tenor, such as reserved
+      cluster pricing "from" a figure.</li>
+      <li>Windows-licensed instances: the licence is not compute.</li>
+      <li>Any pair in which the committed price is above the on-demand
+      price.{excl}</li>
+      <li>Latitude.sh's prepaid annual price, which its collector does not record. Its
+      monthly price is kept.</li>
+    </ul></div>
+  </section>
+</main>"""
+    return _shell(
+        ctx,
+        title=f"Term prices — {BRAND}",
+        description=(
+            "Published commitment discounts for GPU rental, by seller, GPU and tenor, and "
+            "the rules for contributed term prices."
+        ),
+        current="term.html",
         body=body,
     )
 
@@ -3109,7 +3720,9 @@ def _write_feed(ctx: SiteContext, notes: list[Note]) -> Path:
 
 def generate(conn: sqlite3.Connection) -> list[Path]:
     """Render every page into site/. Returns the paths written, newest content first."""
-    factors = load_factors()
+    # The version live today, not the head of the succession (which may be announced and
+    # not yet in effect). Pages that describe announced versions read the succession.
+    factors = load_factors(for_date=utc_now_iso()[:10])
     head = latest_print(conn, HEADLINE)
     now = utc_now_iso()
     ctx = SiteContext(
@@ -3125,6 +3738,8 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
 
     pages: list[tuple[Path, str]] = [
         (SITE_DIR / "index.html", _dashboard(ctx, notes)),
+        (SITE_DIR / "basis.html", _basis(ctx)),
+        (SITE_DIR / "term.html", _term(ctx)),
         (SITE_DIR / "methodology.html", _methodology(ctx)),
         (SITE_DIR / "data.html", _data(ctx)),
         (SITE_DIR / "governance.html", _governance(ctx)),

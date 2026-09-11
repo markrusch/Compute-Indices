@@ -45,11 +45,13 @@ pytest
 | `daily [--date D]` | run collectors (idempotent per source+day), compute all series, regenerate the site, CSV and charts |
 | `constituents --date D [--series S]` | full audit table for a print (IOSCO P13/P16) |
 | `backfill --from D --to D` | recompute prints from stored observations (never re-collects) |
+| `reproduce [--date D] [--published]` | recompute every stored print under the version live on its date and compare it field by field with what was published; `--published` also checks the digest in every `site/data/prints/*.json`. Exit 0 = everything matched |
 | `weights [--date D]` | show the stored weight review for a date (v0.3.0 weights providers by tier; reviews are retained for audit, not used in the calculation path) |
 | `validate` | source-dropout sensitivity + optional check-series correlation |
 | `post` | regenerate the paste-ready Substack post |
 | `docs` | regenerate METHODOLOGY.md + METHODOLOGY.lock |
 | `sources` | the source register, the review clock, and per-region coverage of what has been collected (`--due`, `--status`, `--block`) |
+| `contrib validate\|ingest\|aggregate` | contributed term prices: check a submitted CSV, store it in the private store outside the repository (`--contributor`, `--supersedes` for a one-row correction), or write the publishable aggregates (`--from`, `--to`, `--out`). See [CONTRIBUTING-PRICES.md](CONTRIBUTING-PRICES.md) |
 
 ## Layout
 
@@ -60,9 +62,10 @@ pytest
 - `data/eucri.db` — SQLite, committed; observations and prints are append-only
   (trigger-enforced)
 - `site/` — the published site, **regenerated from the database on every daily run** by
-  `src/tci/outputs/site.py`; do not hand-edit the HTML. Six pages: `index.html`
-  (dashboard), `methodology.html`, `governance.html`, `research.html` and
-  `research/*.html`. Plus `assets/` (the design system: `tokens.css`, `site.css`),
+  `src/tci/outputs/site.py`; do not hand-edit the HTML. Pages: `index.html`
+  (dashboard), `basis.html` (the EU-US basis), `term.html` (commitment discounts),
+  `methodology.html`, `data.html`, `governance.html`, `notices.html`, `research.html`
+  and `research/*.html`. Plus `assets/` (the design system: `tokens.css`, `site.css`),
   `data/` (CSV history + `latest.json`), and `charts/` (PNGs used by the Substack post,
   not by the site — the site draws its own inline SVG).
 - `site/components.html` — the design-system component gallery. A reference artefact, not
@@ -115,10 +118,17 @@ Variables** (Project Settings → Environment Variables — never committed to t
 
 ## Changing the methodology
 
-Not casually. Any change to `config/factors.yaml`, `config/sovereign.yaml`,
-`src/tci/index.py`, `src/tci/normalise.py`, or `src/tci/weights.py` fails CI
-unless the version is bumped, the CHANGELOG has an entry, and the lock is regenerated —
-and takes effect only after one publication's notice. Scheduled weight reviews execute
+Not casually. Every print is computed under the methodology version live on its date
+(`config/methodology/succession.yaml`): the head of the succession is `config/factors.yaml`,
+and every superseded version is frozen under `config/methodology/<version>/` with its own
+rendered METHODOLOGY.md. Only providers, collectors and classes named in the version's
+`panel` reach a print; a new collector stores rows from day one and moves nothing until a
+version admits it. Any change to `config/factors.yaml`, `config/sovereign.yaml`,
+`config/methodology/succession.yaml`, `src/tci/index.py`, `src/tci/normalise.py`, or
+`src/tci/weights.py` fails CI unless the version is bumped, the CHANGELOG has an entry, and
+the lock is regenerated, and it takes effect only from the effective date its notice
+states. A change to a frozen version is refused outright, and a code change that alters
+any stored print fails `tests/test_reproduce.py`. Scheduled weight reviews execute
 a fixed published formula and are data updates, not methodology changes. Procedure:
 [GOVERNANCE.md](GOVERNANCE.md).
 

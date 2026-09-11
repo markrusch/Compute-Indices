@@ -16,6 +16,7 @@
 | `site/data/index_history.csv` | Software — [Apache 2.0](LICENSE) |
 | `site/data/latest.json`, including the constituent audit set | Documentation and methodology — [CC BY 4.0](LICENSE-docs) |
 | `data/eucri.db` (observations, prints, constituents, weight sets) | The name "TCI" — [NOTICE](NOTICE) |
+| `site/data/term/` (published commitment discounts and aggregated contributed term prices) | Contributed prices themselves, which are never published — [CONTRIBUTING-PRICES.md](CONTRIBUTING-PRICES.md) |
 | Index values reproduced on the project website | |
 
 A licence over source code does not carry rights in the data that code produces, which is

@@ -16,6 +16,15 @@ from tci.models import Observation
 DATE = "2026-07-18"
 
 
+# Real panel members with the collector each is admitted through: since v0.4.0 a provider
+# must be on the explicit panel to reach a print, so invented names would all be excluded
+# as not_in_panel.
+PANEL_ROWS = [
+    ("vast.ai", "vast_ai"), ("runpod", "runpod"), ("scaleway", "scaleway"),
+    ("nebius", "static_yaml"), ("datacrunch", "static_yaml"), ("seeweb", "static_yaml"),
+]
+
+
 class _FiveProviderCollector:
     """Enough EU constituents to clear the >=5 publish gate."""
 
@@ -28,7 +37,7 @@ class _FiveProviderCollector:
         self.calls += 1
         return [
             Observation(
-                ts_utc=utc_now_iso(), source=self.name, provider=f"prov{i}",
+                ts_utc=utc_now_iso(), source=PANEL_ROWS[i][1], provider=PANEL_ROWS[i][0],
                 gpu_model="H100_SXM", gpu_count=8, price_usd_per_gpu_hr=2.0 + i * 0.1,
                 region=None, country="NL", interconnect="NVLink", tier="executable",
                 term="on_demand", raw_json="{}",

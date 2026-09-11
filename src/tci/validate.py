@@ -28,7 +28,7 @@ DROPOUT_WARN_PCT = 5.0  # memo §4: cap a source's weight if it moves the index 
 
 def dropout_sensitivity(conn: sqlite3.Connection, utc_date: str) -> list[dict]:
     """Recompute the headline excluding each source in turn (production weight path)."""
-    factors = config.load_factors()
+    factors = config.load_factors(for_date=utc_date)
     rows = _observations_for_date(conn, utc_date)
     normalised = [
         o for o in normalise_observations(rows, factors)

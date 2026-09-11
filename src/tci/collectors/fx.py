@@ -42,8 +42,10 @@ def collect_fx(conn: sqlite3.Connection, session: requests.Session) -> bool:
     return True
 
 
-def rate_for(conn: sqlite3.Connection, on_date: str) -> tuple[float, str] | None:
-    """Most recent ECB reference rate published on or before `on_date`.
+def rate_for(
+    conn: sqlite3.Connection, on_date: str, strictly_before: bool = False
+) -> tuple[float, str] | None:
+    """Most recent ECB reference rate dated on or before `on_date` (or strictly before).
 
     The date bound is the point. `ORDER BY date DESC LIMIT 1` with no bound returns the
     globally latest rate, which during a backfill is a rate published *after* the print —
@@ -53,9 +55,18 @@ def rate_for(conn: sqlite3.Connection, on_date: str) -> tuple[float, str] | None
     The rate is therefore T-1 by construction on most days: the ECB publishes ~14:00 UTC,
     after the 11:00 UTC index cut-off. METHODOLOGY.md states the EUR leg as T-1 rather
     than pretending otherwise.
+
+    "On most days" is the defect `strictly_before` fixes. Under the on-or-before rule the
+    rate a print uses depends on WHEN it was computed: a run after the ECB publication
+    (the 2026-09-11 run finished at 18:22 UTC) picks up the same-day rate, and any later
+    recomputation of an 11:00 print does too. 120 of 479 stored prints could not be
+    recomputed with the rate they were published at. From v0.5.0 the rule is a methodology
+    parameter (`fx.strictly_before`) and the EUR leg is T-1 on every day, whenever the
+    run happens.
     """
+    op = "<" if strictly_before else "<="
     row = conn.execute(
-        "SELECT eur_usd, date FROM fx WHERE date <= ? ORDER BY date DESC LIMIT 1",
+        f"SELECT eur_usd, date FROM fx WHERE date {op} ? ORDER BY date DESC LIMIT 1",
         (on_date,),
     ).fetchone()
     return (row["eur_usd"], row["date"]) if row else None

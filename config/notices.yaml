@@ -21,6 +21,120 @@
 # yet quantifiable and why.
 
 notices:
+  - id: 2026-N3
+    title: A US reference series priced exactly like the headline, and the EU-US basis
+      between them
+    announced: 2026-09-11
+    effective: 2026-10-01
+    version: 0.6.0
+    status: announced
+    summary: >-
+      Two new series. TCI-CRI-H100-US prices the United States with the headline's unit,
+      estimator, weights and publication gate. TCI-CRI-H100-BASIS-US is the EU/EEA headline
+      minus that US series, in USD per GPU-hour, published only on days both print. No
+      existing series changes.
+    effect_on_level: >-
+      None on any existing series. The EU/EEA headline, its segment and class series, the
+      7-day companion and the composite are computed exactly as under v0.5.0; the
+      additions are rows the EU/EEA filter already excludes (RunPod rows recorded against
+      the United States, and Voltage Park, which sells only there). The US series draws on
+      five candidate sellers (vast.ai, RunPod, Lambda, DigitalOcean, Voltage Park) against a
+      gate of five, so it will gap on any day one of them does not qualify, and the basis
+      gaps with it. That is stated here so a gap is not read as an outage.
+    body: |
+      **Why.** CME Group plans to list compute futures on 5 October 2026, pending
+      regulatory review, that settle in cash on Silicon Data's H100 and B200 rental
+      indices. A European buyer who hedges with them carries a basis: the difference
+      between what the EU/EEA population of sellers charges and what the reference
+      population charges. Nobody publishes that difference.
+
+      **What is measured.** `EU-CRI-H100-US` applies the headline's unit definition (one
+      H100 SXM GPU-hour, on-demand, datacenter-hosted, at least 2 GPUs per offer), its
+      weighted median over offers, its trim, its tier weights, its concentration cap and
+      its five-provider gate to offers delivered from data centres in the United States.
+      `EU-CRI-H100-BASIS-US` is `EU-CRI-H100` minus `EU-CRI-H100-US`, with a EUR companion
+      at the day's FX. A day on which either leg gaps is a gap in the basis, with the
+      reason; the basis is never computed against a carried-forward leg.
+
+      **What it is not.** It is not the basis to the Silicon Data index behind the CME
+      contracts. That index's methodology is not public, and a spread against it would
+      mix a regional difference with a methodological one that nobody outside can
+      measure. This series measures the regional part, with the method held constant.
+
+      **Where the US rows come from.** vast.ai offers carry their own location. Lambda's
+      catalogue rows carry a region. DigitalOcean sells its H100 Droplets in New York at the
+      same price as in Amsterdam. RunPod's price is the same in every region; a US row is
+      recorded only on days RunPod reports stock of that GPU type in a US datacentre.
+      Voltage Park operates only in the United States (its own statement: clusters in
+      Texas, Virginia, Washington and Utah).
+
+
+  - id: 2026-N2
+    title: Verda, Nebius, Lambda and DigitalOcean enter the EU/EEA panel, Oracle joins the
+      hyperscaler segment, OVHcloud joins the H100 PCIe class, and the EUR leg becomes T-1
+      on every day
+    announced: 2026-09-11
+    effective: 2026-09-22
+    version: 0.5.0
+    status: announced
+    summary: >-
+      The headline population widens from six priced H100 SXM sellers to eight, two static
+      entries give way to daily feeds, and the FX rule stops depending on the time of day
+      the run happens. On the last full panel the change would have raised the headline
+      from $3.25 to $3.49/GPU-hr, a composition effect rather than a price move.
+    effect_on_level: >-
+      Headline: recomputed on the 7 September panel (the last day with a full set of
+      stored rows) with the new sellers at the list prices they published on 11 September,
+      the headline would have printed $3.49/GPU-hr instead of $3.25/GPU-hr, +7.4%. Two
+      of the changes are like-for-like: Verda replaces the static DataCrunch entry at the
+      same $3.25 (verda.com/pricing) and Nebius's catalogue replaces its static entry at
+      the same $3.85 (nebius.com/prices). The move comes from Lambda at $3.99
+      (lambda.ai/pricing) and DigitalOcean at $4.41 (docs.digitalocean.com, 8x H100 at
+      $35.28/hr) entering above the old median, which shifts the weighted median from
+      $3.25 to RunPod's $3.49. It is a one-time level shift from widening the panel to
+      sellers the EU/EEA population always contained, and it will show in the published
+      series on 22 September as a step with no change in any seller's price. The first
+      print under v0.5.0 will state its size against a v0.4.0 recomputation of the same
+      day. EUR companion: unchanged on any day the run completes before the ECB publishes;
+      otherwise the EUR leg now uses the previous day's rate, a difference equal to that
+      day's EUR/USD move. The H100 PCIe, H200, B200 and B300 class series gain
+      constituents; each still publishes only once five providers qualify.
+    body: |
+      **New constituents.** Three EU/EEA sellers enter through dstack's open-source gpuhunt
+      catalogues, which list a location per row: Verda (Finland and Iceland), Nebius
+      (Finland, France, and a private region in Iceland) and Lambda (europe-central-1,
+      Germany). DigitalOcean enters through its public pricing page: its H100 Droplets are
+      "NVIDIA HGX H100" by its own description and are sold in Amsterdam, New York and
+      Toronto at one price, recorded as one row per region, of which only Amsterdam is in
+      the EU/EEA population. Oracle Cloud Infrastructure enters the hyperscaler segment,
+      where it is priced in the `-HS` series and never in the headline. OVHcloud enters
+      through its public order-catalogue API in the H100 PCIe class only; its H100
+      instances are "80 GB HBM2e - PCIe 5.0", a different product from the SXM reference
+      unit.
+
+      **One company, one vote.** Verda is DataCrunch under a new name. The static
+      `datacrunch` entry leaves the panel on the day the Verda feed enters it, and the
+      sovereign list names Verda in its place. Nebius's static entry is likewise replaced
+      by its catalogue feed rather than kept beside it.
+
+      **Classes.** vast.ai is admitted to the H100 PCIe, H200, B200 and B300 classes, whose
+      listings it already publishes and which the index has stored since 11 September.
+      The new catalogue feeds are admitted to the classes they list.
+
+      **FX.** The EUR companion uses the ECB reference rate dated strictly before the print
+      date. Until now it used the latest rate dated on or before it, which is T-1 when the
+      run finishes before the ECB publishes around 14:00 UTC and T when it finishes after:
+      the 11 September run finished at 18:22 UTC and took the same-day rate. A print's EUR
+      value therefore depended on when it was computed. The rate each earlier print used is
+      recorded with it and is what a recomputation converts at.
+
+      **What does not change.** The unit definition, the estimator, the trim, the weights,
+      the concentration cap and the publication gate are untouched. The collectors that
+      feed these rows run from the day this notice is published, so each new constituent
+      has stored history before its first print; nothing collected before the effective
+      date is admitted retroactively, and prints dated before it keep the version they
+      record.
+
   - id: 2026-N1
     title: Norway restored to the EU/EEA constituent population, and the collection-time
       node-size floor aligned to the published floor
@@ -62,3 +176,19 @@ notices:
 
       Prints computed before the effective date remain valid under the version they
       record in `daily_index.methodology_version` and are not restated. A gap stays a gap.
+
+      **Added 11 September 2026: the panel becomes explicit, with the same membership.**
+      Until this version a provider was in the constituent population if any collector
+      produced a row for it, and an unlisted name defaulted to the neocloud segment. From
+      v0.4.0 the population is an enumerated panel in `config/factors.yaml`: provider,
+      segment, and for each collector the classes it may contribute to. The v0.4.0 panel
+      names exactly the providers, collectors and classes that could reach a print before
+      it, so by itself it moves no number; every stored print recomputes to the same value
+      under it (`python -m tci.run reproduce`). It exists so that a new collector can store
+      rows for weeks without any of them reaching a print until a later version admits
+      them after its own notice.
+
+      **Effective dates are now enforced in code.** Each version is committed on the day
+      of its notice and selected for a print only from its effective date
+      (`config/methodology/succession.yaml`), so this version applies to the 15 September
+      print whenever the change is merged.
