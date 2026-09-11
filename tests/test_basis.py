@@ -96,3 +96,23 @@ def test_daily_run_prints_us_leg_and_basis(conn: sqlite3.Connection) -> None:
         "SELECT provider FROM constituents WHERE date=? AND series='EU-CRI-H100-US'"
         " AND included=1", (day,))}
     assert "voltagepark" in cons and "verda" not in cons
+
+
+def test_matched_sellers_reads_the_latest_revision_of_both_legs(conn: sqlite3.Connection) -> None:
+    from tci.outputs.site import matched_sellers
+
+    def put(series: str, rev: int, provider: str, price: float, included: int = 1) -> None:
+        conn.execute(
+            "INSERT INTO constituents (date, series, revision, provider, source, tier,"
+            " price_usd, weight, included) VALUES ('2026-10-01', ?, ?, ?, 's', 'list', ?, 1, ?)",
+            (series, rev, provider, price, included),
+        )
+
+    put("EU-CRI-H100", 1, "vast.ai", 2.10)
+    put("EU-CRI-H100", 1, "seeweb", 2.16)
+    put("EU-CRI-H100-US", 1, "vast.ai", 1.90)
+    put("EU-CRI-H100-US", 1, "runpod", 2.69)
+    put("EU-CRI-H100-US", 2, "vast.ai", 1.95)   # a revision replaces revision 1 entirely
+    put("EU-CRI-H100-US", 2, "runpod", 2.69, included=0)
+    assert matched_sellers(conn, "2026-10-01", "EU-CRI-H100", "EU-CRI-H100-US") == [
+        ("vast.ai", 2.10, 1.95)]

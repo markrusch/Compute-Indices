@@ -2984,6 +2984,59 @@ def _month_average(ctx: SiteContext, series: str, first: str | None = None) -> s
     )
 
 
+def matched_sellers(conn: sqlite3.Connection, date: str, lead: str, reference: str
+                    ) -> list[tuple[str, float, float]]:
+    """Sellers included in both legs on `date`: (provider, lead price, reference price).
+
+    A median of one population minus a median of another does not split additively into
+    a price part and a mix part, so no such split is published. What can be shown without
+    an assumption is what the sellers present on both sides charged on each side.
+    """
+    def legs(series: str) -> dict[str, float]:
+        rows = conn.execute(
+            "SELECT provider, price_usd FROM constituents c WHERE date = ? AND series = ?"
+            " AND included = 1 AND revision = (SELECT MAX(revision) FROM constituents"
+            " WHERE date = c.date AND series = c.series)",
+            (date, series),
+        ).fetchall()
+        return {r[0]: float(r[1]) for r in rows}
+
+    a, b = legs(lead), legs(reference)
+    return [(p, a[p], b[p]) for p in sorted(a.keys() & b.keys())]
+
+
+def _matched_section(ctx: SiteContext) -> str:
+    # This session's print only, as on the tiles: an older day's sellers must not sit on
+    # the page as though they were today's.
+    row = current_print(ctx.conn, BASIS_SERIES, ctx.date)
+    if row is None or row["value_usd"] is None:
+        return ('<p class="section__dek">Shown on each day the basis publishes: the sellers '
+                "that qualify in both legs, and what each charged on each side. There is "
+                "no basis print this session.</p>")
+    date = row["date"]
+    both = matched_sellers(ctx.conn, date, HEADLINE, US_SERIES)
+    if not both:
+        return (f'<p class="section__dek">On {_e(_human_date(date))} no seller qualified in '
+                "both legs, so the basis on that day is entirely a difference between two "
+                "different sets of sellers.</p>")
+    rows = "".join(
+        f'<tr><td>{_e(p)}</td><td class="ta-r num">${_num(eu)}</td>'
+        f'<td class="ta-r num">${_num(us)}</td><td class="ta-r num">'
+        f'{"+" if eu - us > 0 else "&#8722;" if eu - us < 0 else ""}${_num(abs(eu - us))}'
+        "</td></tr>"
+        for p, eu, us in both
+    )
+    return f"""<p class="section__dek">{_e(_human_date(date))}: sellers that qualified in
+    both legs, at the price each contributed to each leg. A basis larger than these
+    differences comes from which sellers are in each leg, not from what they charge.</p>
+    <div class="card card__body--flush"><div class="scroll-x">
+  <table class="grid grid--narrow">
+  <caption class="vh">Sellers in both legs of the basis</caption>
+  <thead><tr><th scope="col">Seller</th><th scope="col" class="ta-r">EU/EEA</th>
+  <th scope="col" class="ta-r">US</th><th scope="col" class="ta-r">EU minus US</th></tr>
+  </thead><tbody>{rows}</tbody></table></div></div>"""
+
+
 def _leg_table(ctx: SiteContext, entry: SuccessionEntry) -> str:
     """Which sellers the legs can draw on, and where each was actually seen pricing.
 
@@ -3115,6 +3168,12 @@ def _basis(ctx: SiteContext) -> str:
     either side of the Atlantic. A basis driven by the other sellers is the one that
     reflects regional pricing.</p></div>
     {_leg_table(ctx, entry)}
+  </section>
+
+  <section class="section" aria-labelledby="s-both">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-both">Sellers in both legs</h2></div></div>
+    {_matched_section(ctx)}
   </section>
 
   <section class="section" aria-labelledby="s-where">
