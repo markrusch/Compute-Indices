@@ -115,6 +115,9 @@ class ComputableSource:
     country_of: Callable[[dict[str, Any]], str | None] = lambda obs: None
     variant_override: Callable[[dict[str, Any], str | None], str | None] | None = None
     gpu_count_of: Callable[[dict[str, Any]], int | None] | None = None
+    # For a region-flat price sold in several named regions: one row per region, each
+    # with its country. Returns [(region, country)]; None keeps the single row.
+    regions_of: Callable[[str], list[tuple[str, str]] | None] | None = None
     currencies: tuple[str, ...] = ("USD", "EUR")
     _module: ModuleType | None = field(default=None, repr=False)
 
@@ -173,24 +176,29 @@ class ComputableSource:
                 "price_native_per_gpu_hr": native,
                 "recipe": f"computable/{self.module_name}",
             }
-            out.append(
-                Observation(
-                    ts_utc=ts,
-                    source=self.name,
-                    provider=self.provider,
-                    gpu_model=variant,
-                    gpu_count=gpu_count,
-                    # Native amount, as scaleway.py does: for EUR rows normalise.py
-                    # converts at print time from raw_json, never at collection.
-                    price_usd_per_gpu_hr=native,
-                    region=str(obs.get("region") or "") or None,
-                    country=self.country_of(obs),
-                    interconnect=None,
-                    tier=tier,
-                    term=term,
-                    raw_json=json.dumps(raw, default=str),
-                )
+            placements: list[tuple[str | None, str | None]] = list(
+                (self.regions_of(variant) if self.regions_of else None)
+                or [(str(obs.get("region") or "") or None, self.country_of(obs))]
             )
+            for region, country in placements:
+                out.append(
+                    Observation(
+                        ts_utc=ts,
+                        source=self.name,
+                        provider=self.provider,
+                        gpu_model=variant,
+                        gpu_count=gpu_count,
+                        # Native amount, as scaleway.py does: for EUR rows normalise.py
+                        # converts at print time from raw_json, never at collection.
+                        price_usd_per_gpu_hr=native,
+                        region=region,
+                        country=country,
+                        interconnect=None,
+                        tier=tier,
+                        term=term,
+                        raw_json=json.dumps(raw, default=str),
+                    )
+                )
         log.info("%s: %d rows", self.name, len(out))
         return out
 
@@ -233,6 +241,31 @@ def _ovh_variant(obs: dict[str, Any], sku: str | None) -> str | None:
     return None
 
 
+def _digitalocean_variant(obs: dict[str, Any], sku: str | None) -> str | None:
+    # The pricing page says only "NVIDIA H100". DigitalOcean's own announcement of the
+    # Amsterdam launch describes the part as "NVIDIA HGX H100" (digitalocean.com/blog/
+    # now-available-gpu-droplets-nvidia-h100s-ams, 2025-10-07; read 2026-09-11). HGX
+    # boards carry SXM5 modules, so H100 rows are the SXM reference variant. H200 has no
+    # such statement and stays H200_UNSPEC.
+    if sku == "H100":
+        return "H100_SXM"
+    return None
+
+
+# Where DigitalOcean sells each GPU plan, from docs.digitalocean.com/products/droplets/
+# details/gpu-availability (read 2026-09-11): "NVIDIA H100 GPU Droplets are available in
+# New York (NYC2), Amsterdam (AMS3), and Toronto (TOR1)." The price is the same in each,
+# so the collector records one row per region. Re-check at each source review: a region
+# added or withdrawn here changes where the price is deliverable.
+DIGITALOCEAN_REGIONS: dict[str, list[tuple[str, str]]] = {
+    "H100_SXM": [("AMS3", "NL"), ("NYC2", "US"), ("TOR1", "CA")],
+}
+
+
+def _digitalocean_regions(variant: str) -> list[tuple[str, str]] | None:
+    return DIGITALOCEAN_REGIONS.get(variant)
+
+
 def _voltagepark_count(obs: dict[str, Any]) -> int | None:
     # Priced per GPU but sold as 8-GPU nodes ("(8x per node)" in the recipe's notes).
     return 8 if "8x per node" in str(obs.get("notes") or "") else None
@@ -246,7 +279,9 @@ def computable_collectors() -> list[ComputableSource]:
         ComputableSource("coreweave", "coreweave", "coreweave"),
         ComputableSource("voltagepark", "voltagepark", "voltagepark",
                          gpu_count_of=_voltagepark_count),
-        ComputableSource("digitalocean", "digitalocean", "digitalocean"),
+        ComputableSource("digitalocean", "digitalocean", "digitalocean",
+                         variant_override=_digitalocean_variant,
+                         regions_of=_digitalocean_regions),
         ComputableSource("latitude", "latitude", "latitude", country_of=_latitude_country),
         ComputableSource("hyperstack", "hyperstack", "hyperstack"),
         ComputableSource("crusoe", "crusoe", "crusoe"),

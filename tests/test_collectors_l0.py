@@ -102,8 +102,20 @@ def test_display_currency_duplicates_are_dropped(collected: dict[str, list]) -> 
 
 
 def test_unlabelled_form_factor_is_never_priced_as_sxm(collected: dict[str, list]) -> None:
-    do = collected["digitalocean"]
-    assert {o.gpu_model for o in do if "H100" in o.gpu_model} == {"H100_UNSPEC"}
+    hyp = collected["hyperstack"]
+    assert "H100_UNSPEC" in {o.gpu_model for o in hyp}
+
+
+def test_digitalocean_h100_is_one_row_per_region_it_is_sold_in(
+    collected: dict[str, list]
+) -> None:
+    h100 = [o for o in collected["digitalocean"] if o.gpu_model == "H100_SXM"
+            and o.term == "on_demand" and o.tier == "list" and o.gpu_count == 8]
+    assert sorted((o.region, o.country) for o in h100) == [
+        ("AMS3", "NL"), ("NYC2", "US"), ("TOR1", "CA")]
+    assert len({o.price_usd_per_gpu_hr for o in h100}) == 1  # region-flat
+    assert {o.gpu_model for o in collected["digitalocean"] if "H200" in o.gpu_model} == {
+        "H200_UNSPEC"}
 
 
 def test_every_row_is_storable(conn: sqlite3.Connection, collected: dict[str, list]) -> None:

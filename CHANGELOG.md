@@ -9,8 +9,11 @@ Constituent changes, and one correction to the FX rule. Full text and expected e
 `config/notices.yaml` (2026-N2).
 
 - **Panel.** Verda, Nebius and Lambda enter the EU/EEA population through the gpuhunt
-  catalogues; Oracle enters the hyperscaler segment; OVHcloud enters the H100 PCIe class
-  through its order-catalogue API; vast.ai is admitted to H100 PCIe, H200, B200 and B300.
+  catalogues and DigitalOcean through its pricing page (Amsterdam); Oracle enters the
+  hyperscaler segment; OVHcloud enters the H100 PCIe class through its order-catalogue
+  API; vast.ai is admitted to H100 PCIe, H200, B200 and B300. Estimated effect on the
+  last full panel (7 September): $3.25 -> $3.49/GPU-hr, a composition step from sellers
+  priced above the old median, stated in the notice so it is not read as a price move.
   The static `datacrunch` entry leaves the panel (Verda is the same company) and Nebius's
   static entry is replaced by its feed. `config/sovereign.yaml` names verda instead of
   datacrunch.

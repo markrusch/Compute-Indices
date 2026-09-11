@@ -45,6 +45,7 @@ is a constituent change under GOVERNANCE.md §1.
 |---|---|---|
 | aws | hyperscaler | `gpuhunt`: H100 |
 | azure | hyperscaler | `azure_retail`: A100, H100, H100P, H200; `gpuhunt`: H100 |
+| digitalocean | neocloud | `digitalocean`: H100 |
 | gcp | hyperscaler | `gpuhunt`: H100 |
 | genesis_cloud | neocloud | `static_yaml`: H100 |
 | hetzner | neocloud | `static_yaml`: H100 |
@@ -259,6 +260,9 @@ model_classes:
 #     under its new name, so the static entry leaves the panel the day the feed enters:
 #     one company, one vote). Nebius's static entry is replaced by its catalogue feed.
 #   - oci enters the hyperscaler segment.
+#   - digitalocean enters in the H100 class: its H100 Droplets are "NVIDIA HGX H100"
+#     (its own announcement) and are sold in Amsterdam (AMS3), New York and Toronto at
+#     one price, recorded as one row per region.
 #   - ovhcloud enters through its public order-catalogue API, in the H100P class only:
 #     its H100 instances are PCIe ("80 GB HBM2e - PCIe 5.0"), never the SXM unit.
 #   - vast.ai is admitted to the H100P, H200, B200 and B300 classes it already lists.
@@ -275,6 +279,7 @@ panel:
   verda:         {segment: neocloud, sources: {gpuhunt: [H100, H200, B200, B300, A100]}}
   lambdalabs:    {segment: neocloud, sources: {gpuhunt: [H100, H200, B200, A100]}}
   ovhcloud:      {segment: neocloud, sources: {ovh: [H100P, H200]}}
+  digitalocean:  {segment: neocloud, sources: {digitalocean: [H100]}}
   seeweb:        {segment: neocloud, sources: {static_yaml: [H100]}}
   hetzner:       {segment: neocloud, sources: {static_yaml: [H100]}}
   genesis_cloud: {segment: neocloud, sources: {static_yaml: [H100]}}

@@ -404,17 +404,19 @@ sources:
     homepage: https://docs.digitalocean.com/products/droplets/details/pricing/
     endpoint: "GET https://docs.digitalocean.com/products/droplets/details/pricing/"
     auth: none
-    blocks: []
-    gpu_classes: []
+    blocks: [EU_EEA, US, CA]
+    gpu_classes: [H100]
     access_basis: "Public documentation page."
     discovered: 2026-09-11
     discovered_via: "Computable GPU Index recipe (vendored)"
     last_reviewed: 2026-09-11
     notes: >-
-      H100 Droplets are sold in NYC2, AMS3 and TOR1 (docs, read 2026-09-11), so this is an
-      EU-deliverable seller at a region-flat price. The page labels the part "NVIDIA H100"
-      without a form factor, so rows are stored as H100_UNSPEC and priced in no class.
-      recheck: a published SXM/PCIe statement would make it an EU and US constituent.
+      H100 Droplets are sold in NYC2, AMS3 and TOR1 at one price (docs, gpu-availability
+      page, read 2026-09-11), recorded as one row per region. The pricing page says only
+      "NVIDIA H100"; DigitalOcean's Amsterdam launch post (2025-10-07) calls the part
+      "NVIDIA HGX H100", which is what makes it the SXM reference variant. Admitted to the
+      H100 class from v0.5.0. H200 has no form-factor statement and stays unpriced.
+    recheck: the region list on the gpu-availability page, at every review
 
   - id: latitude
     name: Latitude.sh

@@ -22,40 +22,47 @@
 
 notices:
   - id: 2026-N2
-    title: Verda, Nebius and Lambda enter the EU/EEA panel through their catalogue feeds,
-      Oracle joins the hyperscaler segment, OVHcloud joins the H100 PCIe class, and the EUR
-      leg becomes T-1 on every day
+    title: Verda, Nebius, Lambda and DigitalOcean enter the EU/EEA panel, Oracle joins the
+      hyperscaler segment, OVHcloud joins the H100 PCIe class, and the EUR leg becomes T-1
+      on every day
     announced: 2026-09-11
     effective: 2026-09-22
     version: 0.5.0
     status: announced
     summary: >-
-      The panel widens from six priced H100 SXM sellers in the EU/EEA headline population
-      to seven, two static entries give way to daily feeds, and the FX rule stops depending
-      on the time of day the run happens.
+      The headline population widens from six priced H100 SXM sellers to eight, two static
+      entries give way to daily feeds, and the FX rule stops depending on the time of day
+      the run happens. On the last full panel the change would have raised the headline
+      from $3.25 to $3.49/GPU-hr, a composition effect rather than a price move.
     effect_on_level: >-
-      Headline: two of the three changes to its population are like-for-like. Verda
-      replaces the static DataCrunch entry (the same company, renamed) and Nebius's
-      catalogue replaces its static entry; on 11 September verda.com/pricing quoted
-      $3.25/GPU-hr and nebius.com/prices $3.85/GPU-hr, the same figures the static
-      entries hold, so neither is expected to move the level on its own. Lambda is a new
-      constituent at $3.99/GPU-hr (lambda.ai/pricing, 11 September), above the last
-      published headline of $3.25/GPU-hr (7 September), so the expected direction is
-      unchanged-to-higher. The size depends on which marketplace offers are live on the
-      day and cannot be stated in advance. EUR companion: unchanged on any day the run
-      completes before the ECB publishes; on a day it would have run after, the EUR leg
-      now uses the previous day's rate, a difference equal to that day's EUR/USD move.
-      Scaleway's EUR-quoted rows convert at the same T-1 rate. The H100 PCIe, H200, B200
-      and B300 class series gain constituents; each still publishes only once five
-      providers qualify.
+      Headline: recomputed on the 7 September panel (the last day with a full set of
+      stored rows) with the new sellers at the list prices they published on 11 September,
+      the headline would have printed $3.49/GPU-hr instead of $3.25/GPU-hr, +7.4%. Two
+      of the changes are like-for-like: Verda replaces the static DataCrunch entry at the
+      same $3.25 (verda.com/pricing) and Nebius's catalogue replaces its static entry at
+      the same $3.85 (nebius.com/prices). The move comes from Lambda at $3.99
+      (lambda.ai/pricing) and DigitalOcean at $4.41 (docs.digitalocean.com, 8x H100 at
+      $35.28/hr) entering above the old median, which shifts the weighted median from
+      $3.25 to RunPod's $3.49. It is a one-time level shift from widening the panel to
+      sellers the EU/EEA population always contained, and it will show in the published
+      series on 22 September as a step with no change in any seller's price. The first
+      print under v0.5.0 will state its size against a v0.4.0 recomputation of the same
+      day. EUR companion: unchanged on any day the run completes before the ECB publishes;
+      otherwise the EUR leg now uses the previous day's rate, a difference equal to that
+      day's EUR/USD move. The H100 PCIe, H200, B200 and B300 class series gain
+      constituents; each still publishes only once five providers qualify.
     body: |
       **New constituents.** Three EU/EEA sellers enter through dstack's open-source gpuhunt
       catalogues, which list a location per row: Verda (Finland and Iceland), Nebius
       (Finland, France, and a private region in Iceland) and Lambda (europe-central-1,
-      Germany). Oracle Cloud Infrastructure enters the hyperscaler segment, where it is
-      priced in the `-HS` series and never in the headline. OVHcloud enters through its
-      public order-catalogue API in the H100 PCIe class only; its H100 instances are
-      "80 GB HBM2e - PCIe 5.0", a different product from the SXM reference unit.
+      Germany). DigitalOcean enters through its public pricing page: its H100 Droplets are
+      "NVIDIA HGX H100" by its own description and are sold in Amsterdam, New York and
+      Toronto at one price, recorded as one row per region, of which only Amsterdam is in
+      the EU/EEA population. Oracle Cloud Infrastructure enters the hyperscaler segment,
+      where it is priced in the `-HS` series and never in the headline. OVHcloud enters
+      through its public order-catalogue API in the H100 PCIe class only; its H100
+      instances are "80 GB HBM2e - PCIe 5.0", a different product from the SXM reference
+      unit.
 
       **One company, one vote.** Verda is DataCrunch under a new name. The static
       `datacrunch` entry leaves the panel on the day the Verda feed enters it, and the
@@ -75,9 +82,10 @@ notices:
 
       **What does not change.** The unit definition, the estimator, the trim, the weights,
       the concentration cap and the publication gate are untouched. The collectors that
-      feed these rows have been running since 11 September, so each new constituent has
-      stored history before its first print; nothing collected before the effective date
-      is admitted retroactively, and prints dated before it keep the version they record.
+      feed these rows run from the day this notice is published, so each new constituent
+      has stored history before its first print; nothing collected before the effective
+      date is admitted retroactively, and prints dated before it keep the version they
+      record.
 
   - id: 2026-N1
     title: Norway restored to the EU/EEA constituent population, and the collection-time
