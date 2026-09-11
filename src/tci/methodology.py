@@ -27,10 +27,15 @@ DOC_PATH = REPO_ROOT / "METHODOLOGY.md"
 HASHED_FILES = (
     "config/factors.yaml",
     "config/sovereign.yaml",
+    "config/methodology/succession.yaml",
     "src/tci/index.py",
     "src/tci/normalise.py",
     "src/tci/weights.py",
 )
+
+# The files that make up one version's parameter set. The head version's live at
+# config/; every earlier version is a frozen copy under config/methodology/<version>/.
+PARAM_FILES = ("factors.yaml", "sovereign.yaml")
 
 
 def compute_hash(repo_root: Path | None = None) -> str:
@@ -44,6 +49,36 @@ def compute_hash(repo_root: Path | None = None) -> str:
         h.update(content.replace(b"\r\n", b"\n"))  # hash must not depend on git eol conversion
         h.update(b"\x00")
     return h.hexdigest()
+
+
+def params_hash(params_dir: Path) -> str:
+    """sha256 over one version's parameter files (a frozen snapshot, or the head)."""
+    h = hashlib.sha256()
+    for name in PARAM_FILES:
+        path = params_dir / name
+        h.update(name.encode("utf-8"))
+        h.update(b"\x00")
+        h.update(path.read_bytes().replace(b"\r\n", b"\n") if path.exists() else b"<absent>")
+        h.update(b"\x00")
+    return h.hexdigest()
+
+
+def succession_record(repo_root: Path | None = None) -> list[dict]:
+    """One entry per version: its effective date, notice, and parameter hash."""
+    root = repo_root or REPO_ROOT
+    succ = root / "config" / "methodology" / "succession.yaml"
+    if not succ.exists():
+        return []
+    raw = yaml.safe_load(succ.read_text(encoding="utf-8"))
+    return [
+        {
+            "version": str(v["version"]),
+            "effective_from": str(v["effective_from"]),
+            "notice": v.get("notice"),
+            "params_hash": params_hash(root / str(v["params"])),
+        }
+        for v in raw["versions"]
+    ]
 
 
 def read_lock(lock_path: Path | None = None) -> dict | None:
@@ -68,6 +103,25 @@ def update_lock(repo_root: Path | None = None) -> dict:
                 "Bump methodology_version in config/factors.yaml and add a CHANGELOG entry "
                 "before regenerating the lock (see GOVERNANCE.md)."
             )
+    # Frozen snapshots never change. The head may (under the rule above); an earlier
+    # version's parameters, once recorded, are refused if they differ, because prints
+    # already published under that version would stop reproducing.
+    recorded = {e["version"]: e for e in lock.get("succession", [])}
+    record = succession_record(root)
+    head_version = record[-1]["version"] if record else version
+    for entry in record:
+        prior = recorded.get(entry["version"])
+        if (
+            prior is not None
+            and entry["version"] != head_version
+            and prior["params_hash"] != entry["params_hash"]
+        ):
+            raise SystemExit(
+                f"the frozen parameters of methodology version {entry['version']} changed. "
+                "A version's parameters are fixed once it is superseded; announce a new "
+                "version instead (see GOVERNANCE.md)."
+            )
+    lock["succession"] = record
     if current is None or current["hash"] != new_hash or current["version"] != version:
         from tci.db import utc_now_iso
 
@@ -109,6 +163,42 @@ def render_methodology(config_dir: Path | None = None) -> str:
     trim_ladder = "; ".join(
         f"n≥{r.min_n} → k={r.k}" for r in f.aggregation.trim_k if r.min_n > 0
     )
+    if f.panel is not None:
+        panel_rows = "\n".join(
+            f"| {provider} | {entry.segment} | "
+            + "; ".join(
+                f"`{source}`: {', '.join(sorted(classes))}"
+                for source, classes in sorted(entry.sources.items())
+            )
+            + " |"
+            for provider, entry in sorted(f.panel.items())
+        )
+        panel_section = f"""### 1.1 The panel
+
+A row can enter a print only if its provider, the collector that observed it, and its
+class are all named here. Anything else is collected and stored, and appears in the audit
+set as `not_in_panel`, but moves no number. Admitting a new (provider, collector, class)
+is a constituent change under GOVERNANCE.md §1.
+
+| Provider | Segment | Collector: classes admitted |
+|---|---|---|
+{panel_rows}
+"""
+    else:
+        panel_section = ""
+    fx_rule = (
+        "dated **strictly before** the print date, so the EUR leg is T-1 on every day,"
+        " whenever the run happens"
+        if f.fx.strictly_before
+        else "dated **on or before** the print date. The ECB publishes ~14:00 UTC, after"
+        " the 11:00 UTC cut-off, so the EUR leg is T-1 on most days; a run after the"
+        " ECB publication picks up the same-day rate. The rate a print used is recorded"
+        " with it and is what `reproduce` converts at"
+    )
+    succession_rows = "\n".join(
+        f"| {e['version']} | {e['effective_from']} | {e['notice'] or '—'} |"
+        for e in succession_record(REPO_ROOT)
+    )
 
     return f"""<!-- AUTO-GENERATED by `python -m tci.run docs` from config/factors.yaml.
      Do not hand-edit; edit the config or tci/methodology.py and regenerate. -->
@@ -122,7 +212,8 @@ delivered from data centres physically located in the EU/EEA. Headline series:
 > **TCI is a price-transparency benchmark, not a settlement benchmark.** Every print is
 > reproducible by any third party from public sources using the published code. It is not
 > transaction-based and must not be referenced in a financial contract. The conditions
-> that would have to be met before settlement use is credible are published in §9.
+> that would have to be met before settlement use is credible are published in
+> GOVERNANCE.md. §9 lists every methodology version and the date it takes effect.
 
 ## 1. Unit definition
 
@@ -140,6 +231,7 @@ from same-venue, same-day, same-SKU pairs.
 |---|---|---|
 {classes_table}
 
+{panel_section}
 Excluded outright: variants not listed above, community/consumer hosts,
 interruptible/spot tiers ({", ".join(f.filters.exclude_tiers)}), term-committed prices,
 offers below **{f.filters.min_gpu_count} GPUs**, prices outside the sanity band
@@ -198,10 +290,9 @@ Per UTC day and series. **The unit of aggregation is the offer, not the provider
    fewer than {f.aggregation.min_offers} qualifying offers → no value is published,
    flagged `insufficient_sources` / `insufficient_offers`. There is no fallback waterfall.
    A gap is credible; a fabricated print is fatal.
-9. EUR companion = USD value ÷ the most recent ECB EUR/USD reference rate **dated on or
-   before the print date**. The ECB publishes ~14:00 UTC, after the 11:00 UTC cut-off, so
-   the EUR leg is **T-1 by construction** and says so rather than pretending otherwise.
-   Providers quoting natively in EUR are converted from their native amount at print time.
+9. EUR companion = USD value ÷ the most recent ECB EUR/USD reference rate {fx_rule}.
+   Providers quoting natively in EUR are converted from their native amount at print time,
+   at the same rate.
 10. Headline companion: {f.aggregation.smoothing_days}-day mean of daily prints
     (requires ≥4 non-null days).
 
@@ -265,13 +356,24 @@ matters to a reader.
 Raw observations and published prints are append-only (enforced by database triggers).
 Errors are corrected in the next print as a **new revision** flagged `correction`; prior
 revisions remain queryable forever. The full constituent set for any print is available
-via `python -m tci.run constituents --date YYYY-MM-DD`.
+via `python -m tci.run constituents --date YYYY-MM-DD`, and every print is published with
+its constituents and a digest in `site/data/prints/YYYY-MM-DD.json`.
+
+`python -m tci.run reproduce --published` recomputes every stored print from the stored
+observations under the version live on its date, compares value, counts, flags and the
+full constituent set with what was stored, then checks each published digest against the
+database. Exit 0 means every print matched.
 
 ## 6. Changes to this methodology
 
 Any change to the parameters below or the calculation code requires a version bump, a
-CHANGELOG entry, and one publication's notice before taking effect — enforced
+CHANGELOG entry, and one publication's notice before taking effect, enforced
 mechanically via `METHODOLOGY.lock` in CI. See GOVERNANCE.md.
+
+Effective dates are enforced in code. An announced version is committed on the day of its
+notice and is selected for a print only from its effective date (§9); earlier versions are
+frozen snapshots under `config/methodology/<version>/`, each with its own rendered copy of
+this document, and the lock refuses any change to a frozen snapshot.
 
 ## 7. Current parameters (config/factors.yaml, verbatim)
 
@@ -290,6 +392,15 @@ mechanically via `METHODOLOGY.lock` in CI. See GOVERNANCE.md.
 | Quality of the administrator (P4–P5) | Named author; stated conflicts (the author may trade venues the index observes — disclosed); corrections never silent |
 | Complaints & audit trail (P13, P16) | Raw observations and weight reviews immutable in SQLite; any reader can request the constituent set for a given day |
 
+## 9. Versions and effective dates
+
+A print is computed under the last version whose effective date is on or before the print
+date (`config/methodology/succession.yaml`).
+
+| Version | Effective from | Notice |
+|---|---|---|
+{succession_rows}
+
 ---
 
 *{DISCLAIMER}*
@@ -300,8 +411,19 @@ hold positions on venues whose prices the index observes; see GOVERNANCE.md.*
 
 
 def generate(repo_root: Path | None = None) -> None:
+    """Regenerate the lock, the head METHODOLOGY.md, and one document per frozen version.
+
+    Each frozen version gets its own rendered document next to its parameters, so the
+    rules that produced a print on any past date can be read, not only reconstructed.
+    """
     root = repo_root or REPO_ROOT
     update_lock(root)
     (root / "METHODOLOGY.md").write_text(
         render_methodology(root / "config"), encoding="utf-8", newline="\n"
     )
+    for entry in succession_record(root)[:-1]:
+        snap = root / "config" / "methodology" / entry["version"]
+        if snap.is_dir():
+            (snap / "METHODOLOGY.md").write_text(
+                render_methodology(snap), encoding="utf-8", newline="\n"
+            )

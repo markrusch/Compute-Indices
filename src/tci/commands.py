@@ -22,6 +22,7 @@ from pathlib import Path
 from tci import config, db, weights
 from tci.collectors import base
 from tci.collectors.azure_retail import AzureRetailCollector
+from tci.collectors.computable_sources import computable_collectors
 from tci.collectors.fx import collect_fx, rate_for
 from tci.collectors.gpuhunt_ import GpuHuntCollector
 from tci.collectors.runpod import RunPodCollector
@@ -30,7 +31,7 @@ from tci.collectors.static_yaml import StaticYamlCollector
 from tci.collectors.vast_ai import VastAiCollector
 from tci.index import compute_print
 from tci.models import Constituent, IndexPrint
-from tci.normalise import NormalisedObs, normalise_observations
+from tci.normalise import NormalisedObs, normalise_observations, unadmitted_providers
 
 log = logging.getLogger("tci.commands")
 
@@ -47,9 +48,11 @@ SERIES_BY_CLASS = {
 
 
 def collectors_for_daily() -> list[base.Collector]:
+    # Order is irrelevant to the calculation. Collectors not named in the live version's
+    # panel store rows that no print reads (see factors.yaml `panel`).
     return [
         VastAiCollector(), RunPodCollector(), GpuHuntCollector(), StaticYamlCollector(),
-        ScalewayCollector(), AzureRetailCollector(),
+        ScalewayCollector(), AzureRetailCollector(), *computable_collectors(),
     ]
 
 
@@ -374,12 +377,32 @@ def _compute_composite(
     )
 
 
-def compute_all_series(conn: sqlite3.Connection, utc_date: str, correction: bool = False) -> None:
-    """Compute and store every series for one date (new revisions, never edits)."""
-    factors = config.load_factors()
-    sovereign = config.load_sovereign()
+_NO_OVERRIDE = object()
+
+
+def compute_all_series(
+    conn: sqlite3.Connection,
+    utc_date: str,
+    correction: bool = False,
+    fx_override: object = _NO_OVERRIDE,
+) -> None:
+    """Compute and store every series for one date (new revisions, never edits).
+
+    `fx_override` is for `reproduce` only: the FX a print actually used is an input
+    recorded with the print, and a recomputation must convert at that rate, not at
+    whatever rate the fx table offers today (see tci.collectors.fx.rate_for).
+    """
+    # The version live on the print date, not the head of the succession: an announced
+    # version sits in the repository before its effective date and must not touch a
+    # print dated earlier.
+    factors = config.load_factors(for_date=utc_date)
+    sovereign = config.load_sovereign(for_date=utc_date)
     version = factors.methodology_version
-    fx = rate_for(conn, utc_date)
+    fx: tuple[float, str] | None
+    if fx_override is _NO_OVERRIDE:
+        fx = rate_for(conn, utc_date, strictly_before=factors.fx.strictly_before)
+    else:
+        fx = fx_override  # type: ignore[assignment]
     if fx is None:
         log.warning("no FX rate stored yet; EUR series will be null")
 
@@ -395,6 +418,7 @@ def compute_all_series(conn: sqlite3.Connection, utc_date: str, correction: bool
     # FX is needed during normalisation: providers quoting in EUR (Scaleway) are converted
     # at print time from their native amount, never from a rate frozen at collection.
     normalised = normalise_observations(rows, factors, fx_eur_usd=fx[0] if fx else None)
+    unadmitted = unadmitted_providers(rows, factors)
     rw = _review_weights(conn, utc_date, factors)
     headline_class = factors.headline_class
 
@@ -412,12 +436,13 @@ def compute_all_series(conn: sqlite3.Connection, utc_date: str, correction: bool
                 cls, headline_pop, (lambda c: (lambda o: o.model_class == c))(cls)
             )
 
-    for series, (_cls, population, predicate) in definitions.items():
+    for series, (cls, population, predicate) in definitions.items():
         subset: list[NormalisedObs] = [o for o in normalised if predicate(o)]
         result = compute_print(
             utc_date, series, subset, factors, fx,
             population=population,
             prev_prices=_prev_prices(conn, series, utc_date),
+            not_in_panel=frozenset(p for p, classes in unadmitted.items() if cls in classes),
         )
         revision = _store_print(conn, result, version, run_id, series_extra)
         log.info(
@@ -570,8 +595,8 @@ def cmd_weights(args: argparse.Namespace) -> int:
     """Show (computing and storing if due) the weight review in effect for a date."""
     conn = db.connect()
     db.migrate(conn)
-    factors = config.load_factors()
     utc_date = args.date or datetime.now(UTC).strftime("%Y-%m-%d")
+    factors = config.load_factors(for_date=utc_date)
     effective = weights.review_effective_date(
         utc_date, factors.weights.review.anchor_weekday
     )

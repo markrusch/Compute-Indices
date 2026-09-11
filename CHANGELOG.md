@@ -3,6 +3,97 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## 0.5.0 — announced 2026-09-11, effective 2026-09-22 (notice 2026-N2)
+
+Constituent changes, and one correction to the FX rule. Full text and expected effect in
+`config/notices.yaml` (2026-N2).
+
+- **Panel.** Verda, Nebius and Lambda enter the EU/EEA population through the gpuhunt
+  catalogues; Oracle enters the hyperscaler segment; OVHcloud enters the H100 PCIe class
+  through its order-catalogue API; vast.ai is admitted to H100 PCIe, H200, B200 and B300.
+  The static `datacrunch` entry leaves the panel (Verda is the same company) and Nebius's
+  static entry is replaced by its feed. `config/sovereign.yaml` names verda instead of
+  datacrunch.
+- **FX.** `fx.strictly_before: true`. The EUR leg is T-1 on every day. Until now the rate a
+  print used depended on the time its run finished, and a recomputation could pick up a
+  rate the original print never saw: 120 of 479 stored prints could not be recomputed with
+  the rate they were published at until the recorded rate was made the reproduction input.
+- Hash-locked parameter snapshot of 0.4.0 frozen under `config/methodology/0.4.0/`.
+
+## 0.4.0 — announced 2026-09-08, effective 2026-09-15 (notice 2026-N1)
+
+The first version without the `-dev` suffix: from here the lock generator refuses any
+change to a released version's hash, and every change is a new version.
+
+- **Norway.** `eu_eea_countries` quotes every code. Under YAML 1.1 the bare `NO` parsed as
+  boolean false and Norway had never been in the constituent population (126 azure
+  norwayeast rows dropped by 2026-09-08). The 0.3.0-dev snapshot keeps the bug on purpose,
+  because the prints stored under it were computed without Norway.
+- **Node floor at collection.** The gpuhunt collector discarded every instance below 8
+  GPUs while the published floor has been 2 since v0.3.0. From 2026-09-15 it keeps
+  instances of 2 GPUs and up for the providers that were already constituents
+  (`LEGACY_FLOOR_UNTIL`); rows from before that day cannot be recovered.
+- **Explicit panel, same membership.** `factors.yaml` gains `panel`: provider, segment,
+  and for each collector the classes its rows may enter. `normalise.py` admits a row only
+  if (provider, collector, class) is on the panel; anything else is stored and listed in
+  the audit set as `not_in_panel`. Before this, an unlisted provider defaulted to the
+  neocloud segment, so adding a collector was a silent constituent change. The 0.4.0 panel
+  is exactly the population that could reach a print before it. Verified: every stored
+  print recomputes to the same value, counts and constituent set.
+- **Methodology succession.** `config/methodology/succession.yaml` lists every version with
+  its effective date, and each print is computed under the version live on its date.
+  Superseded versions are frozen snapshots under `config/methodology/<version>/`, each with
+  a rendered METHODOLOGY.md; the lock records every snapshot's hash and refuses a change to
+  one. The reason is practical: GOVERNANCE.md requires one publication's notice before a
+  change applies, and until now that depended on merging the change on the right day.
+- The 0.3.0-dev parameter set was frozen as a snapshot, with its implicit panel written
+  out (a re-expression with no numeric effect, verified by recomputation).
+
+## Reproduction, digests, and a marketplace restored — 2026-09-11 — no methodology change
+
+- **Fixed: no H100 had reached the index from vast.ai since 2026-09-08.** The tenor work of
+  that day removed the per-chip `gpu_name` filter so that unmapped silicon would show in the
+  logs. The endpoint clamps every response (64 offers, as Computable measured on 2026-08-22)
+  and the query was ordered by price ascending, so it returned only the cheapest offers on
+  the whole marketplace, which are consumer cards. The
+  8-10 September runs died on the IntegrityError fixed the same day and stored nothing, so
+  11 September is the only session the defect can be seen in: two vast.ai rows, both RTX
+  3060s in the US, and a headline gapped at 4 of 5 providers. The collector
+  now reads one chip per request (a one-element `gpu_name in` filter, the operator already
+  proven live on this endpoint), re-reads a full book in descending order,
+  stores per-chip book statistics on every row, and fails the run if nine chips return zero
+  offers. The query shape is the one Computable hardened live (Apache-2.0). This restores
+  the population the published methodology describes; it is a correction, not a change.
+- **`python -m tci.run reproduce`.** Recomputes every stored print from stored observations
+  under the version live on its date, on an in-memory copy of the database, and compares
+  value, EUR value, FX, provider and executable counts, flags, version and the full
+  constituent set with the latest stored revision. With `--published` it also recomputes
+  the digest of every published print file. On 2026-09-11: 479 of 479 prints matched and
+  504 of 504 published digests matched; the 14 rows of the retired `-CLOUD` series are
+  reported as RETIRED rather than claimed.
+- **Found by it:** a print's FX was not a reproducible input. `rate_for` took the latest
+  rate dated on or before the print date that existed when the run happened, so a later
+  recomputation could convert at a rate the print never used (120 prints). The rate a
+  print used is recorded with it, and `reproduce` now converts at that rate. The rule
+  itself changes in v0.5.0.
+- **Published print files.** `site/data/prints/YYYY-MM-DD.json` carries every series'
+  latest revision, its constituent audit set and a sha256 digest of that content;
+  `latest.json` carries the revision and digest of each series. `tests/test_reproduce.py`
+  runs both checks in CI.
+- **Sources collected in shadow from 2026-09-11.** gpuhunt now reads oci, lambdalabs,
+  verda and nebius as well as aws/azure/gcp, and five classes instead of one, pinning the
+  form factor from each provider's instance name and skipping any row it cannot pin.
+  Nine collector recipes vendored from the Computable GPU Index (OVHcloud, Civo, CoreWeave,
+  Voltage Park, DigitalOcean, Latitude.sh, Hyperstack, Crusoe, Lambda's pricing page) store
+  every GPU row their surfaces publish, under TCI's own User-Agent. RunPod's collector adds
+  a separate request for per-datacentre stock. None of this reaches a print before a
+  version admits it to the panel.
+- **Migration 0004** widens the stored `term` vocabulary to the tenors those surfaces
+  publish (1-, 3- and 6-month commitments, 2-year reservations, and `reserved_unspecified`
+  for committed prices published as a range or a floor).
+- `sources.py` gains a `shadow` status: a collector that runs daily and stores rows the
+  panel does not admit.
+
 ## Daily run restored after four dark sessions — 2026-09-11 — no methodology change
 
 The daily workflow failed on 8, 9, 10 and 11 September. No hash-locked file changed and

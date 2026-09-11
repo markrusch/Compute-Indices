@@ -61,31 +61,25 @@ def test_every_running_collector_is_registered(registry):
     for collector in collectors_for_daily():
         matches = [s for s in registry.sources if s.collector == collector.name]
         assert matches, f"collector {collector.name} has no source_registry.yaml row"
-        assert matches[0].status == "live", f"{collector.name} runs daily but is not live"
+        assert matches[0].status in ("live", "shadow"), (
+            f"{collector.name} runs daily but is neither live nor shadow"
+        )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "factors.yaml leaves NO unquoted, so YAML parses Norway as boolean false and the "
-        "EU/EEA filter has never contained it. Fixing it is a governed change "
-        "(GOVERNANCE.md 1: version bump, CHANGELOG, one publication's notice) because it "
-        "adds a country to the constituent population. strict=True so this test fails the "
-        "moment the fix lands and the marker has to come off in the same commit."
-    ),
-)
 def test_eu_eea_block_matches_the_calculation_path(regions):
     """regions.yaml is documentation until it agrees with the file that decides prints."""
     assert regions.blocks["EU_EEA"].countries == load_factors().eu_eea_countries
 
 
-def test_norway_is_still_missing_from_the_calculation_path(regions):
-    """The bug above, asserted directly so the report's claim stays checkable.
+def test_norway_is_in_the_calculation_path_from_v040(regions):
+    """The YAML-1.1 `NO` bug, fixed in v0.4.0 (notice 2026-N1).
 
-    Delete this test in the same commit that quotes NO in factors.yaml.
+    The 0.3.0-dev snapshot keeps the bug on purpose: prints stored under it were computed
+    without Norway, and the snapshot has to reproduce them.
     """
-    assert "NO" in regions.blocks["EU_EEA"].countries
-    assert "NO" not in load_factors().eu_eea_countries
+    assert "NO" in load_factors(for_date="2026-09-15").eu_eea_countries
+    assert "NO" not in load_factors(for_date="2026-09-14").eu_eea_countries
+    assert all(isinstance(c, str) and len(c) == 2 for c in load_factors().eu_eea_countries)
 
 
 def test_no_country_is_claimed_by_two_blocks(regions):

@@ -1046,6 +1046,14 @@ class SiteContext:
     date: str
 
 
+def _lock_head_version() -> str:
+    path = REPO_ROOT / "METHODOLOGY.lock"
+    if not path.exists():
+        return "?"
+    data = yaml.safe_load(_read(path)) or {}
+    return str((data.get("current") or {}).get("version", "?"))
+
+
 def _lock_hash() -> str:
     path = REPO_ROOT / "METHODOLOGY.lock"
     if not path.exists():
@@ -2223,8 +2231,56 @@ def _aggregation_term(ctx: SiteContext) -> str:
 </div>"""
 
 
+def _live_methodology_doc(version: str) -> Path:
+    """The rendered document for the version live today.
+
+    METHODOLOGY.md at the repository root describes the HEAD of the succession, which can
+    be announced and not yet in effect. The page must show the rules today's print was
+    computed under, so a superseded-or-current snapshot's own copy is used when the head
+    is still ahead.
+    """
+    snap = REPO_ROOT / "config" / "methodology" / version / "METHODOLOGY.md"
+    return snap if snap.exists() else REPO_ROOT / "METHODOLOGY.md"
+
+
+def _succession_card(ctx: SiteContext) -> str:
+    """Every methodology version, its effective date, and which one computed today's print."""
+    from tci.config import load_succession
+
+    today = ctx.generated_at[:10]
+    rows = []
+    for e in load_succession():
+        if e.version == ctx.version:
+            state = '<span class="chip chip--good"><span>In effect</span></span>'
+        elif e.effective_from > today:
+            state = '<span class="chip chip--warning"><span>Announced</span></span>'
+        else:
+            state = '<span class="chip chip--neutral"><span>Superseded</span></span>'
+        notice = (
+            f'<a href="notices.html#{_e(e.notice)}">{_e(e.notice)}</a>' if e.notice else "&#8212;"
+        )
+        rows.append(
+            f"<tr><td class=\"num\">v{_e(e.version)}</td>"
+            f"<td class=\"num\">{_e(_human_date(e.effective_from))}</td>"
+            f"<td>{notice}</td><td>{state}</td></tr>"
+        )
+    return f"""<div class="card">
+  <div class="card__head"><div>
+    <h2 class="card__title" id="versions-h">Versions and effective dates</h2>
+    <p class="card__sub">Each print is computed under the version whose effective date is
+    the latest on or before the print date. An announced version is in the repository
+    from the day of its notice and applies only from its effective date; superseded
+    versions are frozen and hash-locked.</p></div></div>
+  <div class="card__body card__body--flush"><div class="scroll-x"><table class="grid">
+    <thead><tr><th>Version</th><th>Effective from</th><th>Notice</th><th>Status</th></tr></thead>
+    <tbody>{"".join(rows)}</tbody></table></div></div>
+</div>"""
+
+
 def _methodology(ctx: SiteContext) -> str:
-    doc = markdown.render(_rebrand_doc(_read(REPO_ROOT / "METHODOLOGY.md")), heading_offset=1)
+    doc = markdown.render(
+        _rebrand_doc(_read(_live_methodology_doc(ctx.version))), heading_offset=1
+    )
     lock = ctx.lock_hash
     ru = ctx.factors.reference_unit
     head_pop = ", ".join(sorted(ctx.factors.population_for("headline")))
@@ -2304,6 +2360,9 @@ def _methodology(ctx: SiteContext) -> str:
           <div class="card__body">{_parameter_ledger(ctx)}</div>
         </div>
       </section>
+      <section aria-labelledby="versions-h" style="margin-bottom:var(--space-8)">
+        {_succession_card(ctx)}
+      </section>
       <section aria-labelledby="audit-h" style="margin-bottom:var(--space-8)">
         <div class="card">
           <div class="card__head"><div>
@@ -2311,7 +2370,11 @@ def _methodology(ctx: SiteContext) -> str:
             <p class="card__sub">How a third party checks this print without asking
             us</p></div></div>
           <div class="card__body stack">
-            <pre class="code"><code># the full constituent set behind any print
+            <pre class="code"><code># recompute every stored print under the version live on its
+# date, and check every published digest against the database
+python -m tci.run reproduce --published
+
+# the full constituent set behind any print
 python -m tci.run constituents --date {_e(ctx.date)} --series EU-CRI-H100
 
 # the weight review in effect on a date, recomputed from stored observations
@@ -2322,16 +2385,21 @@ python -m tci.run docs</code></pre>
             <ol class="ledger">
               <li class="ledger__row"><span class="ledger__n num">A1</span>
                 <div class="ledger__body"><h4 class="ledger__t">Methodology lock</h4>
-                <p class="ledger__d">A sha256 over factors.yaml, sovereign.yaml, index.py,
-                normalise.py and weights.py. CI fails whenever the working tree stops matching
-                it.<span class="ledger__k">sha256:{_e(lock)}</span></p></div>
-                <span class="ledger__v num">v{_e(ctx.version)}</span></li>
+                <p class="ledger__d">A sha256 over the head parameters (factors.yaml,
+                sovereign.yaml), the succession of versions, and the calculation code (index.py,
+                normalise.py, weights.py), plus one hash per frozen version. CI fails whenever
+                the working tree stops matching it, and the lock refuses any edit to a frozen
+                version.<span class="ledger__k">sha256:{_e(lock)}</span></p></div>
+                <span class="ledger__v num">head v{_e(_lock_head_version())}</span></li>
               <li class="ledger__row"><span class="ledger__n num">A2</span>
                 <div class="ledger__body"><h4 class="ledger__t">Machine-readable prints</h4>
                 <p class="ledger__d">The full published history, latest revision per date and
-                series, plus today's snapshot with its constituent set.</p></div>
+                series; today's snapshot; and one file per print date with every series, its
+                constituent set, and a digest that <code class="inline">reproduce
+                --published</code> checks.</p></div>
                 <span class="ledger__v num"><a href="data/index_history.csv">CSV</a> &#183;
-                <a href="data/latest.json">JSON</a></span></li>
+                <a href="data/latest.json">JSON</a> &#183;
+                <a href="data/prints/{_e(ctx.date)}.json">print file</a></span></li>
               <li class="ledger__row"><span class="ledger__n num">A3</span>
                 <div class="ledger__body"><h4 class="ledger__t">Complaints</h4>
                 <p class="ledger__d">Any print may be challenged. Acknowledged within 7 days;
@@ -2459,8 +2527,19 @@ class Notice:
 
     @property
     def pending(self) -> bool:
-        """Announced, effective date not yet reached. These raise the dashboard banner."""
-        return self.status == "announced"
+        """Announced, effective date not yet reached. These raise the dashboard banner.
+
+        Derived from the date, not only the stored status: effective dates are enforced
+        in code (config/methodology/succession.yaml), so a notice whose date has passed is
+        in effect whether or not anyone has edited its status field.
+        """
+        return self.status == "announced" and self.effective > utc_now_iso()[:10]
+
+    @property
+    def shown_status(self) -> str:
+        if self.status == "announced" and not self.pending:
+            return "in_effect"
+        return self.status
 
 
 def _load_notices() -> list[Notice]:
@@ -2537,7 +2616,7 @@ def _notices(ctx: SiteContext) -> str:
     else:
         blocks = []
         for n in notices:
-            cls, verb = _NOTICE_STATUS.get(n.status, _NOTICE_STATUS["announced"])
+            cls, verb = _NOTICE_STATUS.get(n.shown_status, _NOTICE_STATUS["announced"])
             blocks.append(
                 f"""<article class="card" id="{_e(n.id)}">
   <div class="card__head"><div>
@@ -2686,6 +2765,11 @@ def _data(ctx: SiteContext) -> str:
     reader discover it inside a CSV costs the citation.
     """
     head = ctx.head
+    from tci.reproduce import print_digest
+
+    pd = print_digest(ctx.conn, ctx.date, HEADLINE) if head is not None else None
+    digest_full = pd[1] if pd else ""
+    print_version = pd[0]["methodology_version"] if pd else ctx.version
     stamp = (
         f'{_e(display_series(HEADLINE))}, {_e(ctx.date)}: '
         + (
@@ -2693,16 +2777,16 @@ def _data(ctx: SiteContext) -> str:
             if head is not None and head["value_usd"] is not None
             else "no print (gap)"
         )
-        + f" (v{_e(ctx.version)}, lock sha256:{_e(ctx.lock_hash[:12])}&#8230;)"
+        + f" (v{_e(print_version)}, print digest {_e(digest_full[:19])}&#8230;)"
     )
     cards = (
         ("Index history", "Full daily history of every published series, latest revision "
          "per date.", "data/index_history.csv", "Download CSV"),
         ("Latest print", "latest.json — current values across all series, with flags and "
          "the FX leg.", "data/latest.json", "View JSON"),
-        ("Constituent audit", "Every candidate provider per print, included or not, its "
-         "weight, and why. Published inside latest.json.", "data/latest.json",
-         "View audit set"),
+        ("Print files", "One file per print date: every series, its full constituent audit "
+         "set, and a digest of exactly that content.", f"data/prints/{ctx.date}.json",
+         "View today's file"),
         ("Source code", "The generator, the collectors and the calculation — Apache-2.0, "
          "so any print here can be rebuilt independently.", REPO_URL, "Open repository"),
     )
@@ -2728,6 +2812,29 @@ def _data(ctx: SiteContext) -> str:
   <section class="section" aria-labelledby="s-dl">
     <h2 class="vh" id="s-dl">Downloads</h2>
     <div class="dlcards">{dl}</div>
+  </section>
+
+  <section class="section" aria-labelledby="s-verify">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-verify">Verify a print</h2>
+      <p class="section__dek">Every stored print can be recomputed from the stored
+      observations with the published code, under the methodology version that was live on
+      its date, and compared field by field with what was published: value, EUR value, FX
+      rate, provider counts, flags, and every constituent. Each print file carries a
+      sha256 digest of its content, so a copy of this site can be checked against the
+      database it claims to come from. Exit status 0 means every print matched.</p></div></div>
+    <div class="term">
+      <div class="term__chrome" aria-hidden="true"><i></i><i></i><i></i>
+        <span class="term__name">reproduce</span></div>
+      <div class="term__body">
+        <div>git clone {_e(REPO_URL)}</div>
+        <div>pip install -e .</div>
+        <div>python -m tci.run reproduce --published</div>
+        <div class="term__c"># or one day: python -m tci.run reproduce --date {_e(ctx.date)}</div>
+      </div>
+    </div>
+    <p class="section__dek">Today's headline digest:
+    <code class="inline" style="word-break:break-all">{_e(digest_full or "no print")}</code></p>
   </section>
 
   <section class="section" aria-labelledby="s-ids">
@@ -3109,7 +3216,9 @@ def _write_feed(ctx: SiteContext, notes: list[Note]) -> Path:
 
 def generate(conn: sqlite3.Connection) -> list[Path]:
     """Render every page into site/. Returns the paths written, newest content first."""
-    factors = load_factors()
+    # The version live today, not the head of the succession (which may be announced and
+    # not yet in effect). Pages that describe announced versions read the succession.
+    factors = load_factors(for_date=utc_now_iso()[:10])
     head = latest_print(conn, HEADLINE)
     now = utc_now_iso()
     ctx = SiteContext(

@@ -232,7 +232,7 @@ sources:
   - id: oci
     name: Oracle Cloud Infrastructure
     kind: hyperscaler
-    status: candidate
+    status: shadow
     tier: list
     collector: gpuhunt
     homepage: https://www.oracle.com/cloud/compute/gpu/
@@ -243,7 +243,7 @@ sources:
     access_basis: "Same open-source catalog package already in the calculation path."
     discovered: 2026-09-07
     discovered_via: "tier-0: gpuhunt providers we do not query"
-    last_reviewed: 2026-09-07
+    last_reviewed: 2026-09-11
     notes: >-
       44 H100 rows on 2026-09-07, every one at 2+ GPUs, including eu-amsterdam-1,
       eu-stockholm-1, eu-paris-1 and uk-cardiff-1. A fourth hyperscaler for the -HS
@@ -254,7 +254,7 @@ sources:
   - id: lambdalabs
     name: Lambda
     kind: neocloud
-    status: candidate
+    status: shadow
     tier: list
     collector: gpuhunt
     homepage: https://lambda.ai/pricing
@@ -265,7 +265,7 @@ sources:
     access_basis: "Same open-source catalog package already in the calculation path."
     discovered: 2026-09-07
     discovered_via: "tier-0: gpuhunt providers we do not query"
-    last_reviewed: 2026-09-07
+    last_reviewed: 2026-09-11
     notes: >-
       90 H100 rows, 54 at 2+ GPUs, including europe-central-1 and me-west-1. Its own
       pricing page is public too, but the catalog is the better route: no scraper to break.
@@ -274,7 +274,7 @@ sources:
   - id: verda_catalog
     name: Verda (formerly DataCrunch), via gpuhunt
     kind: neocloud
-    status: candidate
+    status: shadow
     tier: list
     collector: gpuhunt
     homepage: https://datacrunch.io/
@@ -285,7 +285,7 @@ sources:
     access_basis: "Same open-source catalog package already in the calculation path."
     discovered: 2026-09-07
     discovered_via: "tier-0: gpuhunt providers we do not query"
-    last_reviewed: 2026-09-07
+    last_reviewed: 2026-09-11
     notes: >-
       15 rows across FIN-01/02/03, 9 at 2+ GPUs. datacrunch is currently a hand-maintained
       static entry whose last_verified is 2026-07-18 and which the loader excludes at 90
@@ -294,7 +294,7 @@ sources:
   - id: nebius_catalog
     name: Nebius, via gpuhunt
     kind: neocloud
-    status: candidate
+    status: shadow
     tier: list
     collector: gpuhunt
     homepage: https://nebius.com/prices
@@ -305,16 +305,198 @@ sources:
     access_basis: "Same open-source catalog package already in the calculation path."
     discovered: 2026-09-07
     discovered_via: "tier-0: gpuhunt providers we do not query"
-    last_reviewed: 2026-09-07
+    last_reviewed: 2026-09-11
     notes: >-
       Thin: 2 rows in eu-north1, 1 at 2+ GPUs. Same staleness argument as verda but much
       less data behind it. Take it only alongside verda, not on its own merits.
+
+  # ---- shadow: collected daily from 2026-09-11, admitted to no print ----------
+  # Collector recipes vendored from the Computable GPU Index (Apache-2.0, see
+  # src/tci/vendor/computable/). Each stores every GPU row its surface publishes. None is
+  # on the methodology panel, so nothing here moves a number until a version admits it.
+  - id: ovh_public_cloud
+    name: OVHcloud Public Cloud order catalogue
+    kind: neocloud
+    status: shadow
+    tier: list
+    collector: ovh
+    homepage: https://www.ovhcloud.com/en/public-cloud/prices/
+    endpoint: "GET https://api.ovh.com/1.0/order/catalog/public/cloud (FR and US subsidiaries)"
+    auth: none
+    blocks: [EU_EEA, US]
+    gpu_classes: [H100P, H200]
+    access_basis: "OVHcloud's public, unauthenticated order-catalogue API."
+    discovered: 2026-09-11
+    discovered_via: "Computable GPU Index recipe (vendored)"
+    last_reviewed: 2026-09-11
+    notes: >-
+      EUR-native. H100 instances are PCIe (ovhcloud.com/en/public-cloud/gpu: "80 GB HBM2e
+      - PCIe 5.0"), so they are priced in the H100P class, never as the SXM reference
+      unit. Publishes a one-month commitment price beside the hourly rate, which is a
+      term-curve input. FR catalogue rows are recorded against FR by convention.
+
+  - id: civo
+    name: Civo
+    kind: neocloud
+    status: shadow
+    tier: list
+    collector: civo
+    homepage: https://www.civo.com/pricing
+    endpoint: "GET https://www.civo.com/pricing (server-rendered tables)"
+    auth: none
+    blocks: []
+    gpu_classes: [H100, H200, B200, A100]
+    access_basis: "Public pricing page."
+    discovered: 2026-09-11
+    discovered_via: "Computable GPU Index recipe (vendored)"
+    last_reviewed: 2026-09-11
+    notes: >-
+      The cleanest public term structure found: on-demand plus 6-, 12-, 24- and 36-month
+      commitment prices per configuration. The page names no region, so rows carry no
+      country until deliverability is established; the within-seller discount ratios do
+      not need one.
+
+  - id: coreweave
+    name: CoreWeave
+    kind: neocloud
+    status: shadow
+    tier: list
+    collector: coreweave
+    homepage: https://www.coreweave.com/pricing
+    endpoint: "GET https://www.coreweave.com/pricing"
+    auth: none
+    blocks: []
+    gpu_classes: [H100, H200, B200, B300]
+    access_basis: "Public pricing page."
+    discovered: 2026-09-11
+    discovered_via: "Computable GPU Index recipe (vendored)"
+    last_reviewed: 2026-09-11
+    notes: >-
+      Separate North America and Europe tables. "Europe" includes the UK, which is outside
+      the EEA, so rows carry no country: the page does not say which European site a price
+      is deliverable from.
+
+  - id: voltagepark
+    name: Voltage Park
+    kind: neocloud
+    status: shadow
+    tier: list
+    collector: voltagepark
+    homepage: https://www.voltagepark.com/
+    endpoint: "GET https://cloud-api.voltagepark.com/api/v1/bare-metal/locations"
+    auth: none
+    blocks: []
+    gpu_classes: [H100]
+    access_basis: "Public API behind the provider's own console."
+    discovered: 2026-09-11
+    discovered_via: "Computable GPU Index recipe (vendored)"
+    last_reviewed: 2026-09-11
+    notes: >-
+      H100 SXM5 8-GPU nodes, ethernet and InfiniBand priced separately. Location ids are
+      opaque UUIDs; country not assigned until a location can be tied to a site.
+
+  - id: digitalocean
+    name: DigitalOcean GPU Droplets
+    kind: neocloud
+    status: shadow
+    tier: list
+    collector: digitalocean
+    homepage: https://docs.digitalocean.com/products/droplets/details/pricing/
+    endpoint: "GET https://docs.digitalocean.com/products/droplets/details/pricing/"
+    auth: none
+    blocks: []
+    gpu_classes: []
+    access_basis: "Public documentation page."
+    discovered: 2026-09-11
+    discovered_via: "Computable GPU Index recipe (vendored)"
+    last_reviewed: 2026-09-11
+    notes: >-
+      H100 Droplets are sold in NYC2, AMS3 and TOR1 (docs, read 2026-09-11), so this is an
+      EU-deliverable seller at a region-flat price. The page labels the part "NVIDIA H100"
+      without a form factor, so rows are stored as H100_UNSPEC and priced in no class.
+      recheck: a published SXM/PCIe statement would make it an EU and US constituent.
+
+  - id: latitude
+    name: Latitude.sh
+    kind: neocloud
+    status: shadow
+    tier: list
+    collector: latitude
+    homepage: https://www.latitude.sh/pricing
+    endpoint: "GET https://www.latitude.sh/pricing"
+    auth: none
+    blocks: [US]
+    gpu_classes: [B300]
+    access_basis: "Public pricing page."
+    discovered: 2026-09-11
+    discovered_via: "Computable GPU Index recipe (vendored)"
+    last_reviewed: 2026-09-11
+    notes: >-
+      Bare metal, hourly and monthly-commit prices by country group. H100 is 1-GPU only and
+      unlabelled as to form factor, so it sits below the node floor and outside any class.
+
+  - id: hyperstack
+    name: Hyperstack
+    kind: neocloud
+    status: shadow
+    tier: list
+    collector: hyperstack
+    homepage: https://www.hyperstack.cloud/gpu-pricing
+    endpoint: "GET https://www.hyperstack.cloud/gpu-pricing + public stock feed"
+    auth: none
+    blocks: []
+    gpu_classes: [H100, H200, B200]
+    access_basis: "Public pricing page and stock feed."
+    discovered: 2026-09-11
+    discovered_via: "Computable GPU Index recipe (vendored)"
+    last_reviewed: 2026-09-11
+    notes: >-
+      Reservation prices are published as "starting from" floors with no tenor, stored as
+      reserved_unspecified and never used where a tenor is needed.
+
+  - id: crusoe
+    name: Crusoe
+    kind: neocloud
+    status: shadow
+    tier: list
+    collector: crusoe
+    homepage: https://www.crusoe.ai/cloud/pricing
+    endpoint: "GET https://www.crusoe.ai/cloud/pricing"
+    auth: none
+    blocks: []
+    gpu_classes: [H100, H200]
+    access_basis: "Public pricing page."
+    discovered: 2026-09-11
+    discovered_via: "Computable GPU Index recipe (vendored)"
+    last_reviewed: 2026-09-11
+    notes: "Per-GPU rates, region not stated on the page."
+
+  - id: lambda_pricing
+    name: Lambda pricing page
+    kind: neocloud
+    status: shadow
+    tier: list
+    collector: lambda_pricing
+    homepage: https://lambda.ai/pricing
+    endpoint: "GET https://lambda.ai/pricing"
+    auth: none
+    blocks: []
+    gpu_classes: [H100, B200]
+    access_basis: "Public pricing page."
+    discovered: 2026-09-11
+    discovered_via: "Computable GPU Index recipe (vendored)"
+    last_reviewed: 2026-09-11
+    notes: >-
+      A cross-check on the gpuhunt lambdalabs catalogue, which carries the regions. The
+      page's "1-Click Clusters" rows are multi-node InfiniBand clusters priced above the
+      on-demand instance rate for "2 weeks - 1 year": a different product, not a term
+      discount, stored as reserved_unspecified.
 
   # ---- candidates: operators with their own public rate card ------------------
   - id: sesterce
     name: Sesterce
     kind: neocloud
-    status: candidate
+    status: watchlist
     tier: list
     homepage: https://www.sesterce.com/
     endpoint: "https://cloud.sesterce.com (rates surfaced on the homepage)"
@@ -332,6 +514,15 @@ sources:
       not a cosmetic addition to the constituent set. Note /pricing 404s -- the homepage
       is the surface. Check whether the rate is JS-rendered before choosing static entry
       versus collector.
+      Re-screened 2026-09-11 against Computable's live-captured fixtures (2026-08-22): the
+      homepage figure is a "From / GPU / hr" floor across configurations and regions, and
+      the H100 row blends "SXM5 / PCIe" under one price, so it cannot price the SXM
+      reference unit. The console's per-offer rows list availability in Dallas, Tokyo and
+      a US south-east region with no French site among them, which reads as resold
+      capacity: admitting it risks counting another panel member's capacity twice.
+    recheck: >-
+      a per-offer on-demand price for H100 SXM in a named EU/EEA site that is Sesterce's
+      own rather than a partner's
 
   # ---- watchlist --------------------------------------------------------------
   - id: gcore

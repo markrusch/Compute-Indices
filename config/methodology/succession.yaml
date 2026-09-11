@@ -1,0 +1,28 @@
+# The methodology versions, in the order they take effect.
+#
+# A print is computed under the version whose effective_from is the latest one on or
+# before the print date. The newest entry is the head of the succession and lives in
+# config/factors.yaml and config/sovereign.yaml; every earlier version is a frozen
+# snapshot under config/methodology/<version>/ that is never edited again.
+#
+# WHY IN CODE. GOVERNANCE.md §1 requires one publication's notice before the first print
+# under a new version. Enforcing that by merging a change on the right day depends on
+# someone being at a keyboard at 11:00 UTC. Here an announced version can sit in the
+# repository from the day of its notice, and the date alone decides when it applies. A
+# test asserts that no version can take effect before the day after its notice.
+#
+# reproducible: whether every stored print under this version recomputes exactly from
+# stored observations with the current code. `python -m tci.run reproduce` checks it.
+versions:
+  - version: 0.3.0-dev
+    effective_from: 2026-07-18
+    params: config/methodology/0.3.0-dev
+    reproducible: true
+  - version: 0.4.0
+    effective_from: 2026-09-15
+    notice: 2026-N1
+    params: config/methodology/0.4.0
+  - version: 0.5.0
+    effective_from: 2026-09-22
+    notice: 2026-N2
+    params: config

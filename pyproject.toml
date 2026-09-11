@@ -62,11 +62,14 @@ dev = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-tci = ["migrations/*.sql"]
+tci = ["migrations/*.sql", "vendor/computable/*.json"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# Vendored third-party recipes (Computable, Apache-2.0) are kept byte-identical to upstream
+# apart from import paths, so they are not reformatted or linted to this repo's rules.
+extend-exclude = ["src/tci/vendor"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W", "UP", "B"]
@@ -87,6 +90,10 @@ strict_equality = true
 [[tool.mypy.overrides]]
 module = ["gpuhunt"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["tci.vendor.*"]
+ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

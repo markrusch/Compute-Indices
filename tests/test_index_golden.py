@@ -9,6 +9,7 @@ bump the version, and update the CHANGELOG — never just paste in what the code
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
 import pytest
@@ -17,7 +18,9 @@ from tci.config import load_factors
 from tci.index import compute_print
 from tci.normalise import normalise_observations
 
-FACTORS = load_factors()
+# Panel off: these tests pin unit and aggregation mechanics with synthetic providers.
+# The panel is tested in tests/test_panel.py.
+FACTORS = replace(load_factors(), panel=None)
 DATE = "2026-07-18"
 FX = (1.1435, "2026-07-17")
 HEADLINE_POP = FACTORS.population_for("headline")

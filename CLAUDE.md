@@ -29,6 +29,7 @@ python -m tci.run validate                     # dropout sensitivity + check-ser
 python -m tci.run post                         # regenerate site/substack_post.md
 python -m tci.run docs                         # regenerate METHODOLOGY.md + METHODOLOGY.lock
 python -m tci.run sources [--due|--status S|--block B]   # source register + region coverage
+python -m tci.run reproduce [--date D] [--published]    # recompute stored prints, check digests
 
 pytest                                         # 165 tests
 pytest tests/test_site.py::test_pages_are_self_contained -q    # a single test
@@ -91,13 +92,29 @@ exists alongside `latest_print()`. This is the one failure mode the project cann
 `daily_index` and `weight_sets`. A correction is a new revision. Every read must take
 `MAX(revision)` per `(date, series)` or it will republish a value that was withdrawn.
 
-**The methodology is hash-locked** over five files: `config/factors.yaml`,
-`config/sovereign.yaml`, `src/tci/index.py`, `src/tci/normalise.py`, `src/tci/weights.py`.
-Changing any of them requires, in one commit: the change, a `methodology_version` bump, a
-CHANGELOG entry, and `python -m tci.run docs`. The generator refuses a changed hash under
-an unchanged released version; a `-dev` suffix relaxes that pre-launch. A version bump
-discards the stored weight review, so an editorial-only change (a comment, a licence
-header) is rehashed *without* a bump and the reason recorded in the CHANGELOG.
+**The methodology is hash-locked and versioned by date.** The lock covers the head
+parameters (`config/factors.yaml`, `config/sovereign.yaml`), `config/methodology/succession.yaml`,
+and `src/tci/index.py`, `src/tci/normalise.py`, `src/tci/weights.py`, plus one hash per frozen
+version under `config/methodology/<version>/`. A print is computed under the version live on
+its date, so **always pass `for_date` to `config.load_factors` in anything that computes a
+print**; the head can be an announced version that is not yet in effect. A new version: freeze
+the current head into `config/methodology/<head>/`, edit the head, bump `methodology_version`,
+add the version to `succession.yaml` with its notice's effective date, add the notice to
+`config/notices.yaml`, a CHANGELOG entry, then `python -m tci.run docs`. Never edit a frozen
+snapshot; the lock refuses it. The `-dev` exemption ended at v0.4.0.
+
+**The panel decides admission.** `panel` in factors.yaml names every (provider, collector,
+class) that may reach a print. A new collector stores rows without moving anything; do not
+add it to the panel outside a new version. Tests of calculation mechanics that use invented
+providers use the `unpanelled` fixture.
+
+**Code changes must reproduce the record.** `tests/test_reproduce.py` recomputes every stored
+print from stored observations and checks every published digest. If it fails after a code
+change, the change alters published numbers and is a methodology change, not a refactor.
+
+**`src/tci/vendor/computable/` is vendored upstream code** (Apache-2.0). Keep it byte-identical
+to upstream apart from import paths; TCI's judgements about those rows live in
+`collectors/computable_sources.py`. It is excluded from ruff and mypy on purpose.
 
 **`site/*.html` is generated — never hand-edit it.** Change `outputs/site.py` or
 `site/assets/{tokens,site}.css` and rerun. Editing the HTML means the next daily run

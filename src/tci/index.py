@@ -124,9 +124,18 @@ def compute_print(
     population: frozenset[str] | None = None,
     prev_prices: Mapping[str, float] | None = None,
     provider_weights: Mapping[str, float] | None = None,
+    not_in_panel: frozenset[str] = frozenset(),
 ) -> IndexPrint:
-    """Compute one print. prev_prices (provider -> last included price) drives jump flags."""
+    """Compute one print. prev_prices (provider -> last included price) drives jump flags.
+
+    `not_in_panel` names providers observed today in this series' class whom the panel
+    does not admit. They take no part in the calculation; they are listed in the audit
+    set so a reader can see who was left out and why.
+    """
     kept, excluded = provider_offers(observations, factors, date, population)
+    for provider in not_in_panel:
+        if provider not in kept:
+            excluded.setdefault(provider, "not_in_panel")
 
     n_providers = len(kept)
     n_offers = sum(len(v) for v in kept.values())

@@ -75,6 +75,25 @@ file from either is ever modified and redistributed, MPL-2.0 section 3 applies t
 that file.
 
 -------------------------------------------------------------------------------
+VENDORED THIRD-PARTY SOFTWARE
+-------------------------------------------------------------------------------
+
+`src/tci/vendor/computable/` contains collector recipes, their transport and SKU
+catalogue, and (under `tests/fixtures/computable/`) their live-captured fixtures, from
+the Computable GPU Index, Apache License 2.0:
+
+    Computable GPU Index (CGI)
+    Copyright 2026 Computable
+
+    This product includes software developed at Computable
+    (https://github.com/getcomputable/gpu-index).
+
+Vendored from commit 698f2e0 (2026-09-08). Modifications: import paths rewritten to the
+vendored package, the SKU catalogue path pointed at the bundled copy, and lambda.py
+renamed lambda_.py. The recipes send TCI's own User-Agent, never Computable's. The CGI
+name is a trademark of Computable and is not used here.
+
+-------------------------------------------------------------------------------
 UPSTREAM DATA SOURCES
 -------------------------------------------------------------------------------
 

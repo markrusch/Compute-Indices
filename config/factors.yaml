@@ -1,7 +1,9 @@
 # EU-CRI methodology parameters. Every number that affects a published print lives here.
 # Changing anything in this file (or sovereign.yaml, index.py, normalise.py, weights.py)
 # requires a methodology_version bump + CHANGELOG entry - enforced by CI (see GOVERNANCE.md).
-methodology_version: "0.3.0-dev"   # '-dev' relaxes the lock guard pre-launch; drop it at launch
+methodology_version: "0.5.0"       # effective 2026-09-22 (notice 2026-N2). See
+                                    # config/methodology/succession.yaml for every version
+                                    # and the date it takes effect.
 
 reference_unit:
   gpu_model: H100_SXM        # headline reference variant (class H100 below)
@@ -27,16 +29,46 @@ model_classes:
   A100:   {reference_variant: A100_SXM,  variants: {A100_SXM: 1.0}}
   H100P:  {reference_variant: H100_PCIE, variants: {H100_PCIE: 1.0}}   # PCIe priced separately
 
-# Market segment per provider. This is the tier-segregation control and it is
-# methodology-affecting: the constituent population is bimodal (measured 2026-08-15,
-# cluster separation 5.4 sd between the neocloud/marketplace cluster [2.16..3.85] and the
-# hyperscaler cluster [5.44..7.36]). Averaging across that gap produces a number nobody
-# quotes. Providers not listed default to 'neocloud'.
-segments:
-  marketplace: [vast.ai, runpod]
-  hyperscaler: [aws, gcp, azure]
-  neocloud:    [nebius, datacrunch, seeweb, scaleway, ovhcloud, hetzner, genesis_cloud,
-                leaseweb]
+# THE PANEL. Every provider that may contribute to a print, its market segment, and for
+# each collector that observes it, the model classes that collector's rows may enter.
+#
+# Before v0.4.0 there was no enumerated panel: a provider was in the population if some
+# collector produced a row for it, and an unlisted name defaulted to the neocloud segment.
+# That made adding a collector a silent constituent change. Now a collector can store rows
+# for months (the history a future constituent needs) without any of them reaching a print
+# until a version admits the (provider, collector, class) triple here, after a notice.
+#
+# Segment is the tier-segregation control and it is methodology-affecting: the constituent
+# population is bimodal (measured 2026-08-15, cluster separation 5.4 sd between the
+# neocloud/marketplace cluster [2.16..3.85] and the hyperscaler cluster [5.44..7.36]).
+# Averaging across that gap produces a number nobody quotes.
+#
+# v0.4.0 membership was identical to the 0.3.0-dev population. v0.5.0 (notice 2026-N2):
+#   - verda, nebius and lambdalabs enter through dstack's gpuhunt catalogues, which carry a
+#     location per row. Verda replaces the static `datacrunch` entry (the same company
+#     under its new name, so the static entry leaves the panel the day the feed enters:
+#     one company, one vote). Nebius's static entry is replaced by its catalogue feed.
+#   - oci enters the hyperscaler segment.
+#   - ovhcloud enters through its public order-catalogue API, in the H100P class only:
+#     its H100 instances are PCIe ("80 GB HBM2e - PCIe 5.0"), never the SXM unit.
+#   - vast.ai is admitted to the H100P, H200, B200 and B300 classes it already lists.
+panel:
+  vast.ai:       {segment: marketplace, sources: {vast_ai: [H100, A100, H100P, H200, B200, B300]}}
+  runpod:        {segment: marketplace, sources: {runpod: [H100, A100]}}
+  aws:           {segment: hyperscaler, sources: {gpuhunt: [H100]}}
+  gcp:           {segment: hyperscaler, sources: {gpuhunt: [H100]}}
+  azure:         {segment: hyperscaler, sources: {azure_retail: [H100, H100P, A100, H200],
+                                                  gpuhunt: [H100]}}
+  oci:           {segment: hyperscaler, sources: {gpuhunt: [H100, H200, B200, A100]}}
+  scaleway:      {segment: neocloud, sources: {scaleway: [H100, H100P, B300]}}
+  nebius:        {segment: neocloud, sources: {gpuhunt: [H100, H200, B200, B300]}}
+  verda:         {segment: neocloud, sources: {gpuhunt: [H100, H200, B200, B300, A100]}}
+  lambdalabs:    {segment: neocloud, sources: {gpuhunt: [H100, H200, B200, A100]}}
+  ovhcloud:      {segment: neocloud, sources: {ovh: [H100P, H200]}}
+  seeweb:        {segment: neocloud, sources: {static_yaml: [H100]}}
+  hetzner:       {segment: neocloud, sources: {static_yaml: [H100]}}
+  genesis_cloud: {segment: neocloud, sources: {static_yaml: [H100]}}
+  leaseweb:      {segment: neocloud, sources: {static_yaml: [H100]}}
 
 # Which segments each published series draws from. The headline deliberately excludes the
 # hyperscaler catalog tier - those are the two highest and least-moving prices in the panel
@@ -112,6 +144,10 @@ continuity:
 
 fx:
   max_age_days: 7            # refuse an FX rate older than this (flag the print instead)
+  strictly_before: true      # v0.5.0: the ECB rate dated strictly BEFORE the print date,
+                             # so the EUR leg is T-1 whenever the run happens. Under the
+                             # old on-or-before rule a run after the ECB publication took
+                             # the same-day rate, and a print's FX depended on its run time.
   # HARD RULE enforced in code: fx_date <= print date. Two 2026-07 prints were computed
   # with an FX rate published on 2026-07-21, i.e. AFTER the print date - a look-ahead
   # introduced by backfill. Covered by a regression test.
@@ -135,6 +171,11 @@ measured_factors:
                                      # PROVISIONAL - measures Azure's internal price ladder,
                                      # not the market's. Not in the calculation path.
 
-eu_eea_countries: [AT, BE, BG, HR, CY, CZ, DK, EE, FI, FR, DE, GR, HU, IE, IT,
-                   LV, LT, LU, MT, NL, PL, PT, RO, SK, SI, ES, SE, IS, LI, NO]
+# Every code is QUOTED. YAML 1.1 reads the bare token NO as boolean false, so until v0.4.0
+# this list held `False` where Norway should have been, and every Norwegian observation
+# was dropped by the country filter (126 rows by 2026-09-08). tests/test_sources.py now
+# asserts every entry is a two-letter string.
+eu_eea_countries: ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR",
+                   "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK",
+                   "SI", "ES", "SE", "IS", "LI", "NO"]
 # NOTE: CH (Switzerland) is deliberately absent - Switzerland is in EFTA but NOT the EEA.

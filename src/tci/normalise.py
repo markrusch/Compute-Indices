@@ -82,6 +82,29 @@ def _variant_map(factors: Factors) -> dict[str, tuple[str, float]]:
     }
 
 
+def unadmitted_providers(rows: Iterable[RowLike], factors: Factors) -> dict[str, set[str]]:
+    """Providers seen today in a class the panel does not admit them to: provider -> classes.
+
+    Only rows that would otherwise qualify on unit and location are counted, so the audit
+    set names candidates a reader would expect to see, not every row of a global catalog.
+    """
+    variants = _variant_map(factors)
+    out: dict[str, set[str]] = {}
+    for row in rows:
+        entry = variants.get(row["gpu_model"])
+        if entry is None:
+            continue
+        model_class = entry[0]
+        if factors.admits(row["provider"], row["source"], model_class):
+            continue
+        if row["term"] != factors.reference_unit.term or row["tier"] not in ("executable", "list"):
+            continue
+        if row["country"] not in factors.eu_eea_countries:
+            continue
+        out.setdefault(row["provider"], set()).add(model_class)
+    return out
+
+
 def normalise_observations(
     rows: Iterable[RowLike],
     factors: Factors,
@@ -102,6 +125,12 @@ def normalise_observations(
         if entry is None:
             continue  # not the reference variant of any configured class
         model_class, factor = entry
+
+        # The explicit panel: a row enters only if its provider, the collector that
+        # observed it, and its class are all named in the version's panel. Everything
+        # else is stored and audited but cannot move a print.
+        if not factors.admits(row["provider"], row["source"], model_class):
+            continue
 
         if row["term"] != reference.term:
             continue

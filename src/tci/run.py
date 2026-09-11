@@ -57,6 +57,29 @@ def _cmd_sources(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_reproduce(args: argparse.Namespace) -> int:
+    """Exit 0: every checked print matched. 1: a mismatch. 2: could not run."""
+    from tci import db, reproduce
+
+    start = args.date or args.date_from
+    end = args.date or args.date_to
+    try:
+        conn = db.connect()
+        report = reproduce.reproduce_prints(conn, start, end, args.series)
+        print("observations -> prints (recomputed under the version live on each date)")
+        reproduce.print_report(report, args.verbose)
+        bad = bool(report.mismatches)
+        if args.published:
+            pub = reproduce.check_published(conn)
+            print("prints -> published files (digests)")
+            reproduce.print_report(pub, args.verbose)
+            bad = bad or bool(pub.mismatches)
+    except Exception as exc:  # noqa: BLE001 - any failure to run is exit 2, never a pass
+        print(f"reproduce could not run: {type(exc).__name__}: {exc}")
+        return 2
+    return 1 if bad else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s"
@@ -92,6 +115,18 @@ def main(argv: list[str] | None = None) -> int:
     p_src.add_argument("--due", action="store_true", help="list sources past their review date")
     p_src.add_argument("--date", help="YYYY-MM-DD to evaluate the review clock against")
 
+    p_rep = sub.add_parser(
+        "reproduce",
+        help="recompute stored prints from stored observations and check published digests",
+    )
+    p_rep.add_argument("--from", dest="date_from", help="first print date (default: all)")
+    p_rep.add_argument("--to", dest="date_to", help="last print date (default: all)")
+    p_rep.add_argument("--date", help="one print date (sets --from and --to)")
+    p_rep.add_argument("--series", help="check one series only")
+    p_rep.add_argument("--published", action="store_true",
+                       help="also check site/data/prints/*.json and latest.json digests")
+    p_rep.add_argument("--verbose", action="store_true", help="print MATCH lines too")
+
     args = parser.parse_args(argv)
 
     if args.command == "migrate":
@@ -100,6 +135,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_docs(args)
     if args.command == "sources":
         return _cmd_sources(args)
+    if args.command == "reproduce":
+        return _cmd_reproduce(args)
     if args.command in {"daily", "constituents", "backfill", "weights", "validate", "post"}:
         from tci import commands
 

@@ -21,6 +21,7 @@ from tci import DISCLAIMER, __version__
 from tci.commands import COMPOSITE, SERIES_BY_CLASS
 from tci.config import CONFIG_DIR, load_factors, load_static_providers
 from tci.db import utc_now_iso
+from tci.reproduce import PRINTS_DIR, canonical_print, constituents_of, digest, print_digest
 
 log = logging.getLogger("tci.outputs.webdata")
 
@@ -110,8 +111,11 @@ def _series_snapshot(conn: sqlite3.Connection) -> dict:
         row = _latest_print(conn, series)
         if row is None:
             continue
+        pd = print_digest(conn, row["date"], series)
         entry = {
             "date": row["date"],
+            "revision": row["revision"],
+            "digest": pd[1] if pd else None,
             "value_usd": row["value_usd"],
             "value_eur": row["value_eur"],
             "fx_rate": row["fx_rate"],
@@ -201,8 +205,50 @@ def _weight_review(conn: sqlite3.Connection, on_date: str) -> dict | None:
     }
 
 
+def write_prints(conn: sqlite3.Connection, out_dir: Path | None = None) -> list[Path]:
+    """One JSON file per print date: every series' latest revision, its full constituent
+    audit set, and a digest of exactly that content.
+
+    The digest is what makes the file checkable: `python -m tci.run reproduce --published`
+    recomputes it from the database, and the database from stored observations, so a
+    reader can confirm that what the site shows is what the calculation produced.
+    Retired series are written too, so the published record is complete.
+    """
+    target = out_dir or PRINTS_DIR
+    target.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+    dates = [r[0] for r in conn.execute("SELECT DISTINCT date FROM daily_index ORDER BY date")]
+    for date in dates:
+        series_out: dict = {}
+        heads = conn.execute(
+            "SELECT d.* FROM daily_index d JOIN (SELECT series, MAX(revision) AS rev"
+            " FROM daily_index WHERE date = ? GROUP BY series) m"
+            " ON d.series = m.series AND d.revision = m.rev WHERE d.date = ?"
+            " ORDER BY d.series",
+            (date, date),
+        ).fetchall()
+        for head in heads:
+            canon = canonical_print(
+                head, constituents_of(conn, date, head["series"], head["revision"])
+            )
+            series_out[head["series"]] = {**canon, "digest": digest(canon)}
+        payload = {
+            "date": date,
+            "note": "Digest = sha256 over the canonical print (sorted keys, numbers as"
+                    " 6-decimal strings). Verify: python -m tci.run reproduce --published",
+            "series": series_out,
+        }
+        path = target / f"{date}.json"
+        path.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n",
+                        encoding="utf-8", newline="\n")
+        written.append(path)
+    return written
+
+
 def generate(conn: sqlite3.Connection) -> Path:
-    factors = load_factors()
+    # The version live today, which is what today's print was computed under. The head
+    # of the succession can be an announced version whose effective date is still ahead.
+    factors = load_factors(for_date=utc_now_iso()[:10])
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     head = _latest_print(conn, "EU-CRI-H100")
@@ -227,5 +273,6 @@ def generate(conn: sqlite3.Connection) -> Path:
     OUT_PATH.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
     )
+    write_prints(conn)
     log.info("webdata: %s", OUT_PATH)
     return OUT_PATH

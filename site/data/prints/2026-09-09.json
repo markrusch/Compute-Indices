@@ -1,0 +1,152 @@
+{
+ "date": "2026-09-09",
+ "note": "Digest = sha256 over the canonical print (sorted keys, numbers as 6-decimal strings). Verify: python -m tci.run reproduce --published",
+ "series": {
+  "EU-CRI-COMPUTE": {
+   "constituents": [
+    {
+     "exclusion_reason": "no_print",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "A100",
+     "source": "composite",
+     "tier": "index",
+     "weight": "16.264522"
+    },
+    {
+     "exclusion_reason": "no_print",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "H100",
+     "source": "composite",
+     "tier": "index",
+     "weight": "68.007149"
+    },
+    {
+     "exclusion_reason": "no_print",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "H100P",
+     "source": "composite",
+     "tier": "index",
+     "weight": "7.864164"
+    },
+    {
+     "exclusion_reason": "no_print",
+     "flags": "",
+     "included": false,
+     "price_usd": "0.000000",
+     "provider": "H200",
+     "source": "composite",
+     "tier": "index",
+     "weight": "7.864164"
+    }
+   ],
+   "date": "2026-09-09",
+   "digest": "sha256:fc3da1ac28ad787a034c1473a152809bae38befba86632684bd2fbe45316f903",
+   "flags": "no_linkable_series,correction",
+   "fx_date": null,
+   "fx_rate": null,
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 0,
+   "n_sources": 0,
+   "revision": 1,
+   "series": "EU-CRI-COMPUTE",
+   "value_eur": null,
+   "value_usd": null
+  },
+  "EU-CRI-H100": {
+   "constituents": [],
+   "date": "2026-09-09",
+   "digest": "sha256:803db85cfb488ff2e3096b3b437c6821e1640b06a8dd49153c5be98659ba32b2",
+   "flags": "insufficient_sources,correction",
+   "fx_date": "2026-09-04",
+   "fx_rate": "1.162200",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 0,
+   "n_sources": 0,
+   "revision": 1,
+   "series": "EU-CRI-H100",
+   "value_eur": null,
+   "value_usd": null
+  },
+  "EU-CRI-H100-7D": {
+   "constituents": [],
+   "date": "2026-09-09",
+   "digest": "sha256:921efa49d0a43cc0ede8d2177999a76d8c5d5054c46e63471fd6eb86e6f61cef",
+   "flags": "insufficient_history,correction",
+   "fx_date": "2026-09-04",
+   "fx_rate": "1.162200",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 0,
+   "n_sources": 3,
+   "revision": 1,
+   "series": "EU-CRI-H100-7D",
+   "value_eur": null,
+   "value_usd": null
+  },
+  "EU-CRI-H100-HS": {
+   "constituents": [],
+   "date": "2026-09-09",
+   "digest": "sha256:3c2bc976601e3621677d95e338c528346a60c036324e5657d6dac7009eb59715",
+   "flags": "insufficient_sources,correction",
+   "fx_date": "2026-09-04",
+   "fx_rate": "1.162200",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 0,
+   "n_sources": 0,
+   "revision": 1,
+   "series": "EU-CRI-H100-HS",
+   "value_eur": null,
+   "value_usd": null
+  },
+  "EU-CRI-H100-MKT": {
+   "constituents": [],
+   "date": "2026-09-09",
+   "digest": "sha256:d2c014af12d31147633d6430569279a23337e9b0a2096c23a0d2e9e3a1a7a51d",
+   "flags": "insufficient_sources,correction",
+   "fx_date": "2026-09-04",
+   "fx_rate": "1.162200",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 0,
+   "n_sources": 0,
+   "revision": 1,
+   "series": "EU-CRI-H100-MKT",
+   "value_eur": null,
+   "value_usd": null
+  },
+  "EU-CRI-H100-NC": {
+   "constituents": [],
+   "date": "2026-09-09",
+   "digest": "sha256:57f23a683b7c15d59ca3674e83354ecdaf396d9c7a1ceecd4f70e9388c483a43",
+   "flags": "insufficient_sources,correction",
+   "fx_date": "2026-09-04",
+   "fx_rate": "1.162200",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 0,
+   "n_sources": 0,
+   "revision": 1,
+   "series": "EU-CRI-H100-NC",
+   "value_eur": null,
+   "value_usd": null
+  },
+  "EU-CRI-H100-SOV": {
+   "constituents": [],
+   "date": "2026-09-09",
+   "digest": "sha256:2892f2273c342a804d190462fdcc2513a4e9b3bb5706123dd64dbbc3f494c992",
+   "flags": "insufficient_sources,correction",
+   "fx_date": "2026-09-04",
+   "fx_rate": "1.162200",
+   "methodology_version": "0.3.0-dev",
+   "n_executable": 0,
+   "n_sources": 0,
+   "revision": 1,
+   "series": "EU-CRI-H100-SOV",
+   "value_eur": null,
+   "value_usd": null
+  }
+ }
+}

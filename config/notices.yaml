@@ -21,6 +21,64 @@
 # yet quantifiable and why.
 
 notices:
+  - id: 2026-N2
+    title: Verda, Nebius and Lambda enter the EU/EEA panel through their catalogue feeds,
+      Oracle joins the hyperscaler segment, OVHcloud joins the H100 PCIe class, and the EUR
+      leg becomes T-1 on every day
+    announced: 2026-09-11
+    effective: 2026-09-22
+    version: 0.5.0
+    status: announced
+    summary: >-
+      The panel widens from six priced H100 SXM sellers in the EU/EEA headline population
+      to seven, two static entries give way to daily feeds, and the FX rule stops depending
+      on the time of day the run happens.
+    effect_on_level: >-
+      Headline: two of the three changes to its population are like-for-like. Verda
+      replaces the static DataCrunch entry (the same company, renamed) and Nebius's
+      catalogue replaces its static entry; on 11 September verda.com/pricing quoted
+      $3.25/GPU-hr and nebius.com/prices $3.85/GPU-hr, the same figures the static
+      entries hold, so neither is expected to move the level on its own. Lambda is a new
+      constituent at $3.99/GPU-hr (lambda.ai/pricing, 11 September), above the last
+      published headline of $3.25/GPU-hr (7 September), so the expected direction is
+      unchanged-to-higher. The size depends on which marketplace offers are live on the
+      day and cannot be stated in advance. EUR companion: unchanged on any day the run
+      completes before the ECB publishes; on a day it would have run after, the EUR leg
+      now uses the previous day's rate, a difference equal to that day's EUR/USD move.
+      Scaleway's EUR-quoted rows convert at the same T-1 rate. The H100 PCIe, H200, B200
+      and B300 class series gain constituents; each still publishes only once five
+      providers qualify.
+    body: |
+      **New constituents.** Three EU/EEA sellers enter through dstack's open-source gpuhunt
+      catalogues, which list a location per row: Verda (Finland and Iceland), Nebius
+      (Finland, France, and a private region in Iceland) and Lambda (europe-central-1,
+      Germany). Oracle Cloud Infrastructure enters the hyperscaler segment, where it is
+      priced in the `-HS` series and never in the headline. OVHcloud enters through its
+      public order-catalogue API in the H100 PCIe class only; its H100 instances are
+      "80 GB HBM2e - PCIe 5.0", a different product from the SXM reference unit.
+
+      **One company, one vote.** Verda is DataCrunch under a new name. The static
+      `datacrunch` entry leaves the panel on the day the Verda feed enters it, and the
+      sovereign list names Verda in its place. Nebius's static entry is likewise replaced
+      by its catalogue feed rather than kept beside it.
+
+      **Classes.** vast.ai is admitted to the H100 PCIe, H200, B200 and B300 classes, whose
+      listings it already publishes and which the index has stored since 11 September.
+      The new catalogue feeds are admitted to the classes they list.
+
+      **FX.** The EUR companion uses the ECB reference rate dated strictly before the print
+      date. Until now it used the latest rate dated on or before it, which is T-1 when the
+      run finishes before the ECB publishes around 14:00 UTC and T when it finishes after:
+      the 11 September run finished at 18:22 UTC and took the same-day rate. A print's EUR
+      value therefore depended on when it was computed. The rate each earlier print used is
+      recorded with it and is what a recomputation converts at.
+
+      **What does not change.** The unit definition, the estimator, the trim, the weights,
+      the concentration cap and the publication gate are untouched. The collectors that
+      feed these rows have been running since 11 September, so each new constituent has
+      stored history before its first print; nothing collected before the effective date
+      is admitted retroactively, and prints dated before it keep the version they record.
+
   - id: 2026-N1
     title: Norway restored to the EU/EEA constituent population, and the collection-time
       node-size floor aligned to the published floor
@@ -62,3 +120,19 @@ notices:
 
       Prints computed before the effective date remain valid under the version they
       record in `daily_index.methodology_version` and are not restated. A gap stays a gap.
+
+      **Added 11 September 2026: the panel becomes explicit, with the same membership.**
+      Until this version a provider was in the constituent population if any collector
+      produced a row for it, and an unlisted name defaulted to the neocloud segment. From
+      v0.4.0 the population is an enumerated panel in `config/factors.yaml`: provider,
+      segment, and for each collector the classes it may contribute to. The v0.4.0 panel
+      names exactly the providers, collectors and classes that could reach a print before
+      it, so by itself it moves no number; every stored print recomputes to the same value
+      under it (`python -m tci.run reproduce`). It exists so that a new collector can store
+      rows for weeks without any of them reaching a print until a later version admits
+      them after its own notice.
+
+      **Effective dates are now enforced in code.** Each version is committed on the day
+      of its notice and selected for a print only from its effective date
+      (`config/methodology/succession.yaml`), so this version applies to the 15 September
+      print whenever the change is merged.
