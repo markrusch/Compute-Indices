@@ -30,8 +30,9 @@ python -m tci.run post                         # regenerate site/substack_post.m
 python -m tci.run docs                         # regenerate METHODOLOGY.md + METHODOLOGY.lock
 python -m tci.run sources [--due|--status S|--block B]   # source register + region coverage
 python -m tci.run reproduce [--date D] [--published]    # recompute stored prints, check digests
+python -m tci.run contrib validate|ingest|aggregate    # contributed term prices (private store)
 
-pytest                                         # 165 tests
+pytest                                         # 289 tests
 pytest tests/test_site.py::test_pages_are_self_contained -q    # a single test
 pytest -k "gap or revision" -q
 ruff check src tests
@@ -111,6 +112,12 @@ providers use the `unpanelled` fixture.
 **Code changes must reproduce the record.** `tests/test_reproduce.py` recomputes every stored
 print from stored observations and checks every published digest. If it fails after a code
 change, the change alters published numbers and is a methodology change, not a refactor.
+
+**Contributed prices never enter the repository.** `tci.contrib` stores them in a private
+database outside the repo (`TCI_PRIVATE_DIR`, default `~/.tci-private`) and refuses a path
+inside it. Only `contrib aggregate` output, which carries counts and suppressed cells but no
+contributor or single quote, may be written to `site/data/term/contributed.json`. The term
+tables (`tci.term`, `term.html`) are research outputs and are not in the calculation path.
 
 **`src/tci/vendor/computable/` is vendored upstream code** (Apache-2.0). Keep it byte-identical
 to upstream apart from import paths; TCI's judgements about those rows live in

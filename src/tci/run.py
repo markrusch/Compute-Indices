@@ -80,6 +80,43 @@ def _cmd_reproduce(args: argparse.Namespace) -> int:
     return 1 if bad else 0
 
 
+def _cmd_contrib(args: argparse.Namespace) -> int:
+    """Contributed term prices: validate a file, ingest it privately, or aggregate.
+
+    Exit 0 on success, 1 on a validation failure (the message names the line and field).
+    """
+    from pathlib import Path
+
+    from tci import contrib
+    from tci.db import utc_now_iso
+
+    try:
+        if args.action == "validate":
+            rows, digest = contrib.read_file(Path(args.file))
+            print(f"{len(rows)} rows valid (sha256 {digest[:12]}...)")
+            return 0
+        if args.action == "ingest":
+            rows, digest = contrib.read_file(Path(args.file))
+            conn = contrib.connect_private()
+            n = contrib.ingest(conn, args.contributor, rows, digest, utc_now_iso(),
+                                args.supersedes)
+            print(f"{n} rows stored privately at {contrib.private_db_path()}")
+            return 0
+        if args.action == "aggregate":
+            conn = contrib.connect_private()
+            cells = contrib.aggregate(conn, args.date_from, args.date_to)
+            text = contrib.publishable_json(cells, args.date_from, args.date_to)
+            if args.out:
+                Path(args.out).write_text(text + "\n", encoding="utf-8")
+            else:
+                print(text)
+            return 0
+    except contrib.ContributionError as exc:
+        print(f"rejected: {exc}")
+        return 1
+    return 2
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s"
@@ -127,8 +164,22 @@ def main(argv: list[str] | None = None) -> int:
                        help="also check site/data/prints/*.json and latest.json digests")
     p_rep.add_argument("--verbose", action="store_true", help="print MATCH lines too")
 
+    p_con = sub.add_parser(
+        "contrib", help="contributed term prices: validate, ingest privately, aggregate"
+    )
+    p_con.add_argument("action", choices=["validate", "ingest", "aggregate"])
+    p_con.add_argument("--file", help="submitted CSV (validate, ingest)")
+    p_con.add_argument("--contributor", help="pseudonym for the submitting party (ingest)")
+    p_con.add_argument("--supersedes", type=int,
+                       help="id of the row a one-row correction file replaces (ingest)")
+    p_con.add_argument("--from", dest="date_from", help="first as_of date (aggregate)")
+    p_con.add_argument("--to", dest="date_to", help="last as_of date (aggregate)")
+    p_con.add_argument("--out", help="write the publishable aggregates here (aggregate)")
+
     args = parser.parse_args(argv)
 
+    if args.command == "contrib":
+        return _cmd_contrib(args)
     if args.command == "migrate":
         return _cmd_migrate(args)
     if args.command == "docs":

@@ -51,6 +51,7 @@ pytest
 | `post` | regenerate the paste-ready Substack post |
 | `docs` | regenerate METHODOLOGY.md + METHODOLOGY.lock |
 | `sources` | the source register, the review clock, and per-region coverage of what has been collected (`--due`, `--status`, `--block`) |
+| `contrib validate\|ingest\|aggregate` | contributed term prices: check a submitted CSV, store it in the private store outside the repository (`--contributor`, `--supersedes` for a one-row correction), or write the publishable aggregates (`--from`, `--to`, `--out`). See [CONTRIBUTING-PRICES.md](CONTRIBUTING-PRICES.md) |
 
 ## Layout
 
@@ -61,9 +62,10 @@ pytest
 - `data/eucri.db` — SQLite, committed; observations and prints are append-only
   (trigger-enforced)
 - `site/` — the published site, **regenerated from the database on every daily run** by
-  `src/tci/outputs/site.py`; do not hand-edit the HTML. Six pages: `index.html`
-  (dashboard), `methodology.html`, `governance.html`, `research.html` and
-  `research/*.html`. Plus `assets/` (the design system: `tokens.css`, `site.css`),
+  `src/tci/outputs/site.py`; do not hand-edit the HTML. Pages: `index.html`
+  (dashboard), `basis.html` (the EU-US basis), `term.html` (commitment discounts),
+  `methodology.html`, `data.html`, `governance.html`, `notices.html`, `research.html`
+  and `research/*.html`. Plus `assets/` (the design system: `tokens.css`, `site.css`),
   `data/` (CSV history + `latest.json`), and `charts/` (PNGs used by the Substack post,
   not by the site — the site draws its own inline SVG).
 - `site/components.html` — the design-system component gallery. A reference artefact, not

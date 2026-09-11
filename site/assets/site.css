@@ -656,6 +656,9 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
 .grid { inline-size: 100%; min-inline-size: 780px; border-collapse: collapse;
         font-size: var(--text-xs); background: transparent; }
 .grid caption { text-align: left; }
+/* A table of a few short figures: it may shrink to the column instead of scrolling. */
+.grid--narrow { min-inline-size: 0; }
+.grid--narrow tbody td { white-space: nowrap; }
 .grid thead th { position: sticky; top: 0; background: var(--surface-inset); z-index: 1;
                  font-family: var(--font-mono); font-size: var(--text-3xs);
                  text-transform: uppercase; letter-spacing: var(--tracking-caps);
@@ -1187,6 +1190,21 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
   .toc { position: static; border-bottom: var(--border-hairline) solid var(--rule-strong);
          padding-bottom: var(--space-5); }
   .toc__list { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+}
+
+/* Eight top-level links (Basis and Term joined in September 2026) no longer fit at the
+   desktop gap between the mobile layer and a wide screen: the call to action wrapped
+   under the links at 1024px. The gap and then the type step down instead. */
+@media (max-width: 1240px) { .nav { gap: var(--space-5); } }
+@media (max-width: 1080px) {
+  .nav { gap: var(--space-4); }
+  .nav a { font-size: var(--text-sm); }
+}
+/* Just above the mobile layer the wordmark gives way to the links. Clipped rather than
+   display:none, so the home link keeps its accessible name. */
+@media (min-width: 861px) and (max-width: 960px) {
+  .masthead__inner .brand__name { position: absolute; inline-size: 1px; block-size: 1px;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 
 /* ---- THE MOBILE LAYER --------------------------------------------------- */

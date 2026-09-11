@@ -67,6 +67,44 @@ change to a released version's hash, and every change is a new version.
 - The 0.3.0-dev parameter set was frozen as a snapshot, with its implicit panel written
   out (a re-expression with no numeric effect, verified by recomputation).
 
+## Term prices, and a way to contribute them — 2026-09-11 — no methodology change
+
+Nothing here is in the calculation path, and no print moves.
+
+- **`term.html` and `site/data/term/`.** Each seller's published discount for commitment,
+  as committed / same-day on-demand for the same product, region and currency
+  (`src/tci/term.py`). Restated per seller, GPU and tenor; pooled across sellers only
+  with three in one segment. Rebuilt from stored observations on every run.
+- **Pairing is by product.** The first version paired on GPU and node size alone. Against
+  the stored Azure rows that put an ND96is_noIB reservation beside the ND96isr on-demand
+  price, and against OVHcloud's fixtures it paired a Windows-licensed monthly plan with a
+  Linux hourly one, which produced a "discount" of −31%. Pairs are now keyed on the
+  seller's own product identifier, Windows-licensed rows are dropped, and any pair with
+  the committed price above on-demand is excluded with the reason.
+- **Contributed term prices** (`src/tci/contrib.py`, `python -m tci.run contrib`,
+  [CONTRIBUTING-PRICES.md](CONTRIBUTING-PRICES.md), `contrib/template.csv`). A private,
+  append-only store outside the repository; one price per contributor; a median only
+  with three contributors and none above half the volume, quartiles only with five;
+  corrections by the original contributor only. The template's example row is refused
+  if submitted.
+- **Published schedules** (`config/term_schedules.yaml`). A seller that states its
+  commitment discounts as percentages is recorded there with the page and the date it was
+  read, and the schedule is applied to that seller's on-demand prices of the day. Verda
+  is the first entry (1 month 2% to 2 years 25%, read 2026-09-11). An entry older than 90
+  days is left out, the same limit as a static price.
+- **Nav.** Basis and Term joined the top navigation. The links now step down in spacing
+  and size between 861px and 1240px, where eight links wrapped the call to action.
+
+Found, not fixed:
+
+- Across every public source TCI collects, no committed tenor of any GPU is published by
+  three or more sellers, so no pooled cell prints. On the stored rows of 11 September
+  the table holds Azure alone, because the neocloud collectors that publish term prices
+  (Civo, OVHcloud, Latitude.sh) have not yet run in production.
+- Latitude.sh publishes a prepaid annual price (g3.h100.small: $3.37/hr hourly,
+  $1,230/month, $10,332/year, checked on the live page 2026-09-11). The vendored
+  collector records the hourly and monthly prices only, so its 12-month discount is not
+  in the table.
 ## Reproduction, digests, and a marketplace restored — 2026-09-11 — no methodology change
 
 - **Fixed: no H100 had reached the index from vast.ai since 2026-09-08.** The tenor work of

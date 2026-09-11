@@ -52,7 +52,7 @@ from tci.config import (
 )
 from tci.db import utc_now_iso
 from tci.outputs import markdown
-from tci.outputs.webdata import provider_links, sources_panel
+from tci.outputs.webdata import provider_links, sources_panel, term_dates, term_tables
 
 log = logging.getLogger("tci.outputs.site")
 
@@ -103,6 +103,7 @@ CUTOFF_UTC = "11:00 UTC"
 NAV: tuple[tuple[str, str], ...] = (
     ("index.html", "Indices"),
     ("basis.html", "Basis"),
+    ("term.html", "Term"),
     ("methodology.html", "Methodology"),
     ("data.html", "Data"),
     ("research.html", "Research"),
@@ -3144,6 +3145,212 @@ def _basis(ctx: SiteContext) -> str:
     )
 
 
+# ---- term -----------------------------------------------------------------
+
+TERM_TENORS = (1, 3, 6, 12, 24, 36, 60)
+TERM_FAMILIES = ("H100", "H200", "B200", "B300", "GB200", "GB300", "A100")
+CONTRIBUTED_PATH = SITE_DIR / "data" / "term" / "contributed.json"
+
+
+def _tenor_label(months: int) -> str:
+    return f"{months // 12}y" if months % 12 == 0 else f"{months}m"
+
+
+def _term_schedule_table(schedule: list[dict]) -> str:
+    rows: dict[tuple[str, str, str], dict[int, dict]] = {}
+    for r in schedule:
+        if not r["gpu_model"].startswith(TERM_FAMILIES):
+            continue
+        rows.setdefault((r["provider"], r["segment"], r["gpu_model"]), {})[
+            r["tenor_months"]] = r
+    tenors = [m for m in TERM_TENORS if any(m in v for v in rows.values())]
+    body = []
+    for (provider, segment, gpu), by_tenor in sorted(rows.items(), key=lambda kv: (
+            kv[0][2], kv[0][1], kv[0][0])):
+        cells = []
+        for m in tenors:
+            cell = by_tenor.get(m)
+            if cell is None:
+                cells.append('<td class="ta-r num">&#8212;</td>')
+                continue
+            disc = round((1 - cell["median_ratio"]) * 100)
+            lo, hi = round((1 - cell["max_ratio"]) * 100), round((1 - cell["min_ratio"]) * 100)
+            note = f' <span class="u">({lo}&#8211;{hi})</span>' if lo != hi else ""
+            cells.append(f'<td class="ta-r num">{disc}%{note}</td>')
+        body.append(
+            f'<tr><td>{_e(gpu)}</td><td>{_e(provider)} <span class="u">'
+            f"{_e(segment)}</span></td>" + "".join(cells) + "</tr>"
+        )
+    if not body:
+        return ('<p class="section__dek">No seller in the collected sources published a term'
+                " price for these GPUs on that date.</p>")
+    head = "".join(f'<th scope="col" class="ta-r">{_tenor_label(m)}</th>' for m in tenors)
+    return f"""<div class="card card__body--flush"><div class="scroll-x">
+  <table class="grid grid--narrow">
+  <caption class="vh">Published discount to the same product's on-demand price</caption>
+  <thead><tr><th scope="col">GPU</th><th scope="col">Seller</th>{head}</tr></thead>
+  <tbody>{"".join(body)}</tbody></table></div></div>"""
+
+
+def _contributed_section() -> str:
+    link = f"{REPO_URL}/blob/main/CONTRIBUTING-PRICES.md"
+    intro = f"""<div class="md"><p>The term prices a lender or a buyer needs are in contracts and
+    firm quotes, not on rate cards. Sellers, buyers and brokers can contribute them under
+    the rules in <a href="{_e(link)}">CONTRIBUTING-PRICES.md</a>: stored outside the
+    public repository, one price per contributor, a median published only with three
+    contributors and no contributor above half the volume, quartiles only with five.
+    Contributed figures cannot be recomputed from public data and are labelled so.</p></div>"""
+    try:
+        data = json.loads(CONTRIBUTED_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return intro + '<p class="section__dek">No contributed cell has been published.</p>'
+    rows = []
+    for c in data.get("cells", []):
+        value = (f"${_num(c['median'])}" if c.get("published") and c.get("median") is not None
+                 else _e(c.get("reason") or "suppressed"))
+        rows.append(
+            f"<tr><td>{_e(c['gpu_model'])}</td>"
+            f"<td class=\"ta-r num\">{_e(_tenor_label(c['tenor_months']))}</td>"
+            f"<td>{_e(c['region'])}</td><td>{_e(c['currency'])}</td>"
+            f"<td class=\"ta-r num\">{_e(c['n_contributors'])}</td><td>{value}</td></tr>"
+        )
+    window = data.get("window", {})
+    return intro + f"""<p class="section__dek">Window {_e(window.get('from', ''))} to
+    {_e(window.get('to', ''))}.</p>
+    <div class="card card__body--flush"><div class="scroll-x">
+  <table class="grid grid--narrow">
+  <caption class="vh">Contributed term prices, aggregated</caption>
+  <thead><tr><th scope="col">GPU</th><th scope="col" class="ta-r">Tenor</th>
+  <th scope="col">Region</th><th scope="col">Currency</th>
+  <th scope="col" class="ta-r">Contributors</th>
+  <th scope="col">Median per GPU-hour</th></tr></thead>
+  <tbody>{"".join(rows)}</tbody></table></div></div>"""
+
+
+def _term(ctx: SiteContext) -> str:
+    # Research beside the index: if the table cannot be built, the page says so and the
+    # rest of the site is still generated.
+    try:
+        dates = term_dates(ctx.conn)
+        tables = term_tables(ctx.conn, dates[-1]) if dates else None
+    except Exception:  # noqa: BLE001
+        log.exception("site: term table not built")
+        dates, tables, failed = [], None, True
+    else:
+        failed = False
+    if tables:
+        status = ('<span class="chip"><span>Collected '
+                  f"{_e(_human_date(tables['date']))}</span></span>")
+        cells = tables["cells"]
+        published = [c for c in cells if c["published"]]
+        most = max((c["n_sellers"] for c in cells), default=0)
+        if published:
+            pooled = "".join(
+                f"<li>{_e(c['gpu_model'])} {_e(_tenor_label(c['tenor_months']))}, "
+                f"{_e(c['segment'])}: median {round((1 - c['median_ratio']) * 100)}% below "
+                f"on-demand across {_e(c['n_sellers'])} sellers</li>" for c in published
+            )
+            pooled = f'<div class="md"><ul>{pooled}</ul></div>'
+        else:
+            pooled = (
+                '<div class="md"><p>None. A pooled figure needs three sellers in one '
+                "segment publishing the same GPU at the same tenor; on "
+                f"{_e(_human_date(tables['date']))} the best-covered cell had {most}.</p></div>"
+            )
+        schedule = _term_schedule_table(tables["schedule"])
+        pub = tables.get("published_schedules") or []
+        if pub:
+            items = "".join(
+                f'<li><strong>{_e(sc["provider"])}</strong> ({_e(sc["segment"])}), '
+                f'{_e(sc["applies_to"])}: '
+                + ", ".join(f"{_tenor_label(int(m))} {round(d * 100)}%"
+                            for m, d in sorted(sc["discounts"].items(),
+                                               key=lambda kv: int(kv[0])))
+                + f' off on-demand. <a href="{_e(sc["url"])}">Checked '
+                f'{_e(_human_date(sc["last_verified"]))}</a>.</li>'
+                for sc in pub
+            )
+            schedule += (
+                '<div class="md"><p>Stated by the seller as percentages rather than '
+                "prices, and applied in the table above to each GPU it priced on demand "
+                f"that day:</p><ul>{items}</ul></div>"
+            )
+        n_excl = len(tables["excluded"])
+    else:
+        label = "Not built today" if failed else "Not yet collected"
+        status = f'<span class="chip chip--warning"><span>{label}</span></span>'
+        pooled = ('<p class="section__dek">The term table could not be built from the stored'
+                  " prices on this run; the index is unaffected.</p>" if failed else
+                  '<p class="section__dek">No term prices have been collected yet.</p>')
+        schedule = ""
+        n_excl = 0
+    excl = (f" {n_excl} pair{'s' if n_excl != 1 else ''} on that date priced the commitment "
+            "above on-demand and were left out." if n_excl else "")
+    body = f"""<main class="wrap" id="main">
+  <div class="pagehead">
+    <div class="eyebrow">Term prices</div>
+    <h1 class="pagehead__h pagehead__h--display">What a commitment is worth, from the
+    prices sellers publish.</h1>
+    <p class="pagehead__dek">For each seller that publishes both, the committed price as a
+    discount to the same product's on-demand price on the same day. Taken within one
+    seller, one product and one currency, a discount needs no FX and carries no mix of
+    sellers. It is a research table beside the index, not a series in it, and nothing on
+    this page enters a print.</p>
+    <div class="pagehead__meta"><span>{status}</span>
+      <span><a href="data/term/latest.json">latest.json</a></span>
+      <span><a href="data/term/history.csv">history.csv</a></span></div>
+  </div>
+
+  <section class="section" aria-labelledby="s-sched">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-sched">Discount to on-demand, by seller</h2>
+      <p class="section__dek">One figure per seller, GPU and tenor: the median across that
+      seller's products and regions, with the range in brackets where they differ. Each
+      row restates one seller's own rate card.</p></div></div>
+    {schedule}
+  </section>
+
+  <section class="section" aria-labelledby="s-pool">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-pool">Pooled across sellers</h2></div></div>
+    {pooled}
+    <div class="md"><p>Hyperscaler reservations and neocloud commitments are shown
+    separately and never pooled: they are different products at very different
+    discounts.</p></div>
+  </section>
+
+  <section class="section" aria-labelledby="s-contrib">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-contrib">Contributed term prices</h2></div></div>
+    {_contributed_section()}
+  </section>
+
+  <section class="section" aria-labelledby="s-rules">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-rules">What is left out</h2></div></div>
+    <div class="md"><ul>
+      <li>Prices quoted as a range or a floor with no stated tenor, such as reserved
+      cluster pricing "from" a figure.</li>
+      <li>Windows-licensed instances: the licence is not compute.</li>
+      <li>Any pair in which the committed price is above the on-demand
+      price.{excl}</li>
+      <li>Latitude.sh's prepaid annual price, which its collector does not record. Its
+      monthly price is kept.</li>
+    </ul></div>
+  </section>
+</main>"""
+    return _shell(
+        ctx,
+        title=f"Term prices — {BRAND}",
+        description=(
+            "Published commitment discounts for GPU rental, by seller, GPU and tenor, and "
+            "the rules for contributed term prices."
+        ),
+        current="term.html",
+        body=body,
+    )
+
+
 # ---- research -------------------------------------------------------------
 
 
@@ -3473,6 +3680,7 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
     pages: list[tuple[Path, str]] = [
         (SITE_DIR / "index.html", _dashboard(ctx, notes)),
         (SITE_DIR / "basis.html", _basis(ctx)),
+        (SITE_DIR / "term.html", _term(ctx)),
         (SITE_DIR / "methodology.html", _methodology(ctx)),
         (SITE_DIR / "data.html", _data(ctx)),
         (SITE_DIR / "governance.html", _governance(ctx)),
