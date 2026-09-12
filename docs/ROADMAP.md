@@ -240,12 +240,16 @@ European neocloud finance leads, GPU lenders, and the desks trading the CME cont
 **Acceptance:** the first note reaches 3 named people who reply. Vanity metrics do not
 count.
 
-### L3.5 A machine-readable interface
-`site/data/latest.json` and `site/data/prints/*.json` exist and carry digests. Add a
-documented, versioned shape: one endpoint per series, `?date=` for history, CC BY 4.0 for
-non-commercial use as today.
-**Acceptance:** a stranger can pull the headline for a date range with `curl` and verify a
-digest, using only what the Data page documents.
+### L3.5 A machine-readable interface — DONE
+`site/data/v1/`: a catalogue plus one file per series carrying its whole history and the
+same digest the print file for that date publishes. A gap is a row with a null value and a
+reason, never an absent row. The site is static, so there is no `?date=`; a range is a
+filter over one file, which is what the Data page documents.
+**Acceptance:** met. Verified by hand as an outsider — range pulled from one file, gaps
+preserved, digest recomputed with four lines of standard library. A test recomputes every
+published digest by the documented `jq` recipe rather than by calling this project's code,
+and a second test keeps the published content ASCII, without which that recipe would
+quietly stop matching.
 
 **L3 evaluation gate:** would a risk manager cite this index in a credit memo? If the
 answer is still no, the reason is either coverage or history, and both are cured by
