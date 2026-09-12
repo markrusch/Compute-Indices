@@ -564,12 +564,24 @@ def cmd_daily(args: argparse.Namespace) -> int:
 
     compute_all_series(conn, utc_date)
     export_csv(conn)
-    _maybe_outputs(conn)
-    return 0
+    return 0 if _maybe_outputs(conn, utc_date) else 1
 
 
-def _maybe_outputs(conn: sqlite3.Connection) -> None:
-    """Charts + post + dashboard data + the published site; never blocks the daily run."""
+def _maybe_outputs(conn: sqlite3.Connection, utc_date: str) -> bool:
+    """Charts + post + dashboard data + the published site.
+
+    Never blocks the day's collection or print: by the time this runs, the observations
+    and the print are stored, and those are the irreplaceable half. A crash here is
+    caught so the caller still commits them.
+
+    It does fail the run, though. Until 2026-09-12 the exception was logged and
+    `cmd_daily` returned 0 regardless, which is the worst of both worlds: the database
+    gains a print, `site/data/prints/` never does, the workflow goes green, and the
+    digest check walks only the files that exist and so reports nothing wrong. The
+    published site silently falls a day behind the record it claims to publish. A
+    non-zero exit here goes red while the commit step — which runs on failure too —
+    still saves the data.
+    """
     from tci.outputs import charts, post, site, webdata
 
     try:
@@ -577,8 +589,19 @@ def _maybe_outputs(conn: sqlite3.Connection) -> None:
         post.generate_post(conn)
         webdata.generate(conn)
         site.generate(conn)
-    except Exception:
-        log.exception("output generation failed (fail-soft)")
+    except Exception as exc:
+        log.exception("output generation failed; the print is stored but not published")
+        # CI logs age out and are not public. `runs.notes` is what the workflow's
+        # diagnostic step reads and what survives in the committed database.
+        with conn:
+            conn.execute(
+                "INSERT INTO runs (run_id, utc_date, source, started_utc, finished_utc,"
+                " status, notes) VALUES (?, ?, 'outputs', ?, ?, 'failed', ?)",
+                (str(uuid.uuid4()), utc_date, db.utc_now_iso(), db.utc_now_iso(),
+                 f"{type(exc).__name__}: {exc}"[:500]),
+            )
+        return False
+    return True
 
 
 def cmd_constituents(args: argparse.Namespace) -> int:
