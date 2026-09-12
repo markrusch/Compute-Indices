@@ -3,6 +3,69 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## CI that protects the daily run, and a reliability page — 2026-09-12 — no methodology change
+
+- **Fixed: the database could print and the site not, with nothing reporting it.**
+  `cmd_daily` stores the day's observations and print, then generates outputs inside a
+  try/except that logged and returned; it returned 0 either way. `check_published` walked
+  the files that exist and compared each digest against the database, so a date the site
+  was never handed was simply not iterated, and `latest.json` kept matching the older
+  print it still named. A crash in `webdata.generate` therefore produced a green workflow,
+  a database a day ahead of `site/data/prints/`, and a clean digest check. The check now
+  enumerates the database as well: a stored print with no published file, or with no entry
+  in its date's file, is a MISSING and fails. Output failure fails the run and writes its
+  reason to `runs.notes`; the commit step already runs on failure, so the day's
+  irreplaceable observations are still saved. Verified against the record: 515 of 515
+  digests still match and no date is reported missing.
+- **The daily entrypoint runs in CI.** `python -m tci.run daily` is what the Action runs at
+  11:00 UTC and no test had ever invoked it. `tests/test_pipeline_smoke.py` runs it as a
+  subprocess against a throwaway copy of the tree, with no network, and requires every
+  generated page back after deleting them. Both of this repo's data-loss incidents were in
+  that orchestration rather than in any unit.
+- **The workflows are under test.** `tests/test_workflows.py` asserts the properties whose
+  absence caused those incidents: the commit step runs on failure, the run never
+  force-pushes, it cannot race itself, the schedule is the published 11:00 UTC, every job
+  runs the same Python, and the daily job installs the package as a user gets it so a
+  runtime dependency parked in the dev extra fails there rather than in production. Each
+  was checked by breaking the workflow and watching it fail. `bash -n` covers every run
+  block; actionlint runs in CI.
+- **`python -m tci.run canary`.** Collects from every live source into a temporary
+  database, touching neither the record nor the site, and reports what stopped reporting. A
+  source that returns cleanly with no rows counts as broken: that is the failure a
+  fail-soft pipeline hides best. Not scheduled — SOURCES.md commits TCI to one request per
+  source per day — so it runs on pull requests touching collector code and on request.
+  First live run, 2026-09-12: 15 of 15 sources reporting.
+- **Fixed: CoreWeave's pricing page reshaped and the fixture did not follow.** The parser
+  fix of 2026-09-12 had the live page as its only evidence, so a revert to bare-string
+  anchors would have passed every test. `pricing-2026-09-12-jsonld.html` is the 2026-09-11
+  capture with the schema.org OfferCatalog block inserted verbatim, reproducing the 2/2
+  anchor count that failed. A second test reshapes the h2 and requires the collector to
+  refuse the page, because the fix moved the anchor and must not have relaxed it.
+- **`reliability.html`.** Every session the headline did not print, with the reason in
+  words, read from `daily_index` at the latest revision; other series summarised by count
+  and state. Generated from the record on every run, so the list cannot be curated. As of
+  2026-09-12: 19 of 57 sessions printed.
+- **`python -m tci.run reliability`.** The gap log, and a gate replay for a series that
+  does not print yet. The replay runs the unit definition over stored observations through
+  the same `normalise_observations` and `provider_offers` the calculation uses, and shows
+  the stored record beside it, since the two differ wherever the head panel differs from
+  the panel live on the date.
+- **Found: no test could stop a test writing to `data/eucri.db`.** One did, during this
+  work, and `git status` caught it. A session-scoped guard hashes the database before and
+  after the suite. The first version of it passed a deliberate probe: the file is in WAL
+  mode, so a committed write lands in `eucri.db-wal` and the main file does not change
+  until sqlite checkpoints, which happens after pytest exits. It hashes both.
+- **Found: four published pages had no invariant checked against them.**
+  `tests/test_site.py` kept a hand-written tuple of five page names for the
+  no-off-origin-request, single-theme and keyboard-nav checks, and the site had grown to
+  nine. basis, term, notices and reliability were all unchecked. The invariant tests derive
+  the list from what `generate` wrote; the completeness test keeps an explicit one.
+- **Found, not fixed: `site/components.html` is published but not generated.** It is the
+  design-system gallery, maintained by hand beside `DESIGN.md`, linked from nowhere and
+  Disallowed in robots.txt. It is a real exception to "site/*.html is generated", now
+  recorded in `CLAUDE.md` and enumerated in the smoke test rather than left to be
+  rediscovered.
+
 ## 0.6.0 — announced 2026-09-11, effective 2026-10-01 (notice 2026-N3)
 
 - **US reference block.** `blocks.US` and `regional_series.EU-CRI-H100-US` in factors.yaml:
