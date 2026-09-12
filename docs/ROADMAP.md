@@ -293,16 +293,39 @@ of use covers the whole history and leaves the hash-locked calculation path unto
 **Not covered, and not by oversight:** network egress allowance and storage product.
 Neither is published as a field by any source currently collected.
 
-### L4.2 Public performance results (free, ~20 h)
-Join TCI prices to published MLPerf results where a provider has submitted, to produce a
-cost-per-unit-of-work figure: `time-to-train × node price` for a fixed MLPerf Training
-task, `$ per million tokens` for a fixed MLPerf Inference task.
-**Acceptance:** a research table with one row per (provider, system, MLPerf round), each
-carrying the result id and the price used, each figure recomputable. Providers without a
-submission appear as "no public result" — never as an estimate.
-**Limits to state on the page:** an MLPerf system is a tuned configuration submitted by the
-vendor, not what a customer gets by default; the result is a point in time; the overlap
-with TCI's EU panel is thin.
+### L4.2 Public performance results — DONE (Training; Inference not attempted)
+`src/tci/mlperf.py`, `data/mlperf/training.json` (upstream commits pinned),
+`python -m tci.run mlperf`, and `performance.html`.
+
+**The overlap is the finding, and it is thinner than "thin".** Six panel providers have
+ever submitted to MLPerf Training — Azure, CoreWeave, Google, Lambda, Nebius, Oracle — and
+**none has ever submitted an H100 system**, which is the GPU the headline prices. Ten
+sellers priced on the site have never submitted anything.
+
+Requiring the same round, accelerator, benchmark and GPU count leaves two comparable cells
+across v5.0, v5.1 and v6.0. One has an EU/EEA price for both sellers:
+
+| v5.0, B200-SXM-180GB, llama2_70b_lora, 8 GPUs | time | price | run |
+|---|---|---|---|
+| Lambda | 10.9 min | $6.79/GPU-hr | $9.89 |
+| Oracle | 11.0 min | $14.00/GPU-hr | $20.49 |
+
+Times differ by 0.5%, cost by 2.07×. On that workload the premium is price, not delivered
+performance. One cell, one scale, one round, two vendor-tuned configurations — a data point,
+not a conclusion. It is the first time TCI has been able to state one at all.
+
+**Why this matters for L4.4.** The public-results route cannot answer the question for all
+but one pair of sellers. That is the argument for the measured route, and it is worth
+putting in front of Sixtytwo as evidence rather than as an opinion.
+
+**Two joins were wrong in the first cut**, both producing plausible numbers rather than
+errors: a node-count fallback attached an H200 time-to-train to a B200 price, and joining
+on `system_name` (not unique within a submitter) merged an 8-GPU run with a 512-GPU one.
+Both now key on the system file's stem, and an ambiguous directory is skipped.
+
+**Not attempted:** MLPerf Inference (`$ per million tokens`). The submitter set there is
+organised by division rather than by company and needs its own reading; Training answered
+the question first and answered it negatively.
 
 ### L4.3 Own measurements (cheap: €20–€60 total, ~30 h)
 Most of TCI's panel never submits to MLPerf. A fixed, open workload run by TCI on rented

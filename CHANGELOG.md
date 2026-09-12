@@ -3,6 +3,34 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## MLPerf results against the prices — 2026-09-12 — no methodology change
+
+- **`performance.html`, `src/tci/mlperf.py`, `python -m tci.run mlperf`.** MLPerf Training
+  results from sellers priced here, joined to those prices.
+  `data/mlperf/training.json` pins the upstream commit of each results repository, so every
+  figure names a revision and nothing reaches the network when the page is built.
+- **The overlap is the result.** Six sellers priced here have ever submitted to MLPerf
+  Training, and none has ever submitted an H100 system — the accelerator the headline
+  prices. Ten have never submitted anything and are named as having no public result.
+- **One comparable, priced cell** across v5.0, v5.1 and v6.0, after requiring the same
+  round, accelerator, benchmark and GPU count: MLPerf Training v5.0, B200-SXM-180GB,
+  llama2_70b_lora, 8 GPUs. Lambda 10.9 min at $6.79/GPU-hr, $9.89 the run; Oracle 11.0 min
+  at $14.00/GPU-hr, $20.49 the run. Times differ by 0.5% and cost by 2.07×.
+- **Found and fixed before anything was published: two joins that produced plausible
+  numbers rather than errors.** The results matcher fell back to node count when a
+  directory name did not match a system, so Oracle's `8xBM.GPU.H200.8` and
+  `8xBM.GPU.B200.8` each claimed the other's logs and an H200 time to train was multiplied
+  by a B200 price. And results were joined on `system_name`, which is not unique within a
+  submitter — Oracle files four node counts under `BM.GPU.GB300.4` — merging an 8-GPU run
+  with a 512-GPU one. Both key on the system file's stem now, and a directory matching no
+  system or more than one is skipped rather than assigned to a neighbour.
+- Time to train is `run_stop` minus `run_start` over runs the log records as successful,
+  as a median. It is not called the official score: MLCommons publishes those and the
+  scoring rule varies by benchmark.
+- **`site.generate` no longer writes a page whose builder returned nothing**, which would
+  replace a good page with a blank one; and the performance page degrades to no page if its
+  snapshot is unreadable, rather than failing the daily run with it.
+
 ## A versioned read interface, and what the sellers declare — 2026-09-12 — no methodology change
 
 - **`site/data/v1/`.** A catalogue plus one file per series carrying its whole history.
