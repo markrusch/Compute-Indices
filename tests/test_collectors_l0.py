@@ -116,6 +116,41 @@ def test_tenor_ranges_and_floors_are_not_given_a_tenor(collected: dict[str, list
     assert hyp and {o.term for o in hyp} == {"reserved_unspecified"}
 
 
+def test_latitude_prepaid_annual_is_recorded_as_a_12_month_commitment(
+    collected: dict[str, list]
+) -> None:
+    """L5.3: the vendored recipe's own loop discards the year price into `_year_s`. TCI's
+    adapter (latitude_annual.py) reads the same already-fetched body a second time and
+    turns it into a reserved_1yr row, without editing the vendored file."""
+    annual = [o for o in collected["latitude"] if o.term == "reserved_1yr"]
+    assert annual, "latitude produced no prepaid-annual rows from its fixture"
+    for o in annual:
+        assert o.tier == "list"
+        assert json.loads(o.raw_json)["extra"]["commitment_months"] == 12
+        # A deeper discount than the monthly tier, for the same plan/region/currency.
+        monthly = [m for m in collected["latitude"]
+                  if m.term == "commit_1mo" and m.gpu_model == o.gpu_model
+                  and m.region == o.region]
+        if monthly:
+            assert o.price_usd_per_gpu_hr < monthly[0].price_usd_per_gpu_hr
+
+
+def test_latitude_annual_reading_does_not_reach_the_network_in_tests(
+    monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The regression this guards: `_fetch_latitude` first called a `fetch` imported
+    directly into computable_sources.py, invisible to `monkeypatch.setattr(module,
+    "fetch", ...)`, which is how every test in this file stays offline. That version
+    reached the live network on every test run instead of the fixture."""
+    from tci.collectors.computable_sources import _fetch_latitude
+    from tci.vendor.computable.sources import latitude as latitude_module
+
+    monkeypatch.setattr(latitude_module, "fetch", _fake_fetch)
+    result = _fetch_latitude(timeout=5.0)
+    assert result["observations"]
+    assert any(o["tier"] == "reserved" for o in result["observations"])
+
+
 def test_display_currency_duplicates_are_dropped(collected: dict[str, list]) -> None:
     assert all(json.loads(o.raw_json)["currency"] in ("USD", "EUR")
                for rows in collected.values() for o in rows)

@@ -400,12 +400,24 @@ then regenerate the site. The page already renders it.
 **Acceptance:** the published cell carries its contributor and quote counts, the kinds
 behind it, and the statement that it cannot be recomputed from public data.
 
-### L5.3 Widen the public side while the funnel runs
-- Record Latitude.sh's prepaid annual price (the vendored recipe ignores it; TCI can read
-  it in its own adapter without touching vendored code).
-- Add further published discount schedules to `config/term_schedules.yaml` as they are
-  found, each with URL and `last_verified`.
-- Re-check quarterly whether any tenor has reached three sellers.
+### L5.3 Widen the public side while the funnel runs — DONE, 12 September
+- **Latitude's prepaid-annual price.** `src/tci/collectors/latitude_annual.py` reads the
+  `year` field the vendored recipe discards, off the same already-fetched page (one
+  request, not two), stored as `reserved_1yr`. Checked live: the discount compounds
+  sensibly with tenor (~50% at 1 month, ~65% at 12), so the number is trustworthy, not
+  just structurally present. A real bug was caught before it shipped — the first cut
+  fetched through a name invisible to the test suite's offline patch, so `pytest` was
+  quietly hitting latitude.sh's live page on every run.
+- **Every other panel provider checked for a discount schedule; none qualified.** OVHcloud
+  and Scaleway explicitly exclude GPUs from their savings plans; RunPod, Nebius and
+  Hetzner publish no percentage schedule; DigitalOcean publishes concrete 12-month
+  reserved prices (a genuine gap, needing its own Latitude-annual-shaped adapter — not
+  attempted). vast.ai publishes a schedule but says outright it is a default individual
+  hosts vary, so applying it uniformly would misstate a marketplace as one seller.
+  Recorded in `config/term_schedules.yaml` so the next review doesn't re-cover this.
+- **`python -m tci.run term`**, new: the cells for one date against the 3-seller
+  threshold, and which cells are one seller short. This is the quarterly recheck tool —
+  today's reading, 0 of 64 cells published, 10 one seller away.
 
 **L5 evaluation gate:** would a lender size a facility using the published cell? If the
 answer needs a caveat longer than the number, the cell is not ready.

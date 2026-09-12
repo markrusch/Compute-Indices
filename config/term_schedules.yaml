@@ -7,6 +7,43 @@
 # the seller's page and update the date; never extend a date without looking.
 max_age_days: 90
 
+# Roadmap L5.3 review, 2026-09-12: every other panel provider checked for a schedule of
+# this shape (a percentage off on-demand, stated as prose, tied to a specific tenor).
+# None qualified. Recorded so the next quarterly check starts from what was already ruled
+# out, rather than re-covering the same ground blind — the same reasoning
+# `config/source_registry.yaml` already applies to rejected sources.
+#
+#   - RunPod (runpod.io/pricing, docs.runpod.io/pods/pricing): "Savings Plans" for
+#     3-or-6-month upfront commitments are named but carry no published percentage --
+#     deferred to "the Runpod console during Pod deployment". No schedule.
+#   - DigitalOcean (digitalocean.com/pricing/gpu-droplets): publishes concrete 12-month
+#     reserved PRICES ($3.26/GPU-hr H100, per the fetch), not a percentage schedule. A
+#     genuine gap, but a different one from this file's shape -- it needs its own
+#     adapter, on the pattern of `tci/collectors/latitude_annual.py`, reading the
+#     marketing page the vendored recipe deliberately does not (see that recipe's
+#     docstring). Not attempted here; noted for a future pass.
+#   - Nebius (nebius.com/prices, docs.nebius.com): a single blanket "pay up to 35% less
+#     ... for multiple months" claim, not broken out by tenor -- not a schedule.
+#   - Scaleway (scaleway.com/en/gpu-instances/): its own FAQ states plainly "GPUs aren't
+#     eligible to Savings Plans." Explicitly excluded by the seller, not merely absent.
+#   - OVHcloud (ovhcloud.com/en/public-cloud/savings-plan/): the Savings Plan FAQ lists
+#     eligible products as "B3, C3 and R3 instances... More Public Cloud products will be
+#     eligible soon" -- GPU shapes are not on that list. Explicitly excluded, as Scaleway's
+#     is; only the concrete order-catalogue prices this file's sibling mechanism (the
+#     ordinary `ovh` collector + `term.seller_terms` pairing) already captures apply.
+#   - Hetzner (hetzner.com/gpu/, hetzner.com/cloud/pricing/): zero occurrences of
+#     "discount", "commit" or "contract" on either page. Flat pay-as-you-go pricing only.
+#   - vast.ai (vast.ai/article/reserved-instance-discounts): DOES publish a schedule --
+#     "20% discount for a 1-month commitment, 30% for a 3-month commitment, and 40% for a
+#     6-month commitment" -- verbatim, confirmed live. Deliberately NOT added below.
+#     vast.ai is a marketplace of independent hosts, and its own article says so in the
+#     next sentence: "The specific discount schedule can vary from provider to provider,
+#     with 40% at 6 months being the default setting." This file's shape is one row per
+#     seller's OWN published rate; applying a platform default to every vast.ai host
+#     would state, as that host's fact, a number the host may not have set. Genuine
+#     per-host committed prices belong in the ordinary observation pipeline (vast_ai.py),
+#     paired the way `term.seller_terms` already pairs everyone else's -- not here.
+
 schedules:
   - provider: verda
     url: https://verda.com/pricing

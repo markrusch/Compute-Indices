@@ -50,6 +50,7 @@ pytest
 | `reliability [--series S] [--coverage S --days N]` | the gap log, and how many providers would have met a series' gate on each session |
 | `effect --date D --before X --after Y` | recompute one date under two methodology versions and report the difference per series; writes nothing |
 | `mlperf [--refresh]` | MLPerf Training results from sellers priced here, against those prices, from a snapshot pinned to an upstream commit |
+| `term [--date D]` | term-price cells for one date against the 3-seller publication threshold, and which cells are one seller away |
 | `weights [--date D]` | show the stored weight review for a date (v0.3.0 weights providers by tier; reviews are retained for audit, not used in the calculation path) |
 | `validate` | source-dropout sensitivity + optional check-series correlation |
 | `post` | regenerate the paste-ready Substack post |

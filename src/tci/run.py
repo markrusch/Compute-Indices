@@ -118,6 +118,45 @@ def _cmd_mlperf(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_term(args: argparse.Namespace) -> int:
+    """The term tables for one date: every pooled cell, and how far each is from
+    publishing. Roadmap L5.3: "re-check quarterly whether any tenor has reached three
+    sellers" — this is that check, run on demand instead of by ad-hoc query."""
+    from tci import db
+    from tci.outputs.webdata import term_dates, term_tables
+
+    conn = db.connect()
+    date = args.date
+    if date is None:
+        dates = term_dates(conn)
+        if not dates:
+            print("no term-priced observations stored yet")
+            return 1
+        date = dates[-1]
+    tables = term_tables(conn, date)
+    cells = tables["cells"]
+    published = [c for c in cells if c["published"]]
+    print(f"term cells for {date} ({tables['note']})")
+    print()
+    width = max((len(c["gpu_model"]) for c in cells), default=10)
+    for c in sorted(cells, key=lambda c: (-c["n_sellers"], c["gpu_model"], c["tenor_months"])):
+        mark = "PUBLISHED" if c["published"] else f"{c['n_sellers']} of 3"
+        ratio = f"median {c['median_ratio']}" if c["published"] else ""
+        print(f"  {c['gpu_model']:<{width}}  {c['tenor_months']:>3}mo  {mark:<10}"
+              f"  sellers={','.join(c['sellers'])}  {ratio}")
+    print()
+    print(f"{len(published)} of {len(cells)} cells published (>= 3 sellers)")
+    close = [c for c in cells if not c["published"] and c["n_sellers"] == 2]
+    if close:
+        print(f"{len(close)} cell(s) one seller away from publishing:")
+        for c in close:
+            sellers = ', '.join(c['sellers'])
+            print(f"  {c['gpu_model']} / {c['tenor_months']}mo needs one more; has {sellers}")
+    if tables["stale_schedules"]:
+        print(f"stale published schedules (past max_age_days): {tables['stale_schedules']}")
+    return 0
+
+
 def _cmd_reliability(args: argparse.Namespace) -> int:
     """Where the record gapped, and how close a series is to its gate."""
     from tci import db, reliability
@@ -230,6 +269,11 @@ def main(argv: list[str] | None = None) -> int:
                        help="also check site/data/prints/*.json and latest.json digests")
     p_rep.add_argument("--verbose", action="store_true", help="print MATCH lines too")
 
+    p_term = sub.add_parser(
+        "term", help="term-price cells for one date, and how close each is to publishing"
+    )
+    p_term.add_argument("--date", help="YYYY-MM-DD (default: the latest term-priced date)")
+
     p_rel = sub.add_parser(
         "reliability", help="the record's gaps, and how close a series is to its gate"
     )
@@ -296,6 +340,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_mlperf(args)
     if args.command == "effect":
         return _cmd_effect(args)
+    if args.command == "term":
+        return _cmd_term(args)
     if args.command in {"daily", "constituents", "backfill", "weights", "validate", "post"}:
         from tci import commands
 

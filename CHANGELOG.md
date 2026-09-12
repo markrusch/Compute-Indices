@@ -3,6 +3,78 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## L5.3: Latitude's prepaid-annual price, and a term-schedule review — 2026-09-12 — no methodology change
+
+- **`src/tci/collectors/latitude_annual.py`.** Latitude.sh's flight-JSON publishes an
+  {hour, month, year} price triple; the vendored recipe turns `hour` and `month` into
+  on-demand and 1-month-commit rows and discards `year` into its own loop's `_year_s`.
+  This reads the same already-fetched page a second time for that field, reusing the
+  vendored module's regex constants (import only — nothing under `vendor/computable/` is
+  edited) and stores it as a `reserved_1yr` row through the ordinary pipeline. One fetch,
+  not two: `computable_sources._fetch_latitude` hands the one HTML body to both parsers,
+  so this costs no extra request to latitude.sh.
+- **Checked live before trusting the number.** `month` is consistently `hour × 365` (a
+  flat ~50% saving against the 730-hour month the vendored recipe already assumes) and
+  `year` is consistently `month × 12 × 0.70` to four decimal places, across every plan and
+  region checked — a materially deeper discount for the longer commitment, the expected
+  direction. The per-GPU-hour conversion extends the recipe's own `HOURS_PER_MONTH`
+  convention to a year (×12 = 8760h) rather than inventing an unrelated constant.
+- **Found while implementing: a real test-isolation bug, fixed before it shipped.** The
+  first version fetched through a `fetch` name imported directly into
+  `computable_sources.py`, invisible to the `monkeypatch.setattr(module, "fetch", ...)`
+  every test in this suite already uses to stay offline — so the test suite was silently
+  reaching latitude.sh's live page on every run instead of the fixture. Fetching through
+  `latitude_module.fetch` instead (the vendored module's own name for the same function)
+  puts it back under the existing patch, with a test that asserts it directly.
+- **`python -m tci.run term`.** The term cells for one date against the 3-seller
+  threshold, and which cells are one seller away — the tool roadmap L5.3's "re-check
+  quarterly whether any tenor has reached three sellers" had no tool for; today's data:
+  0 of 64 cells published, 10 one seller short.
+- **`config/term_schedules.yaml`: every other panel provider checked for a published
+  discount schedule, on the same review.** None qualified. OVHcloud and Scaleway
+  explicitly exclude GPUs from their general savings plans; RunPod, Nebius and Hetzner
+  publish no percentage schedule at all; DigitalOcean publishes concrete 12-month reserved
+  prices (a real gap, noted for a future Latitude-annual-shaped adapter, not attempted
+  here). vast.ai does publish one ("20% off at 1 month, 30% at 3, 40% at 6") but is a
+  marketplace whose own article states the schedule is a default individual hosts vary —
+  applying it to every vast.ai row would state, as one host's fact, a number that host may
+  not have set. Recorded in the config file so the next quarterly check does not re-cover
+  the same ground.
+- CoreWeave's two continent labels ("NORTH AMERICA" / "EUROPE") are now mapped to a
+  representative country each (NO / US) on Mark's explicit instruction, given directly
+  after a source-by-source data-trust audit flagged the gap: without a country, CoreWeave
+  could never become eligible for the EU/EEA or US population no matter what a future
+  version admitted. Norway was chosen because it is a confirmed CoreWeave location and is
+  EEA — a block marker, not a claim about any specific row's actual site. Moves nothing:
+  CoreWeave remains off the panel. One material fact surfaced while implementing it:
+  CoreWeave's stated European capacity includes non-EEA UK, so "EUROPE" is not a synonym
+  for "EU/EEA" here.
+- The gpuhunt docstring previously named only Verda as fabricating a full
+  instance-times-region catalogue. Reading gpuhunt's installed provider code found Lambda
+  and OCI do the identical thing (Lambda's own code admits `# TODO: we don't know which
+  regions are actually available for each instance type`); Nebius is the one provider
+  whose region data comes from a real per-region API call. No code change — the docstring
+  now names what each provider's data actually is.
+
+## Contact form and self-hosted traffic logging — 2026-09-12 — no methodology change
+
+- **`contact.html`, `site/api/contact.js`.** A form beside the mailto link, not instead
+  of it: posts to a Resend-backed serverless function and redirects back to `#sent` or
+  `#error` on the same page. No client script — a hidden honeypot field and the browser's
+  own `required` attributes do the spam-filtering and validation. The GitHub Pages mirror
+  has no serverless functions, so the mailto line under the form is what still works
+  there.
+- **`site/middleware.mjs`, `site/api/stats.js`.** Vercel Web Analytics is pageview counts
+  only on the Hobby plan. This middleware logs every page request server-side into a free
+  Upstash Redis database instead of upgrading the plan — no cookie, a visitor is
+  SHA-256(day, IP, user-agent) rotated daily, unlinkable across days. `/api/stats`, behind
+  a `STATS_KEY` query param, is the only viewer.
+- Neither feature does anything until its environment variables are set in Vercel
+  (`RESEND_API_KEY`; `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `STATS_KEY`,
+  optionally `ANALYTICS_SALT`). Until then the form redirects to `#error` and the
+  middleware is a no-op — the same "inert until switched on" shape `_ANALYTICS` already
+  has on this site.
+
 ## Measuring a version transition — 2026-09-12 — no methodology change
 
 - **`python -m tci.run effect --date D --before X --after Y`.** Recomputes one date under
