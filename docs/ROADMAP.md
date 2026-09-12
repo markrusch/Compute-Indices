@@ -267,14 +267,31 @@ label.
 
 Three layers, cheapest first. Do them in order; each stands alone.
 
-### L4.1 Declared quality attributes (free, ~15 h)
-Record, per constituent and per observation where the source states it: interconnect
-(InfiniBand / RoCE / Ethernet and its speed), GPUs per node, NVLink domain, local NVMe,
-storage product, network egress allowance, and contract form. Most are already in
-`raw_json`; this promotes them to typed columns and to the audit set.
-**Acceptance:** every included constituent in a print carries its declared attributes, and
-the constituent page shows them. No inference — where a source does not state it, the
-field is null and says so.
+### L4.1 Declared quality attributes — DONE
+`src/tci/attributes.py`, and a table beside the constituents on the dashboard.
+
+**The finding is the coverage, and it is thin.** Of 42 cells across the constituents of
+the 12 September print, 11 carry something the seller publishes as a field. Across all 304
+H100 SXM rows that day: GPU memory declared by 78%, interconnect by 3%, vCPUs by 2%, system
+memory by 2%, local storage by 1%. Sellers publish a price and a chip name and little else.
+That is the answer to the declared half of the question and the reason the measured half
+(L4.2, L4.3, L4.4) cannot be skipped.
+
+**A trap found on the way in.** Every value in the stored `interconnect` column is read off
+a SKU string — Azure from `isr`/`noIB`, gpuhunt and Scaleway from `SXM`, static entries
+hardcoded. Surfacing it as a declared attribute would have had the site asserting the
+fabric behind named companies' products on the strength of three characters in a product
+code. It is published marked as derived, with the rule attached. Only Latitude.sh
+("800Gbps Dual Plane RoCE") and Voltage Park ("ethernet") state a fabric as a field.
+
+**Deviation from the plan, deliberately.** The plan says to promote these to typed columns
+on `observations`. That table is append-only, so new columns could only be populated
+forward, and every historical row would still need reading out of `raw_json` — two code
+paths for one fact and a permanently thinner older record. Reading `raw_json` at the point
+of use covers the whole history and leaves the hash-locked calculation path untouched.
+
+**Not covered, and not by oversight:** network egress allowance and storage product.
+Neither is published as a field by any source currently collected.
 
 ### L4.2 Public performance results (free, ~20 h)
 Join TCI prices to published MLPerf results where a provider has submitted, to produce a

@@ -3,6 +3,45 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## A versioned read interface, and what the sellers declare — 2026-09-12 — no methodology change
+
+- **`site/data/v1/`.** A catalogue plus one file per series carrying its whole history.
+  `latest.json` gives today across every series and the print files give one date across
+  every series; neither gave one series across dates, which meant fetching a file per
+  session. A session that did not print is a row with a null value and the reason in
+  `flags`, never an absent row, so a consumer cannot interpolate across a gap without
+  seeing it. The path is versioned: a breaking change goes to `v2` and leaves `v1` served.
+- Every row carries the digest the print file for that date publishes, computed by the
+  same function from the same row. `reproduce --published` checks them rather than
+  trusting them, and now checks 1019 digests where it checked 515. The Data page documents
+  the catalogue, the range query and
+  `jq -jcS 'del(.digest)' | sha256sum`; a test recomputes every published digest by that
+  recipe rather than by calling this project's code, and a second keeps the published
+  content ASCII, without which the recipe would silently stop matching while the digests
+  stayed correct.
+- **`src/tci/attributes.py`, and a table beside the constituents.** What each seller
+  publishes about the product behind its price, in the seller's own words and units. Of 42
+  cells across the constituents of the 12 September print, 11 carry something the seller
+  publishes as a field. Across all 304 H100 SXM rows that day: GPU memory declared by 78%,
+  interconnect by 3%, vCPUs 2%, system memory 2%, local storage 1%.
+- **Found: the stored `interconnect` column is an inference, everywhere.** Azure derives it
+  from `isr`/`noIB` in the SKU, gpuhunt and Scaleway from `SXM`, static entries hardcode
+  it. Nobody declares it. Published as derived with the rule attached rather than as the
+  seller's statement — asserting the fabric behind a named company's product from three
+  characters in a product code is not a claim this index should make unmarked. Latitude.sh
+  and Voltage Park do publish a fabric as a field, and theirs is marked declared.
+- Values are never converted to a common unit: Lambda publishes "2900 GiB" and Voltage Park
+  1024, and normalising them would make the number TCI's claim instead of the seller's.
+  A seller that publishes nothing gets a cell that says so, with its own provenance rather
+  than a null wearing "declared".
+- **Not done as specified:** the plan asked for typed columns on `observations`. That table
+  is append-only, so new columns could only be populated forward and every historical row
+  would still need reading out of `raw_json`. Read at the point of use instead, which
+  covers the whole history and leaves the hash-locked calculation path untouched.
+- Network egress allowance and storage product are not published as a field by any source
+  currently collected, so neither is recorded.
+- The roadmap moved into the repository at `docs/ROADMAP.md`.
+
 ## CI that protects the daily run, and a reliability page — 2026-09-12 — no methodology change
 
 - **Fixed: the database could print and the site not, with nothing reporting it.**
