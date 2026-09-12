@@ -80,6 +80,29 @@ def _cmd_reproduce(args: argparse.Namespace) -> int:
     return 1 if bad else 0
 
 
+def _cmd_mlperf(args: argparse.Namespace) -> int:
+    """MLPerf Training results by sellers TCI prices, against TCI's EU/EEA price."""
+    from datetime import UTC, datetime
+
+    from tci import db, mlperf
+    from tci.config import load_factors
+
+    if args.refresh:
+        snapshot = mlperf.fetch(list(args.round or mlperf.DEFAULT_ROUNDS),
+                                frozenset(mlperf.SUBMITTER_TO_PROVIDER))
+        path = mlperf.save(snapshot)
+        print(f"{len(snapshot.systems)} systems, {len(snapshot.results)} results -> {path}")
+        for repo, commit in sorted(snapshot.repos.items()):
+            print(f"  {repo} pinned at {commit}")
+        return 0
+
+    date = args.date or datetime.now(UTC).strftime("%Y-%m-%d")
+    conn = db.connect()
+    factors = load_factors(for_date=date)
+    print(mlperf.render(mlperf.table(conn, date, factors.eu_eea_countries), date))
+    return 0
+
+
 def _cmd_reliability(args: argparse.Namespace) -> int:
     """Where the record gapped, and how close a series is to its gate."""
     from tci import db, reliability
@@ -201,6 +224,15 @@ def main(argv: list[str] | None = None) -> int:
     p_rel.add_argument("--days", type=int, default=21, help="sessions to replay (default 21)")
     p_rel.add_argument("--limit", type=int, default=40, help="gaps to list (default 40)")
 
+    p_ml = sub.add_parser(
+        "mlperf", help="MLPerf Training results by sellers TCI prices, against TCI's price"
+    )
+    p_ml.add_argument("--date", help="price date (default: today UTC)")
+    p_ml.add_argument("--refresh", action="store_true",
+                      help="re-fetch from MLCommons and move the pinned commits")
+    p_ml.add_argument("--round", action="append",
+                      help="results repository to fetch (repeatable, with --refresh)")
+
     p_can = sub.add_parser(
         "canary",
         help="collect from every live source into a throwaway db; report what stopped reporting",
@@ -236,6 +268,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_canary(args)
     if args.command == "reliability":
         return _cmd_reliability(args)
+    if args.command == "mlperf":
+        return _cmd_mlperf(args)
     if args.command in {"daily", "constituents", "backfill", "weights", "validate", "post"}:
         from tci import commands
 
