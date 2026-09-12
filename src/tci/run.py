@@ -80,6 +80,18 @@ def _cmd_reproduce(args: argparse.Namespace) -> int:
     return 1 if bad else 0
 
 
+def _cmd_canary(args: argparse.Namespace) -> int:
+    """Live collection into a throwaway database. Exit 1 if a source stopped reporting."""
+    from tci import canary
+
+    results = canary.run(frozenset(args.source) if args.source else None)
+    if not results:
+        print(f"no such source: {', '.join(args.source or [])}")
+        return 2
+    print(canary.render(results))
+    return 1 if any(r.broken for r in results) else 0
+
+
 def _cmd_contrib(args: argparse.Namespace) -> int:
     """Contributed term prices: validate a file, ingest it privately, or aggregate.
 
@@ -164,6 +176,13 @@ def main(argv: list[str] | None = None) -> int:
                        help="also check site/data/prints/*.json and latest.json digests")
     p_rep.add_argument("--verbose", action="store_true", help="print MATCH lines too")
 
+    p_can = sub.add_parser(
+        "canary",
+        help="collect from every live source into a throwaway db; report what stopped reporting",
+    )
+    p_can.add_argument("--source", action="append",
+                       help="check only this source (repeatable)")
+
     p_con = sub.add_parser(
         "contrib", help="contributed term prices: validate, ingest privately, aggregate"
     )
@@ -188,6 +207,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_sources(args)
     if args.command == "reproduce":
         return _cmd_reproduce(args)
+    if args.command == "canary":
+        return _cmd_canary(args)
     if args.command in {"daily", "constituents", "backfill", "weights", "validate", "post"}:
         from tci import commands
 
