@@ -41,7 +41,7 @@ from pathlib import Path
 
 import yaml
 
-from tci import DISCLAIMER, reliability
+from tci import DISCLAIMER, attributes, reliability
 from tci.commands import COMPOSITE, HEADLINE, SERIES_7D
 from tci.config import (
     Factors,
@@ -1668,6 +1668,69 @@ def _constituents_card(ctx: SiteContext) -> str:
 </div></div>"""
 
 
+
+def _declared_card(ctx: SiteContext) -> str:
+    """What each constituent publishes about the product, beside what it charges for it.
+
+    An H100 GPU-hour from a hyperscaler and one from a marketplace are the same unit and
+    obviously not the same product. This is the part of that difference the sellers state
+    themselves. Where a seller states nothing, the cell says so: a blank would read like
+    agreement with the row above it.
+
+    A value marked as read from the product name is TCI's reading, not the seller's
+    claim. Most of the interconnect column is that, because almost nobody publishes a
+    fabric as a field, and saying "InfiniBand" about a named company on the strength of
+    three characters in a SKU is not something this project should do unmarked.
+    """
+    rows = [r for r in constituents_for(ctx.conn, HEADLINE, ctx.date) if r["included"]]
+    if not rows:
+        return ""
+    model = ctx.factors.reference_unit.gpu_model
+
+    head = "".join(f'<th scope="col">{_e(label)}</th>' for _n, label in attributes.ATTRIBUTES)
+    body = []
+    declared_cells = total_cells = 0
+    for r in rows:
+        cells = []
+        for attr in attributes.for_provider(
+            ctx.conn, ctx.date, r["provider"], r["source"], model
+        ):
+            total_cells += 1
+            if not attr.stated:
+                cells.append(f'<td class="u" title="{_e(attr.detail)}">not published</td>')
+            elif attr.provenance == attributes.DERIVED:
+                cells.append(
+                    f'<td class="u" title="{_e(attr.detail)}">{_e(attr.value)}'
+                    "<span aria-hidden=\"true\"> &#8225;</span>"
+                    '<span class="vh"> (read from the product name, not published)</span></td>'
+                )
+            else:
+                declared_cells += 1
+                cells.append(f'<td title="{_e(attr.detail)}">{_e(attr.value)}</td>')
+        body.append(
+            f'<tr><th scope="row">{_e(r["provider"])}</th>{"".join(cells)}</tr>'
+        )
+
+    pct = (declared_cells / total_cells * 100.0) if total_cells else 0.0
+    return f"""<div class="card card__body--flush">
+<div class="scroll-x">
+<table class="grid">
+  <caption class="vh">What each constituent of the {_e(ctx.date)} print declares about the
+  product behind its price</caption>
+  <thead><tr><th scope="col">Provider</th>{head}</tr></thead>
+  <tbody>{"".join(body)}</tbody>
+</table>
+</div>
+<div class="fnstrip">
+  <p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+    line-height:var(--leading-prose)">Of {total_cells} cells across the constituents of
+    this print, {declared_cells} carry something the seller publishes as a field
+    ({_num(pct, 0)}%). A value marked &#8225; is read from the product name and is this
+    index's reading rather than the seller's statement. Nothing here is inferred from a
+    neighbouring offer, and nothing here enters the calculation.</p>
+</div></div>"""
+
+
 def _quality_card(ctx: SiteContext) -> str:
     head = ctx.head
     assert head is not None
@@ -1956,6 +2019,16 @@ def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
       <a class="section__link" href="methodology.html#3-aggregation-exact-algorithm">
       How the median is taken</a></div>
     {_constituents_card(ctx)}
+  </section>
+
+  <section class="section" aria-labelledby="s-declared">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-declared">What the sellers declare</h2>
+      <p class="section__dek">The same GPU-hour from a hyperscaler and from a marketplace
+      is the same unit and not the same product. This is the part of that difference the
+      sellers state themselves, as they state it, in their own units. Where a seller
+      publishes nothing, the cell says so.</p></div></div>
+    {_declared_card(ctx)}
   </section>
 
   <section class="section" aria-labelledby="s-q">
