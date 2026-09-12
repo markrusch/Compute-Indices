@@ -13,8 +13,11 @@ TCI Observation, and it is where every judgement TCI makes about those rows live
   unit would be a different product under the headline's name.
 - COUNTRY. Most of these surfaces publish one price for every region. A country is
   assigned only where the surface itself names one (Latitude's location groups, OVH's
-  subsidiary catalogue); everything else is stored with country=None, which keeps it out
-  of every regional series until a methodology version says where it is deliverable.
+  subsidiary catalogue) or, for CoreWeave specifically, a continent label mapped to one
+  representative country on Mark's explicit instruction (2026-09-12) -- see
+  `_coreweave_country` for what that approximation does and does not claim. Everything
+  else is stored with country=None, which keeps it out of every regional series until a
+  methodology version says where it is deliverable.
 - TIER AND TERM. On-demand rows are list prices (tier 'list', term 'on_demand'); spot rows
   are tier 'spot'; committed rows carry their tenor in `term`. A committed price whose
   tenor is a range or a floor ("2 weeks – 1 year", "starting from") is stored as
@@ -268,6 +271,37 @@ def _digitalocean_regions(variant: str) -> list[tuple[str, str]] | None:
     return DIGITALOCEAN_REGIONS.get(variant)
 
 
+# CoreWeave's pricing page states only two labels, "NORTH AMERICA" and "EUROPE" -- a
+# continent, not a country, on either side. Mapped to a single representative country per
+# side ONLY because Mark, who sets this project's population definitions, decided the
+# approximation is acceptable for TCI's EU-vs-US framing and asked for it directly
+# (2026-09-12): "EU is Europe, so that is safe" for the Europe side, with an explicit
+# instruction to record that the US is not technically North America.
+#
+# What "EUROPE" actually covers, checked live 2026-09-12 (CoreWeave's own announcements):
+# UK (London, two sites, CoreWeave's EU HQ), Sweden (Stockholm, with Conapto), Norway
+# (Kristiansand), and Spain (announced). The UK is NOT in `eu_eea_countries` -- it left
+# the EU and was never EEA -- so "EUROPE" is not a synonym for "EU/EEA" here: an unknown
+# share of the rows this label covers may be UK capacity that the methodology's EU/EEA
+# population is defined to exclude. Norway is used as the representative code because it
+# is a confirmed CoreWeave location and genuinely is EEA (v0.4.0), not because any given
+# priced row is known to sit there -- it is a block marker, not a location claim, exactly
+# like OVH's subsidiary-catalogue convention below.
+#
+# What "NORTH AMERICA" actually covers: CoreWeave does not state US vs Canada, and "US" is
+# used as the representative code (Mark's instruction) though the label also covers any
+# Canadian capacity CoreWeave has, which this cannot distinguish from US capacity.
+#
+# CoreWeave is not on the panel (SOURCES.md: shadow). This mapping lets its rows carry a
+# population-eligible country while they accumulate history; it moves no print, since
+# admission to a class still requires a governed methodology version.
+_COREWEAVE_COUNTRY = {"EUROPE": "NO", "NORTH AMERICA": "US"}
+
+
+def _coreweave_country(obs: dict[str, Any]) -> str | None:
+    return _COREWEAVE_COUNTRY.get(str(obs.get("region") or ""))
+
+
 def _voltagepark_country(obs: dict[str, Any]) -> str | None:
     # "Voltage Park owns high-performance GPU clusters in Texas, Virginia, Washington, and
     # Utah." (voltagepark.com/neocloud, read 2026-09-11). Its location API returns opaque
@@ -285,7 +319,8 @@ def computable_collectors() -> list[ComputableSource]:
         ComputableSource("ovh", "ovh", "ovhcloud", country_of=_ovh_country,
                          variant_override=_ovh_variant),
         ComputableSource("civo", "civo", "civo"),
-        ComputableSource("coreweave", "coreweave", "coreweave"),
+        ComputableSource("coreweave", "coreweave", "coreweave",
+                         country_of=_coreweave_country),
         ComputableSource("voltagepark", "voltagepark", "voltagepark",
                          country_of=_voltagepark_country, gpu_count_of=_voltagepark_count),
         ComputableSource("digitalocean", "digitalocean", "digitalocean",

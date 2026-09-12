@@ -90,6 +90,25 @@ def test_civo_publishes_a_term_structure(collected: dict[str, list]) -> None:
     assert all(o.country is None for o in collected["civo"])  # the page names no region
 
 
+def test_coreweave_continent_labels_map_to_one_representative_country_each(
+    collected: dict[str, list]
+) -> None:
+    """CoreWeave states only 'NORTH AMERICA' / 'EUROPE', never a country. Mapping either
+    to a specific code is an approximation authorised directly by Mark (2026-09-12) for
+    TCI's EU-vs-US framing, not a claim the source itself makes -- see
+    `computable_sources._coreweave_country`. This only checks the mapping is wired and
+    total: every collected row gets one of the two countries, never a guess at a third."""
+    from tci.collectors.computable_sources import _COREWEAVE_COUNTRY
+
+    rows = collected["coreweave"]
+    assert rows, "fixture produced no coreweave rows"
+    seen = {(o.region, o.country) for o in rows}
+    assert seen, "no rows to check"
+    for region, country in seen:
+        assert country == _COREWEAVE_COUNTRY[region]
+    assert {r for r, _c in seen} <= {"NORTH AMERICA", "EUROPE"}
+
+
 def test_tenor_ranges_and_floors_are_not_given_a_tenor(collected: dict[str, list]) -> None:
     lam = [o for o in collected["lambda_pricing"] if o.term != "on_demand"]
     assert lam and {o.term for o in lam} == {"reserved_unspecified"}
