@@ -45,7 +45,9 @@ pytest
 | `daily [--date D]` | run collectors (idempotent per source+day), compute all series, regenerate the site, CSV and charts |
 | `constituents --date D [--series S]` | full audit table for a print (IOSCO P13/P16) |
 | `backfill --from D --to D` | recompute prints from stored observations (never re-collects) |
-| `reproduce [--date D] [--published]` | recompute every stored print under the version live on its date and compare it field by field with what was published; `--published` also checks the digest in every `site/data/prints/*.json`. Exit 0 = everything matched |
+| `reproduce [--date D] [--published]` | recompute every stored print under the version live on its date and compare it field by field with what was published; `--published` also checks every digest in `site/data/prints/*.json`, `site/data/v1/series/*.json` and `latest.json`, and reports a stored print the site never published. Exit 0 = everything matched |
+| `canary [--source ID]` | collect from every live source into a throwaway database and report what stopped reporting; touches neither the record nor the site |
+| `reliability [--series S] [--coverage S --days N]` | the gap log, and how many providers would have met a series' gate on each session |
 | `weights [--date D]` | show the stored weight review for a date (v0.3.0 weights providers by tier; reviews are retained for audit, not used in the calculation path) |
 | `validate` | source-dropout sensitivity + optional check-series correlation |
 | `post` | regenerate the paste-ready Substack post |
@@ -66,8 +68,12 @@ pytest
   (dashboard), `basis.html` (the EU-US basis), `term.html` (commitment discounts),
   `methodology.html`, `data.html`, `governance.html`, `notices.html`, `research.html`
   and `research/*.html`. Plus `assets/` (the design system: `tokens.css`, `site.css`),
-  `data/` (CSV history + `latest.json`), and `charts/` (PNGs used by the Substack post,
-  not by the site — the site draws its own inline SVG).
+  `reliability.html` (every session that did not print). Plus `assets/` (the design
+  system: `tokens.css`, `site.css`), `data/` (CSV history, `latest.json`, one print
+  file per date under `prints/`, and the versioned read interface under `v1/`: a
+  catalogue plus one file per series carrying its whole history and a digest per
+  session), and `charts/` (PNGs used by the Substack post, not by the site — the site
+  draws its own inline SVG).
 - `site/components.html` — the design-system component gallery. A reference artefact, not
   linked from the site.
 - `DESIGN.md` — the design system spec: tokens, chart rules, density, contrast ratios.

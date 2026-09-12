@@ -58,12 +58,17 @@ def _record_snapshot(path: Path) -> tuple[str, str]:
     connection closes, i.e. after pytest has finished. Hashing only the main file inside
     the test session therefore reads a pre-checkpoint snapshot and sees nothing, which is
     how the first version of this guard passed a test that was demonstrably writing.
-    `-shm` is deliberately not hashed: a pure read changes it.
+    `-shm` is deliberately not hashed: a pure read changes it. Neither is an EMPTY `-wal`,
+    which sqlite creates on the first connection whether or not anything is written — a
+    read-only test would otherwise be reported as a writer the moment it opened the file.
+    An empty WAL carries no committed change, and a real write fills it (12 KB for a
+    single inserted row) or is checkpointed into the main file, which is hashed.
     """
     wal = path.with_name(path.name + "-wal")
+    wal_bytes = wal.read_bytes() if wal.exists() else b""
     return (
         hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else "",
-        hashlib.sha256(wal.read_bytes()).hexdigest() if wal.exists() else "",
+        hashlib.sha256(wal_bytes).hexdigest() if wal_bytes else "",
     )
 
 

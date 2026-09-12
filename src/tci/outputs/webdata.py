@@ -28,6 +28,10 @@ log = logging.getLogger("tci.outputs.webdata")
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 OUT_PATH = REPO_ROOT / "site" / "data" / "latest.json"
+# The versioned read interface. A breaking change to the shape goes to v2 and leaves
+# v1 in place, because the whole promise is that somebody can build against it.
+API_VERSION = "1"
+API_DIR = REPO_ROOT / "site" / "data" / f"v{API_VERSION}"
 
 # Every series the pipeline can publish. The dashboard renders a tile per sub-index and
 # must be able to show a GAP honestly, so a series with no value still belongs in the
@@ -355,6 +359,95 @@ def write_term(conn: sqlite3.Connection, out_dir: Path | None = None) -> Path | 
     return path
 
 
+
+def write_series_api(conn: sqlite3.Connection, out_dir: Path | None = None) -> list[Path]:
+    """One file per series holding its whole history, plus a catalogue naming them all.
+
+    `latest.json` gives today across every series and the per-date print files give one
+    date across every series. Neither gives one series across dates, which is what anyone
+    building on this actually wants, and assembling it meant fetching a file per session.
+
+    Each row carries the same digest the print file publishes for that (date, series), so
+    a value taken from here can be verified without also fetching the print file, and the
+    two can never disagree - they are computed by the same function from the same row.
+    `reproduce --published` checks these files too; publishing a digest nothing verifies
+    would be worse than publishing none.
+    """
+    target = out_dir or API_DIR
+    (target / "series").mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+
+    names = [r[0] for r in conn.execute("SELECT DISTINCT series FROM daily_index ORDER BY series")]
+    catalogue: list[dict[str, Any]] = []
+    for series in names:
+        points = []
+        for head in conn.execute(
+            "SELECT d.* FROM daily_index d JOIN (SELECT date, MAX(revision) rev"
+            " FROM daily_index WHERE series = ? GROUP BY date) m"
+            " ON d.date = m.date AND d.revision = m.rev WHERE d.series = ?"
+            " ORDER BY d.date",
+            (series, series),
+        ):
+            pd = print_digest(conn, head["date"], series)
+            points.append({
+                "date": head["date"],
+                "revision": head["revision"],
+                "value_usd": head["value_usd"],
+                "value_eur": head["value_eur"],
+                "fx_rate": head["fx_rate"],
+                "fx_date": head["fx_date"],
+                "n_sources": head["n_sources"],
+                "n_executable": head["n_executable"],
+                # A gap is a row with a null value and a reason, never an absent row.
+                # Dropping it would let a consumer interpolate across it without knowing.
+                "flags": head["flags"] or "",
+                "methodology_version": head["methodology_version"],
+                "digest": pd[1] if pd else None,
+            })
+        path = target / "series" / f"{series}.json"
+        path.write_text(
+            json.dumps({
+                "schema_version": API_VERSION,
+                "series": series,
+                "unit": "USD per GPU-hour" if series != COMPOSITE else "index, base 100",
+                "note": "A null value_usd is a session that did not print; flags carry the"
+                        " reason. Never interpolate across one. Digest = sha256 over the"
+                        " canonical print; verify with python -m tci.run reproduce --published.",
+                "points": points,
+            }, indent=1, sort_keys=True) + "\n",
+            encoding="utf-8", newline="\n",
+        )
+        written.append(path)
+        catalogue.append({
+            "series": series,
+            "href": f"series/{series}.json",
+            "first_date": points[0]["date"] if points else None,
+            "last_date": points[-1]["date"] if points else None,
+            "n_sessions": len(points),
+            "n_printed": sum(1 for p in points if p["value_usd"] is not None),
+        })
+
+    index_path = target / "index.json"
+    index_path.write_text(
+        json.dumps({
+            "schema_version": API_VERSION,
+            "generated_at": utc_now_iso(),
+            "methodology_version": load_factors(for_date=utc_now_iso()[:10]).methodology_version,
+            "disclaimer": DISCLAIMER,
+            "licence": "CC BY 4.0 for non-commercial use; see DATA-TERMS.md",
+            "series": catalogue,
+            "also": {
+                "latest": "../latest.json",
+                "prints": "../prints/YYYY-MM-DD.json",
+                "csv": "../index_history.csv",
+            },
+        }, indent=1, sort_keys=True) + "\n",
+        encoding="utf-8", newline="\n",
+    )
+    written.append(index_path)
+    return written
+
+
 def generate(conn: sqlite3.Connection) -> Path:
     # The version live today, which is what today's print was computed under. The head
     # of the succession can be an announced version whose effective date is still ahead.
@@ -384,6 +477,7 @@ def generate(conn: sqlite3.Connection) -> Path:
         json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
     )
     write_prints(conn)
+    write_series_api(conn)
     # The term table is research beside the index. A failure in it is logged and must
     # never stop the day's prints and site from being written.
     try:

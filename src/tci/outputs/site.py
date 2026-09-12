@@ -2920,6 +2920,9 @@ def _data(ctx: SiteContext) -> str:
         ("Print files", "One file per print date: every series, its full constituent audit "
          "set, and a digest of exactly that content.", f"data/prints/{ctx.date}.json",
          "View today's file"),
+        ("Series API", "data/v1/ — one file per series with its whole history and a "
+         "digest per session, plus a catalogue of what is published.", "data/v1/index.json",
+         "View catalogue"),
         ("Source code", "The generator, the collectors and the calculation — Apache-2.0, "
          "so any print here can be rebuilt independently.", REPO_URL, "Open repository"),
     )
@@ -2968,6 +2971,38 @@ def _data(ctx: SiteContext) -> str:
     </div>
     <p class="section__dek">Today's headline digest:
     <code class="inline" style="word-break:break-all">{_e(digest_full or "no print")}</code></p>
+  </section>
+
+  <section class="section" aria-labelledby="s-api">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-api">One series, every session</h2>
+      <p class="section__dek"><code class="inline">data/v1/index.json</code> lists every
+      series with its first and last session and how many of them printed. Each entry
+      points at a file holding that series' whole history, one row per session, with the
+      same sha256 digest the print file for that date publishes. A session that did not
+      print is a row with a null value and the reason in
+      <code class="inline">flags</code>, never an absent row, so a reader cannot skip over
+      a gap without noticing it. The shape is versioned: a breaking change goes to
+      <code class="inline">v2</code> and leaves <code class="inline">v1</code>
+      served.</p></div></div>
+    <div class="term">
+      <div class="term__chrome" aria-hidden="true"><i></i><i></i><i></i>
+        <span class="term__name">v1</span></div>
+      <div class="term__body">
+        <div class="term__c"># what is published</div>
+        <div>curl -s ./data/v1/index.json | jq '.series[].series'</div>
+        <div class="term__c"># the headline over a date range</div>
+        <div>curl -s ./data/v1/series/{HEADLINE}.json |</div>
+        <div>&#160;&#160;jq '[.points[] | select(.date &gt;= "2026-09-01")]'</div>
+        <div class="term__c"># verify one session's digest from the print file</div>
+        <div>curl -s ./data/prints/{_e(ctx.date)}.json |</div>
+        <div>&#160;&#160;jq -jcS '.series["{HEADLINE}"] | del(.digest)' | sha256sum</div>
+      </div>
+    </div>
+    <p class="section__dek">The digest is a sha256 over the print's canonical form: the
+    same object the print file publishes, with <code class="inline">digest</code> removed,
+    keys sorted, no whitespace, every number a six-decimal string. That is the whole
+    definition, and it needs none of this project's code to check.</p>
   </section>
 
   <section class="section" aria-labelledby="s-ids">
