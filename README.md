@@ -48,6 +48,8 @@ pytest
 | `reproduce [--date D] [--published]` | recompute every stored print under the version live on its date and compare it field by field with what was published; `--published` also checks every digest in `site/data/prints/*.json`, `site/data/v1/series/*.json` and `latest.json`, and reports a stored print the site never published. Exit 0 = everything matched |
 | `canary [--source ID]` | collect from every live source into a throwaway database and report what stopped reporting; touches neither the record nor the site |
 | `reliability [--series S] [--coverage S --days N]` | the gap log, and how many providers would have met a series' gate on each session |
+| `effect --date D --before X --after Y` | recompute one date under two methodology versions and report the difference per series; writes nothing |
+| `mlperf [--refresh]` | MLPerf Training results from sellers priced here, against those prices, from a snapshot pinned to an upstream commit |
 | `weights [--date D]` | show the stored weight review for a date (v0.3.0 weights providers by tier; reviews are retained for audit, not used in the calculation path) |
 | `validate` | source-dropout sensitivity + optional check-series correlation |
 | `post` | regenerate the paste-ready Substack post |

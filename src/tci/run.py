@@ -80,6 +80,21 @@ def _cmd_reproduce(args: argparse.Namespace) -> int:
     return 1 if bad else 0
 
 
+def _cmd_effect(args: argparse.Namespace) -> int:
+    """Recompute one date under two methodology versions and report the difference."""
+    from tci import db, version_effect
+
+    try:
+        effects = version_effect.compare(
+            db.connect(), args.date, args.before, args.after, args.series
+        )
+    except KeyError as exc:
+        print(exc.args[0])
+        return 2
+    print(version_effect.render(effects, args.date, args.before, args.after))
+    return 0
+
+
 def _cmd_mlperf(args: argparse.Namespace) -> int:
     """MLPerf Training results by sellers TCI prices, against TCI's EU/EEA price."""
     from datetime import UTC, datetime
@@ -224,6 +239,15 @@ def main(argv: list[str] | None = None) -> int:
     p_rel.add_argument("--days", type=int, default=21, help="sessions to replay (default 21)")
     p_rel.add_argument("--limit", type=int, default=40, help="gaps to list (default 40)")
 
+    p_eff = sub.add_parser(
+        "effect",
+        help="recompute one date under two methodology versions and show the difference",
+    )
+    p_eff.add_argument("--date", required=True, help="the print date to recompute")
+    p_eff.add_argument("--before", required=True, help="methodology version, e.g. 0.4.0")
+    p_eff.add_argument("--after", required=True, help="methodology version, e.g. 0.5.0")
+    p_eff.add_argument("--series", help="one series only")
+
     p_ml = sub.add_parser(
         "mlperf", help="MLPerf Training results by sellers TCI prices, against TCI's price"
     )
@@ -270,6 +294,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_reliability(args)
     if args.command == "mlperf":
         return _cmd_mlperf(args)
+    if args.command == "effect":
+        return _cmd_effect(args)
     if args.command in {"daily", "constituents", "backfill", "weights", "validate", "post"}:
         from tci import commands
 

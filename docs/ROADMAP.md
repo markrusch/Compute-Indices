@@ -158,9 +158,22 @@ coincidence, and a reader comparing published prints on 22 September will see a 
 roughly nothing.
 
 Nothing needs withdrawing. N2 already commits to the right remedy — "the first print under
-v0.5.0 will state its size against a v0.4.0 recomputation of the same day" — and that
-comparison is what the CHANGELOG entry for the 22 September print must carry. Do not let it
-be skipped because the step turned out small.
+v0.5.0 will state its size against a v0.4.0 recomputation of the same day" — and nothing
+could produce that number until now:
+
+```bash
+python -m tci.run effect --date 2026-09-22 --before 0.4.0 --after 0.5.0
+```
+
+**On 12 September's observations the answer is zero.** Both legs print $3.49; the panel
+widens from six sellers to eight and the two entrants land either side of the median. The
+same run shows `EU-CRI-H100-NC` going from a gap to $3.8368, which is the one thing v0.5.0
+actually unlocks on that day.
+
+So the CHANGELOG entry for the 22 September print carries this figure, computed on the
+day's own data, not N2's 7 September estimate. Do not let it be skipped because the step
+turned out small — a notice that quantified a step readers cannot see is exactly the thing
+the after-the-fact figure exists to settle.
 
 ---
 

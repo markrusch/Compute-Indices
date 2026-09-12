@@ -3,6 +3,29 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Measuring a version transition — 2026-09-12 — no methodology change
+
+- **`python -m tci.run effect --date D --before X --after Y`.** Recomputes one date under
+  two methodology versions on the same stored observations and the same recorded FX, and
+  reports the difference per series. Notice 2026-N2 commits to publishing exactly this —
+  "the first print under v0.5.0 will state its size against a v0.4.0 recomputation of the
+  same day" — and nothing could produce the number. `reproduce` recomputes a date under the
+  version live on it, which is the right rule for checking the record and the wrong one for
+  measuring a transition.
+- **On the 12 September observations, v0.4.0 to v0.5.0 moves the headline by $0.0000.**
+  Both legs print $3.49/GPU-hr; the panel widens from six sellers to eight and the two
+  entrants land either side of the median. `EU-CRI-H100-NC` goes from a gap to
+  $3.8368/GPU-hr, which is what v0.5.0 unlocks on that day. N2's estimate of $3.25 to $3.49
+  was measured on the 7 September panel; the headline reached $3.49 on 12 September under
+  v0.3.0-dev because vast.ai returned, so the step published on 22 September will not be
+  the step N2 described and the entry for that print will carry this figure instead.
+- Neither leg is stored. Both run against in-memory copies, and a recomputation under a
+  version that was never live on a date must never be able to become a print — the single
+  thing the dated succession exists to prevent. Tested on any connection, not just the
+  committed database, along with the restoration of the patched loaders when the
+  calculation raises: leaving that swap in place would pin every later calculation in the
+  process to one frozen version, including the one computing the day's print.
+
 ## MLPerf results against the prices — 2026-09-12 — no methodology change
 
 - **`performance.html`, `src/tci/mlperf.py`, `python -m tci.run mlperf`.** MLPerf Training
