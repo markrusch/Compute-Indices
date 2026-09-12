@@ -125,7 +125,11 @@ to upstream apart from import paths; TCI's judgements about those rows live in
 
 **`site/*.html` is generated — never hand-edit it.** Change `outputs/site.py` or
 `site/assets/{tokens,site}.css` and rerun. Editing the HTML means the next daily run
-silently reverts you.
+silently reverts you. One page is not generated: `site/components.html`, the design-system
+gallery, is maintained by hand beside `DESIGN.md`, linked from nowhere and `Disallow`ed in
+robots.txt. It is the only exception, and `tests/test_pipeline_smoke.py` is where the list
+lives — a page that stops being generated has to be added there deliberately, not
+discovered later.
 
 **The site makes no external requests.** No stylesheet link, no script `src`, no `@import`,
 no off-origin `url()`. Fonts are self-hosted and charts are hand-rolled inline SVG. The
