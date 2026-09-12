@@ -47,7 +47,13 @@ generalized:
     the raw cell rides in extra. GB200/GB300 NVL72 are first-class skus
     here, NOT the basket lanes' quarantine class;
   - the collector sends the project User-Agent defined in
-    gpu_index.common.http.
+    gpu_index.common.http;
+  - the section anchors are matched as the h2 HEADING TAG, not bare text:
+    CoreWeave added a JSON-LD OfferCatalog block near the top of the
+    document (schema.org SEO markup, verified live 2026-09-12) whose
+    'name' fields repeat both anchor strings as plain text before the
+    real headings -- counting the bare string would see 2 of each and
+    refuse the page outright.
 """
 
 from __future__ import annotations
@@ -62,8 +68,14 @@ SOURCE_ID = "coreweave"
 
 URL = "https://www.coreweave.com/pricing"
 
-_GPU_SECTION_START = "On-demand GPU instances"
-_GPU_SECTION_END = "On-demand CPU instances"
+_GPU_SECTION_START_RE = re.compile(
+    r'<h2 data-heading-class="" class="heading-32-20">'
+    r"On-demand GPU instances</h2>"
+)
+_GPU_SECTION_END_RE = re.compile(
+    r'<h2 data-heading-class="" class="heading-32-20">'
+    r"On-demand CPU instances</h2>"
+)
 _REGION_RE = re.compile(r"REGION: [A-Z ]+")
 _EXPECTED_REGIONS = ("REGION: NORTH AMERICA", "REGION: EUROPE")
 _ROW_SPLIT = '<div role="listitem" class="table-row-v2 w-dyn-item'
@@ -112,15 +124,19 @@ _SPEC_META = (
 
 
 def _gpu_section(html: str) -> str:
-    for anchor in (_GPU_SECTION_START, _GPU_SECTION_END):
-        n = html.count(anchor)
-        if n != 1:
+    bounds = []
+    for pattern in (_GPU_SECTION_START_RE, _GPU_SECTION_END_RE):
+        matches = list(pattern.finditer(html))
+        if len(matches) != 1:
             raise RuntimeError(
-                f"coreweave: section anchor {anchor!r} appears {n}x (need "
-                "exactly 1) -- page reshaped; refusing to guess section "
-                "bounds (the CPU tables below reuse the same row markup)"
+                f"coreweave: section heading {pattern.pattern!r} appears "
+                f"{len(matches)}x (need exactly 1) -- page reshaped; "
+                "refusing to guess section bounds (the CPU tables below "
+                "reuse the same row markup, and a JSON-LD block can repeat "
+                "the heading text as data, not markup)"
             )
-    return html.split(_GPU_SECTION_START, 1)[1].split(_GPU_SECTION_END, 1)[0]
+        bounds.append(matches[0])
+    return html[bounds[0].end():bounds[1].start()]
 
 
 def _region_tables(section: str) -> Tuple[Tuple[str, str], ...]:
