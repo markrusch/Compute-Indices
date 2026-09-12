@@ -41,7 +41,7 @@ from pathlib import Path
 
 import yaml
 
-from tci import DISCLAIMER
+from tci import DISCLAIMER, reliability
 from tci.commands import COMPOSITE, HEADLINE, SERIES_7D
 from tci.config import (
     Factors,
@@ -854,6 +854,7 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <a href="{prefix}methodology.html">Methodology v{_e(ctx.version)}</a>
         <a href="{prefix}governance.html">Governance</a>
         <a href="{prefix}notices.html">Methodology notices</a>
+        <a href="{prefix}reliability.html">Reliability</a>
       </nav>
       <nav class="footer__nav" aria-label="Footer, data">
         <h4>Data</h4>
@@ -2680,6 +2681,132 @@ def _notices(ctx: SiteContext) -> str:
     )
 
 
+
+def _reliability(ctx: SiteContext) -> str:
+    """Every session the headline failed to print, with the reason, straight from the record.
+
+    A benchmark that publishes its own failures is worth more than one that quietly has
+    none, and that only holds if the list is not curated. Every row is read from
+    `daily_index` at the latest revision of each (date, series). There is no hand-written
+    entry and no way to add one: a gap later corrected into a print leaves this page, and
+    a print later withdrawn into a gap joins it.
+
+    The headline gets the dated list. The other series get counts, because a class series
+    drawing on a population that has never reached five providers would otherwise
+    contribute one identical row per session and bury the sessions that mean something.
+    """
+    gaps = reliability.gap_log(ctx.conn)
+    history = series_history(ctx.conn, HEADLINE)
+    printed = [p for p in history if p.value is not None]
+    sessions = len(history)
+    rate = (len(printed) / sessions * 100.0) if sessions else 0.0
+    recent = history[-30:]
+    recent_printed = [p for p in recent if p.value is not None]
+
+    # The current unbroken run, counted back from the newest session.
+    streak = 0
+    for point in reversed(history):
+        if point.value is None:
+            break
+        streak += 1
+
+    rows = []
+    for g in (g for g in gaps if g.series == HEADLINE):
+        marker = (
+            '<td class="u">revised since</td>' if g.corrected else '<td class="u">&#8212;</td>'
+        )
+        reason = reliability.GAP_REASONS.get(g.flags.split(",")[0], g.flags)
+        rows.append(
+            f'<tr><td class="num">{_e(_human_date(g.date))}</td>'
+            f"<td>{_e(reason)}</td>"
+            f"{marker}"
+            f'<td class="ta-r u">v{_e(g.methodology_version)}</td></tr>'
+        )
+    table = (
+        f"""<div class="card card__body--flush"><div class="scroll-x">
+<table class="grid">
+  <caption class="vh">Every {_e(display_series(HEADLINE))} session that did not print,
+  newest first</caption>
+  <thead><tr>
+    <th scope="col">Session</th>
+    <th scope="col">Why it did not print</th>
+    <th scope="col">Status</th>
+    <th scope="col" class="ta-r">Methodology</th>
+  </tr></thead>
+  <tbody>{"".join(rows)}</tbody>
+</table></div></div>"""
+        if rows
+        else '<div class="slot"><h3 class="slot__h">No gaps</h3><p>Every session in the '
+             "record produced a headline print.</p></div>"
+    )
+
+    # One row per other series: how often it gapped, and whether it has ever printed.
+    others = []
+    for series in sorted({g.series for g in gaps} - {HEADLINE}):
+        hist = series_history(ctx.conn, series)
+        n_gaps = sum(1 for g in gaps if g.series == series)
+        ever = any(p.value is not None for p in hist)
+        state = "prints intermittently" if ever else "has never printed"
+        others.append(
+            f"<tr><td>{_e(display_series(series))}</td>"
+            f'<td class="ta-r num">{n_gaps}</td>'
+            f'<td class="ta-r num">{len(hist)}</td>'
+            f'<td class="u">{state}</td></tr>'
+        )
+
+    body = f"""<main id="main"><div class="wrap">
+  <section class="pagehead">
+    <div class="eyebrow">Governance</div>
+    <h1 class="pagehead__h">Reliability</h1>
+    <p class="pagehead__dek">A session in which too few providers qualify publishes
+    nothing, with the reason recorded against the date. It is never filled in later from a
+    neighbouring day, and an older print is never shown as current. Every such session is
+    listed below. The page is generated from <a href="data.html">the database</a> on each
+    run, so the list cannot be curated.</p>
+  </section>
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">{_e(display_series(HEADLINE))}</h2>
+      <p class="section__dek">{len(printed)} of {sessions} sessions printed since the
+      series began, {_num(rate, 1)}%. Over the last {len(recent)} sessions,
+      {len(recent_printed)} printed. The current unbroken run is
+      {streak} {"session" if streak == 1 else "sessions"}.</p>
+    </div></div>
+    {table}
+  </section>
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">The other series</h2>
+      <p class="section__dek">A class or segment series draws on a narrower population
+      than the headline and reaches the same five-provider gate less often. A series that
+      has never printed is not a fault in the pipeline: it is a population that is not yet
+      deep enough to price, and it stays published as a gap until it is.</p>
+    </div></div>
+    <div class="card card__body--flush"><div class="scroll-x">
+    <table class="grid">
+      <caption class="vh">Gaps by series</caption>
+      <thead><tr>
+        <th scope="col">Series</th>
+        <th scope="col" class="ta-r">Gaps</th>
+        <th scope="col" class="ta-r">Sessions</th>
+        <th scope="col">State</th>
+      </tr></thead>
+      <tbody>{"".join(others)}</tbody>
+    </table></div></div>
+  </section>
+</div></main>"""
+    return _shell(
+        ctx,
+        title=f"Reliability — {BRAND}",
+        description=(
+            "Every session TCI did not print, with the reason, generated from the record."
+        ),
+        current="governance.html",
+        canonical="reliability.html",
+        body=body,
+    )
+
+
 def _governance(ctx: SiteContext) -> str:
     doc = markdown.render(_rebrand_doc(_read(REPO_ROOT / "GOVERNANCE.md")), heading_offset=1)
     preconds = _preconditions(ctx)
@@ -3744,6 +3871,7 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         (SITE_DIR / "data.html", _data(ctx)),
         (SITE_DIR / "governance.html", _governance(ctx)),
         (SITE_DIR / "notices.html", _notices(ctx)),
+        (SITE_DIR / "reliability.html", _reliability(ctx)),
         (SITE_DIR / "research.html", _research_index(ctx, notes)),
     ]
     pages += [
