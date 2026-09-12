@@ -1,18 +1,28 @@
-# EU-CRI weekly — 2026-09-11
+# EU-CRI weekly — 2026-09-12
 
-**No index value published for 2026-09-11: insufficient_sources** (constituents: 4, minimum required: 5). A gap is credible; a fabricated print is fatal — the constituent table below shows exactly what we saw.
+**EU-CRI-H100: $3.49 / GPU-hour** (€3.01 at ECB 1.1592 on 2026-09-11)
+
+Week-over-week: +7.4% · Month-over-month: +6.1% · Constituents: 6 (6 executable-quote)
 
 <!-- EDITORIAL: lead commentary -->
 
+Dispersion: cheapest constituent $2.16, dearest $3.85 — a 1.8x spread for the same reference unit.
+
 | provider | tier | $/GPU-hr | weight |
 |---|---|---|---|
+| seeweb | list | $2.16 | 12 |
+| vast.ai | executable | $2.27 | 25 |
+| datacrunch | list | $3.25 | 12 |
+| runpod | executable | $3.49 | 25 |
+| scaleway | list | $3.70 | 12 |
+| nebius | list | $3.85 | 12 |
 | aws |  | $0.00 | 0 | *(excluded: out_of_population)*
 | azure |  | $0.00 | 0 | *(excluded: out_of_population)*
+| digitalocean |  | $0.00 | 0 | *(excluded: not_in_panel)*
 | gcp |  | $0.00 | 0 | *(excluded: out_of_population)*
-| seeweb | list | $2.16 | 0 | *(excluded: insufficient_sources)*
-| datacrunch | list | $3.25 | 0 | *(excluded: insufficient_sources)*
-| scaleway | list | $3.70 | 0 | *(excluded: insufficient_sources)*
-| nebius | list | $3.85 | 0 | *(excluded: insufficient_sources)*
+| lambdalabs |  | $0.00 | 0 | *(excluded: not_in_panel)*
+| oci |  | $0.00 | 0 | *(excluded: not_in_panel)*
+| verda |  | $0.00 | 0 | *(excluded: not_in_panel)*
 
 ![EU-CRI-H100 headline](charts/headline_7d.png)
 ![Constituent dispersion](charts/dispersion.png)
@@ -21,6 +31,6 @@
 
 ---
 
-*Methodology v0.3.0-dev — full methodology, constituent-level audit trail, and source code are public in the repository. Corrections are published as flagged revisions, never silently.*
+*Methodology v0.6.0 — full methodology, constituent-level audit trail, and source code are public in the repository. Corrections are published as flagged revisions, never silently.*
 
 *TCI is a research publication. It is not investment advice and is not administered as a benchmark under EU Regulation 2016/1011; it may not be used as a reference price in financial instruments.*
