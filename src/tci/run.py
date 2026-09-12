@@ -80,6 +80,22 @@ def _cmd_reproduce(args: argparse.Namespace) -> int:
     return 1 if bad else 0
 
 
+def _cmd_reliability(args: argparse.Namespace) -> int:
+    """Where the record gapped, and how close a series is to its gate."""
+    from tci import db, reliability
+    from tci.config import load_factors
+
+    conn = db.connect()
+    if args.coverage:
+        days = reliability.coverage(conn, args.coverage, args.days)
+        print(reliability.render_coverage(
+            args.coverage, days, load_factors().methodology_version
+        ))
+        return 0
+    print(reliability.render_gaps(reliability.gap_log(conn, args.series), args.limit))
+    return 0
+
+
 def _cmd_canary(args: argparse.Namespace) -> int:
     """Live collection into a throwaway database. Exit 1 if a source stopped reporting."""
     from tci import canary
@@ -176,6 +192,15 @@ def main(argv: list[str] | None = None) -> int:
                        help="also check site/data/prints/*.json and latest.json digests")
     p_rep.add_argument("--verbose", action="store_true", help="print MATCH lines too")
 
+    p_rel = sub.add_parser(
+        "reliability", help="the record's gaps, and how close a series is to its gate"
+    )
+    p_rel.add_argument("--series", help="gap log for one series only")
+    p_rel.add_argument("--coverage", metavar="SERIES",
+                       help="replay the gate for this series over stored observations")
+    p_rel.add_argument("--days", type=int, default=21, help="sessions to replay (default 21)")
+    p_rel.add_argument("--limit", type=int, default=40, help="gaps to list (default 40)")
+
     p_can = sub.add_parser(
         "canary",
         help="collect from every live source into a throwaway db; report what stopped reporting",
@@ -209,6 +234,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_reproduce(args)
     if args.command == "canary":
         return _cmd_canary(args)
+    if args.command == "reliability":
+        return _cmd_reliability(args)
     if args.command in {"daily", "constituents", "backfill", "weights", "validate", "post"}:
         from tci import commands
 
