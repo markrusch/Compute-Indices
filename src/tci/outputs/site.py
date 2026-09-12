@@ -41,7 +41,7 @@ from pathlib import Path
 
 import yaml
 
-from tci import DISCLAIMER, attributes, reliability
+from tci import DISCLAIMER, attributes, mlperf, reliability
 from tci.commands import COMPOSITE, HEADLINE, SERIES_7D
 from tci.config import (
     Factors,
@@ -855,6 +855,7 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <a href="{prefix}governance.html">Governance</a>
         <a href="{prefix}notices.html">Methodology notices</a>
         <a href="{prefix}reliability.html">Reliability</a>
+        <a href="{prefix}performance.html">Price vs performance</a>
       </nav>
       <nav class="footer__nav" aria-label="Footer, data">
         <h4>Data</h4>
@@ -1729,6 +1730,193 @@ def _declared_card(ctx: SiteContext) -> str:
     index's reading rather than the seller's statement. Nothing here is inferred from a
     neighbouring offer, and nothing here enters the calculation.</p>
 </div></div>"""
+
+
+
+def _performance(ctx: SiteContext) -> str:
+    """Cost per unit of delivered work, where two sellers have published enough to compare.
+
+    L4.2. A price per GPU-hour says nothing about what the hour delivers. MLPerf Training
+    results are the only public measurements of these sellers' machines that the sellers
+    themselves stand behind, so this joins them to the prices on this site.
+
+    The table is mostly a record of what is not there. The point of publishing it is that
+    the absence is the finding: the public-results route cannot answer the question for
+    all but one pair of sellers, and a reader deciding whether to trust a
+    cost-per-performance claim from anybody should know how thin the public evidence is.
+    """
+    # Research beside the index, not part of it. A missing or unreadable snapshot must
+    # not take the day's prints and site down with it, which is what raising here would
+    # do now that a failed output build fails the daily run.
+    try:
+        snapshot = mlperf.load()
+        rows = mlperf.table(ctx.conn, ctx.date, ctx.factors.eu_eea_countries, snapshot)
+    except (OSError, ValueError, KeyError, TypeError):
+        log.exception("performance page: MLPerf snapshot unreadable, page skipped")
+        return ""
+    if not rows:
+        return ""
+    panel = sorted(ctx.factors.panel or {})
+    absent = mlperf.missing_submitters(panel, snapshot)
+    priced = mlperf.priced_comparisons(rows)
+
+    pinned = " &#183; ".join(
+        f'{_e(repo.replace("training_results_", "MLPerf Training "))} at '
+        f'<code class="inline">{_e(commit[:10])}</code>'
+        for repo, commit in sorted(snapshot.repos.items())
+    )
+
+    comparisons = []
+    for (repo, acc, bench, n), members in priced.items():
+        cheapest = min(members, key=lambda r: r.cost_usd or 0.0)
+        dearest = max(members, key=lambda r: r.cost_usd or 0.0)
+        spread = ((dearest.cost_usd or 0.0) / (cheapest.cost_usd or 1.0))
+        fastest = min(members, key=lambda r: r.result.median_minutes)
+        slowest = max(members, key=lambda r: r.result.median_minutes)
+        time_spread = slowest.result.median_minutes / fastest.result.median_minutes
+        lines = "".join(
+            f'<tr><th scope="row">{_e(r.system.submitter)}</th>'
+            f'<td class="ta-r num">{_num(r.result.median_minutes, 1)}</td>'
+            f'<td class="ta-r num">{_num(r.price_usd_per_gpu_hr, 2)}</td>'
+            f'<td class="ta-r num strong">{_num(r.cost_usd, 2)}</td>'
+            f'<td class="u">{_e(", ".join(r.price_countries))}</td></tr>'
+            for r in sorted(members, key=lambda x: x.cost_usd or 0.0)
+        )
+        comparisons.append(
+            f"""<article class="card">
+  <div class="card__head"><div>
+    <h3 class="card__title">{_e(bench)} on {_e(n)}&#215; {_e(acc)}</h3>
+    <p class="card__sub">{_e(repo.replace("training_results_", "MLPerf Training "))}
+    &#183; each seller's own submission</p>
+  </div></div>
+  <div class="card__body card__body--flush"><div class="scroll-x">
+  <table class="grid">
+    <caption class="vh">Time to train and cost for {_e(bench)}</caption>
+    <thead><tr>
+      <th scope="col">Seller</th>
+      <th scope="col" class="ta-r">Time to train <span class="u">min</span></th>
+      <th scope="col" class="ta-r">Price <span class="u">USD/GPU&#8209;hr</span></th>
+      <th scope="col" class="ta-r">Cost of the run <span class="u">USD</span></th>
+      <th scope="col">Priced in</th>
+    </tr></thead>
+    <tbody>{lines}</tbody>
+  </table></div></div>
+  <div class="fnstrip"><p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+    line-height:var(--leading-prose)">Delivered performance differs by
+    {_num((time_spread - 1) * 100, 1)}%. The cost of the same run differs by
+    {_num(spread, 2)}&#215;. On this workload the difference between these two sellers is
+    price rather than speed.</p></div>
+</article>"""
+        )
+
+    body_rows = []
+    for r in rows:
+        price = (
+            f'<td class="ta-r num">{_num(r.price_usd_per_gpu_hr, 2)}</td>'
+            if r.price_usd_per_gpu_hr is not None
+            else '<td class="ta-r u">no EU price</td>'
+        )
+        cost = (
+            f'<td class="ta-r num">{_num(r.cost_usd, 0)}</td>'
+            if r.cost_usd is not None else '<td class="ta-r u">&#8212;</td>'
+        )
+        body_rows.append(
+            f'<tr><td>{_e(r.system.submitter)}</td>'
+            f'<td class="u">{_e(r.system.repo.replace("training_results_v", "v"))}</td>'
+            f'<td>{_e(r.result.benchmark)}</td>'
+            f'<td class="u">{_e(r.system.accelerator_model)}</td>'
+            f'<td class="ta-r num">{_e(r.system.accelerators)}</td>'
+            f'<td class="ta-r num">{_num(r.result.median_minutes, 1)}</td>'
+            f"{price}{cost}</tr>"
+        )
+
+    absent_list = ", ".join(_e(p) for p in absent) or "none"
+
+    body = f"""<main id="main"><div class="wrap">
+  <section class="pagehead">
+    <div class="eyebrow">Research</div>
+    <h1 class="pagehead__h">Price against delivered performance</h1>
+    <p class="pagehead__dek">A price per GPU-hour says nothing about what the hour
+    delivers. The only public measurements these sellers stand behind are their own MLPerf
+    Training submissions, so this puts them beside the prices published here. Most of what
+    the table shows is what is missing, and that is the result rather than a caveat.</p>
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">Where a comparison is possible</h2>
+      <p class="section__dek">Two sellers can only be divided by one another where they
+      ran the same benchmark, on the same accelerator, at the same GPU count, in the same
+      round. MLPerf revises its suite between rounds, so the same benchmark name in two
+      rounds is not the same workload. Across the {len(snapshot.repos)} rounds collected that leaves
+      {len(priced)} cell{"" if len(priced) == 1 else "s"} in which both sellers also have a
+      price here.</p></div></div>
+    <div class="stack">{"".join(comparisons) or
+      '<div class="slot"><h3 class="slot__h">No comparable cell</h3><p>No two sellers '
+      'have published a result for the same workload at the same scale.</p></div>'}</div>
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">Every submission by a seller priced here</h2>
+      <p class="section__dek">Time to train is the median of that seller's own successful
+      runs, computed from the logs it published. It is not MLCommons' official score:
+      MLCommons publishes those itself and the scoring rule varies by benchmark. Cost is
+      that time multiplied by the accelerator count and by this site's EU/EEA price for
+      that seller's matching accelerator on {_e(ctx.date)}.</p></div></div>
+    <div class="card card__body--flush"><div class="scroll-x">
+    <table class="grid">
+      <caption class="vh">MLPerf Training submissions by sellers priced on this
+      site</caption>
+      <thead><tr>
+        <th scope="col">Seller</th>
+        <th scope="col">Round</th>
+        <th scope="col">Benchmark</th>
+        <th scope="col">Accelerator</th>
+        <th scope="col" class="ta-r">GPUs</th>
+        <th scope="col" class="ta-r">Minutes</th>
+        <th scope="col" class="ta-r">USD/GPU&#8209;hr</th>
+        <th scope="col" class="ta-r">Run cost <span class="u">USD</span></th>
+      </tr></thead>
+      <tbody>{"".join(body_rows)}</tbody>
+    </table></div></div>
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">No public result</h2>
+      <p class="section__dek">These sellers are priced here and have never submitted to
+      MLPerf Training. They appear as what they are. Nothing is estimated for them, and
+      the absence is not evidence about their machines.</p></div></div>
+    <p class="section__dek"><strong>{absent_list}</strong></p>
+    <p class="section__dek">No seller priced here has ever submitted an H100 system, which
+    is the accelerator the headline index prices. Every figure above is therefore about a
+    different chip from the one the headline measures.</p>
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">What these numbers are not</h2></div></div>
+    <div class="fnstrip"><p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+      line-height:var(--leading-prose)">A submitted system is a configuration its vendor
+      tuned for the benchmark, at a node count it chose, in a region it did not have to
+      name. It is not what a customer gets by default and it is a point in time. The price
+      it is multiplied by is an on-demand EU/EEA price for a matching accelerator on one
+      date, which is a different thing bought in a different shape. A single cell is a data
+      point and not a conclusion about either seller. Source:
+      {pinned}.</p></div>
+  </section>
+</div></main>"""
+    return _shell(
+        ctx,
+        title=f"Price against delivered performance \u2014 {BRAND}",
+        description=(
+            "MLPerf Training results from sellers priced by TCI, against those prices."
+        ),
+        current="research.html",
+        canonical="performance.html",
+        body=body,
+    )
 
 
 def _quality_card(ctx: SiteContext) -> str:
@@ -3980,11 +4168,16 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         (SITE_DIR / "governance.html", _governance(ctx)),
         (SITE_DIR / "notices.html", _notices(ctx)),
         (SITE_DIR / "reliability.html", _reliability(ctx)),
+        (SITE_DIR / "performance.html", _performance(ctx)),
         (SITE_DIR / "research.html", _research_index(ctx, notes)),
     ]
     pages += [
         (SITE_DIR / "research" / f"{n.slug}.html", _research_note(ctx, n)) for n in notes
     ]
+
+    # A builder that returns nothing has decided it has nothing to publish today. Writing
+    # its empty string would replace a good page with a blank one.
+    pages = [(path, html_text) for path, html_text in pages if html_text]
 
     written = []
     for path, html_text in pages:

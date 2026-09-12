@@ -3,28 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Governance — TCI</title>
-<meta name="description" content="TCI governance: methodology change procedure, correction policy, audit trail, conflicts of interest, complaints, and cessation.">
+<title>Price against delivered performance — TCI</title>
+<meta name="description" content="MLPerf Training results from sellers priced by TCI, against those prices.">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0c0d">
 
-<link rel="canonical" href="https://thecomputeindices.com/governance.html">
+<link rel="canonical" href="https://thecomputeindices.com/performance.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="The Compute Indices">
-<meta property="og:title" content="Governance — TCI">
-<meta property="og:description" content="TCI governance: methodology change procedure, correction policy, audit trail, conflicts of interest, complaints, and cessation.">
-<meta property="og:url" content="https://thecomputeindices.com/governance.html">
+<meta property="og:title" content="Price against delivered performance — TCI">
+<meta property="og:description" content="MLPerf Training results from sellers priced by TCI, against those prices.">
+<meta property="og:url" content="https://thecomputeindices.com/performance.html">
 <meta property="og:image" content="https://thecomputeindices.com/assets/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Governance — TCI">
-<meta name="twitter:description" content="TCI governance: methodology change procedure, correction policy, audit trail, conflicts of interest, complaints, and cessation.">
+<meta name="twitter:title" content="Price against delivered performance — TCI">
+<meta name="twitter:description" content="MLPerf Training results from sellers priced by TCI, against those prices.">
 <meta name="twitter:image" content="https://thecomputeindices.com/assets/og-card.png">
 <link rel="alternate" type="application/atom+xml" title="TCI Research"
  href="feed.xml">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0c0d'/%3E%3Crect x='6' y='9' width='7' height='16' rx='1' fill='%23f5f5f6'/%3E%3Crect x='17' y='16' width='7' height='9' rx='1' fill='%23f5f5f6'/%3E%3Ccircle cx='20.5' cy='10.5' r='3.5' fill='%23ff0000'/%3E%3C/svg%3E">
-<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://thecomputeindices.com/#administrator", "name": "The Compute Indices", "alternateName": "TCI", "url": "https://thecomputeindices.com", "email": "rusch.mh@gmail.com", "founder": {"@type": "Person", "name": "Mark Rusch"}, "description": "TCI publishes reproducible reference prices for AI and HPC compute \u2014 methodology-driven, vendor-neutral, and rebuildable from public sources by anyone."}, {"@type": "WebSite", "@id": "https://thecomputeindices.com/#website", "url": "https://thecomputeindices.com", "name": "The Compute Indices", "publisher": {"@id": "https://thecomputeindices.com/#administrator"}, "inLanguage": "en"}, {"@type": "WebPage", "url": "https://thecomputeindices.com/governance.html", "isPartOf": {"@id": "https://thecomputeindices.com/#website"}}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://thecomputeindices.com/#administrator", "name": "The Compute Indices", "alternateName": "TCI", "url": "https://thecomputeindices.com", "email": "rusch.mh@gmail.com", "founder": {"@type": "Person", "name": "Mark Rusch"}, "description": "TCI publishes reproducible reference prices for AI and HPC compute \u2014 methodology-driven, vendor-neutral, and rebuildable from public sources by anyone."}, {"@type": "WebSite", "@id": "https://thecomputeindices.com/#website", "url": "https://thecomputeindices.com", "name": "The Compute Indices", "publisher": {"@id": "https://thecomputeindices.com/#administrator"}, "inLanguage": "en"}, {"@type": "WebPage", "url": "https://thecomputeindices.com/performance.html", "isPartOf": {"@id": "https://thecomputeindices.com/#website"}}]}</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script>document.documentElement.classList.add('js-boot');</script>
 <style>
@@ -2056,112 +2056,109 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
         <span class="navbtn__bars" aria-hidden="true"></span>
         <span>Menu</span>
       </label>
-      <nav class="nav" aria-label="Primary"><a href="index.html">Indices</a><a href="basis.html">Basis</a><a href="term.html">Term</a><a href="methodology.html">Methodology</a><a href="data.html">Data</a><a href="research.html">Research</a><a href="governance.html" aria-current="page">Governance</a>
+      <nav class="nav" aria-label="Primary"><a href="index.html">Indices</a><a href="basis.html">Basis</a><a href="term.html">Term</a><a href="methodology.html">Methodology</a><a href="data.html">Data</a><a href="research.html" aria-current="page">Research</a><a href="governance.html">Governance</a>
         <a href="mailto:rusch.mh@gmail.com">Contact</a>
         <a class="nav__cta" href="index.html#indices">View Indices</a>
       </nav>
     </div>
   </div>
 </header>
-<main class="wrap" id="main">
-  <div class="pagehead">
-    <div class="eyebrow">IOSCO principles, voluntary</div>
-    <h1 class="pagehead__h pagehead__h--display">Governance</h1>
-    <p class="pagehead__dek">Administrator and author: <strong>Mark Rusch</strong>,
-    Amsterdam. Who administers the index, how a change to it is made, and what happens when
-    a print is wrong. TCI is a research publication: it is not licensed for use in
-    financial instruments, and any request to hard-wire it into a financial contract will be
-    refused.</p>
-    <div class="pagehead__meta">
-      <span>Administrator Mark Rusch</span>
-      <span>Methodology <span class="num">v0.3.0-dev</span></span>
-      <span>Lock <span class="num">sha256:29551a012dada9b3&#8230;</span></span>
-    </div>
-  </div>
-
-  <section class="section" aria-labelledby="s-scope">
-    <div class="callout--brand">
-      <span class="eyebrow" id="s-scope">Regulatory scope</span>
-      <p>Regulation (EU) 2025/914 narrows the EU Benchmarks Regulation to critical,
-      significant and climate-transition benchmarks, and TCI falls outside Titles
-      II&#8211;VI as a non-significant benchmark. Whether prices scraped from public rate
-      cards constitute &#8220;contributed input data&#8221; under the new Article 2(1c) is
-      an open question on which the administrator expresses no view; legal advice will be
-      obtained before any contractual use. The precise position is set out below.</p>
-    </div>
+<main id="main"><div class="wrap">
+  <section class="pagehead">
+    <div class="eyebrow">Research</div>
+    <h1 class="pagehead__h">Price against delivered performance</h1>
+    <p class="pagehead__dek">A price per GPU-hour says nothing about what the hour
+    delivers. The only public measurements these sellers stand behind are their own MLPerf
+    Training submissions, so this puts them beside the prices published here. Most of what
+    the table shows is what is missing, and that is the result rather than a caveat.</p>
   </section>
 
-  <section class="section" aria-labelledby="s-pre">
+  <section class="section">
     <div class="section__head"><div>
-      <h2 class="section__h" id="s-pre">Settlement-grade preconditions</h2>
-      <p class="section__dek">TCI is a price-transparency benchmark, not a
-      settlement benchmark, and will not be represented as one until all of these hold.
-      Published so the claim can be checked rather than trusted.</p></div></div>
-    <table class="preconds">
-  <caption class="vh">Settlement-grade preconditions as of methodology
-  v0.3.0-dev</caption>
-  <tbody><tr><td>≥15 independent constituents in the headline population, of which ≥5 executable</td><td><span class="pill">not yet met</span></td></tr><tr><td>≥180 consecutive collection days at ≥95% coverage</td><td><span class="pill">not yet met</span></td></tr><tr><td>Realised index volatility demonstrably driven by price rather than composition</td><td><span class="pill">not stated</span></td></tr><tr><td>Executable share ≥50% by weight</td><td><span class="pill">not yet met</span></td></tr><tr><td>An independent oversight committee (Baltic Index Council model). Governance by one person is not a defect that code can fix</td><td><span class="pill">not yet met</span></td></tr><tr><td>External methodology assurance review</td><td><span class="pill">not yet met</span></td></tr><tr><td>A legal opinion on the Article 2(1c) question above</td><td><span class="pill">not yet met</span></td></tr></tbody>
-</table>
+      <h2 class="section__h">Where a comparison is possible</h2>
+      <p class="section__dek">Two sellers can only be divided by one another where they
+      ran the same benchmark, on the same accelerator, at the same GPU count, in the same
+      round. MLPerf revises its suite between rounds, so the same benchmark name in two
+      rounds is not the same workload. Across the 3 rounds collected that leaves
+      1 cell in which both sellers also have a
+      price here.</p></div></div>
+    <div class="stack"><article class="card">
+  <div class="card__head"><div>
+    <h3 class="card__title">llama2_70b_lora on 8&#215; NVIDIA Blackwell GPU (B200-SXM-180GB)</h3>
+    <p class="card__sub">MLPerf Training v5.0
+    &#183; each seller's own submission</p>
+  </div></div>
+  <div class="card__body card__body--flush"><div class="scroll-x">
+  <table class="grid">
+    <caption class="vh">Time to train and cost for llama2_70b_lora</caption>
+    <thead><tr>
+      <th scope="col">Seller</th>
+      <th scope="col" class="ta-r">Time to train <span class="u">min</span></th>
+      <th scope="col" class="ta-r">Price <span class="u">USD/GPU&#8209;hr</span></th>
+      <th scope="col" class="ta-r">Cost of the run <span class="u">USD</span></th>
+      <th scope="col">Priced in</th>
+    </tr></thead>
+    <tbody><tr><th scope="row">Lambda</th><td class="ta-r num">10.9</td><td class="ta-r num">6.79</td><td class="ta-r num strong">9.89</td><td class="u">DE</td></tr><tr><th scope="row">Oracle</th><td class="ta-r num">11.0</td><td class="ta-r num">14.00</td><td class="ta-r num strong">20.49</td><td class="u">DE, ES, FR, IT, NL, SE</td></tr></tbody>
+  </table></div></div>
+  <div class="fnstrip"><p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+    line-height:var(--leading-prose)">Delivered performance differs by
+    0.5%. The cost of the same run differs by
+    2.07&#215;. On this workload the difference between these two sellers is
+    price rather than speed.</p></div>
+</article></div>
   </section>
 
-  <section class="section" aria-labelledby="s-policy">
+  <section class="section">
     <div class="section__head"><div>
-      <h2 class="section__h" id="s-policy">Policy summary</h2>
-      <p class="section__dek">The short form. Each one is set out in full in the document
-      below, which is the authority wherever the two differ.</p></div></div>
-    <div class="policygrid"><article class="policy"><h3 class="policy__t">Methodology changes (IOSCO P12)</h3><p class="policy__d">Version bump, CHANGELOG entry, regenerated lock, and one publication&#x27;s notice before the change affects a print. Every print records the version it was computed under.</p></article><article class="policy"><h3 class="policy__t">Corrections (IOSCO P13)</h3><p class="policy__d">Prints are never edited or deleted — database triggers forbid it. An erroneous print is superseded by a new revision flagged “correction”, no later than the next publication.</p></article><article class="policy"><h3 class="policy__t">Audit trail (IOSCO P16)</h3><p class="policy__d">Every print stores its full constituent set — every candidate, price, weight and exclusion reason. Reproducible with a single CLI command against any print date.</p></article><article class="policy"><h3 class="policy__t">Conflicts of interest (IOSCO P4–P5)</h3><p class="policy__d">The calculation path contains no expert judgement: every parameter is a published config value. Any author position on an observed venue is disclosed where relevant.</p></article><article class="policy"><h3 class="policy__t">Data sufficiency (IOSCO P6–P7)</h3><p class="policy__d">Below the minimum provider count the print is null and flagged “insufficient_sources”. A gap is published — never fabricated.</p></article><article class="policy"><h3 class="policy__t">Review and cessation</h3><p class="policy__d">Reviewed annually or on structural market change. If the index can no longer be produced credibly, cessation is announced with 30 days&#x27; notice; the history stays public.</p></article></div>
+      <h2 class="section__h">Every submission by a seller priced here</h2>
+      <p class="section__dek">Time to train is the median of that seller's own successful
+      runs, computed from the logs it published. It is not MLCommons' official score:
+      MLCommons publishes those itself and the scoring rule varies by benchmark. Cost is
+      that time multiplied by the accelerator count and by this site's EU/EEA price for
+      that seller's matching accelerator on 2026-09-12.</p></div></div>
+    <div class="card card__body--flush"><div class="scroll-x">
+    <table class="grid">
+      <caption class="vh">MLPerf Training submissions by sellers priced on this
+      site</caption>
+      <thead><tr>
+        <th scope="col">Seller</th>
+        <th scope="col">Round</th>
+        <th scope="col">Benchmark</th>
+        <th scope="col">Accelerator</th>
+        <th scope="col" class="ta-r">GPUs</th>
+        <th scope="col" class="ta-r">Minutes</th>
+        <th scope="col" class="ta-r">USD/GPU&#8209;hr</th>
+        <th scope="col" class="ta-r">Run cost <span class="u">USD</span></th>
+      </tr></thead>
+      <tbody><tr><td>CoreWeave</td><td class="u">v6.0</td><td>gpt_oss_20b</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">64</td><td class="ta-r num">27.0</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>CoreWeave</td><td class="u">v6.0</td><td>llama31_8b</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">64</td><td class="ta-r num">16.3</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Google</td><td class="u">v5.0</td><td>stable_diffusion</td><td class="u">NVIDIA H200-SXM5-141GB</td><td class="ta-r num">8</td><td class="ta-r num">27.1</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Google</td><td class="u">v5.0</td><td>stable_diffusion</td><td class="u">NVIDIA H200-SXM5-141GB</td><td class="ta-r num">64</td><td class="ta-r num">5.4</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Lambda</td><td class="u">v6.0</td><td>gpt_oss_20b</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">8</td><td class="ta-r num">95.7</td><td class="ta-r num">6.79</td><td class="ta-r num">87</td></tr><tr><td>Lambda</td><td class="u">v5.0</td><td>llama2_70b_lora</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">8</td><td class="ta-r num">10.9</td><td class="ta-r num">6.79</td><td class="ta-r num">10</td></tr><tr><td>Lambda</td><td class="u">v6.0</td><td>llama31_8b</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">8</td><td class="ta-r num">83.8</td><td class="ta-r num">6.79</td><td class="ta-r num">76</td></tr><tr><td>Nebius</td><td class="u">v5.1</td><td>flux1</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">32</td><td class="ta-r num">93.8</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v6.0</td><td>flux1</td><td class="u">NVIDIA Blackwell Ultra GPU (B300-SXM-270GB)</td><td class="ta-r num">32</td><td class="ta-r num">76.4</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v6.0</td><td>flux1</td><td class="u">NVIDIA Blackwell Ultra GPU (B300-SXM-270GB)</td><td class="ta-r num">64</td><td class="ta-r num">45.8</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v6.0</td><td>gpt_oss_20b</td><td class="u">NVIDIA Blackwell Ultra GPU (B300-SXM-270GB)</td><td class="ta-r num">8</td><td class="ta-r num">82.3</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v6.0</td><td>gpt_oss_20b</td><td class="u">NVIDIA Blackwell Ultra GPU (B300-SXM-270GB)</td><td class="ta-r num">64</td><td class="ta-r num">23.2</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v5.1</td><td>llama2_70b_lora</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">8</td><td class="ta-r num">9.6</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v5.1</td><td>llama2_70b_lora</td><td class="u">NVIDIA Blackwell Ultra GPU (B300-SXM-270GB)</td><td class="ta-r num">8</td><td class="ta-r num">8.8</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v5.1</td><td>llama2_70b_lora</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">16</td><td class="ta-r num">5.8</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v5.1</td><td>llama2_70b_lora</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">32</td><td class="ta-r num">3.0</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v5.0</td><td>llama31_405b</td><td class="u">NVIDIA H200-SXM5-141GB</td><td class="ta-r num">512</td><td class="ta-r num">209.7</td><td class="ta-r num">4.50</td><td class="ta-r num">8,051</td></tr><tr><td>Nebius</td><td class="u">v5.1</td><td>llama31_405b</td><td class="u">NVIDIA H200-SXM5-141GB</td><td class="ta-r num">512</td><td class="ta-r num">209.7</td><td class="ta-r num">4.50</td><td class="ta-r num">8,051</td></tr><tr><td>Nebius</td><td class="u">v5.0</td><td>llama31_405b</td><td class="u">NVIDIA H200-SXM5-141GB</td><td class="ta-r num">1024</td><td class="ta-r num">106.7</td><td class="ta-r num">4.50</td><td class="ta-r num">8,195</td></tr><tr><td>Nebius</td><td class="u">v5.1</td><td>llama31_405b</td><td class="u">NVIDIA H200-SXM5-141GB</td><td class="ta-r num">1024</td><td class="ta-r num">106.7</td><td class="ta-r num">4.50</td><td class="ta-r num">8,195</td></tr><tr><td>Nebius</td><td class="u">v5.1</td><td>llama31_8b</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">8</td><td class="ta-r num">84.6</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v5.1</td><td>llama31_8b</td><td class="u">NVIDIA Blackwell Ultra GPU (B300-SXM-270GB)</td><td class="ta-r num">8</td><td class="ta-r num">75.8</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v6.0</td><td>llama31_8b</td><td class="u">NVIDIA Blackwell Ultra GPU (B300-SXM-270GB)</td><td class="ta-r num">8</td><td class="ta-r num">72.0</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v5.1</td><td>llama31_8b</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">16</td><td class="ta-r num">52.2</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v5.1</td><td>llama31_8b</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">32</td><td class="ta-r num">28.3</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Nebius</td><td class="u">v6.0</td><td>llama31_8b</td><td class="u">NVIDIA Blackwell Ultra GPU (B300-SXM-270GB)</td><td class="ta-r num">64</td><td class="ta-r num">14.4</td><td class="ta-r u">no EU price</td><td class="ta-r u">&#8212;</td></tr><tr><td>Oracle</td><td class="u">v5.0</td><td>bert</td><td class="u">NVIDIA H200-SXM5-141GB</td><td class="ta-r num">64</td><td class="ta-r num">0.9</td><td class="ta-r num">10.00</td><td class="ta-r num">9</td></tr><tr><td>Oracle</td><td class="u">v5.1</td><td>flux1</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">16</td><td class="ta-r num">173.9</td><td class="ta-r num">14.00</td><td class="ta-r num">649</td></tr><tr><td>Oracle</td><td class="u">v5.1</td><td>flux1</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">72</td><td class="ta-r num">55.4</td><td class="ta-r num">14.00</td><td class="ta-r num">931</td></tr><tr><td>Oracle</td><td class="u">v5.0</td><td>llama2_70b_lora</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">8</td><td class="ta-r num">11.0</td><td class="ta-r num">14.00</td><td class="ta-r num">20</td></tr><tr><td>Oracle</td><td class="u">v5.0</td><td>llama2_70b_lora</td><td class="u">NVIDIA H200-SXM5-141GB</td><td class="ta-r num">8</td><td class="ta-r num">22.9</td><td class="ta-r num">10.00</td><td class="ta-r num">31</td></tr><tr><td>Oracle</td><td class="u">v5.0</td><td>llama2_70b_lora</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">64</td><td class="ta-r num">2.0</td><td class="ta-r num">14.00</td><td class="ta-r num">29</td></tr><tr><td>Oracle</td><td class="u">v5.0</td><td>llama2_70b_lora</td><td class="u">NVIDIA H200-SXM5-141GB</td><td class="ta-r num">512</td><td class="ta-r num">1.9</td><td class="ta-r num">10.00</td><td class="ta-r num">166</td></tr><tr><td>Oracle</td><td class="u">v5.1</td><td>llama31_8b</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">8</td><td class="ta-r num">84.1</td><td class="ta-r num">14.00</td><td class="ta-r num">157</td></tr><tr><td>Oracle</td><td class="u">v5.1</td><td>llama31_8b</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">64</td><td class="ta-r num">18.7</td><td class="ta-r num">14.00</td><td class="ta-r num">279</td></tr><tr><td>Oracle</td><td class="u">v5.0</td><td>retinanet</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">8</td><td class="ta-r num">22.9</td><td class="ta-r num">14.00</td><td class="ta-r num">43</td></tr><tr><td>Oracle</td><td class="u">v5.0</td><td>retinanet</td><td class="u">NVIDIA H200-SXM5-141GB</td><td class="ta-r num">8</td><td class="ta-r num">34.5</td><td class="ta-r num">10.00</td><td class="ta-r num">46</td></tr><tr><td>Oracle</td><td class="u">v5.0</td><td>retinanet</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">64</td><td class="ta-r num">4.4</td><td class="ta-r num">14.00</td><td class="ta-r num">66</td></tr><tr><td>Oracle</td><td class="u">v5.0</td><td>retinanet</td><td class="u">NVIDIA H200-SXM5-141GB</td><td class="ta-r num">64</td><td class="ta-r num">7.4</td><td class="ta-r num">10.00</td><td class="ta-r num">79</td></tr><tr><td>Oracle</td><td class="u">v5.0</td><td>stable_diffusion</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">8</td><td class="ta-r num">13.9</td><td class="ta-r num">14.00</td><td class="ta-r num">26</td></tr><tr><td>Oracle</td><td class="u">v5.0</td><td>stable_diffusion</td><td class="u">NVIDIA Blackwell GPU (B200-SXM-180GB)</td><td class="ta-r num">64</td><td class="ta-r num">2.8</td><td class="ta-r num">14.00</td><td class="ta-r num">42</td></tr></tbody>
+    </table></div></div>
   </section>
 
-  <section class="section" aria-labelledby="s-complaints">
+  <section class="section">
     <div class="section__head"><div>
-      <h2 class="section__h" id="s-complaints">Complaints</h2></div></div>
-    <p class="dek">Complaints or challenges to any print:
-    <a href="mailto:rusch.mh@gmail.com">rusch.mh@gmail.com</a>. Acknowledged within 7
-    days; the outcome — a correction or a rationale for no change — is published with the
-    next print.</p>
+      <h2 class="section__h">No public result</h2>
+      <p class="section__dek">These sellers are priced here and have never submitted to
+      MLPerf Training. They appear as what they are. Nothing is estimated for them, and
+      the absence is not evidence about their machines.</p></div></div>
+    <p class="section__dek"><strong>aws, datacrunch, genesis_cloud, hetzner, leaseweb, ovhcloud, runpod, scaleway, seeweb, vast.ai</strong></p>
+    <p class="section__dek">No seller priced here has ever submitted an H100 system, which
+    is the accelerator the headline index prices. Every figure above is therefore about a
+    different chip from the one the headline measures.</p>
   </section>
 
-  <div class="doc">
-    <nav class="toc" aria-label="On this page"><h2 class="toc__h">On this page</h2><ol class="toc__list"><li class="is-sub"><a href="#regulatory-scope-stated-precisely">Regulatory scope — stated precisely</a></li><li class="is-sub"><a href="#settlement-grade-preconditions-published-and-falsifiable">Settlement-grade preconditions (published and falsifiable)</a></li><li><a href="#1-methodology-change-procedure-iosco-p12">1. Methodology change procedure (IOSCO P12)</a></li><li><a href="#2-correction-policy-iosco-p13">2. Correction policy (IOSCO P13)</a></li><li><a href="#3-audit-trail-iosco-p16">3. Audit trail (IOSCO P16)</a></li><li><a href="#4-conflicts-of-interest-iosco-p4p5">4. Conflicts of interest (IOSCO P4–P5)</a></li><li><a href="#5-data-sufficiency-and-publication-gate-iosco-p6p7">5. Data sufficiency and publication gate (IOSCO P6–P7)</a></li><li><a href="#6-complaints">6. Complaints</a></li><li><a href="#7-review">7. Review</a></li><li><a href="#8-cessation">8. Cessation</a></li></ol></nav>
-    <div class="md"><h2 id="tci-governance">TCI Governance</h2>
-<p>Administrator and author: <strong>Mark Rusch</strong> (rusch.mh@gmail.com), Amsterdam. This document implements the IOSCO Principles for Financial Benchmarks (2013) as voluntary best practice. TCI is a research publication: it is not licensed for use in financial instruments and any request to hard-wire it into a financial contract will be refused.</p>
-<h4 id="regulatory-scope-stated-precisely">Regulatory scope — stated precisely</h4>
-<p><strong>Regulation (EU) 2025/914</strong> (in force 8 June 2025, applying from <strong>1 January 2026</strong>) narrowed the EU Benchmarks Regulation: Titles II–VI now apply only to critical benchmarks, significant benchmarks, and EU Climate Transition / Paris-aligned benchmarks. A non-significant benchmark falls outside them.</p>
-<p>That is easy to over-read, and an earlier draft of this document did over-read it. New <strong>Article 2(1c)</strong> separately provides that <em>&quot;Article 19 applies to any commodity benchmark based on contributed input data&quot;</em> — unless it is a regulated-data benchmark, has a majority of supervised contributors, or is a gold/silver/platinum critical benchmark. And Article 2(2)(g) exempts a commodity benchmark only while the total average notional of instruments referencing it stays below <strong>EUR 200 million over 12 months</strong>.</p>
-<p>Whether prices scraped from public rate cards and public APIs constitute &quot;contributed input data&quot; within the meaning of the Regulation is an open question on which the administrator expresses no view. The disclaimer is therefore retained as a deliberate choice rather than a legal necessity, and <strong>legal advice will be obtained before any contractual use.</strong> Nothing in this document is legal advice.</p>
-<h4 id="settlement-grade-preconditions-published-and-falsifiable">Settlement-grade preconditions (published and falsifiable)</h4>
-<p>TCI is a <strong>price-transparency benchmark, not a settlement benchmark</strong>, and will not be represented as one until <em>all</em> of the following hold. Progress is published on the dashboard so the claim can be checked rather than trusted:</p>
-<ol><li>≥15 independent constituents in the headline population, of which ≥5 executable.</li><li>≥180 consecutive collection days at ≥95% coverage.</li><li>Realised index volatility demonstrably driven by price rather than composition.</li><li>Executable share ≥50% by weight.</li><li>An independent oversight committee (Baltic Index Council model). Governance by one person is not a defect that code can fix.</li><li>External methodology assurance review.</li><li>A legal opinion on the Article 2(1c) question above.</li></ol>
-<p>As of methodology v0.3.0 none of 1, 2, 4, 5, 6 or 7 is met.</p>
-<h3 id="1-methodology-change-procedure-iosco-p12">1. Methodology change procedure (IOSCO P12)</h3>
-<p>The methodology is everything that can change a published print: the parameters (<code class="inline">config/factors.yaml</code>, <code class="inline">config/sovereign.yaml</code>), the order in which versions take effect (<code class="inline">config/methodology/succession.yaml</code>), and the calculation code (<code class="inline">src/tci/index.py</code>, <code class="inline">src/tci/normalise.py</code>, <code class="inline">src/tci/weights.py</code>). A sha256 over these files is recorded in <code class="inline">METHODOLOGY.lock</code>, together with one hash per superseded version&#x27;s frozen parameters. CI fails whenever the working tree no longer matches the lock; the lock generator refuses to record a changed hash under an unchanged released version, and refuses any change to a frozen version. A methodology change therefore requires, in one commit:</p>
-<ol><li>The change itself.</li><li>A <code class="inline">methodology_version</code> bump in <code class="inline">config/factors.yaml</code> (patch = editorial/no numeric effect; minor = parameter or constituent change; major = unit definition or aggregation change).</li><li>A CHANGELOG.md entry describing the change and its motivation.</li><li><code class="inline">python -m tci.run docs</code> to regenerate METHODOLOGY.md and the lock.</li><li><strong>One publication&#x27;s notice</strong>: the change is announced in <code class="inline">config/notices.yaml</code>, which the site publishes, before the first print computed under the new version. Prints record the version they were computed under (<code class="inline">daily_index.methodology_version</code>), so the transition is auditable.</li><li><strong>An effective date in the succession.</strong> The previous head&#x27;s parameters are frozen under <code class="inline">config/methodology/&lt;version&gt;/</code>, and the new version is added to <code class="inline">succession.yaml</code> with the effective date its notice states. A test refuses an effective date earlier than the day after the notice.</li></ol>
-<p>Effective dates are enforced in code. A print is computed under the version whose effective date is the latest on or before the print date, so an announced version can be committed on the day of its notice and applies from its effective date whenever the commit lands. Nothing about the timing depends on someone merging on the right day.</p>
-<p><strong>The panel.</strong> A provider contributes to a print only if the version&#x27;s <code class="inline">panel</code> names it, the collector that observed it, and the class. A new collector therefore stores rows from its first day without moving any number; admitting it is a constituent change and follows this procedure. Rows collected before admission are never admitted retroactively.</p>
-<p>Three panel entries (Hetzner, Genesis Cloud and Leaseweb, via <code class="inline">static_yaml</code>) are admitted but have no price on file, because none had a verifiable H100 hourly rate when last checked. A first price for any of them would move the print exactly as a new constituent does, so it is treated as one: it needs a notice and an effective date like any other constituent change, even though the panel line already exists. Refreshing a price that is already on file is not a constituent change.</p>
-<p><strong>Code changes must reproduce the record.</strong> The calculation code is shared by every version in the succession. A code change that would alter any stored print, under any version, is a methodology change for the versions it alters and is refused in that form; <code class="inline">tests/test_reproduce.py</code> recomputes every stored print in CI and fails on any difference. <code class="inline">python -m tci.run reproduce --published</code> is the same check, runnable by anyone.</p>
-<p>Versions with a <code class="inline">-dev</code> suffix (pre-launch construction) were exempt from the refusal rule. The exemption ended with v0.4.0, the first version without the suffix.</p>
-<p><strong>Scheduled weight reviews are not methodology changes.</strong> Constituent weights and the composite&#x27;s class basket shares are recomputed on a fixed schedule by a fixed published formula (METHODOLOGY.md §3.1–3.2) with no discretion; each review is stored append-only in <code class="inline">weight_sets</code> and reproducible via <code class="inline">python -m tci.run weights --date</code>. Changing the formula, the schedule, or any of their parameters <strong>is</strong> a methodology change and follows the procedure above.</p>
-<h3 id="2-correction-policy-iosco-p13">2. Correction policy (IOSCO P13)</h3>
-<p>Published prints are never edited or deleted (database triggers forbid it). An erroneous print is superseded by a <strong>new revision</strong> for the same date, flagged <code class="inline">correction</code>, no later than the next publication, with the error described in the accompanying post. Prior revisions remain queryable forever.</p>
-<h3 id="3-audit-trail-iosco-p16">3. Audit trail (IOSCO P16)</h3>
-<p>Raw observations are append-only. Every print stores its full constituent set — every candidate provider, its price, its weight, whether it was included, and the exclusion reason if not. Any reader can request it; it is reproduced with:</p>
-<pre class="code"><code>python -m tci.run constituents --date YYYY-MM-DD [--series NAME]</code></pre>
-<p>Every print is also published as <code class="inline">site/data/prints/YYYY-MM-DD.json</code> with a sha256 digest of its content, and the whole record is checked end to end, observations to prints to published files, with:</p>
-<pre class="code"><code>python -m tci.run reproduce --published</code></pre>
-<p>The FX rate a print used is recorded with it and is an input to its reproduction.</p>
-<h3 id="4-conflicts-of-interest-iosco-p4p5">4. Conflicts of interest (IOSCO P4–P5)</h3>
-<p>The author may trade on venues whose prices the index observes (see the companion trading memo). Mitigations: the calculation path contains no expert judgement — every parameter is a published config value and the code is public at launch; observations are immutable; any position on an observed venue held by the author is disclosed in the publication where relevant. The index is produced by one person; readers should weigh that against the full transparency of inputs and code.</p>
-<h3 id="5-data-sufficiency-and-publication-gate-iosco-p6p7">5. Data sufficiency and publication gate (IOSCO P6–P7)</h3>
-<p>A print requires at least the configured minimum of qualifying providers (<code class="inline">aggregation.min_providers</code>). Below that, the value is null and flagged <code class="inline">insufficient_sources</code> — a gap is published, a number is never fabricated.</p>
-<h3 id="6-complaints">6. Complaints</h3>
-<p>Complaints or challenges to any print: rusch.mh@gmail.com. Acknowledged within 7 days; outcome (correction or rationale for no change) published with the next print.</p>
-<h3 id="7-review">7. Review</h3>
-<p>The methodology is reviewed annually (first review due July 2027) or upon a structural market change (e.g. professional market makers entering the observed venues), whichever comes first. Reviews are logged in CHANGELOG.md even when nothing changes.</p>
-<h3 id="8-cessation">8. Cessation</h3>
-<p>If the index can no longer be produced credibly (source loss, market structure change), a final post will announce cessation with at least 30 days&#x27; notice; the repository, data, and methodology history remain public.</p></div>
-  </div>
-</main>
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">What these numbers are not</h2></div></div>
+    <div class="fnstrip"><p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+      line-height:var(--leading-prose)">A submitted system is a configuration its vendor
+      tuned for the benchmark, at a node count it chose, in a region it did not have to
+      name. It is not what a customer gets by default and it is a point in time. The price
+      it is multiplied by is an on-demand EU/EEA price for a matching accelerator on one
+      date, which is a different thing bought in a different shape. A single cell is a data
+      point and not a conclusion about either seller. Source:
+      MLPerf Training v5.0 at <code class="inline">d7e703fccc</code> &#183; MLPerf Training v5.1 at <code class="inline">441d65f444</code> &#183; MLPerf Training v6.0 at <code class="inline">eabf23a07b</code>.</p></div>
+  </section>
+</div></main>
 <footer class="footer">
   <div class="wrap footer__inner">
     <div class="footer__cols">

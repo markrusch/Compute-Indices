@@ -19,7 +19,8 @@ from tests.conftest import insert_run
 # was written, so an invariant covers a new page the day it exists.
 EXPECTED_PAGES = (
     "index.html", "basis.html", "term.html", "methodology.html", "data.html",
-    "governance.html", "notices.html", "reliability.html", "research.html",
+    "governance.html", "notices.html", "reliability.html", "performance.html",
+    "research.html",
 )
 
 
@@ -640,3 +641,25 @@ def test_the_reliability_page_is_reachable(built):
     assert 'href="reliability.html"' in index
     sitemap = (built / "sitemap.xml").read_text(encoding="utf-8")
     assert "reliability.html" in sitemap
+
+
+def test_a_page_builder_that_returns_nothing_writes_no_file(built, monkeypatch, conn):
+    """The performance page reads a snapshot that could be missing. Writing its empty
+    string would replace a good page with a blank one, which is worse than skipping it."""
+    monkeypatch.setattr(site, "_performance", lambda ctx: "")
+    (built / "performance.html").write_text("previous good page", encoding="utf-8")
+    site.generate(conn)
+    assert (built / "performance.html").read_text(encoding="utf-8") == "previous good page"
+
+
+def test_the_performance_page_survives_a_missing_mlperf_snapshot(built, monkeypatch, conn):
+    """Research beside the index must never take the day's prints down with it, now that
+    a failed output build fails the daily run."""
+    from tci import mlperf
+
+    def boom(*_a, **_k):
+        raise FileNotFoundError("no snapshot")
+
+    monkeypatch.setattr(mlperf, "load", boom)
+    site.generate(conn)  # must not raise
+    assert (built / "index.html").exists()
