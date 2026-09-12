@@ -22,6 +22,7 @@ from tci.collectors.gpuhunt_ import variant_of as gh_variant
 from tci.collectors.runpod import URL as RUNPOD_URL
 from tci.collectors.runpod import RunPodCollector, parse_datacentre_stock
 from tci.vendor.computable.http import current_user_agent
+from tci.vendor.computable.sources.coreweave import parse_coreweave
 
 FIX = Path(__file__).parent / "fixtures" / "computable"
 ROUTES = {
@@ -236,3 +237,45 @@ def test_runpod_prices_survive_a_failed_stock_query() -> None:
     responses.add(responses.POST, RUNPOD_URL, json={"errors": [{"message": "no"}]}, status=200)
     out = RunPodCollector().collect(base.make_session())
     assert out and all(json.loads(o.raw_json)["datacentres_in_stock"] is None for o in out)
+
+
+# --------------------------------------------------------------- coreweave
+
+
+def test_coreweave_survives_the_json_ld_block_added_on_12_september_2026() -> None:
+    """The reshape that broke the collector, kept as a fixture so it cannot break again.
+
+    CoreWeave added a schema.org OfferCatalog block to the head of its pricing page whose
+    `name` fields repeat "On-demand GPU instances" and "On-demand CPU instances" as plain
+    text before the real headings. The recipe bounded the GPU section by counting bare
+    occurrences of those strings — deliberately, because the CPU tables below reuse the
+    same row markup — so both anchors counted twice and it refused the page outright,
+    which is what it is supposed to do when a page reshapes under it.
+
+    The fixture is `pricing.html` as captured on 2026-09-11 with that block inserted
+    verbatim from the live page, so the anchor counts are the 2/2 that failed. Anchoring
+    on the h2 tag rather than the bare string is what fixes it, and the fix must not
+    weaken the guarantee: a reshape of the heading itself still has to raise.
+    """
+    fixture = FIX / "coreweave" / "pricing-2026-09-12-jsonld.html"
+    html = fixture.read_text(encoding="utf-8")
+    assert html.count("On-demand GPU instances") == 2, "fixture no longer reproduces the break"
+    assert html.count("On-demand CPU instances") == 2
+
+    rows = parse_coreweave(html)[0]
+    baseline = parse_coreweave((FIX / "coreweave" / "pricing.html").read_text(encoding="utf-8"))[0]
+    assert rows, "the JSON-LD block still stops the page being read"
+    assert len(rows) == len(baseline), "the SEO block changed which rows are read"
+
+    # The fence around the CPU tables is the reason the count check exists at all.
+    assert all(r["region"] in ("NORTH AMERICA", "EUROPE") for r in rows)
+
+
+def test_coreweave_still_refuses_a_page_whose_headings_have_changed() -> None:
+    """Fail-closed, not fail-loose. The fix moved the anchor; it did not relax it."""
+    html = (FIX / "coreweave" / "pricing.html").read_text(encoding="utf-8")
+    reshaped = html.replace('class="heading-32-20">On-demand GPU instances</h2>',
+                            'class="heading-40-24">On-demand GPU instances</h2>')
+    assert reshaped != html, "the fixture no longer carries the heading this test edits"
+    with pytest.raises(RuntimeError, match="section heading"):
+        parse_coreweave(reshaped)
