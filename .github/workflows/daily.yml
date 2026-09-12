@@ -73,6 +73,23 @@ jobs:
             # with staged changes in the index, which silently discarded every
             # day's real print from 2026-07-22 onward (computed, never persisted).
             git commit -m "daily: $(date -u +%F)${SUFFIX}"
-            git pull --rebase origin main
+            if ! git pull --rebase origin main; then
+              # data/eucri.db and site/ are entirely generated, never hand-edited,
+              # so a rebase conflict here isn't real content to reconcile line by
+              # line - it means main moved (e.g. a feature merge) underneath this
+              # run. Rebuild today's outputs on top of the new tip instead of
+              # merging two independently-generated trees; collection is dated
+              # and idempotent per day, so redoing it is safe.
+              echo "::warning::main advanced during this run; rebuilding today's outputs on top of it"
+              git rebase --abort
+              git reset --hard origin/main
+              python -m tci.run daily
+              git add data/eucri.db site/
+              if git diff --cached --quiet; then
+                echo "nothing to commit after rebuild"
+              else
+                git commit -m "daily: $(date -u +%F)${SUFFIX}"
+              fi
+            fi
             git push origin main
           fi
