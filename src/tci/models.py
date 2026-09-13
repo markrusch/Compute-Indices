@@ -26,6 +26,31 @@ class Observation:
 
 
 @dataclass(frozen=True)
+class MarketOffer:
+    """One offer as a marketplace returned it, admitted to the index or not.
+
+    Stored in `market_offers`, which nothing in the calculation path reads. It exists so a
+    within-venue analysis can see the whole book the collector read, rather than only the
+    datacenter-verified subset that becomes `observations`.
+    """
+
+    ts_utc: str
+    source: str
+    queried_name: str
+    offer_id: str | None
+    machine_id: str | None
+    host_id: str | None
+    gpu_model: str | None
+    num_gpus: int | None
+    dph_total: float | None
+    country: str | None
+    verification: str | None
+    hosting_type: int | None
+    in_index_scope: bool
+    raw_json: str
+
+
+@dataclass(frozen=True)
 class Constituent:
     """A provider's contribution to one print (audit row).
 

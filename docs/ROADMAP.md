@@ -340,6 +340,30 @@ Both now key on the system file's stem, and an ambiguous directory is skipped.
 organised by division rather than by company and needs its own reading; Training answered
 the question first and answered it negatively.
 
+### L4.2b The vast.ai offer book — COLLECTING from 14 September
+`market_offers` table, filled by `collectors/vast_ai.py`; designed in Research Note 2026-05.
+
+Every offer the vast.ai reads return is stored, community hosts included, with
+`in_index_scope` marking the datacenter-verified subset. The note sets out what the data
+has to show before anything is published from it:
+
+- **Score reliability first.** Repeated `dlperf` readings of the same offer across sessions
+  give the reliability ratio. One offer moved 30.50% overnight, and if that turns out to be
+  typical, the design has no regressor. Publish that result if so.
+- **Then a gradient,** `ln price` on `dlperf` with part number × session fixed, clustered by
+  host. Only worth attempting once H100 SXM has a few dozen sessions and well over three
+  hosts; the full rentable book is 14–19 offers a day, so pooling the nine chips will
+  probably be needed.
+- **Offer survival** for the hazard comes from the same table at no extra cost.
+
+**Before publishing the rows themselves** (as a `site/data/` file or on `data.html`),
+check vast.ai's terms on redistributing per-offer data, and whether host and machine IDs
+should be published at all. Neither has been checked.
+
+**Evaluation gate:** after about 45 sessions, can TCI state a reliability ratio for
+`dlperf` and a host-clustered gradient with a confidence interval? If not, publish the
+negative result and stop collecting beyond the default.
+
 ### L4.3 Own measurements (cheap: €20–€60 total, ~30 h)
 Most of TCI's panel never submits to MLPerf. A fixed, open workload run by TCI on rented
 capacity closes the gap for single-node figures.

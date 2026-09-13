@@ -18,7 +18,7 @@ import requests
 
 from tci import USER_AGENT
 from tci.db import utc_now_iso
-from tci.models import Observation
+from tci.models import MarketOffer, Observation
 
 log = logging.getLogger("tci.collectors")
 
@@ -108,10 +108,48 @@ def run_collector(
             )
         return "failed"
 
+    notes = f"{len(observations)} observations"
+    book: list[MarketOffer] = getattr(collector, "offer_book", None) or []
+    if book:
+        notes += "; " + _store_offer_book(conn, collector.name, run_id, book)
+
     with conn:
         conn.execute(
             "UPDATE runs SET status = 'ok', finished_utc = ?, notes = ? WHERE run_id = ?",
-            (utc_now_iso(), f"{len(observations)} observations", run_id),
+            (utc_now_iso(), notes, run_id),
         )
     log.info("%s: %d observations", collector.name, len(observations))
     return "ok"
+
+
+def _store_offer_book(
+    conn: sqlite3.Connection, name: str, run_id: str, book: list[MarketOffer]
+) -> str:
+    """Store the full offer book a collector read, after its prices are already committed.
+
+    Deliberately outside the observations transaction and fail-soft on its own. The book
+    is research data that no print reads; a schema problem here must cost the book, not
+    the day's prices. The outcome goes into `runs.notes` either way, so a lost book is
+    visible from the committed database rather than only from a CI log.
+    """
+    try:
+        with conn:
+            conn.executemany(
+                "INSERT INTO market_offers (run_id, ts_utc, source, queried_name, offer_id,"
+                " machine_id, host_id, gpu_model, num_gpus, dph_total, country,"
+                " verification, hosting_type, in_index_scope, raw_json)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [
+                    (
+                        run_id, b.ts_utc, b.source, b.queried_name, b.offer_id,
+                        b.machine_id, b.host_id, b.gpu_model, b.num_gpus, b.dph_total,
+                        b.country, b.verification, b.hosting_type, int(b.in_index_scope),
+                        b.raw_json,
+                    )
+                    for b in book
+                ],
+            )
+    except Exception as exc:
+        log.exception("%s: offer book not stored (prices unaffected)", name)
+        return f"offer book not stored: {type(exc).__name__}: {exc}"[:300]
+    return f"{len(book)} market offers"

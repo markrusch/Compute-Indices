@@ -3,6 +3,44 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Research Note 2026-05, and the full vast.ai offer book kept beside the prices — 2026-09-14 — no methodology change
+
+- **`research/nine-sellers-cannot-price-a-grade.md`.** Published. The draft as first
+  written claimed the within-venue price-on-performance design was estimable now, across
+  "hundreds" of machines per part number per session. Checked against the database, that
+  claim did not hold. On 12 and 13 September the store holds 7 and 4 datacenter-verified
+  H100 SXM offers from 3 and 2 hosts. `total_flops` is 53.53 per GPU on every one of them,
+  a datasheet figure rather than a measurement. `dlperf` moved 30.50% overnight on one
+  offer. The published note keeps the identification argument, reports those figures, and
+  adds the measurement-error consequence: a gradient estimated on single readings is biased
+  toward zero. It also narrows Note 2026-04's correction from three reachable assay axes to
+  one, because `disk_bw` is idle-host bandwidth, not checkpoint I/O under load.
+- **Found while checking: vast.ai stored nothing on 8, 9 or 10 September**, and two RTX
+  3060 rows on 11 September. This is the same page-clamp failure already recorded against
+  those dates in `vast_ai.py`. It is noted here because it is why the measured fields cover
+  two sessions rather than five.
+- **`src/tci/migrations/0005_market_offers.sql`, `collectors/vast_ai.py`,
+  `collectors/base.py`, `models.py`.** The vast.ai query never filtered on verification, so
+  community and unverified hosts were always fetched and then discarded in
+  `to_observations`. On 12 September that discarded 12 of 19 H100 SXM offers. Every offer
+  read is now also stored in a new append-only table, `market_offers`, with
+  `in_index_scope` recording whether it passed the datacenter-verified test. No extra
+  request is made.
+- **Why a separate table and not `observations`.** `normalise.py` does not filter on
+  hosting type or verification; that filter exists only in the collector. Community rows in
+  `observations` would reach a print, which would be a methodology change needing a notice.
+  `market_offers` is read by nothing in the calculation path. `observations` rows are
+  unchanged, which `tests/test_market_offers.py` asserts by persisting the same fixture with
+  and without the book. `test_reproduce.py` still passes, and the lock is untouched.
+- **The book is fail-soft on its own.** It is inserted after the prices commit, in a
+  separate transaction. A schema failure costs the book and not the day's prices, and the
+  outcome is written to `runs.notes` either way.
+- **Checked live and not adopted: dropping the `rentable` filter.** On 13 September the
+  rentable H100 SXM book was 14 offers from 8 hosts. Without the filter, the endpoint returned a
+  full 50-offer page, mostly `rentable=False`. That could be an occupancy signal, but it is
+  not established whether `rentable=False` means rented or offline, and a full page would
+  need the descending re-read, doubling vast.ai's daily requests. Not collected.
+
 ## Seeweb's static price was frozen at a two-month-old FX rate — 2026-09-13 — no methodology change
 
 - **`config/providers/seeweb.yaml`, `src/tci/collectors/static_yaml.py`.** Seeweb's entry

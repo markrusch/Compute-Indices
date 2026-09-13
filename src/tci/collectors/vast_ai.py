@@ -4,7 +4,8 @@
 
 Collection scope (documented in SOURCES.md): datacenter-verified hosts only
 (verification == 'verified' AND hosting_type == 1); community/hobbyist inventory is
-outside the index universe entirely. Offers are stored globally — EU/EEA, minimum
+outside the index universe and never becomes an observation (it is kept only in
+`market_offers`, see below). Offers are stored globally — EU/EEA, minimum
 GPU count, and price-band filters are applied in the calculation path (normalise.py)
 so per-day exclusions stay auditable; non-EU rows feed the US reference block.
 
@@ -16,6 +17,14 @@ Request budget: one POST per chip in CHIPS, plus one more for a chip whose ascen
 book comes back full, spaced REQUEST_SPACING_SECONDS apart. That is 9-18 requests a
 day where the source policy used to say one; the reason is the server's page clamp,
 explained above CHIPS, and SOURCES.md records the exception.
+
+Two outputs from the same reads. `collect()` returns the datacenter-verified offers as
+price observations. It also leaves every offer it read, community and unverified hosts
+included, on `self.offer_book`, which `base.run_collector` stores in the `market_offers`
+table. That table is research data for within-venue analysis (Research Note 2026-05) and
+nothing in the calculation path reads it. It costs no extra request: the query never
+filtered on verification, so these offers were always fetched, and until 2026-09-14 they
+were discarded here.
 """
 
 from __future__ import annotations
@@ -29,7 +38,7 @@ import requests
 
 from tci.collectors.base import TIMEOUT_SECONDS
 from tci.db import utc_now_iso
-from tci.models import Observation
+from tci.models import MarketOffer, Observation
 
 log = logging.getLogger("tci.collectors.vast_ai")
 
@@ -117,11 +126,21 @@ RAW_FIELDS = (
     "gpu_mem_bw", "pcie_bw", "gpu_lanes", "pci_gen", "compute_cap", "gpu_arch",
     # the power and thermal envelope the datasheet cannot express
     "gpu_max_power", "gpu_max_temp",
-    # storage and network path: the checkpoint-I/O axis
+    # storage and network bandwidth on the host: idle measurements, not checkpoint I/O
+    # under load (Research Note 2026-05 narrows what these can stand in for)
     "disk_bw", "nw_disk_avg_bw", "inet_down", "inet_up",
     # reliability and multi-node grouping
     "reliability2", "expected_reliability", "cluster_id", "score",
 )
+
+
+def in_index_scope(offer: dict) -> bool:
+    """The collection scope in SOURCES.md: datacenter-verified hosts only."""
+    return offer.get("verification") == "verified" and offer.get("hosting_type") == 1
+
+
+def _str_or_none(value: object) -> str | None:
+    return None if value is None else str(value)
 
 
 def _country(geolocation: str | None) -> str | None:
@@ -167,6 +186,7 @@ class VastAiCollector:
 
     def __init__(self, spacing_seconds: float = REQUEST_SPACING_SECONDS) -> None:
         self.spacing_seconds = spacing_seconds
+        self.offer_book: list[MarketOffer] = []
 
     def _read(self, session: requests.Session, gpu_name: str, order: str) -> list[dict]:
         resp = session.post(URL, json=chip_query(gpu_name, order), timeout=TIMEOUT_SECONDS)
@@ -180,6 +200,9 @@ class VastAiCollector:
     def collect(self, session: requests.Session) -> list[Observation]:
         ts = utc_now_iso()
         out: list[Observation] = []
+        # Reset per call, so a collector object reused across days never re-stores
+        # yesterday's book under today's run.
+        self.offer_book = []
         failures: list[str] = []
         total_read = 0
         for i, gpu_name in enumerate(CHIPS):
@@ -201,6 +224,7 @@ class VastAiCollector:
             if stats["possibly_truncated"]:
                 log.warning("vast_ai: %s book possibly truncated (%s)", gpu_name, stats)
             out.extend(self.to_observations(offers, ts, gpu_name, stats))
+            self.offer_book.extend(self.to_market_offers(offers, ts, gpu_name, stats))
         if total_read == 0:
             # Nine datacenter chips and not one offer is not a quiet market, it is a
             # changed API or a filter that stopped matching. Fail loudly so the run is
@@ -217,7 +241,7 @@ class VastAiCollector:
     ) -> list[Observation]:
         out: list[Observation] = []
         for offer in offers:
-            if offer.get("verification") != "verified" or offer.get("hosting_type") != 1:
+            if not in_index_scope(offer):
                 continue
             model_map = GPU_MODEL_MAP.get(offer.get("gpu_name", ""))
             num_gpus = offer.get("num_gpus") or 0
@@ -260,4 +284,36 @@ class VastAiCollector:
                         **common,
                     )
                 )
+        return out
+
+    def to_market_offers(
+        self, offers: list[dict], ts: str, queried: str, stats: dict
+    ) -> list[MarketOffer]:
+        """Every offer read, with no scope filter. See the `market_offers` migration."""
+        out: list[MarketOffer] = []
+        for offer in offers:
+            raw = {k: offer.get(k) for k in RAW_FIELDS}
+            raw["queried_gpu_name"] = queried
+            raw["book"] = stats
+            model_map = GPU_MODEL_MAP.get(offer.get("gpu_name", ""))
+            dph_total = offer.get("dph_total")
+            hosting_type = offer.get("hosting_type")
+            out.append(
+                MarketOffer(
+                    ts_utc=ts,
+                    source=self.name,
+                    queried_name=queried,
+                    offer_id=_str_or_none(offer.get("id")),
+                    machine_id=_str_or_none(offer.get("machine_id")),
+                    host_id=_str_or_none(offer.get("host_id")),
+                    gpu_model=model_map[0] if model_map else None,
+                    num_gpus=offer.get("num_gpus"),
+                    dph_total=None if dph_total is None else float(dph_total),
+                    country=_country(offer.get("geolocation")),
+                    verification=offer.get("verification"),
+                    hosting_type=hosting_type if isinstance(hosting_type, int) else None,
+                    in_index_scope=in_index_scope(offer),
+                    raw_json=json.dumps(raw),
+                )
+            )
         return out
