@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,8 +22,15 @@ jobs:
         run: ruff check src tests
       - name: Types
         run: mypy src/tci
-      - name: Tests (includes methodology-lock guard)
+      # Includes the methodology-lock guard, the workflow invariants, and the smoke test
+      # that runs the daily entrypoint end to end in a copy of the tree.
+      - name: Tests
         run: pytest
+      # pytest already covers this. It is repeated as its own step because it is the one
+      # result a reader of the run needs to see without opening the log: every published
+      # print recomputes from stored observations, and every published digest matches.
+      - name: Reproduce the published record
+        run: python -m tci.run reproduce --published
       - name: Database size check
         run: |
           if [ -f data/eucri.db ]; then
@@ -30,3 +40,16 @@ jobs:
               echo "::warning::eucri.db exceeds 50 MB — revisit storage strategy (plan §10)"
             fi
           fi
+
+  # The daily job is unattended shell that holds the only copy of a day's collection
+  # until it commits. Both of this repo's data-loss incidents were in that YAML, not in
+  # the Python. actionlint parses every workflow and runs shellcheck over each `run:`
+  # block, which is what catches an unquoted expansion or a broken condition before it
+  # runs at 11:00 UTC rather than after.
+  workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: actionlint
+        run: |
+          docker run --rm -v "$PWD:/repo" --workdir /repo             rhysd/actionlint:1.7.7 -color

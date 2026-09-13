@@ -215,9 +215,9 @@ tier weights, concentration cap and publication gate. The basis series is the EU
 headline minus the US series on the same day. Holding the method constant is what makes
 the spread a regional basis rather than a comparison of two methods.
 
-It is **not** the basis to the Silicon Data index on which the CME compute futures settle.
-That index's methodology is not public, and a spread against it would mix a regional
-difference with a methodological one that nobody outside can measure.
+It is **not** the basis to the index on which the CME compute futures settle. That index's
+methodology is not public, and a spread against it would mix a regional difference with a
+methodological one that nobody outside can measure.
 
 Region-flat prices are placed only where the seller itself says it sells: DigitalOcean's
 H100 is recorded once per region on its availability page, and RunPod's US row exists only

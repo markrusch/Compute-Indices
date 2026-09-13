@@ -41,7 +41,7 @@ from pathlib import Path
 
 import yaml
 
-from tci import DISCLAIMER
+from tci import DISCLAIMER, attributes, mlperf, reliability
 from tci.commands import COMPOSITE, HEADLINE, SERIES_7D
 from tci.config import (
     Factors,
@@ -807,11 +807,13 @@ def _css(prefix: str = "") -> str:
     return css.replace("{FONTS}", f"{prefix}assets/fonts/")
 
 
+def _aria_current(href: str, current: str) -> str:
+    return ' aria-current="page"' if href == current else ""
+
+
 def _masthead(ctx: SiteContext, current: str, prefix: str) -> str:
     links = "".join(
-        f'<a href="{prefix}{href}"'
-        + (' aria-current="page"' if href == current else "")
-        + f">{_e(label)}</a>"
+        f'<a href="{prefix}{href}"{_aria_current(href, current)}>{_e(label)}</a>'
         for href, label in NAV
     )
     return f"""<header class="masthead">
@@ -825,7 +827,7 @@ def _masthead(ctx: SiteContext, current: str, prefix: str) -> str:
         <span>Menu</span>
       </label>
       <nav class="nav" aria-label="Primary">{links}
-        <a href="mailto:{_e(CONTACT_EMAIL)}">Contact</a>
+        <a href="{prefix}contact.html"{_aria_current('contact.html', current)}>Contact</a>
         <a class="nav__cta" href="{prefix}index.html#indices">View Indices</a>
       </nav>
     </div>
@@ -854,6 +856,8 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <a href="{prefix}methodology.html">Methodology v{_e(ctx.version)}</a>
         <a href="{prefix}governance.html">Governance</a>
         <a href="{prefix}notices.html">Methodology notices</a>
+        <a href="{prefix}reliability.html">Reliability</a>
+        <a href="{prefix}performance.html">Price vs performance</a>
       </nav>
       <nav class="footer__nav" aria-label="Footer, data">
         <h4>Data</h4>
@@ -865,7 +869,7 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <h4>Company</h4>
         <a href="{prefix}research.html">Research</a>
         <a href="{_e(REPO_URL)}" rel="noopener">GitHub</a>
-        <a href="mailto:{_e(CONTACT_EMAIL)}">Contact</a>
+        <a href="{prefix}contact.html">Contact</a>
       </nav>
     </div>
     <div class="disclaimer">
@@ -1667,6 +1671,256 @@ def _constituents_card(ctx: SiteContext) -> str:
 </div></div>"""
 
 
+
+def _declared_card(ctx: SiteContext) -> str:
+    """What each constituent publishes about the product, beside what it charges for it.
+
+    An H100 GPU-hour from a hyperscaler and one from a marketplace are the same unit and
+    obviously not the same product. This is the part of that difference the sellers state
+    themselves. Where a seller states nothing, the cell says so: a blank would read like
+    agreement with the row above it.
+
+    A value marked as read from the product name is TCI's reading, not the seller's
+    claim. Most of the interconnect column is that, because almost nobody publishes a
+    fabric as a field, and saying "InfiniBand" about a named company on the strength of
+    three characters in a SKU is not something this project should do unmarked.
+    """
+    rows = [r for r in constituents_for(ctx.conn, HEADLINE, ctx.date) if r["included"]]
+    if not rows:
+        return ""
+    model = ctx.factors.reference_unit.gpu_model
+
+    head = "".join(f'<th scope="col">{_e(label)}</th>' for _n, label in attributes.ATTRIBUTES)
+    body = []
+    declared_cells = total_cells = 0
+    for r in rows:
+        cells = []
+        for attr in attributes.for_provider(
+            ctx.conn, ctx.date, r["provider"], r["source"], model
+        ):
+            total_cells += 1
+            if not attr.stated:
+                cells.append(f'<td class="u" title="{_e(attr.detail)}">not published</td>')
+            elif attr.provenance == attributes.DERIVED:
+                cells.append(
+                    f'<td class="u" title="{_e(attr.detail)}">{_e(attr.value)}'
+                    "<span aria-hidden=\"true\"> &#8225;</span>"
+                    '<span class="vh"> (read from the product name, not published)</span></td>'
+                )
+            else:
+                declared_cells += 1
+                cells.append(f'<td title="{_e(attr.detail)}">{_e(attr.value)}</td>')
+        body.append(
+            f'<tr><th scope="row">{_e(r["provider"])}</th>{"".join(cells)}</tr>'
+        )
+
+    pct = (declared_cells / total_cells * 100.0) if total_cells else 0.0
+    return f"""<div class="card card__body--flush">
+<div class="scroll-x">
+<table class="grid">
+  <caption class="vh">What each constituent of the {_e(ctx.date)} print declares about the
+  product behind its price</caption>
+  <thead><tr><th scope="col">Provider</th>{head}</tr></thead>
+  <tbody>{"".join(body)}</tbody>
+</table>
+</div>
+<div class="fnstrip">
+  <p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+    line-height:var(--leading-prose)">Of {total_cells} cells across the constituents of
+    this print, {declared_cells} carry something the seller publishes as a field
+    ({_num(pct, 0)}%). A value marked &#8225; is read from the product name and is this
+    index's reading rather than the seller's statement. Nothing here is inferred from a
+    neighbouring offer, and nothing here enters the calculation.</p>
+</div></div>"""
+
+
+
+def _performance(ctx: SiteContext) -> str:
+    """Cost per unit of delivered work, where two sellers have published enough to compare.
+
+    L4.2. A price per GPU-hour says nothing about what the hour delivers. MLPerf Training
+    results are the only public measurements of these sellers' machines that the sellers
+    themselves stand behind, so this joins them to the prices on this site.
+
+    The table is mostly a record of what is not there. The point of publishing it is that
+    the absence is the finding: the public-results route cannot answer the question for
+    all but one pair of sellers, and a reader deciding whether to trust a
+    cost-per-performance claim from anybody should know how thin the public evidence is.
+    """
+    # Research beside the index, not part of it. A missing or unreadable snapshot must
+    # not take the day's prints and site down with it, which is what raising here would
+    # do now that a failed output build fails the daily run.
+    try:
+        snapshot = mlperf.load()
+        rows = mlperf.table(ctx.conn, ctx.date, ctx.factors.eu_eea_countries, snapshot)
+    except (OSError, ValueError, KeyError, TypeError):
+        log.exception("performance page: MLPerf snapshot unreadable, page skipped")
+        return ""
+    if not rows:
+        return ""
+    panel = sorted(ctx.factors.panel or {})
+    absent = mlperf.missing_submitters(panel, snapshot)
+    priced = mlperf.priced_comparisons(rows)
+
+    pinned = " &#183; ".join(
+        f'{_e(repo.replace("training_results_", "MLPerf Training "))} at '
+        f'<code class="inline">{_e(commit[:10])}</code>'
+        for repo, commit in sorted(snapshot.repos.items())
+    )
+
+    comparisons = []
+    for (repo, acc, bench, n), members in priced.items():
+        cheapest = min(members, key=lambda r: r.cost_usd or 0.0)
+        dearest = max(members, key=lambda r: r.cost_usd or 0.0)
+        spread = ((dearest.cost_usd or 0.0) / (cheapest.cost_usd or 1.0))
+        fastest = min(members, key=lambda r: r.result.median_minutes)
+        slowest = max(members, key=lambda r: r.result.median_minutes)
+        time_spread = slowest.result.median_minutes / fastest.result.median_minutes
+        lines = "".join(
+            f'<tr><th scope="row">{_e(r.system.submitter)}</th>'
+            f'<td class="ta-r num">{_num(r.result.median_minutes, 1)}</td>'
+            f'<td class="ta-r num">{_num(r.price_usd_per_gpu_hr, 2)}</td>'
+            f'<td class="ta-r num strong">{_num(r.cost_usd, 2)}</td>'
+            f'<td class="u">{_e(", ".join(r.price_countries))}</td></tr>'
+            for r in sorted(members, key=lambda x: x.cost_usd or 0.0)
+        )
+        comparisons.append(
+            f"""<article class="card">
+  <div class="card__head"><div>
+    <h3 class="card__title">{_e(bench)} on {_e(n)}&#215; {_e(acc)}</h3>
+    <p class="card__sub">{_e(repo.replace("training_results_", "MLPerf Training "))}
+    &#183; each seller's own submission</p>
+  </div></div>
+  <div class="card__body card__body--flush"><div class="scroll-x">
+  <table class="grid">
+    <caption class="vh">Time to train and cost for {_e(bench)}</caption>
+    <thead><tr>
+      <th scope="col">Seller</th>
+      <th scope="col" class="ta-r">Time to train <span class="u">min</span></th>
+      <th scope="col" class="ta-r">Price <span class="u">USD/GPU&#8209;hr</span></th>
+      <th scope="col" class="ta-r">Cost of the run <span class="u">USD</span></th>
+      <th scope="col">Priced in</th>
+    </tr></thead>
+    <tbody>{lines}</tbody>
+  </table></div></div>
+  <div class="fnstrip"><p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+    line-height:var(--leading-prose)">Delivered performance differs by
+    {_num((time_spread - 1) * 100, 1)}%. The cost of the same run differs by
+    {_num(spread, 2)}&#215;. On this workload the difference between these two sellers is
+    price rather than speed.</p></div>
+</article>"""
+        )
+
+    body_rows = []
+    for r in rows:
+        price = (
+            f'<td class="ta-r num">{_num(r.price_usd_per_gpu_hr, 2)}</td>'
+            if r.price_usd_per_gpu_hr is not None
+            else '<td class="ta-r u">no EU price</td>'
+        )
+        cost = (
+            f'<td class="ta-r num">{_num(r.cost_usd, 0)}</td>'
+            if r.cost_usd is not None else '<td class="ta-r u">&#8212;</td>'
+        )
+        body_rows.append(
+            f'<tr><td>{_e(r.system.submitter)}</td>'
+            f'<td class="u">{_e(r.system.repo.replace("training_results_v", "v"))}</td>'
+            f'<td>{_e(r.result.benchmark)}</td>'
+            f'<td class="u">{_e(r.system.accelerator_model)}</td>'
+            f'<td class="ta-r num">{_e(r.system.accelerators)}</td>'
+            f'<td class="ta-r num">{_num(r.result.median_minutes, 1)}</td>'
+            f"{price}{cost}</tr>"
+        )
+
+    absent_list = ", ".join(_e(p) for p in absent) or "none"
+
+    body = f"""<main id="main"><div class="wrap">
+  <section class="pagehead">
+    <div class="eyebrow">Research</div>
+    <h1 class="pagehead__h">Price against delivered performance</h1>
+    <p class="pagehead__dek">A price per GPU-hour says nothing about what the hour
+    delivers. The only public measurements these sellers stand behind are their own MLPerf
+    Training submissions, so this puts them beside the prices published here. Most of what
+    the table shows is what is missing, and that is the result rather than a caveat.</p>
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">Where a comparison is possible</h2>
+      <p class="section__dek">Two sellers can only be divided by one another where they
+      ran the same benchmark, on the same accelerator, at the same GPU count, in the same
+      round. MLPerf revises its suite between rounds, so the same benchmark name in two
+      rounds is not the same workload. Across the {len(snapshot.repos)} rounds collected that leaves
+      {len(priced)} cell{"" if len(priced) == 1 else "s"} in which both sellers also have a
+      price here.</p></div></div>
+    <div class="stack">{"".join(comparisons) or
+      '<div class="slot"><h3 class="slot__h">No comparable cell</h3><p>No two sellers '
+      'have published a result for the same workload at the same scale.</p></div>'}</div>
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">Every submission by a seller priced here</h2>
+      <p class="section__dek">Time to train is the median of that seller's own successful
+      runs, computed from the logs it published. It is not MLCommons' official score:
+      MLCommons publishes those itself and the scoring rule varies by benchmark. Cost is
+      that time multiplied by the accelerator count and by this site's EU/EEA price for
+      that seller's matching accelerator on {_e(ctx.date)}.</p></div></div>
+    <div class="card card__body--flush"><div class="scroll-x">
+    <table class="grid">
+      <caption class="vh">MLPerf Training submissions by sellers priced on this
+      site</caption>
+      <thead><tr>
+        <th scope="col">Seller</th>
+        <th scope="col">Round</th>
+        <th scope="col">Benchmark</th>
+        <th scope="col">Accelerator</th>
+        <th scope="col" class="ta-r">GPUs</th>
+        <th scope="col" class="ta-r">Minutes</th>
+        <th scope="col" class="ta-r">USD/GPU&#8209;hr</th>
+        <th scope="col" class="ta-r">Run cost <span class="u">USD</span></th>
+      </tr></thead>
+      <tbody>{"".join(body_rows)}</tbody>
+    </table></div></div>
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">No public result</h2>
+      <p class="section__dek">These sellers are priced here and have never submitted to
+      MLPerf Training. They appear as what they are. Nothing is estimated for them, and
+      the absence is not evidence about their machines.</p></div></div>
+    <p class="section__dek"><strong>{absent_list}</strong></p>
+    <p class="section__dek">No seller priced here has ever submitted an H100 system, which
+    is the accelerator the headline index prices. Every figure above is therefore about a
+    different chip from the one the headline measures.</p>
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">What these numbers are not</h2></div></div>
+    <div class="fnstrip"><p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+      line-height:var(--leading-prose)">A submitted system is a configuration its vendor
+      tuned for the benchmark, at a node count it chose, in a region it did not have to
+      name. It is not what a customer gets by default and it is a point in time. The price
+      it is multiplied by is an on-demand EU/EEA price for a matching accelerator on one
+      date, which is a different thing bought in a different shape. A single cell is a data
+      point and not a conclusion about either seller. Source:
+      {pinned}.</p></div>
+  </section>
+</div></main>"""
+    return _shell(
+        ctx,
+        title=f"Price against delivered performance \u2014 {BRAND}",
+        description=(
+            "MLPerf Training results from sellers priced by TCI, against those prices."
+        ),
+        current="research.html",
+        canonical="performance.html",
+        body=body,
+    )
+
+
 def _quality_card(ctx: SiteContext) -> str:
     head = ctx.head
     assert head is not None
@@ -1955,6 +2209,16 @@ def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
       <a class="section__link" href="methodology.html#3-aggregation-exact-algorithm">
       How the median is taken</a></div>
     {_constituents_card(ctx)}
+  </section>
+
+  <section class="section" aria-labelledby="s-declared">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-declared">What the sellers declare</h2>
+      <p class="section__dek">The same GPU-hour from a hyperscaler and from a marketplace
+      is the same unit and not the same product. This is the part of that difference the
+      sellers state themselves, as they state it, in their own units. Where a seller
+      publishes nothing, the cell says so.</p></div></div>
+    {_declared_card(ctx)}
   </section>
 
   <section class="section" aria-labelledby="s-q">
@@ -2680,6 +2944,132 @@ def _notices(ctx: SiteContext) -> str:
     )
 
 
+
+def _reliability(ctx: SiteContext) -> str:
+    """Every session the headline failed to print, with the reason, straight from the record.
+
+    A benchmark that publishes its own failures is worth more than one that quietly has
+    none, and that only holds if the list is not curated. Every row is read from
+    `daily_index` at the latest revision of each (date, series). There is no hand-written
+    entry and no way to add one: a gap later corrected into a print leaves this page, and
+    a print later withdrawn into a gap joins it.
+
+    The headline gets the dated list. The other series get counts, because a class series
+    drawing on a population that has never reached five providers would otherwise
+    contribute one identical row per session and bury the sessions that mean something.
+    """
+    gaps = reliability.gap_log(ctx.conn)
+    history = series_history(ctx.conn, HEADLINE)
+    printed = [p for p in history if p.value is not None]
+    sessions = len(history)
+    rate = (len(printed) / sessions * 100.0) if sessions else 0.0
+    recent = history[-30:]
+    recent_printed = [p for p in recent if p.value is not None]
+
+    # The current unbroken run, counted back from the newest session.
+    streak = 0
+    for point in reversed(history):
+        if point.value is None:
+            break
+        streak += 1
+
+    rows = []
+    for g in (g for g in gaps if g.series == HEADLINE):
+        marker = (
+            '<td class="u">revised since</td>' if g.corrected else '<td class="u">&#8212;</td>'
+        )
+        reason = g.reason
+        rows.append(
+            f'<tr><td class="num">{_e(_human_date(g.date))}</td>'
+            f"<td>{_e(reason)}</td>"
+            f"{marker}"
+            f'<td class="ta-r u">v{_e(g.methodology_version)}</td></tr>'
+        )
+    table = (
+        f"""<div class="card card__body--flush"><div class="scroll-x">
+<table class="grid">
+  <caption class="vh">Every {_e(display_series(HEADLINE))} session that did not print,
+  newest first</caption>
+  <thead><tr>
+    <th scope="col">Session</th>
+    <th scope="col">Why it did not print</th>
+    <th scope="col">Status</th>
+    <th scope="col" class="ta-r">Methodology</th>
+  </tr></thead>
+  <tbody>{"".join(rows)}</tbody>
+</table></div></div>"""
+        if rows
+        else '<div class="slot"><h3 class="slot__h">No gaps</h3><p>Every session in the '
+             "record produced a headline print.</p></div>"
+    )
+
+    # One row per other series: how often it gapped, and whether it has ever printed.
+    others = []
+    for series in sorted({g.series for g in gaps} - {HEADLINE}):
+        hist = series_history(ctx.conn, series)
+        n_gaps = sum(1 for g in gaps if g.series == series)
+        ever = any(p.value is not None for p in hist)
+        state = "prints intermittently" if ever else "has never printed"
+        others.append(
+            f"<tr><td>{_e(display_series(series))}</td>"
+            f'<td class="ta-r num">{n_gaps}</td>'
+            f'<td class="ta-r num">{len(hist)}</td>'
+            f'<td class="u">{state}</td></tr>'
+        )
+
+    body = f"""<main id="main"><div class="wrap">
+  <section class="pagehead">
+    <div class="eyebrow">Governance</div>
+    <h1 class="pagehead__h">Reliability</h1>
+    <p class="pagehead__dek">A session in which too few providers qualify publishes
+    nothing, with the reason recorded against the date. It is never filled in later from a
+    neighbouring day, and an older print is never shown as current. Every such session is
+    listed below. The page is generated from <a href="data.html">the database</a> on each
+    run, so the list cannot be curated.</p>
+  </section>
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">{_e(display_series(HEADLINE))}</h2>
+      <p class="section__dek">{len(printed)} of {sessions} sessions printed since the
+      series began, {_num(rate, 1)}%. Over the last {len(recent)} sessions,
+      {len(recent_printed)} printed. The current unbroken run is
+      {streak} {"session" if streak == 1 else "sessions"}.</p>
+    </div></div>
+    {table}
+  </section>
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">The other series</h2>
+      <p class="section__dek">A class or segment series draws on a narrower population
+      than the headline and reaches the same five-provider gate less often. A series that
+      has never printed is not a fault in the pipeline: it is a population that is not yet
+      deep enough to price, and it stays published as a gap until it is.</p>
+    </div></div>
+    <div class="card card__body--flush"><div class="scroll-x">
+    <table class="grid">
+      <caption class="vh">Gaps by series</caption>
+      <thead><tr>
+        <th scope="col">Series</th>
+        <th scope="col" class="ta-r">Gaps</th>
+        <th scope="col" class="ta-r">Sessions</th>
+        <th scope="col">State</th>
+      </tr></thead>
+      <tbody>{"".join(others)}</tbody>
+    </table></div></div>
+  </section>
+</div></main>"""
+    return _shell(
+        ctx,
+        title=f"Reliability — {BRAND}",
+        description=(
+            "Every session TCI did not print, with the reason, generated from the record."
+        ),
+        current="governance.html",
+        canonical="reliability.html",
+        body=body,
+    )
+
+
 def _governance(ctx: SiteContext) -> str:
     doc = markdown.render(_rebrand_doc(_read(REPO_ROOT / "GOVERNANCE.md")), heading_offset=1)
     preconds = _preconditions(ctx)
@@ -2793,6 +3183,9 @@ def _data(ctx: SiteContext) -> str:
         ("Print files", "One file per print date: every series, its full constituent audit "
          "set, and a digest of exactly that content.", f"data/prints/{ctx.date}.json",
          "View today's file"),
+        ("Series API", "data/v1/ — one file per series with its whole history and a "
+         "digest per session, plus a catalogue of what is published.", "data/v1/index.json",
+         "View catalogue"),
         ("Source code", "The generator, the collectors and the calculation — Apache-2.0, "
          "so any print here can be rebuilt independently.", REPO_URL, "Open repository"),
     )
@@ -2841,6 +3234,38 @@ def _data(ctx: SiteContext) -> str:
     </div>
     <p class="section__dek">Today's headline digest:
     <code class="inline" style="word-break:break-all">{_e(digest_full or "no print")}</code></p>
+  </section>
+
+  <section class="section" aria-labelledby="s-api">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-api">One series, every session</h2>
+      <p class="section__dek"><code class="inline">data/v1/index.json</code> lists every
+      series with its first and last session and how many of them printed. Each entry
+      points at a file holding that series' whole history, one row per session, with the
+      same sha256 digest the print file for that date publishes. A session that did not
+      print is a row with a null value and the reason in
+      <code class="inline">flags</code>, never an absent row, so a reader cannot skip over
+      a gap without noticing it. The shape is versioned: a breaking change goes to
+      <code class="inline">v2</code> and leaves <code class="inline">v1</code>
+      served.</p></div></div>
+    <div class="term">
+      <div class="term__chrome" aria-hidden="true"><i></i><i></i><i></i>
+        <span class="term__name">v1</span></div>
+      <div class="term__body">
+        <div class="term__c"># what is published</div>
+        <div>curl -s ./data/v1/index.json | jq '.series[].series'</div>
+        <div class="term__c"># the headline over a date range</div>
+        <div>curl -s ./data/v1/series/{HEADLINE}.json |</div>
+        <div>&#160;&#160;jq '[.points[] | select(.date &gt;= "2026-09-01")]'</div>
+        <div class="term__c"># verify one session's digest from the print file</div>
+        <div>curl -s ./data/prints/{_e(ctx.date)}.json |</div>
+        <div>&#160;&#160;jq -jcS '.series["{HEADLINE}"] | del(.digest)' | sha256sum</div>
+      </div>
+    </div>
+    <p class="section__dek">The digest is a sha256 over the print's canonical form: the
+    same object the print file publishes, with <code class="inline">digest</code> removed,
+    keys sorted, no whitespace, every number a six-decimal string. That is the whole
+    definition, and it needs none of this project's code to check.</p>
   </section>
 
   <section class="section" aria-labelledby="s-ids">
@@ -3114,7 +3539,7 @@ def _basis(ctx: SiteContext) -> str:
     <h1 class="pagehead__h pagehead__h--display">What a European buyer carries when the
     hedge is priced in the US.</h1>
     <p class="pagehead__dek">CME Group plans to list compute futures on 5 October 2026,
-    pending regulatory review, that settle in cash on Silicon Data's H100 and B200 rental
+    pending regulatory review, that settle in cash on third-party H100 and B200 rental
     indices. A European buyer who hedges with them is exposed to the
     difference between what the EU/EEA population of sellers charges and what the
     reference population charges. {_nbsp_series(BASIS_SERIES)} is that difference for one
@@ -3154,7 +3579,7 @@ def _basis(ctx: SiteContext) -> str:
       median over offers, trim, tier weights, concentration cap and publication gate. Only
       the region differs, which is what makes the spread a regional basis rather than a
       comparison of two methods.</p></div></div>
-    <div class="md"><p>It is <strong>not</strong> the basis to the Silicon Data index the
+    <div class="md"><p>It is <strong>not</strong> the basis to the index the
     CME contracts settle on. That index's methodology is not public, and a spread against
     it would mix a regional difference with a methodological one that nobody outside can
     measure. What is published here is the regional part, with the method held
@@ -3627,6 +4052,75 @@ def _research_note(ctx: SiteContext, note: Note) -> str:
     )
 
 
+def _contact(ctx: SiteContext) -> str:
+    """A form beside the mailto link, not instead of it.
+
+    The form posts to /api/contact, a Vercel serverless function (see site/api/contact.js).
+    The GitHub Pages mirror has no serverless functions, so that POST 404s there -- same
+    situation as _ANALYTICS, which stays inert on that mirror rather than needing a second
+    build. The mailto line under the form is what keeps contact working on that mirror.
+
+    No script anywhere on the page: the success and error banners are plain elements shown
+    by :target (site.css .banner-target) when /api/contact redirects to #sent or #error,
+    and the required attributes on email/message are native HTML, not JS validation.
+    """
+    body = f"""<main class="wrap" id="main">
+  <div id="sent" class="card banner-target" role="status">
+    <div class="card__body"><span class="chip chip--good"><span>Sent</span></span>
+    <p style="margin-top:var(--space-3)">Thanks — that's in my inbox now. I read every
+    message and reply from there.</p></div>
+  </div>
+  <div id="error" class="card banner-target" role="alert">
+    <div class="card__body"><span class="chip chip--critical"><span>Not sent</span></span>
+    <p style="margin-top:var(--space-3)">That didn't go through. Email
+    <a href="mailto:{_e(CONTACT_EMAIL)}">{_e(CONTACT_EMAIL)}</a> directly instead.</p></div>
+  </div>
+
+  <div class="pagehead">
+    <div class="eyebrow">Contact</div>
+    <h1 class="pagehead__h pagehead__h--display">Get in touch.</h1>
+    <p class="pagehead__dek">A methodology question, a source to flag, a licensing
+    request — write below and it goes straight to my inbox. Leave an address I can reach
+    you at; I reply from there.</p>
+  </div>
+
+  <section class="section">
+    <form class="stack" action="/api/contact" method="post" style="max-width:480px">
+      <div class="hp-trap" aria-hidden="true">
+        <label for="website">Leave this blank</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+      <div class="field field--wide">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" autocomplete="name">
+        <span class="hint">Optional.</span>
+      </div>
+      <div class="field field--wide">
+        <label for="email">Your email</label>
+        <input type="email" id="email" name="email" autocomplete="email" required>
+      </div>
+      <div class="field field--wide">
+        <label for="message">Message</label>
+        <textarea id="message" name="message" required></textarea>
+      </div>
+      <div><button class="btn btn--primary" type="submit">Send</button></div>
+    </form>
+    <p style="margin-top:var(--space-6)">Prefer email directly? Write to
+    <a href="mailto:{_e(CONTACT_EMAIL)}">{_e(CONTACT_EMAIL)}</a>.</p>
+  </section>
+</main>"""
+    return _shell(
+        ctx,
+        title=f"Contact — {BRAND}",
+        description=(
+            "Reach TCI directly: methodology questions, a source to flag, or a "
+            "licensing request."
+        ),
+        current="contact.html",
+        body=body,
+    )
+
+
 # ==========================================================================
 # entry point
 # ==========================================================================
@@ -3744,11 +4238,18 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         (SITE_DIR / "data.html", _data(ctx)),
         (SITE_DIR / "governance.html", _governance(ctx)),
         (SITE_DIR / "notices.html", _notices(ctx)),
+        (SITE_DIR / "reliability.html", _reliability(ctx)),
+        (SITE_DIR / "performance.html", _performance(ctx)),
         (SITE_DIR / "research.html", _research_index(ctx, notes)),
+        (SITE_DIR / "contact.html", _contact(ctx)),
     ]
     pages += [
         (SITE_DIR / "research" / f"{n.slug}.html", _research_note(ctx, n)) for n in notes
     ]
+
+    # A builder that returns nothing has decided it has nothing to publish today. Writing
+    # its empty string would replace a good page with a blank one.
+    pages = [(path, html_text) for path, html_text in pages if html_text]
 
     written = []
     for path, html_text in pages:

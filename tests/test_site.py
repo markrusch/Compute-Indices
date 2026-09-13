@@ -14,9 +14,29 @@ from tci import db
 from tci.outputs import site, webdata
 from tests.conftest import insert_run
 
-PAGES = (
-    "index.html", "methodology.html", "data.html", "governance.html", "research.html",
+# Asserting the site publishes what it is supposed to publish is the one place a list
+# belongs, because the point is completeness. Every other test derives the list from what
+# was written, so an invariant covers a new page the day it exists.
+EXPECTED_PAGES = (
+    "index.html", "basis.html", "term.html", "methodology.html", "data.html",
+    "governance.html", "notices.html", "reliability.html", "performance.html",
+    "research.html", "contact.html",
 )
+
+
+def pages_in(built: Path) -> list[str]:
+    """Every top-level page `site.generate` actually wrote.
+
+    This was a hand-kept tuple of five names, and the site had grown to nine: basis,
+    term, notices and reliability were all being published without anything checking
+    them for the invariant below. Deriving it means a new page is covered the day it
+    exists rather than the day somebody remembers to add it here. 404.html is excluded —
+    it is written after the page list on purpose and is noindex.
+    """
+    return sorted(
+        p.name for p in built.glob("*.html")
+        if p.name not in ("404.html", "components.html")
+    )
 
 
 def _print(
@@ -218,8 +238,11 @@ def built(conn, tmp_path, monkeypatch) -> Path:
 
 
 def test_generate_writes_every_page(built):
-    for name in PAGES:
+    for name in EXPECTED_PAGES:
         assert (built / name).exists(), name
+    assert set(pages_in(built)) == set(EXPECTED_PAGES), (
+        "a page was added or removed without updating EXPECTED_PAGES"
+    )
     assert (built / "research" / "a-note.html").exists()
 
 
@@ -231,7 +254,9 @@ def test_pages_are_self_contained(built):
     a Google Fonts <link> would be the site's only off-origin request and would hand every
     visitor's IP to a third party.
     """
-    for name in PAGES:
+    names = pages_in(built)
+    assert len(names) >= 8, f"fewer pages than expected, is generate() failing? {names}"
+    for name in names:
         html = (built / name).read_text(encoding="utf-8")
         assert '<link rel="stylesheet"' not in html
         assert not re.search(r"@import\s+(url\(|[\"'])", html)
@@ -249,7 +274,9 @@ def test_pages_are_self_contained(built):
 
     # The absolute URLs in the markup are the canonical and card metadata only. They are
     # <meta>/<link> values that a crawler resolves, never anything the browser fetches.
-    for name in PAGES:
+    names = pages_in(built)
+    assert len(names) >= 8, f"fewer pages than expected, is generate() failing? {names}"
+    for name in names:
         html = (built / name).read_text(encoding="utf-8")
         body = html.split("</head>", 1)[1]
         assert "thecomputeindices.com" not in body, f"{name}: absolute URL escaped the head"
@@ -272,7 +299,9 @@ def test_font_urls_resolve_from_the_page_that_inlines_them(built):
 
 
 def test_pages_carry_one_h1_and_a_current_nav_marker(built):
-    for name in PAGES:
+    names = pages_in(built)
+    assert len(names) >= 8, f"fewer pages than expected, is generate() failing? {names}"
+    for name in names:
         html = (built / name).read_text(encoding="utf-8")
         body = html.split("</style>", 1)[1]  # the CSS mentions the attribute in a selector
         assert body.count("<h1") == 1, name
@@ -294,7 +323,7 @@ def test_single_theme_contract_is_present_on_every_page(built):
         and scrollbars match rather than painting white;
       * nothing anywhere reacts to prefers-color-scheme, and no data-theme stamp survives.
     """
-    for name in PAGES:
+    for name in pages_in(built):
         page = (built / name).read_text(encoding="utf-8")
         assert "background: var(--page)" in page
         assert "color-scheme: dark" in page
@@ -384,7 +413,7 @@ def test_mobile_nav_is_operable_without_javascript(built):
     removing the input from the tab order and making the nav keyboard-only
     unreachable on a phone. It has to be invisible AND focusable.
     """
-    for name in PAGES:
+    for name in pages_in(built):
         page = (built / name).read_text(encoding="utf-8")
         body = page.split("</style>", 1)[1]
         assert '<input type="checkbox" id="navtoggle"' in body, name
@@ -587,3 +616,50 @@ def test_note_without_a_rule_only_loses_its_h1():
 
 def test_note_without_an_h1_is_untouched():
     assert site._strip_note_masthead("## One\n\ntext\n") == "## One\n\ntext\n"
+
+
+def test_the_reliability_page_lists_the_gaps_from_the_record(built):
+    """L3.2: generated from stored prints, with no hand-written entry possible."""
+    html = (built / "reliability.html").read_text(encoding="utf-8")
+    body = html.split("</style>", 1)[1]
+    # The fixture stores one H200 gap and no headline gap.
+    assert "TCI-CRI-H200" in body
+    assert "Reliability" in body
+
+
+def test_the_reliability_page_never_invents_a_reason(built, conn):
+    """A flag nobody has written words for is published as the flag, not as a guess."""
+    from tci import reliability
+
+    g = reliability.Gap("2026-08-16", "EU-CRI-H100", "a_flag_from_the_future", 1, "0.6.0")
+    assert g.reason == "a_flag_from_the_future"
+
+
+def test_the_reliability_page_is_reachable(built):
+    """A page linked from nowhere is components.html, and that one is Disallowed."""
+    index = (built / "index.html").read_text(encoding="utf-8")
+    assert 'href="reliability.html"' in index
+    sitemap = (built / "sitemap.xml").read_text(encoding="utf-8")
+    assert "reliability.html" in sitemap
+
+
+def test_a_page_builder_that_returns_nothing_writes_no_file(built, monkeypatch, conn):
+    """The performance page reads a snapshot that could be missing. Writing its empty
+    string would replace a good page with a blank one, which is worse than skipping it."""
+    monkeypatch.setattr(site, "_performance", lambda ctx: "")
+    (built / "performance.html").write_text("previous good page", encoding="utf-8")
+    site.generate(conn)
+    assert (built / "performance.html").read_text(encoding="utf-8") == "previous good page"
+
+
+def test_the_performance_page_survives_a_missing_mlperf_snapshot(built, monkeypatch, conn):
+    """Research beside the index must never take the day's prints down with it, now that
+    a failed output build fails the daily run."""
+    from tci import mlperf
+
+    def boom(*_a, **_k):
+        raise FileNotFoundError("no snapshot")
+
+    monkeypatch.setattr(mlperf, "load", boom)
+    site.generate(conn)  # must not raise
+    assert (built / "index.html").exists()

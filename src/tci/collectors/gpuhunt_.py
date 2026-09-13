@@ -13,9 +13,24 @@ Until 2026-09-11 only aws/azure/gcp H100 rows were collected; the other four pro
 and four classes were added so their history starts accumulating before any version
 admits them (see config/notices.yaml).
 
-A caveat recorded rather than hidden: for some providers gpuhunt builds the catalog as
-every instance type times every location (verda does this explicitly), so a location in
-the catalog is where the provider sells, not proof that stock existed there that day.
+A caveat recorded rather than hidden: gpuhunt's own upstream provider code (not this
+file) fabricates the catalog for three of these four providers as every instance type
+times every location it can enumerate, with no per-location availability signal at all.
+Verified by reading gpuhunt's installed source, 2026-09-12:
+  - verda: `itertools.product(spots, location_codes, instance_types)` -- every instance
+    crossed with every one of Verda's own listed locations.
+  - lambdalabs: `add_regions()` crosses every instance type with every region returned by
+    Lambda's images API, with a `# TODO: we don't know which regions are actually
+    available for each instance type` admission in the source.
+  - oci: `_duplicate_item_in_regions()` crosses every bare-metal shape with every OCI
+    commercial region worldwide, regardless of where that GPU shape is actually racked.
+  - nebius is the one exception: its provider queries `list_platforms()` per region
+    through Nebius's own billing/compute API, so a (platform, region) pair here reflects
+    what Nebius's control plane actually reports for that region, not an enumeration.
+So a Lambda or OCI or Verda row's `location` is where the provider operates at all, not
+proof that specific instance type is stocked or even sold there -- for Lambda and OCI
+this is the vendor's own default assumption in the absence of data, not a documented
+availability fact. A Nebius row's location is closer to a real claim.
 
 The collector is global and always has been: the package downloads whole catalogs and
 queries them locally, so the request cost does not change with how many regions we keep.

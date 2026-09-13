@@ -80,6 +80,111 @@ def _cmd_reproduce(args: argparse.Namespace) -> int:
     return 1 if bad else 0
 
 
+def _cmd_effect(args: argparse.Namespace) -> int:
+    """Recompute one date under two methodology versions and report the difference."""
+    from tci import db, version_effect
+
+    try:
+        effects = version_effect.compare(
+            db.connect(), args.date, args.before, args.after, args.series
+        )
+    except KeyError as exc:
+        print(exc.args[0])
+        return 2
+    print(version_effect.render(effects, args.date, args.before, args.after))
+    return 0
+
+
+def _cmd_mlperf(args: argparse.Namespace) -> int:
+    """MLPerf Training results by sellers TCI prices, against TCI's EU/EEA price."""
+    from datetime import UTC, datetime
+
+    from tci import db, mlperf
+    from tci.config import load_factors
+
+    if args.refresh:
+        snapshot = mlperf.fetch(list(args.round or mlperf.DEFAULT_ROUNDS),
+                                frozenset(mlperf.SUBMITTER_TO_PROVIDER))
+        path = mlperf.save(snapshot)
+        print(f"{len(snapshot.systems)} systems, {len(snapshot.results)} results -> {path}")
+        for repo, commit in sorted(snapshot.repos.items()):
+            print(f"  {repo} pinned at {commit}")
+        return 0
+
+    date = args.date or datetime.now(UTC).strftime("%Y-%m-%d")
+    conn = db.connect()
+    factors = load_factors(for_date=date)
+    print(mlperf.render(mlperf.table(conn, date, factors.eu_eea_countries), date))
+    return 0
+
+
+def _cmd_term(args: argparse.Namespace) -> int:
+    """The term tables for one date: every pooled cell, and how far each is from
+    publishing. Roadmap L5.3: "re-check quarterly whether any tenor has reached three
+    sellers" — this is that check, run on demand instead of by ad-hoc query."""
+    from tci import db
+    from tci.outputs.webdata import term_dates, term_tables
+
+    conn = db.connect()
+    date = args.date
+    if date is None:
+        dates = term_dates(conn)
+        if not dates:
+            print("no term-priced observations stored yet")
+            return 1
+        date = dates[-1]
+    tables = term_tables(conn, date)
+    cells = tables["cells"]
+    published = [c for c in cells if c["published"]]
+    print(f"term cells for {date} ({tables['note']})")
+    print()
+    width = max((len(c["gpu_model"]) for c in cells), default=10)
+    for c in sorted(cells, key=lambda c: (-c["n_sellers"], c["gpu_model"], c["tenor_months"])):
+        mark = "PUBLISHED" if c["published"] else f"{c['n_sellers']} of 3"
+        ratio = f"median {c['median_ratio']}" if c["published"] else ""
+        print(f"  {c['gpu_model']:<{width}}  {c['tenor_months']:>3}mo  {mark:<10}"
+              f"  sellers={','.join(c['sellers'])}  {ratio}")
+    print()
+    print(f"{len(published)} of {len(cells)} cells published (>= 3 sellers)")
+    close = [c for c in cells if not c["published"] and c["n_sellers"] == 2]
+    if close:
+        print(f"{len(close)} cell(s) one seller away from publishing:")
+        for c in close:
+            sellers = ', '.join(c['sellers'])
+            print(f"  {c['gpu_model']} / {c['tenor_months']}mo needs one more; has {sellers}")
+    if tables["stale_schedules"]:
+        print(f"stale published schedules (past max_age_days): {tables['stale_schedules']}")
+    return 0
+
+
+def _cmd_reliability(args: argparse.Namespace) -> int:
+    """Where the record gapped, and how close a series is to its gate."""
+    from tci import db, reliability
+    from tci.config import load_factors
+
+    conn = db.connect()
+    if args.coverage:
+        days = reliability.coverage(conn, args.coverage, args.days)
+        print(reliability.render_coverage(
+            args.coverage, days, load_factors().methodology_version
+        ))
+        return 0
+    print(reliability.render_gaps(reliability.gap_log(conn, args.series), args.limit))
+    return 0
+
+
+def _cmd_canary(args: argparse.Namespace) -> int:
+    """Live collection into a throwaway database. Exit 1 if a source stopped reporting."""
+    from tci import canary
+
+    results = canary.run(frozenset(args.source) if args.source else None)
+    if not results:
+        print(f"no such source: {', '.join(args.source or [])}")
+        return 2
+    print(canary.render(results))
+    return 1 if any(r.broken for r in results) else 0
+
+
 def _cmd_contrib(args: argparse.Namespace) -> int:
     """Contributed term prices: validate a file, ingest it privately, or aggregate.
 
@@ -164,6 +269,45 @@ def main(argv: list[str] | None = None) -> int:
                        help="also check site/data/prints/*.json and latest.json digests")
     p_rep.add_argument("--verbose", action="store_true", help="print MATCH lines too")
 
+    p_term = sub.add_parser(
+        "term", help="term-price cells for one date, and how close each is to publishing"
+    )
+    p_term.add_argument("--date", help="YYYY-MM-DD (default: the latest term-priced date)")
+
+    p_rel = sub.add_parser(
+        "reliability", help="the record's gaps, and how close a series is to its gate"
+    )
+    p_rel.add_argument("--series", help="gap log for one series only")
+    p_rel.add_argument("--coverage", metavar="SERIES",
+                       help="replay the gate for this series over stored observations")
+    p_rel.add_argument("--days", type=int, default=21, help="sessions to replay (default 21)")
+    p_rel.add_argument("--limit", type=int, default=40, help="gaps to list (default 40)")
+
+    p_eff = sub.add_parser(
+        "effect",
+        help="recompute one date under two methodology versions and show the difference",
+    )
+    p_eff.add_argument("--date", required=True, help="the print date to recompute")
+    p_eff.add_argument("--before", required=True, help="methodology version, e.g. 0.4.0")
+    p_eff.add_argument("--after", required=True, help="methodology version, e.g. 0.5.0")
+    p_eff.add_argument("--series", help="one series only")
+
+    p_ml = sub.add_parser(
+        "mlperf", help="MLPerf Training results by sellers TCI prices, against TCI's price"
+    )
+    p_ml.add_argument("--date", help="price date (default: today UTC)")
+    p_ml.add_argument("--refresh", action="store_true",
+                      help="re-fetch from MLCommons and move the pinned commits")
+    p_ml.add_argument("--round", action="append",
+                      help="results repository to fetch (repeatable, with --refresh)")
+
+    p_can = sub.add_parser(
+        "canary",
+        help="collect from every live source into a throwaway db; report what stopped reporting",
+    )
+    p_can.add_argument("--source", action="append",
+                       help="check only this source (repeatable)")
+
     p_con = sub.add_parser(
         "contrib", help="contributed term prices: validate, ingest privately, aggregate"
     )
@@ -188,6 +332,16 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_sources(args)
     if args.command == "reproduce":
         return _cmd_reproduce(args)
+    if args.command == "canary":
+        return _cmd_canary(args)
+    if args.command == "reliability":
+        return _cmd_reliability(args)
+    if args.command == "mlperf":
+        return _cmd_mlperf(args)
+    if args.command == "effect":
+        return _cmd_effect(args)
+    if args.command == "term":
+        return _cmd_term(args)
     if args.command in {"daily", "constituents", "backfill", "weights", "validate", "post"}:
         from tci import commands
 

@@ -1,0 +1,67 @@
+name: canary
+
+# Collect from every live source, store nothing, report what stopped reporting.
+#
+# The daily run is fail-soft on purpose: a source that reshapes its page yields nothing,
+# the run continues, and the print survives on the remaining constituents or gaps with a
+# reason. That is right at 11:00 UTC and a poor way to find out. CoreWeave added a
+# JSON-LD block to its pricing page on 12 September 2026 and the first sign of it was a
+# failed collector in the morning's committed database.
+#
+# Not on a schedule. SOURCES.md commits TCI to one request per source per day, and a
+# canary running beside the daily job would quietly make that two. It runs when a change
+# is proposed to the code that reads those pages, and when somebody asks for it.
+
+on:
+  pull_request:
+    paths:
+      - "src/tci/collectors/**"
+      - "src/tci/vendor/**"
+      - "config/source_registry.yaml"
+      - ".github/workflows/canary.yml"
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "One source id to check (blank = all)"
+        required: false
+        type: string
+
+concurrency:
+  group: canary-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    # A source can be down for reasons that have nothing to do with the change under
+    # review. This reports; it does not block a merge on somebody else's outage.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install -e .
+      - name: Collect live, into a throwaway database
+        id: canary
+        env:
+          SOURCE: ${{ inputs.source }}
+        run: |
+          ARGS=""
+          if [ -n "$SOURCE" ]; then ARGS="--source $SOURCE"; fi
+          python -m tci.run canary $ARGS 2>&1 | tee canary.txt
+          exit "${PIPESTATUS[0]}"
+      - name: Report
+        if: always()
+        run: |
+          {
+            echo "### Live source check"
+            echo
+            echo '```'
+            tail -40 canary.txt 2>/dev/null || echo "the canary produced no output"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -214,6 +214,11 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
 .chip--neutral  { color: var(--status-neutral-ink);  background: var(--status-neutral-bg);
                   border-color: var(--rule-heavy); }
 
+/* Shown only when the URL fragment matches the element's own id -- the redirect target
+   after a plain (no-JS) form POST picks which one lights up. No script either way. */
+.banner-target { display: none; margin-bottom: var(--space-7); }
+.banner-target:target { display: block; }
+
 /* Tier badges. site.py emits badge--l1/l2/l3 ("L" for the ordinal Level the
    constituents table prints); v1.0 defined only badge--t1/t2/t3, so seven
    badges per print rendered unstyled on the live site and every --tier-*
@@ -864,18 +869,28 @@ code.inline { background: var(--surface-inset);
 .field label { font-family: var(--font-mono); font-size: var(--text-3xs); color: var(--ink-3);
                text-transform: uppercase; letter-spacing: var(--tracking-wide);
                font-weight: var(--weight-semibold); }
-.field input { font-family: var(--font-sans); font-size: var(--text-base); color: var(--ink-1);
+.field input, .field textarea {
+               font-family: var(--font-sans); font-size: var(--text-base); color: var(--ink-1);
                background: transparent; border: var(--border-hairline) solid var(--rule-heavy);
                border-radius: var(--radius-sm); padding: 10px var(--space-5);
                transition: border-color var(--dur-fast) var(--ease); }
 .field input.mono { font-family: var(--font-mono); }
-.field input::placeholder { color: var(--ink-faint); }
-.field input:hover { border-color: var(--ink-3); }
-.field input:focus-visible { border-color: var(--ink-1);
+.field input::placeholder, .field textarea::placeholder { color: var(--ink-faint); }
+.field input:hover, .field textarea:hover { border-color: var(--ink-3); }
+.field input:focus-visible, .field textarea:focus-visible {
+                             border-color: var(--ink-1);
                              outline: var(--focus-width) solid var(--focus-ring);
                              outline-offset: 1px; }
 .field .hint { font-size: var(--text-2xs); color: var(--ink-3); text-transform: none;
                letter-spacing: 0; }
+.field--wide { max-width: 480px; }
+.field textarea { resize: vertical; min-height: 8em; font-family: inherit; }
+
+/* Honeypot: off-screen and unreachable by keyboard or screen reader, unlike .vh
+   (which stays in the accessibility tree on purpose for real captions). A human never
+   reaches this field; a bot that fills every input in the DOM does. */
+.hp-trap { position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px;
+           overflow: hidden; }
 
 /* ==========================================================================
    FOOTER — the brand guide's four-column link grid, then the legal block

@@ -43,7 +43,7 @@ notices:
       gaps with it. That is stated here so a gap is not read as an outage.
     body: |
       **Why.** CME Group plans to list compute futures on 5 October 2026, pending
-      regulatory review, that settle in cash on Silicon Data's H100 and B200 rental
+      regulatory review, that settle in cash on third-party H100 and B200 rental
       indices. A European buyer who hedges with them carries a basis: the difference
       between what the EU/EEA population of sellers charges and what the reference
       population charges. Nobody publishes that difference.
@@ -56,7 +56,7 @@ notices:
       at the day's FX. A day on which either leg gaps is a gap in the basis, with the
       reason; the basis is never computed against a carried-forward leg.
 
-      **What it is not.** It is not the basis to the Silicon Data index behind the CME
+      **What it is not.** It is not the basis to the index behind the CME
       contracts. That index's methodology is not public, and a spread against it would
       mix a regional difference with a methodological one that nobody outside can
       measure. This series measures the regional part, with the method held constant.

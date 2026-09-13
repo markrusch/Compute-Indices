@@ -3,6 +3,231 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## L5.3: Latitude's prepaid-annual price, and a term-schedule review — 2026-09-12 — no methodology change
+
+- **`src/tci/collectors/latitude_annual.py`.** Latitude.sh's flight-JSON publishes an
+  {hour, month, year} price triple; the vendored recipe turns `hour` and `month` into
+  on-demand and 1-month-commit rows and discards `year` into its own loop's `_year_s`.
+  This reads the same already-fetched page a second time for that field, reusing the
+  vendored module's regex constants (import only — nothing under `vendor/computable/` is
+  edited) and stores it as a `reserved_1yr` row through the ordinary pipeline. One fetch,
+  not two: `computable_sources._fetch_latitude` hands the one HTML body to both parsers,
+  so this costs no extra request to latitude.sh.
+- **Checked live before trusting the number.** `month` is consistently `hour × 365` (a
+  flat ~50% saving against the 730-hour month the vendored recipe already assumes) and
+  `year` is consistently `month × 12 × 0.70` to four decimal places, across every plan and
+  region checked — a materially deeper discount for the longer commitment, the expected
+  direction. The per-GPU-hour conversion extends the recipe's own `HOURS_PER_MONTH`
+  convention to a year (×12 = 8760h) rather than inventing an unrelated constant.
+- **Found while implementing: a real test-isolation bug, fixed before it shipped.** The
+  first version fetched through a `fetch` name imported directly into
+  `computable_sources.py`, invisible to the `monkeypatch.setattr(module, "fetch", ...)`
+  every test in this suite already uses to stay offline — so the test suite was silently
+  reaching latitude.sh's live page on every run instead of the fixture. Fetching through
+  `latitude_module.fetch` instead (the vendored module's own name for the same function)
+  puts it back under the existing patch, with a test that asserts it directly.
+- **`python -m tci.run term`.** The term cells for one date against the 3-seller
+  threshold, and which cells are one seller away — the tool roadmap L5.3's "re-check
+  quarterly whether any tenor has reached three sellers" had no tool for; today's data:
+  0 of 64 cells published, 10 one seller short.
+- **`config/term_schedules.yaml`: every other panel provider checked for a published
+  discount schedule, on the same review.** None qualified. OVHcloud and Scaleway
+  explicitly exclude GPUs from their general savings plans; RunPod, Nebius and Hetzner
+  publish no percentage schedule at all; DigitalOcean publishes concrete 12-month reserved
+  prices (a real gap, noted for a future Latitude-annual-shaped adapter, not attempted
+  here). vast.ai does publish one ("20% off at 1 month, 30% at 3, 40% at 6") but is a
+  marketplace whose own article states the schedule is a default individual hosts vary —
+  applying it to every vast.ai row would state, as one host's fact, a number that host may
+  not have set. Recorded in the config file so the next quarterly check does not re-cover
+  the same ground.
+- CoreWeave's two continent labels ("NORTH AMERICA" / "EUROPE") are now mapped to a
+  representative country each (NO / US) on Mark's explicit instruction, given directly
+  after a source-by-source data-trust audit flagged the gap: without a country, CoreWeave
+  could never become eligible for the EU/EEA or US population no matter what a future
+  version admitted. Norway was chosen because it is a confirmed CoreWeave location and is
+  EEA — a block marker, not a claim about any specific row's actual site. Moves nothing:
+  CoreWeave remains off the panel. One material fact surfaced while implementing it:
+  CoreWeave's stated European capacity includes non-EEA UK, so "EUROPE" is not a synonym
+  for "EU/EEA" here.
+- The gpuhunt docstring previously named only Verda as fabricating a full
+  instance-times-region catalogue. Reading gpuhunt's installed provider code found Lambda
+  and OCI do the identical thing (Lambda's own code admits `# TODO: we don't know which
+  regions are actually available for each instance type`); Nebius is the one provider
+  whose region data comes from a real per-region API call. No code change — the docstring
+  now names what each provider's data actually is.
+
+## Contact form and self-hosted traffic logging — 2026-09-12 — no methodology change
+
+- **`contact.html`, `site/api/contact.js`.** A form beside the mailto link, not instead
+  of it: posts to a Resend-backed serverless function and redirects back to `#sent` or
+  `#error` on the same page. No client script — a hidden honeypot field and the browser's
+  own `required` attributes do the spam-filtering and validation. The GitHub Pages mirror
+  has no serverless functions, so the mailto line under the form is what still works
+  there.
+- **`site/middleware.mjs`, `site/api/stats.js`.** Vercel Web Analytics is pageview counts
+  only on the Hobby plan. This middleware logs every page request server-side into a free
+  Upstash Redis database instead of upgrading the plan — no cookie, a visitor is
+  SHA-256(day, IP, user-agent) rotated daily, unlinkable across days. `/api/stats`, behind
+  a `STATS_KEY` query param, is the only viewer.
+- Neither feature does anything until its environment variables are set in Vercel
+  (`RESEND_API_KEY`; `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `STATS_KEY`,
+  optionally `ANALYTICS_SALT`). Until then the form redirects to `#error` and the
+  middleware is a no-op — the same "inert until switched on" shape `_ANALYTICS` already
+  has on this site.
+
+## Measuring a version transition — 2026-09-12 — no methodology change
+
+- **`python -m tci.run effect --date D --before X --after Y`.** Recomputes one date under
+  two methodology versions on the same stored observations and the same recorded FX, and
+  reports the difference per series. Notice 2026-N2 commits to publishing exactly this —
+  "the first print under v0.5.0 will state its size against a v0.4.0 recomputation of the
+  same day" — and nothing could produce the number. `reproduce` recomputes a date under the
+  version live on it, which is the right rule for checking the record and the wrong one for
+  measuring a transition.
+- **On the 12 September observations, v0.4.0 to v0.5.0 moves the headline by $0.0000.**
+  Both legs print $3.49/GPU-hr; the panel widens from six sellers to eight and the two
+  entrants land either side of the median. `EU-CRI-H100-NC` goes from a gap to
+  $3.8368/GPU-hr, which is what v0.5.0 unlocks on that day. N2's estimate of $3.25 to $3.49
+  was measured on the 7 September panel; the headline reached $3.49 on 12 September under
+  v0.3.0-dev because vast.ai returned, so the step published on 22 September will not be
+  the step N2 described and the entry for that print will carry this figure instead.
+- Neither leg is stored. Both run against in-memory copies, and a recomputation under a
+  version that was never live on a date must never be able to become a print — the single
+  thing the dated succession exists to prevent. Tested on any connection, not just the
+  committed database, along with the restoration of the patched loaders when the
+  calculation raises: leaving that swap in place would pin every later calculation in the
+  process to one frozen version, including the one computing the day's print.
+
+## MLPerf results against the prices — 2026-09-12 — no methodology change
+
+- **`performance.html`, `src/tci/mlperf.py`, `python -m tci.run mlperf`.** MLPerf Training
+  results from sellers priced here, joined to those prices.
+  `data/mlperf/training.json` pins the upstream commit of each results repository, so every
+  figure names a revision and nothing reaches the network when the page is built.
+- **The overlap is the result.** Six sellers priced here have ever submitted to MLPerf
+  Training, and none has ever submitted an H100 system — the accelerator the headline
+  prices. Ten have never submitted anything and are named as having no public result.
+- **One comparable, priced cell** across v5.0, v5.1 and v6.0, after requiring the same
+  round, accelerator, benchmark and GPU count: MLPerf Training v5.0, B200-SXM-180GB,
+  llama2_70b_lora, 8 GPUs. Lambda 10.9 min at $6.79/GPU-hr, $9.89 the run; Oracle 11.0 min
+  at $14.00/GPU-hr, $20.49 the run. Times differ by 0.5% and cost by 2.07×.
+- **Found and fixed before anything was published: two joins that produced plausible
+  numbers rather than errors.** The results matcher fell back to node count when a
+  directory name did not match a system, so Oracle's `8xBM.GPU.H200.8` and
+  `8xBM.GPU.B200.8` each claimed the other's logs and an H200 time to train was multiplied
+  by a B200 price. And results were joined on `system_name`, which is not unique within a
+  submitter — Oracle files four node counts under `BM.GPU.GB300.4` — merging an 8-GPU run
+  with a 512-GPU one. Both key on the system file's stem now, and a directory matching no
+  system or more than one is skipped rather than assigned to a neighbour.
+- Time to train is `run_stop` minus `run_start` over runs the log records as successful,
+  as a median. It is not called the official score: MLCommons publishes those and the
+  scoring rule varies by benchmark.
+- **`site.generate` no longer writes a page whose builder returned nothing**, which would
+  replace a good page with a blank one; and the performance page degrades to no page if its
+  snapshot is unreadable, rather than failing the daily run with it.
+
+## A versioned read interface, and what the sellers declare — 2026-09-12 — no methodology change
+
+- **`site/data/v1/`.** A catalogue plus one file per series carrying its whole history.
+  `latest.json` gives today across every series and the print files give one date across
+  every series; neither gave one series across dates, which meant fetching a file per
+  session. A session that did not print is a row with a null value and the reason in
+  `flags`, never an absent row, so a consumer cannot interpolate across a gap without
+  seeing it. The path is versioned: a breaking change goes to `v2` and leaves `v1` served.
+- Every row carries the digest the print file for that date publishes, computed by the
+  same function from the same row. `reproduce --published` checks them rather than
+  trusting them, and now checks 1019 digests where it checked 515. The Data page documents
+  the catalogue, the range query and
+  `jq -jcS 'del(.digest)' | sha256sum`; a test recomputes every published digest by that
+  recipe rather than by calling this project's code, and a second keeps the published
+  content ASCII, without which the recipe would silently stop matching while the digests
+  stayed correct.
+- **`src/tci/attributes.py`, and a table beside the constituents.** What each seller
+  publishes about the product behind its price, in the seller's own words and units. Of 42
+  cells across the constituents of the 12 September print, 11 carry something the seller
+  publishes as a field. Across all 304 H100 SXM rows that day: GPU memory declared by 78%,
+  interconnect by 3%, vCPUs 2%, system memory 2%, local storage 1%.
+- **Found: the stored `interconnect` column is an inference, everywhere.** Azure derives it
+  from `isr`/`noIB` in the SKU, gpuhunt and Scaleway from `SXM`, static entries hardcode
+  it. Nobody declares it. Published as derived with the rule attached rather than as the
+  seller's statement — asserting the fabric behind a named company's product from three
+  characters in a product code is not a claim this index should make unmarked. Latitude.sh
+  and Voltage Park do publish a fabric as a field, and theirs is marked declared.
+- Values are never converted to a common unit: Lambda publishes "2900 GiB" and Voltage Park
+  1024, and normalising them would make the number TCI's claim instead of the seller's.
+  A seller that publishes nothing gets a cell that says so, with its own provenance rather
+  than a null wearing "declared".
+- **Not done as specified:** the plan asked for typed columns on `observations`. That table
+  is append-only, so new columns could only be populated forward and every historical row
+  would still need reading out of `raw_json`. Read at the point of use instead, which
+  covers the whole history and leaves the hash-locked calculation path untouched.
+- Network egress allowance and storage product are not published as a field by any source
+  currently collected, so neither is recorded.
+- The roadmap moved into the repository at `docs/ROADMAP.md`.
+
+## CI that protects the daily run, and a reliability page — 2026-09-12 — no methodology change
+
+- **Fixed: the database could print and the site not, with nothing reporting it.**
+  `cmd_daily` stores the day's observations and print, then generates outputs inside a
+  try/except that logged and returned; it returned 0 either way. `check_published` walked
+  the files that exist and compared each digest against the database, so a date the site
+  was never handed was simply not iterated, and `latest.json` kept matching the older
+  print it still named. A crash in `webdata.generate` therefore produced a green workflow,
+  a database a day ahead of `site/data/prints/`, and a clean digest check. The check now
+  enumerates the database as well: a stored print with no published file, or with no entry
+  in its date's file, is a MISSING and fails. Output failure fails the run and writes its
+  reason to `runs.notes`; the commit step already runs on failure, so the day's
+  irreplaceable observations are still saved. Verified against the record: 515 of 515
+  digests still match and no date is reported missing.
+- **The daily entrypoint runs in CI.** `python -m tci.run daily` is what the Action runs at
+  11:00 UTC and no test had ever invoked it. `tests/test_pipeline_smoke.py` runs it as a
+  subprocess against a throwaway copy of the tree, with no network, and requires every
+  generated page back after deleting them. Both of this repo's data-loss incidents were in
+  that orchestration rather than in any unit.
+- **The workflows are under test.** `tests/test_workflows.py` asserts the properties whose
+  absence caused those incidents: the commit step runs on failure, the run never
+  force-pushes, it cannot race itself, the schedule is the published 11:00 UTC, every job
+  runs the same Python, and the daily job installs the package as a user gets it so a
+  runtime dependency parked in the dev extra fails there rather than in production. Each
+  was checked by breaking the workflow and watching it fail. `bash -n` covers every run
+  block; actionlint runs in CI.
+- **`python -m tci.run canary`.** Collects from every live source into a temporary
+  database, touching neither the record nor the site, and reports what stopped reporting. A
+  source that returns cleanly with no rows counts as broken: that is the failure a
+  fail-soft pipeline hides best. Not scheduled — SOURCES.md commits TCI to one request per
+  source per day — so it runs on pull requests touching collector code and on request.
+  First live run, 2026-09-12: 15 of 15 sources reporting.
+- **Fixed: CoreWeave's pricing page reshaped and the fixture did not follow.** The parser
+  fix of 2026-09-12 had the live page as its only evidence, so a revert to bare-string
+  anchors would have passed every test. `pricing-2026-09-12-jsonld.html` is the 2026-09-11
+  capture with the schema.org OfferCatalog block inserted verbatim, reproducing the 2/2
+  anchor count that failed. A second test reshapes the h2 and requires the collector to
+  refuse the page, because the fix moved the anchor and must not have relaxed it.
+- **`reliability.html`.** Every session the headline did not print, with the reason in
+  words, read from `daily_index` at the latest revision; other series summarised by count
+  and state. Generated from the record on every run, so the list cannot be curated. As of
+  2026-09-12: 19 of 57 sessions printed.
+- **`python -m tci.run reliability`.** The gap log, and a gate replay for a series that
+  does not print yet. The replay runs the unit definition over stored observations through
+  the same `normalise_observations` and `provider_offers` the calculation uses, and shows
+  the stored record beside it, since the two differ wherever the head panel differs from
+  the panel live on the date.
+- **Found: no test could stop a test writing to `data/eucri.db`.** One did, during this
+  work, and `git status` caught it. A session-scoped guard hashes the database before and
+  after the suite. The first version of it passed a deliberate probe: the file is in WAL
+  mode, so a committed write lands in `eucri.db-wal` and the main file does not change
+  until sqlite checkpoints, which happens after pytest exits. It hashes both.
+- **Found: four published pages had no invariant checked against them.**
+  `tests/test_site.py` kept a hand-written tuple of five page names for the
+  no-off-origin-request, single-theme and keyboard-nav checks, and the site had grown to
+  nine. basis, term, notices and reliability were all unchecked. The invariant tests derive
+  the list from what `generate` wrote; the completeness test keeps an explicit one.
+- **Found, not fixed: `site/components.html` is published but not generated.** It is the
+  design-system gallery, maintained by hand beside `DESIGN.md`, linked from nowhere and
+  Disallowed in robots.txt. It is a real exception to "site/*.html is generated", now
+  recorded in `CLAUDE.md` and enumerated in the smoke test rather than left to be
+  rediscovered.
+
 ## 0.6.0 — announced 2026-09-11, effective 2026-10-01 (notice 2026-N3)
 
 - **US reference block.** `blocks.US` and `regional_series.EU-CRI-H100-US` in factors.yaml:

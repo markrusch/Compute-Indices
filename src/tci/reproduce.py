@@ -34,6 +34,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PRINTS_DIR = REPO_ROOT / "site" / "data" / "prints"
 LATEST_PATH = REPO_ROOT / "site" / "data" / "latest.json"
+API_SERIES_DIR = REPO_ROOT / "site" / "data" / "v1" / "series"
 
 RETIRED_SERIES = frozenset({"EU-CRI-H100-CLOUD"})
 IGNORED_FLAGS = frozenset({"correction"})  # added by a recomputation itself
@@ -250,14 +251,28 @@ def check_published(
     conn: sqlite3.Connection,
     prints_dir: Path | None = None,
     latest_path: Path | None = None,
+    api_series_dir: Path | None = None,
 ) -> Report:
-    """Compare the digests in the published files with digests recomputed from the DB."""
+    """Compare the digests in the published files with digests recomputed from the DB.
+
+    Both directions are checked. Walking the files alone would pass a run in which the
+    site was never regenerated: `cmd_daily` computes the print, stores it, and then calls
+    output generation inside a try/except that logs and returns, so a crash in
+    `webdata.generate` leaves the database a day ahead of `site/data/prints/` with the
+    exit status still 0. Nothing in the file-side loop notices a date it was never handed,
+    and `latest.json` keeps matching the older print it still names. So the database is
+    enumerated too, and a stored print with no published file or no entry in its file is
+    a MISSING — the site quietly falling behind the record is exactly the drift these
+    digests exist to make impossible.
+    """
     conn.row_factory = sqlite3.Row
     report = Report()
     pdir = prints_dir or PRINTS_DIR
+    seen: set[tuple[str, str]] = set()
     for path in sorted(pdir.glob("????-??-??.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))
         for s, entry in sorted(payload.get("series", {}).items()):
+            seen.add((payload["date"], s))
             derived = print_digest(conn, payload["date"], s)
             if derived is None:
                 report.results.append(
@@ -268,6 +283,29 @@ def check_published(
                                              f"{path.name}: digest differs from the database"))
             else:
                 report.results.append(Result(payload["date"], s, "MATCH", path.name))
+    for date, s in _stored_prints(conn):
+        if (date, s) not in seen:
+            report.results.append(
+                Result(date, s, "MISSING",
+                       f"{date}.json: print is in the database but was never published")
+            )
+    # The versioned series files republish the same digests in a different shape. They
+    # are checked here rather than trusted: a second surface carrying a digest nobody
+    # recomputes is a second place the site can drift away from the record.
+    for path in sorted((api_series_dir or API_SERIES_DIR).glob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        series_name = payload["series"]
+        for point in payload.get("points", []):
+            derived = print_digest(conn, point["date"], series_name)
+            if derived is None:
+                report.results.append(Result(point["date"], series_name, "MISSING",
+                                             f"v1/series/{path.name}: no print in DB"))
+            elif derived[1] != point.get("digest"):
+                report.results.append(Result(point["date"], series_name, "MISMATCH",
+                                             f"v1/series/{path.name}: digest differs"))
+            else:
+                report.results.append(Result(point["date"], series_name, "MATCH", path.name))
+
     lpath = latest_path or LATEST_PATH
     if lpath.exists():
         latest = json.loads(lpath.read_text(encoding="utf-8"))
@@ -279,6 +317,16 @@ def check_published(
             report.results.append(Result(entry["date"], s, "MATCH" if ok else "MISMATCH",
                                          "latest.json"))
     return report
+
+
+def _stored_prints(conn: sqlite3.Connection) -> list[tuple[str, str]]:
+    """Every (date, series) that has a print in the database, in publication order."""
+    return [
+        (r["date"], r["series"])
+        for r in conn.execute(
+            "SELECT DISTINCT date, series FROM daily_index ORDER BY date, series"
+        )
+    ]
 
 
 def print_report(report: Report, verbose: bool = False) -> None:

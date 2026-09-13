@@ -1,0 +1,6 @@
+:::MLLOG {"namespace": "", "time_ms": 1000, "event_type": "POINT_IN_TIME", "key": "init_start", "value": null, "metadata": {}}
+:::MLLOG {"namespace": "", "time_ms": 2000, "event_type": "POINT_IN_TIME", "key": "init_stop", "value": null, "metadata": {}}
+:::MLLOG {"namespace": "", "time_ms": 10000, "event_type": "POINT_IN_TIME", "key": "run_start", "value": null, "metadata": {}}
+some unrelated stdout line
+:::MLLOG {"namespace": "", "time_ms": 20000, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": null, "metadata": {}}
+:::MLLOG {"namespace": "", "time_ms": 610000, "event_type": "POINT_IN_TIME", "key": "run_stop", "value": null, "metadata": {"status": "success", "step": 100}}

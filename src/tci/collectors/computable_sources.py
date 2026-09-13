@@ -13,8 +13,11 @@ TCI Observation, and it is where every judgement TCI makes about those rows live
   unit would be a different product under the headline's name.
 - COUNTRY. Most of these surfaces publish one price for every region. A country is
   assigned only where the surface itself names one (Latitude's location groups, OVH's
-  subsidiary catalogue); everything else is stored with country=None, which keeps it out
-  of every regional series until a methodology version says where it is deliverable.
+  subsidiary catalogue) or, for CoreWeave specifically, a continent label mapped to one
+  representative country on Mark's explicit instruction (2026-09-12) -- see
+  `_coreweave_country` for what that approximation does and does not claim. Everything
+  else is stored with country=None, which keeps it out of every regional series until a
+  methodology version says where it is deliverable.
 - TIER AND TERM. On-demand rows are list prices (tier 'list', term 'on_demand'); spot rows
   are tier 'spot'; committed rows carry their tenor in `term`. A committed price whose
   tenor is a range or a floor ("2 weeks – 1 year", "starting from") is stored as
@@ -41,6 +44,7 @@ from tci.db import utc_now_iso
 from tci.models import Observation
 from tci.vendor.computable.catalog import load_sku_catalog, match_sku
 from tci.vendor.computable.http import user_agent_scope
+from tci.vendor.computable.observation import result as result_
 
 log = logging.getLogger("tci.collectors.computable")
 
@@ -119,6 +123,12 @@ class ComputableSource:
     # with its country. Returns [(region, country)]; None keeps the single row.
     regions_of: Callable[[str], list[tuple[str, str]] | None] | None = None
     currencies: tuple[str, ...] = ("USD", "EUR")
+    # Bypasses `self.module.collect()` for a source whose recipe deliberately covers
+    # less of the page than TCI wants, and TCI's own reading needs the raw body the
+    # recipe never surfaces. Takes the collector's timeout, returns a Computable
+    # result dict (same shape `self.module.collect()` returns) built from exactly one
+    # fetch. See `_fetch_latitude` for the one current use.
+    fetch_override: Callable[[float], dict[str, Any]] | None = None
     _module: ModuleType | None = field(default=None, repr=False)
 
     @property
@@ -133,7 +143,10 @@ class ComputableSource:
         # session unused: the recipe fetches through its own hardened transport. TCI's
         # User-Agent replaces Computable's for every request it makes.
         with user_agent_scope(USER_AGENT):
-            result = self.module.collect(timeout=TIMEOUT_SECONDS)
+            result = (
+                self.fetch_override(TIMEOUT_SECONDS) if self.fetch_override
+                else self.module.collect(timeout=TIMEOUT_SECONDS)
+            )
         partial = result.get("partial_errors") or []
         if partial:
             log.info("%s: %d partial errors from the recipe: %s", self.name, len(partial),
@@ -219,6 +232,45 @@ def _latitude_country(obs: dict[str, Any]) -> str | None:
     return _LATITUDE_COUNTRY.get(str(obs.get("region") or ""))
 
 
+def _fetch_latitude(timeout: float) -> dict[str, Any]:
+    """One fetch of latitude.sh/pricing, read twice: once by the unmodified vendored
+    recipe (hour + month), once by TCI's own reading of the same body for the year field
+    it discards (roadmap L5.3; see `tci.collectors.latitude_annual`).
+
+    A failure in the annual reading is caught here and downgraded to a partial_error: it
+    is TCI's own code, reading a field the vendored recipe's own contract does not cover,
+    and a bug or reshape in it must not cost the day's ordinary hour/month rows, which the
+    vendored parser has already produced successfully by the time this runs.
+
+    Fetches through `latitude_module.fetch` — the vendored module's OWN name for the
+    shared transport, not a second import of it — so that patching `latitude.fetch` (what
+    every test in this suite already does to stay offline) covers this path too. A
+    separately-imported `fetch` reference here would be invisible to that patch and would
+    reach the live network on every test run: found live, by watching this exact call
+    reach latitude.sh during `pytest`.
+    """
+    from tci.collectors.latitude_annual import parse_prepaid_annual
+    from tci.vendor.computable.sources import latitude as latitude_module
+
+    html = latitude_module.fetch(latitude_module.URL, timeout=timeout)
+    rows, partial_errors = latitude_module.parse_latitude(html)
+    try:
+        annual_rows, annual_errors = parse_prepaid_annual(html)
+    except Exception as exc:  # noqa: BLE001 — TCI's own addition must never sink the source
+        log.warning("latitude: annual-price reading failed (%s: %s); hour/month unaffected",
+                   type(exc).__name__, exc)
+        annual_rows, annual_errors = [], [f"annual price reading failed: {exc}"]
+    rows = rows + annual_rows
+    partial_errors = list(partial_errors) + annual_errors
+    return result_(
+        latitude_module.SOURCE_ID,
+        method="html-regex",
+        url=latitude_module.URL,
+        observations=rows,
+        partial_errors=partial_errors or None,
+    )
+
+
 def _ovh_country(obs: dict[str, Any]) -> str | None:
     # OVHcloud prices by subsidiary catalogue, not by region. The FR catalogue is the one
     # its French public-cloud regions bill against; OVH states Gravelines (France) carries
@@ -268,6 +320,37 @@ def _digitalocean_regions(variant: str) -> list[tuple[str, str]] | None:
     return DIGITALOCEAN_REGIONS.get(variant)
 
 
+# CoreWeave's pricing page states only two labels, "NORTH AMERICA" and "EUROPE" -- a
+# continent, not a country, on either side. Mapped to a single representative country per
+# side ONLY because Mark, who sets this project's population definitions, decided the
+# approximation is acceptable for TCI's EU-vs-US framing and asked for it directly
+# (2026-09-12): "EU is Europe, so that is safe" for the Europe side, with an explicit
+# instruction to record that the US is not technically North America.
+#
+# What "EUROPE" actually covers, checked live 2026-09-12 (CoreWeave's own announcements):
+# UK (London, two sites, CoreWeave's EU HQ), Sweden (Stockholm, with Conapto), Norway
+# (Kristiansand), and Spain (announced). The UK is NOT in `eu_eea_countries` -- it left
+# the EU and was never EEA -- so "EUROPE" is not a synonym for "EU/EEA" here: an unknown
+# share of the rows this label covers may be UK capacity that the methodology's EU/EEA
+# population is defined to exclude. Norway is used as the representative code because it
+# is a confirmed CoreWeave location and genuinely is EEA (v0.4.0), not because any given
+# priced row is known to sit there -- it is a block marker, not a location claim, exactly
+# like OVH's subsidiary-catalogue convention below.
+#
+# What "NORTH AMERICA" actually covers: CoreWeave does not state US vs Canada, and "US" is
+# used as the representative code (Mark's instruction) though the label also covers any
+# Canadian capacity CoreWeave has, which this cannot distinguish from US capacity.
+#
+# CoreWeave is not on the panel (SOURCES.md: shadow). This mapping lets its rows carry a
+# population-eligible country while they accumulate history; it moves no print, since
+# admission to a class still requires a governed methodology version.
+_COREWEAVE_COUNTRY = {"EUROPE": "NO", "NORTH AMERICA": "US"}
+
+
+def _coreweave_country(obs: dict[str, Any]) -> str | None:
+    return _COREWEAVE_COUNTRY.get(str(obs.get("region") or ""))
+
+
 def _voltagepark_country(obs: dict[str, Any]) -> str | None:
     # "Voltage Park owns high-performance GPU clusters in Texas, Virginia, Washington, and
     # Utah." (voltagepark.com/neocloud, read 2026-09-11). Its location API returns opaque
@@ -285,13 +368,15 @@ def computable_collectors() -> list[ComputableSource]:
         ComputableSource("ovh", "ovh", "ovhcloud", country_of=_ovh_country,
                          variant_override=_ovh_variant),
         ComputableSource("civo", "civo", "civo"),
-        ComputableSource("coreweave", "coreweave", "coreweave"),
+        ComputableSource("coreweave", "coreweave", "coreweave",
+                         country_of=_coreweave_country),
         ComputableSource("voltagepark", "voltagepark", "voltagepark",
                          country_of=_voltagepark_country, gpu_count_of=_voltagepark_count),
         ComputableSource("digitalocean", "digitalocean", "digitalocean",
                          variant_override=_digitalocean_variant,
                          regions_of=_digitalocean_regions),
-        ComputableSource("latitude", "latitude", "latitude", country_of=_latitude_country),
+        ComputableSource("latitude", "latitude", "latitude", country_of=_latitude_country,
+                         fetch_override=_fetch_latitude),
         ComputableSource("hyperstack", "hyperstack", "hyperstack"),
         ComputableSource("crusoe", "crusoe", "crusoe"),
         ComputableSource("lambda_pricing", "lambda_", "lambdalabs"),

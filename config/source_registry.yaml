@@ -31,6 +31,11 @@ review_interval_days: 90   # a live or built row unreviewed for longer is flagge
                            # `python -m tci.run sources --due`
 
 scans:
+  - date: 2026-09-12
+    added: 14
+    notes: >-
+      Out-of-cycle: two competing indices launched (computepulse.net, computeindex.io),
+      one used as a name-harvest channel. research/source-scans/2026-09-12.md
   - date: 2026-09-07
     added: 20
     notes: >-
@@ -733,6 +738,281 @@ sources:
     last_reviewed: 2026-09-07
     reason: "Lead only. German; no H100-class on-demand product verified."
     recheck: "a public on-demand H100-class hourly rate"
+
+  # ---- 2026-09-12 sweep: two new competing indices, one name harvest --------
+  - id: computepulse
+    name: ComputePulse
+    kind: reference
+    status: watchlist
+    tier: reference
+    homepage: https://www.computepulse.net/
+    endpoint: "GET /api/indices/history?slug=h100-global-compute&timeframe=all (undocumented, no auth)"
+    auth: none
+    blocks: []
+    gpu_classes: [H100, B200]
+    discovered: 2026-09-12
+    discovered_via: "competing-index launch"
+    last_reviewed: 2026-09-12
+    reason: >-
+      A competing index, not a source, same as silicon_data. Its own methodology page
+      names three live inputs -- Azure retail, Shadeform, Vast.ai -- against a global
+      unit, not EU/EEA; AWS, CoreWeave, Lambda, RunPod, GCP and Oracle are shown but
+      excluded from its own computation as static rate cards. Fails gate 3 as a price
+      (no region breakdown) and gate 5 (nothing here is first-hand). The `/indices/history`
+      endpoint is unauthenticated and returns real daily series back to 2026-03-21 for
+      `h100-global-compute` and `blackwell-global-compute`; worth pulling into
+      config/check_series.csv as a change-correlation diagnostic, never as an index input.
+    recheck: "a per-region breakdown, which would still leave gate 5 unresolved"
+
+  - id: computeindex
+    name: ComputeIndex (CI-CPI)
+    kind: reference
+    status: watchlist
+    tier: reference
+    homepage: https://computeindex.io/indices
+    auth: key
+    blocks: []
+    gpu_classes: [H100, H200, B200, A100, L40S]
+    discovered: 2026-09-12
+    discovered_via: "competing-index launch"
+    last_reviewed: 2026-09-12
+    reason: >-
+      A competing index. robots.txt disallows /api/ for every user-agent and blocks
+      GPTBot/CCBot/ClaudeBot/Google-Extended/Bytespider/cohere-ai/FacebookBot outright, so
+      gate 4 fails before gate 1 is even reached; data products are CSV/Parquet/API but
+      "delivery subject to institutional license". Its own coverage page (2026-09-12)
+      lists 19 providers, of which only RunPod and Vast.ai are "Live" and the other 17 are
+      "Reference" rate cards -- CI-CPI v2 is currently withholding every print, 0 of 5 GPU
+      families qualified, on the same live-provider-depth problem this project has.
+      Coverage page is also a useful name-harvest channel; see the rows below it found.
+    recheck: "a published data license permitting citation, and an /api/ robots.txt allowance"
+
+  - id: cudo
+    name: CUDO Compute
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.cudocompute.com/pricing
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-12
+    discovered_via: "computeindex.io coverage list"
+    last_reviewed: 2026-09-12
+    reason: "Every GPU on the public pricing page reads \"Quote on request\", H100 included."
+    recheck: "a published on-demand hourly rate in place of the quote form"
+
+  - id: fluidstack
+    name: FluidStack
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.fluidstack.io/
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-12
+    discovered_via: "computeindex.io coverage list"
+    last_reviewed: 2026-09-12
+    reason: >-
+      /pricing 404s on both fluidstack.io and www.fluidstack.io as of 2026-09-12. Past
+      public pricing is unverified from this sweep; homepage returns a 307 redirect chain
+      that was not followed further.
+    recheck: "a working /pricing URL"
+
+  - id: ori
+    name: Ori (Radiant AI Cloud)
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.ori.co/pricing
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-12
+    discovered_via: "computeindex.io coverage list"
+    last_reviewed: 2026-09-12
+    reason: >-
+      ori.co/pricing 308-redirects to radiant.co/ori. Radiant is the merger of Ori
+      Industries and Brookfield's AI infrastructure arm; the FAQ says "the Ori Global AI
+      Cloud continues to operate for customers as the Radiant AI Cloud," but no hourly
+      rate is published post-merger -- pricing is "Talk to an architect" only.
+    recheck: "a published on-demand hourly rate on the Radiant-branded page"
+
+  - id: paperspace
+    name: Paperspace
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.paperspace.com/pricing
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-12
+    discovered_via: "computeindex.io coverage list"
+    last_reviewed: 2026-09-12
+    reason: >-
+      Owned by DigitalOcean, already a shadow source under its own name (id: digitalocean)
+      -- two collectors for one operator's price is the gate-5 double-counting risk this
+      register exists to avoid. Also fails gate 2 as read: the page's headline H100 figure
+      is labelled "special promo price" rather than a stated on-demand rate, and the only
+      unambiguous figures shown are 3-year commitment prices.
+    recheck: "an unambiguous on-demand rate, and confirmation it is priced independently of the digitalocean collector"
+
+  - id: tensordock
+    name: TensorDock
+    kind: marketplace
+    status: watchlist
+    tier: list
+    homepage: https://www.tensordock.com/
+    endpoint: "dashboard.tensordock.com/api/v0/client/deploy/hostnodes (unauthenticated GET, returns empty)"
+    auth: unclear
+    blocks: []
+    gpu_classes: []
+    discovered: 2026-09-12
+    discovered_via: "computeindex.io coverage list"
+    last_reviewed: 2026-09-12
+    reason: >-
+      Public marketplace prices from $2.25/hr for H100 SXM5 are real (own pricing page),
+      but the listing API gate 1 needs is unresolved: the unauthenticated v0 hostnodes
+      endpoint returns "{\"success\":true,\"hostnodes\":{}}" with no listings, POST is
+      405, and docs.tensordock.com does not document a no-key read path in its llms.txt
+      index. Their own copy calls the API "well-documented" via a Postman link not checked
+      here. Not the same failure as a Bearer-key wall -- looks unresolved, not rejected.
+    recheck: "the documented hostnode-listing endpoint, and whether it needs a key to read"
+
+  - id: together_ai
+    name: Together AI (GPU Clusters)
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.together.ai/pricing
+    blocks: []
+    gpu_classes: [H100, H200, B200]
+    discovered: 2026-09-12
+    discovered_via: "computeindex.io coverage list"
+    last_reviewed: 2026-09-12
+    reason: >-
+      Real on-demand per-GPU-hour prices on the public pricing page (HGX H100 $3.99, HGX
+      H200 $5.99, HGX B200 $8.19), but fails gate 3 exactly like gpu_ai_index: no region or
+      country is named anywhere on the page for GPU Clusters. A price with no location
+      cannot enter EU_EEA or any shadow block.
+    recheck: "a per-region breakdown on the GPU Clusters pricing page"
+
+  - id: vultr
+    name: Vultr Cloud GPU
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://api.vultr.com/v2/plans
+    endpoint: "GET https://api.vultr.com/v2/plans?type=all (public, no auth)"
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-12
+    discovered_via: "computeindex.io coverage list"
+    last_reviewed: 2026-09-12
+    reason: >-
+      Clears gates 1, 4 and 5 cleanly -- a genuine public no-auth JSON API with
+      `hourly_cost`, `gpu_count` and `locations` per plan, the same API the console reads.
+      Fails gate 2: the 15 GPU plans returned on 2026-09-12 are all NVIDIA_A16, A40 or
+      L40S, nothing H100-class, and all but the two cheapest A16 SKUs carry
+      `locations: []` (unset), which would also fail gate 3 for those rows.
+    recheck: "an H100-class vcg-* plan with a non-empty locations array"
+
+  - id: oblivus
+    name: Oblivus
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://oblivus.com/pricing/
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-12
+    discovered_via: "computeindex.io coverage list"
+    last_reviewed: 2026-09-12
+    reason: >-
+      Real on-demand prices server-rendered on the pricing page (H100 SXM5 $4.31/hr, A100
+      NVLINK $1.57/hr), and it does have an EEA location -- OSL1, Oslo. Fails gate 3
+      specifically: every H100- and A100-class deploy link on the page is pinned to MON1
+      (Montreal, not EEA); OSL1 only carries RTX_4090, a consumer card outside
+      `factors.yaml:model_classes`. The EEA site sells the wrong product.
+    recheck: "an H100- or A100-class SKU offered at OSL1"
+
+  - id: massed_compute
+    name: Massed Compute
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://vm.massedcompute.com/pricing
+    blocks: []
+    gpu_classes: [H100, H200, A100]
+    discovered: 2026-09-12
+    discovered_via: "tier-4 independent sweep"
+    last_reviewed: 2026-09-12
+    reason: >-
+      Real on-demand per-GPU prices (H100 $2.73/hr, H200 NVL $3.62/hr, A100 $1.35/hr), but
+      no country or region is named anywhere on the pricing page or the homepage checked.
+      Same gate-3 shape as gpu_ai_index and together_ai.
+    recheck: "a locations or data-centers page naming a country per SKU"
+
+  - id: denvr
+    name: Denvr Dataworks
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.denvr.com/pricing
+    blocks: []
+    gpu_classes: [H100, A100]
+    discovered: 2026-09-12
+    discovered_via: "tier-4 independent sweep"
+    last_reviewed: 2026-09-12
+    reason: >-
+      Real on-demand per-GPU prices (H100 $2.45/GPU, A100 80GB $1.45/GPU, A100 40GB
+      $1.45/GPU); H200 and B200 shown as reserved-only. No country or region named on the
+      pricing page; /data-centers 404s. Same gate-3 shape as massed_compute.
+    recheck: "a locations page naming a country per SKU"
+
+  - id: nscale
+    name: Nscale
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.nscale.com/
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-12
+    discovered_via: "tier-4 independent sweep"
+    last_reviewed: 2026-09-12
+    reason: >-
+      Fails gate 1/2 today -- no pricing page, "Reserve GPUs" routes to a sales form. Kept
+      as a lead because the homepage names an unusually deep EEA/EFTA footprint for a
+      GPU-first cloud: Glomfjord, Narvik, Stavanger and Oslo (Norway), Keflavik and
+      Blonduos (Iceland), Sines (Portugal), plus Loughton and Hayes (UK, shadow block
+      only). If an on-demand rate ever appears, several of these sites could seed the
+      published headline directly rather than a shadow block.
+    recheck: "a public on-demand hourly rate replacing the sales-quote flow"
+
+  - id: cherryservers
+    name: Cherry Servers
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.cherryservers.com/dedicated-gpu-servers
+    endpoint: "GET https://api.cherryservers.com/v1/plans (public, no auth, documented)"
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: []
+    discovered: 2026-09-12
+    discovered_via: "tier-4 independent sweep"
+    last_reviewed: 2026-09-12
+    reason: >-
+      The clean case for gate 1: `GET /v1/plans` is genuinely public, unauthenticated, and
+      returns available_regions and pricing per plan -- and the operator's own site
+      footer names Lithuania, Netherlands, Germany and Sweden as EEA locations. But the 82
+      plans that endpoint returns today are all vps/vds/baremetal/storage, no GPU SKU
+      among them; the GPU catalog (A100, A40, A16, A10, A2, Tesla P4 -- Ampere-class only,
+      nothing H100) lives on /dedicated-gpu-servers, which is server-rendered with no price
+      digits in the raw HTML at all. A tool call against this page returned "A100
+      EUR2.019/hr", which I could not independently verify against the raw response and
+      am not treating as confirmed -- recorded here rather than silently trusted.
+    recheck: "whether GPU plans appear in the public /v1/plans response, or where the /dedicated-gpu-servers price actually renders from"
 
   # ---- rejected -------------------------------------------------------------
   - id: gpu_ai_index
