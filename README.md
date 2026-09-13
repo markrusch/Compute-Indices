@@ -1,4 +1,14 @@
-# eu-compute-index
+[![TCI — The Compute Indices](site/assets/og-card.png)](https://thecomputeindices.com)
+
+# TCI — The Compute Indices
+
+[![CI](https://github.com/markrusch/Compute-Indices/actions/workflows/test.yml/badge.svg)](https://github.com/markrusch/Compute-Indices/actions/workflows/test.yml)
+[![Daily run](https://github.com/markrusch/Compute-Indices/actions/workflows/daily.yml/badge.svg)](https://github.com/markrusch/Compute-Indices/actions/workflows/daily.yml)
+[![Software licence: Apache 2.0](https://img.shields.io/badge/software-Apache%202.0-650304)](LICENSE)
+[![Docs licence: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-650304)](LICENSE-docs)
+[![Data terms](https://img.shields.io/badge/data-custom%20terms-650304)](DATA-TERMS.md)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-141416)](pyproject.toml)
+[![Site](https://img.shields.io/badge/site-thecomputeindices.com-141416)](https://thecomputeindices.com)
 
 **TCI** — a daily, fully reproducible reference price for renting AI compute in the
 EU/EEA. Headline series **TCI-CRI-H100**: one NVIDIA H100 SXM 80GB GPU-hour, on-demand,
@@ -24,6 +34,15 @@ Principles for Financial Benchmarks (2013) as voluntary best practice — see
 
 Why it was rebuilt in v0.3.0, and what was wrong before:
 [research/composition-vs-price.md](research/composition-vs-price.md).
+
+## Contents
+
+- [Quickstart](#quickstart)
+- [Commands](#commands)
+- [Layout](#layout)
+- [Deploying the dashboard](#deploying-the-dashboard)
+- [Changing the methodology](#changing-the-methodology)
+- [Licence](#licence)
 
 ## Quickstart
 
