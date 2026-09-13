@@ -51,9 +51,9 @@ jobs:
         env:
           SOURCE: ${{ inputs.source }}
         run: |
-          ARGS=""
-          if [ -n "$SOURCE" ]; then ARGS="--source $SOURCE"; fi
-          python -m tci.run canary $ARGS 2>&1 | tee canary.txt
+          ARGS=()
+          if [ -n "$SOURCE" ]; then ARGS=(--source "$SOURCE"); fi
+          python -m tci.run canary "${ARGS[@]}" 2>&1 | tee canary.txt
           exit "${PIPESTATUS[0]}"
       - name: Report
         if: always()
