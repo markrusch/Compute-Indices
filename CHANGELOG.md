@@ -3,7 +3,25 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
-## Personal email address removed from the site and its docs — 2026-09-13 — no methodology change
+## Seeweb's static price was frozen at a two-month-old FX rate — 2026-09-13 — no methodology change
+
+- **`config/providers/seeweb.yaml`, `src/tci/collectors/static_yaml.py`.** Seeweb's entry
+  stored a EUR quote pre-converted to USD by hand at collection time (EUR 1.89 x the ECB
+  rate on 2026-07-17), so the published number stayed pinned to that rate as EUR/USD moved:
+  1.1435 then, 1.1592 now, a 1.5% gap that would only have grown. `normalise.py` already
+  converts non-USD rows at print time with that day's ECB rate rather than a frozen one (it
+  does this for Scaleway's live feed already); the static-yaml collector just never fed it
+  a native amount. It now carries `currency: EUR` through to `raw_json` the same way
+  `collectors/scaleway.py` does, so normalise.py's existing conversion path picks it up.
+  normalise.py itself is unchanged, so the lock is untouched.
+- **Checked live before changing anything.** Seeweb's product page also has a GPU-count
+  selector on the same H100 SKU: 8x SXM (640 GB GPU RAM) lists at EUR 15.12/hr, exactly
+  8 x EUR 1.89, so `gpu_count: 8` was already correct. The "ambiguous, re-verify" note on
+  the old entry is resolved, not a second bug.
+- `last_verified` moved to 2026-09-13. `datacrunch` and `nebius` are now past
+  `staleness.warn_days` (57 days since their shared 2026-07-18 verification) on the same
+  clock; they are dollar-quoted so this defect does not apply to them, but they are due
+  for their own re-check before `staleness.exclude_days` drops them at 90.
 
 - **`GOVERNANCE.md`, `src/tci/methodology.py`, `research/composition-vs-price.md`,
   `src/tci/outputs/site.py`.** The administrator's address is no longer printed anywhere

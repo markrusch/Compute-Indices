@@ -124,6 +124,21 @@ def test_static_yaml_emits_only_priced_entries() -> None:
     assert all(json.loads(o.raw_json).get("last_verified") for o in out)
 
 
+def test_static_yaml_passes_through_native_currency() -> None:
+    """seeweb quotes EUR; the raw price must reach normalise.py unconverted, with a
+    currency tag, so print-time FX is used instead of a rate baked into the yaml."""
+    out = StaticYamlCollector().collect(base.make_session())
+    by_provider = {o.provider: o for o in out}
+
+    seeweb = by_provider["seeweb"]
+    raw = json.loads(seeweb.raw_json)
+    assert raw["currency"] == "EUR"
+    assert raw["price_native_per_gpu_hr"] == seeweb.price_usd_per_gpu_hr == 1.89
+
+    nebius = by_provider["nebius"]
+    assert json.loads(nebius.raw_json).get("currency", "USD") == "USD"
+
+
 class _BoomCollector:
     name = "boom"
 

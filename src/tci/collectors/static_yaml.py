@@ -6,6 +6,13 @@ Each config/providers/*.yaml carries a `last_verified` date. Entries are warned 
 staleness.warn_days; the index calculation excludes them at staleness.exclude_days
 (exclusion happens in index.py so the raw observation is still recorded honestly).
 A null price means the provider is skipped entirely — a price is never invented.
+
+A yaml may carry `currency` (default USD) alongside `price_usd_per_gpu_hr`, which then
+holds the *native* quoted amount rather than a USD one (seeweb quotes EUR) — same
+stopgap field-naming as `collectors/scaleway.py`. Both currency and the native amount are
+passed through in raw_json so normalise.py converts at print time with that day's ECB
+rate, per its own module docstring: conversion never gets frozen into a stored
+observation, because a rate looked up once by hand goes stale the moment EUR/USD moves.
 """
 
 from __future__ import annotations
@@ -41,6 +48,8 @@ class StaticYamlCollector:
                         "%s: last_verified %s is %d days old (excluded from index at %d)",
                         p.provider, p.last_verified, age, factors.staleness.exclude_days,
                     )
+            currency = str(p.extra.get("currency") or "USD").upper()
+            price_native = float(p.price_usd_per_gpu_hr)
             out.append(
                 Observation(
                     ts_utc=utc_now_iso(),
@@ -48,7 +57,7 @@ class StaticYamlCollector:
                     provider=p.provider,
                     gpu_model=p.gpu_model,
                     gpu_count=p.gpu_count,
-                    price_usd_per_gpu_hr=float(p.price_usd_per_gpu_hr),
+                    price_usd_per_gpu_hr=price_native,
                     region=None,
                     country=p.country,
                     interconnect="NVLink",
@@ -56,7 +65,9 @@ class StaticYamlCollector:
                     term="on_demand",
                     raw_json=json.dumps(
                         {"url": p.url, "last_verified": p.last_verified,
-                         "config_notes": p.config_notes}
+                         "config_notes": p.config_notes,
+                         "currency": currency,
+                         "price_native_per_gpu_hr": price_native}
                     ),
                 )
             )

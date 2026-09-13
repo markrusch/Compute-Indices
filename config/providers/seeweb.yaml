@@ -1,9 +1,14 @@
 # Static price entry - manually verified. null price = provider skipped (never invented).
+# price_usd_per_gpu_hr holds the NATIVE amount when `currency` is set (see collectors/
+# static_yaml.py and collectors/scaleway.py for the same convention) - normalise.py does
+# the EUR->USD conversion at print time with that day's ECB rate, so this file never bakes
+# in a rate that goes stale.
 provider: seeweb
 url: https://www.seeweb.it/en/products/cloud-server-gpu
 gpu_model: H100_SXM
-price_usd_per_gpu_hr: 2.16
+price_usd_per_gpu_hr: 1.89
+currency: EUR
 gpu_count: 8
 country: IT
-config_notes: "EUR 1.89/hr on-demand H100 from public page, converted at ECB EUR/USD 1.1435 (2026-07-17). Page config text ambiguous ('1 GPU, 320 GB GPU RAM') - re-verify GPU count semantics at next refresh."
-last_verified: "2026-07-18"
+config_notes: "EUR 1.89/hr on-demand H100, native currency (converted at print time, not baked in). GPU-count selector on the product page confirmed linear per-GPU pricing: 8x SXM (640 GB GPU RAM) lists at EUR 15.12/hr = EUR 1.89/GPU-hr, same rate as the 1x config - so gpu_count: 8 is a real, priced node size, not a small-order quote."
+last_verified: "2026-09-13"
