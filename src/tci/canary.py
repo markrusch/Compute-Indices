@@ -17,8 +17,9 @@ day, and a canary running beside the daily job would quietly make that two. It r
 change is proposed to collector code and when somebody asks for it.
 
 Exit status: 0 when every source expected to report did; 1 when one did not. "Expected" is
-`config/source_registry.yaml` status, not a guess — a source already known to be down is
-not a new failure, and a source that has never returned a row is not evidence of a break.
+a source registered in `config/source_registry.yaml` at status live or shadow, not a
+guess — a collector written ahead of its registry entry (built/candidate), or left behind
+after one (watchlist/rejected/retired), is not a new failure.
 """
 
 from __future__ import annotations
@@ -30,7 +31,23 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from tci import db
+from tci import sources as source_registry
 from tci.collectors import base
+
+# A source counts as "expected to report" only at these registry statuses. `built` and
+# `candidate` cover the gap between writing a collector and registering it (ROADMAP
+# section 12 step 3); `watchlist`, `rejected` and `retired` are not in collectors_for_daily()
+# today, but a stray or lingering collector for one of them should not fail a run either.
+_EXPECTED_STATUSES = frozenset({"live", "shadow"})
+
+
+def _expected_collectors(config_dir: Path | None = None) -> frozenset[str]:
+    """Collector names the registry currently says should be reporting."""
+    registry = source_registry.load_registry(config_dir)
+    return frozenset(
+        s.collector for s in registry.sources
+        if s.collector and s.status in _EXPECTED_STATUSES
+    )
 
 
 @dataclass(frozen=True)
@@ -40,16 +57,18 @@ class SourceResult:
     rows: int
     models: tuple[str, ...]
     note: str
+    expected: bool = True
 
     @property
     def broken(self) -> bool:
-        return self.status in ("failed", "empty")
+        return self.expected and self.status in ("failed", "empty")
 
 
 def run(expected: frozenset[str] | None = None) -> list[SourceResult]:
     """Collect from every live source into a temporary database. Never touches the record."""
     from tci.commands import collectors_for_daily
 
+    registry_expected = _expected_collectors()
     utc_date = datetime.now(UTC).strftime("%Y-%m-%d")
     with tempfile.TemporaryDirectory(prefix="tci-canary-") as tmp:
         conn = db.connect(Path(tmp) / "canary.db")
@@ -58,14 +77,18 @@ def run(expected: frozenset[str] | None = None) -> list[SourceResult]:
         results = []
         for collector in collectors_for_daily():
             status = base.run_collector(conn, collector, utc_date, session)
-            results.append(_summarise(conn, collector.name, status))
+            results.append(_summarise(
+                conn, collector.name, status, collector.name in registry_expected
+            ))
         conn.close()
     if expected is not None:
         results = [r for r in results if r.source in expected]
     return results
 
 
-def _summarise(conn: sqlite3.Connection, source: str, status: str) -> SourceResult:
+def _summarise(
+    conn: sqlite3.Connection, source: str, status: str, expected: bool = True
+) -> SourceResult:
     row = conn.execute(
         "SELECT COUNT(*) n, COALESCE(GROUP_CONCAT(DISTINCT gpu_model), '') m"
         " FROM observations WHERE source = ?", (source,)
@@ -80,8 +103,9 @@ def _summarise(conn: sqlite3.Connection, source: str, status: str) -> SourceResu
     # fail-soft pipeline hides best: no exception, no log line, just a source that has
     # silently stopped contributing. It counts as broken here.
     if status == "ok" and rows == 0:
-        return SourceResult(source, "empty", 0, (), "collected cleanly, returned no rows")
-    return SourceResult(source, status, rows, models, note)
+        return SourceResult(source, "empty", 0, (), "collected cleanly, returned no rows",
+                            expected)
+    return SourceResult(source, status, rows, models, note, expected)
 
 
 def render(results: list[SourceResult]) -> str:
@@ -89,7 +113,10 @@ def render(results: list[SourceResult]) -> str:
     lines = [f"{'source':<{width}}  {'status':<8}{'rows':>6}  detail"]
     lines.append("-" * (width + 26))
     for r in sorted(results, key=lambda x: (not x.broken, x.source)):
-        detail = r.note if r.broken else ", ".join(r.models[:6])
+        failing = r.status in ("failed", "empty")
+        detail = r.note if failing else ", ".join(r.models[:6])
+        if failing and not r.expected:
+            detail = f"not in source_registry.yaml as live/shadow -- {detail}"
         lines.append(f"{r.source:<{width}}  {r.status:<8}{r.rows:>6}  {detail[:90]}")
     broken = [r.source for r in results if r.broken]
     lines.append("")

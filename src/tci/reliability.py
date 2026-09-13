@@ -35,8 +35,8 @@ GAP_REASONS = {
     "insufficient_sources": "fewer qualifying providers than the publication gate requires",
     "insufficient_history": "not enough consecutive prints to average over",
     "no_linkable_series": "no series it could be chained to printed that day",
-    "no_reference": "the reference leg did not print",
-    "no_lead": "the lead leg did not print",
+    "reference_gap": "the reference leg did not print",
+    "lead_gap": "the lead leg did not print",
 }
 
 

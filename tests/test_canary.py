@@ -113,3 +113,26 @@ def test_summarise_reads_the_note_the_run_stored(conn, status: str) -> None:
     base.run_collector(conn, c, "2026-09-12", session=None)
     r = canary._summarise(conn, "s", status)
     assert r.note
+
+
+def test_a_collector_missing_from_the_registry_is_not_a_new_failure(conn, monkeypatch) -> None:
+    monkeypatch.setattr(canary, "_expected_collectors", lambda: frozenset({"good"}))
+    monkeypatch.setattr(
+        "tci.commands.collectors_for_daily",
+        lambda: [_Collector("good", raises=RuntimeError("down")),
+                 _Collector("unregistered", raises=RuntimeError("down"))],
+    )
+    monkeypatch.setattr(canary, "db", db)
+    results = {r.source: r for r in canary.run()}
+    assert results["good"].broken
+    assert not results["unregistered"].broken
+    assert not results["unregistered"].expected
+
+
+def test_render_flags_a_failure_the_registry_does_not_expect(conn) -> None:
+    base.run_collector(conn, _Collector("ghost", raises=RuntimeError("gone")),
+                       "2026-09-12", session=None)
+    results = [canary._summarise(conn, "ghost", "failed", expected=False)]
+    text = canary.render(results)
+    assert "not in source_registry.yaml as live/shadow" in text
+    assert "1 sources, 0 not reporting" in text

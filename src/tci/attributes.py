@@ -238,13 +238,14 @@ def coverage(rows: list[Any]) -> dict[str, tuple[int, int]]:
     The number this layer exists to produce. A low one is the answer to the question, not
     a reason to start inferring.
     """
+    per_row = [for_observation(row) for row in rows]
     counts: dict[str, tuple[int, int]] = {}
     for name, _label in ATTRIBUTES:
-        declared = 0
-        for row in rows:
-            attr = next(a for a in for_observation(row) if a.name == name)
-            if attr.stated and attr.provenance == DECLARED:
-                declared += 1
+        declared = sum(
+            1 for attrs in per_row
+            for a in attrs
+            if a.name == name and a.stated and a.provenance == DECLARED
+        )
         counts[name] = (declared, len(rows))
     return counts
 

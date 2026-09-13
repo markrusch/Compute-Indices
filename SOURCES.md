@@ -25,7 +25,8 @@ Where a page is hostile to scraping, a manually refreshed static entry with a vi
 | ENTSO-E Transparency | REST API, day-ahead prices NL / DE-LU / FR / SE3 | free token | overlay only — **never an index input** | Public data platform; collector skips cleanly until ENTSOE_TOKEN is set | built, token pending | 2026-07-18 |
 
 Validation-only cross-checks (never ingested): computeprices.com, cloud-gpus.com,
-Silicon Data public prints, Kalshi/Ornn public levels.
+Silicon Data public prints, Kalshi/Ornn public levels, computepulse.net (undocumented
+`/api/indices/history` endpoint, `config/check_series.csv`).
 
 Review cadence: each row's ToS basis re-checked when a collector changes, and at the
 annual methodology review at the latest.

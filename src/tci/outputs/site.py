@@ -807,11 +807,13 @@ def _css(prefix: str = "") -> str:
     return css.replace("{FONTS}", f"{prefix}assets/fonts/")
 
 
+def _aria_current(href: str, current: str) -> str:
+    return ' aria-current="page"' if href == current else ""
+
+
 def _masthead(ctx: SiteContext, current: str, prefix: str) -> str:
     links = "".join(
-        f'<a href="{prefix}{href}"'
-        + (' aria-current="page"' if href == current else "")
-        + f">{_e(label)}</a>"
+        f'<a href="{prefix}{href}"{_aria_current(href, current)}>{_e(label)}</a>'
         for href, label in NAV
     )
     return f"""<header class="masthead">
@@ -825,7 +827,7 @@ def _masthead(ctx: SiteContext, current: str, prefix: str) -> str:
         <span>Menu</span>
       </label>
       <nav class="nav" aria-label="Primary">{links}
-        <a href="mailto:{_e(CONTACT_EMAIL)}">Contact</a>
+        <a href="{prefix}contact.html"{_aria_current('contact.html', current)}>Contact</a>
         <a class="nav__cta" href="{prefix}index.html#indices">View Indices</a>
       </nav>
     </div>
@@ -867,7 +869,7 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <h4>Company</h4>
         <a href="{prefix}research.html">Research</a>
         <a href="{_e(REPO_URL)}" rel="noopener">GitHub</a>
-        <a href="mailto:{_e(CONTACT_EMAIL)}">Contact</a>
+        <a href="{prefix}contact.html">Contact</a>
       </nav>
     </div>
     <div class="disclaimer">
@@ -2976,7 +2978,7 @@ def _reliability(ctx: SiteContext) -> str:
         marker = (
             '<td class="u">revised since</td>' if g.corrected else '<td class="u">&#8212;</td>'
         )
-        reason = reliability.GAP_REASONS.get(g.flags.split(",")[0], g.flags)
+        reason = g.reason
         rows.append(
             f'<tr><td class="num">{_e(_human_date(g.date))}</td>'
             f"<td>{_e(reason)}</td>"
@@ -3537,7 +3539,7 @@ def _basis(ctx: SiteContext) -> str:
     <h1 class="pagehead__h pagehead__h--display">What a European buyer carries when the
     hedge is priced in the US.</h1>
     <p class="pagehead__dek">CME Group plans to list compute futures on 5 October 2026,
-    pending regulatory review, that settle in cash on Silicon Data's H100 and B200 rental
+    pending regulatory review, that settle in cash on third-party H100 and B200 rental
     indices. A European buyer who hedges with them is exposed to the
     difference between what the EU/EEA population of sellers charges and what the
     reference population charges. {_nbsp_series(BASIS_SERIES)} is that difference for one
@@ -3577,7 +3579,7 @@ def _basis(ctx: SiteContext) -> str:
       median over offers, trim, tier weights, concentration cap and publication gate. Only
       the region differs, which is what makes the spread a regional basis rather than a
       comparison of two methods.</p></div></div>
-    <div class="md"><p>It is <strong>not</strong> the basis to the Silicon Data index the
+    <div class="md"><p>It is <strong>not</strong> the basis to the index the
     CME contracts settle on. That index's methodology is not public, and a spread against
     it would mix a regional difference with a methodological one that nobody outside can
     measure. What is published here is the regional part, with the method held
@@ -4050,6 +4052,75 @@ def _research_note(ctx: SiteContext, note: Note) -> str:
     )
 
 
+def _contact(ctx: SiteContext) -> str:
+    """A form beside the mailto link, not instead of it.
+
+    The form posts to /api/contact, a Vercel serverless function (see site/api/contact.js).
+    The GitHub Pages mirror has no serverless functions, so that POST 404s there -- same
+    situation as _ANALYTICS, which stays inert on that mirror rather than needing a second
+    build. The mailto line under the form is what keeps contact working on that mirror.
+
+    No script anywhere on the page: the success and error banners are plain elements shown
+    by :target (site.css .banner-target) when /api/contact redirects to #sent or #error,
+    and the required attributes on email/message are native HTML, not JS validation.
+    """
+    body = f"""<main class="wrap" id="main">
+  <div id="sent" class="card banner-target" role="status">
+    <div class="card__body"><span class="chip chip--good"><span>Sent</span></span>
+    <p style="margin-top:var(--space-3)">Thanks — that's in my inbox now. I read every
+    message and reply from there.</p></div>
+  </div>
+  <div id="error" class="card banner-target" role="alert">
+    <div class="card__body"><span class="chip chip--critical"><span>Not sent</span></span>
+    <p style="margin-top:var(--space-3)">That didn't go through. Email
+    <a href="mailto:{_e(CONTACT_EMAIL)}">{_e(CONTACT_EMAIL)}</a> directly instead.</p></div>
+  </div>
+
+  <div class="pagehead">
+    <div class="eyebrow">Contact</div>
+    <h1 class="pagehead__h pagehead__h--display">Get in touch.</h1>
+    <p class="pagehead__dek">A methodology question, a source to flag, a licensing
+    request — write below and it goes straight to my inbox. Leave an address I can reach
+    you at; I reply from there.</p>
+  </div>
+
+  <section class="section">
+    <form class="stack" action="/api/contact" method="post" style="max-width:480px">
+      <div class="hp-trap" aria-hidden="true">
+        <label for="website">Leave this blank</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+      <div class="field field--wide">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" autocomplete="name">
+        <span class="hint">Optional.</span>
+      </div>
+      <div class="field field--wide">
+        <label for="email">Your email</label>
+        <input type="email" id="email" name="email" autocomplete="email" required>
+      </div>
+      <div class="field field--wide">
+        <label for="message">Message</label>
+        <textarea id="message" name="message" required></textarea>
+      </div>
+      <div><button class="btn btn--primary" type="submit">Send</button></div>
+    </form>
+    <p style="margin-top:var(--space-6)">Prefer email directly? Write to
+    <a href="mailto:{_e(CONTACT_EMAIL)}">{_e(CONTACT_EMAIL)}</a>.</p>
+  </section>
+</main>"""
+    return _shell(
+        ctx,
+        title=f"Contact — {BRAND}",
+        description=(
+            "Reach TCI directly: methodology questions, a source to flag, or a "
+            "licensing request."
+        ),
+        current="contact.html",
+        body=body,
+    )
+
+
 # ==========================================================================
 # entry point
 # ==========================================================================
@@ -4170,6 +4241,7 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         (SITE_DIR / "reliability.html", _reliability(ctx)),
         (SITE_DIR / "performance.html", _performance(ctx)),
         (SITE_DIR / "research.html", _research_index(ctx, notes)),
+        (SITE_DIR / "contact.html", _contact(ctx)),
     ]
     pages += [
         (SITE_DIR / "research" / f"{n.slug}.html", _research_note(ctx, n)) for n in notes

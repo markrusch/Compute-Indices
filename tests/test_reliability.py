@@ -42,6 +42,15 @@ def test_an_unrecognised_flag_is_shown_rather_than_guessed_at() -> None:
     assert g.reason == "some_new_flag"
 
 
+def test_a_basis_leg_gap_reads_in_words() -> None:
+    """GAP_REASONS keys must match the flags basis.py actually writes (lead_gap,
+    reference_gap), or a basis-series gap falls through to the raw flag string."""
+    lead = reliability.Gap("2026-09-11", "EU-CRI-BASIS", "lead_gap", 1, "0.6.0")
+    reference = reliability.Gap("2026-09-11", "EU-CRI-BASIS", "reference_gap", 1, "0.6.0")
+    assert lead.reason == "the lead leg did not print"
+    assert reference.reason == "the reference leg did not print"
+
+
 def test_the_correction_marker_is_not_a_reason() -> None:
     g = reliability.Gap("2026-09-11", "S", "insufficient_sources,correction", 1, "0.6.0")
     assert g.corrected

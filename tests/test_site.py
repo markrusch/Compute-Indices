@@ -20,7 +20,7 @@ from tests.conftest import insert_run
 EXPECTED_PAGES = (
     "index.html", "basis.html", "term.html", "methodology.html", "data.html",
     "governance.html", "notices.html", "reliability.html", "performance.html",
-    "research.html",
+    "research.html", "contact.html",
 )
 
 
