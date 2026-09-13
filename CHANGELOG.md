@@ -3,6 +3,22 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Personal email address removed from the site and its docs — 2026-09-13 — no methodology change
+
+- **`GOVERNANCE.md`, `src/tci/methodology.py`, `research/composition-vs-price.md`,
+  `src/tci/outputs/site.py`.** The administrator's address is no longer printed anywhere
+  on the site, in the generated methodology or governance text, or in a published research
+  note — every mention now points to [the contact page](contact.html) instead (unlinked
+  prose for the one research note, since a relative link from `research/` would resolve
+  one directory too shallow). The JSON-LD organization record's `email` field is replaced
+  with a `contactPoint` URL.
+- **`site/api/contact.js`.** The destination inbox moved from a literal string in this
+  file to a Vercel environment variable, `CONTACT_TO_EMAIL` — the address now exists
+  nowhere in the repository, public or private, matching how `RESEND_API_KEY` was already
+  handled.
+- `METHODOLOGY.lock`'s hash is unchanged by this: it covers the calculation path, not the
+  document's prose, and `python -m tci.run docs` confirms it after this edit.
+
 ## L5.3: Latitude's prepaid-annual price, and a term-schedule review — 2026-09-12 — no methodology change
 
 - **`src/tci/collectors/latitude_annual.py`.** Latitude.sh's flight-JSON publishes an

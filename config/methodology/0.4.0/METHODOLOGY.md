@@ -403,5 +403,6 @@ date (`config/methodology/succession.yaml`).
 
 *TCI is a research publication. It is not investment advice and is not administered as a benchmark under EU Regulation 2016/1011; it may not be used as a reference price in financial instruments.*
 
-*Author and administrator: Mark Rusch (rusch.mh@gmail.com). Conflicts: the author may
-hold positions on venues whose prices the index observes; see GOVERNANCE.md.*
+*Author and administrator: Mark Rusch — contact via
+[the contact page](contact.html). Conflicts: the author may hold positions on venues
+whose prices the index observes; see GOVERNANCE.md.*

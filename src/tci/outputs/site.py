@@ -70,7 +70,6 @@ BRAND_LINE = (
     "TCI publishes reproducible reference prices for AI and HPC compute — "
     "methodology-driven, vendor-neutral, and rebuildable from public sources by anyone."
 )
-CONTACT_EMAIL = "rusch.mh@gmail.com"
 # Still the pre-rebrand Substack address, and still the one that works. Substack keeps
 # the old subdomain redirecting after a rename, but this points at whatever the
 # publication answers on today rather than at a name it might take later: a dead link in
@@ -926,7 +925,7 @@ def _structured_data(ctx: SiteContext, canonical: str, *, dataset: bool) -> str:
         "name": BRAND_FULL,
         "alternateName": BRAND,
         "url": SITE_URL,
-        "email": CONTACT_EMAIL,
+        "contactPoint": {"@type": "ContactPoint", "url": f"{SITE_URL}/contact.html"},
         "founder": {"@type": "Person", "name": "Mark Rusch"},
         "description": BRAND_LINE,
     }
@@ -3126,10 +3125,9 @@ def _governance(ctx: SiteContext) -> str:
   <section class="section" aria-labelledby="s-complaints">
     <div class="section__head"><div>
       <h2 class="section__h" id="s-complaints">Complaints</h2></div></div>
-    <p class="dek">Complaints or challenges to any print:
-    <a href="mailto:{_e(CONTACT_EMAIL)}">{_e(CONTACT_EMAIL)}</a>. Acknowledged within 7
-    days; the outcome — a correction or a rationale for no change — is published with the
-    next print.</p>
+    <p class="dek">Complaints or challenges to any print: use the
+    <a href="contact.html">contact page</a>. Acknowledged within 7 days; the outcome — a
+    correction or a rationale for no change — is published with the next print.</p>
   </section>
 
   <div class="doc">
@@ -3303,9 +3301,9 @@ def _data(ctx: SiteContext) -> str:
         required. Verification is never restricted: if you believe a print is wrong, you may
         publish everything needed to demonstrate it.</td></tr>
         <tr><th scope="row">Commercial</th><td>Paid products, terminals, resale, or
-        financial-instrument use require permission — contact
-        <a href="mailto:{_e(CONTACT_EMAIL)}">{_e(CONTACT_EMAIL)}</a>. Terms are being
-        finalised; enquiries are welcome now.</td></tr>
+        financial-instrument use require permission — use the
+        <a href="contact.html">contact page</a>. Terms are being finalised; enquiries are
+        welcome now.</td></tr>
         <tr><th scope="row">Never permitted</th><td>Use as a reference price in a financial
         instrument or contract. That is a governance restriction, not a commercial one, and
         it is not for sale at any price.</td></tr>
@@ -4053,12 +4051,15 @@ def _research_note(ctx: SiteContext, note: Note) -> str:
 
 
 def _contact(ctx: SiteContext) -> str:
-    """A form beside the mailto link, not instead of it.
+    """A form, with no address printed anywhere on the page or in this file.
 
-    The form posts to /api/contact, a Vercel serverless function (see site/api/contact.js).
-    The GitHub Pages mirror has no serverless functions, so that POST 404s there -- same
-    situation as _ANALYTICS, which stays inert on that mirror rather than needing a second
-    build. The mailto line under the form is what keeps contact working on that mirror.
+    The form posts to /api/contact, a Vercel serverless function (see site/api/contact.js),
+    which reads the destination address from a Vercel environment variable
+    (CONTACT_TO_EMAIL) rather than from a constant here -- the address exists nowhere in
+    this repository, public or private. The GitHub Pages mirror has no serverless
+    functions, so that POST 404s there -- same situation as _ANALYTICS, which stays inert
+    on that mirror rather than needing a second build; the GitHub link below is what keeps
+    a way to reach out working on that mirror.
 
     No script anywhere on the page: the success and error banners are plain elements shown
     by :target (site.css .banner-target) when /api/contact redirects to #sent or #error,
@@ -4072,8 +4073,9 @@ def _contact(ctx: SiteContext) -> str:
   </div>
   <div id="error" class="card banner-target" role="alert">
     <div class="card__body"><span class="chip chip--critical"><span>Not sent</span></span>
-    <p style="margin-top:var(--space-3)">That didn't go through. Email
-    <a href="mailto:{_e(CONTACT_EMAIL)}">{_e(CONTACT_EMAIL)}</a> directly instead.</p></div>
+    <p style="margin-top:var(--space-3)">That didn't go through. Try again in a moment, or
+    <a href="{_e(REPO_URL)}/issues" rel="noopener">open an issue on GitHub</a>
+    instead.</p></div>
   </div>
 
   <div class="pagehead">
@@ -4105,8 +4107,8 @@ def _contact(ctx: SiteContext) -> str:
       </div>
       <div><button class="btn btn--primary" type="submit">Send</button></div>
     </form>
-    <p style="margin-top:var(--space-6)">Prefer email directly? Write to
-    <a href="mailto:{_e(CONTACT_EMAIL)}">{_e(CONTACT_EMAIL)}</a>.</p>
+    <p style="margin-top:var(--space-6)">Prefer not to use the form? Open an issue on
+    <a href="{_e(REPO_URL)}" rel="noopener">GitHub</a> instead.</p>
   </section>
 </main>"""
     return _shell(

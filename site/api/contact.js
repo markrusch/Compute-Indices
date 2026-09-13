@@ -1,17 +1,20 @@
 // Vercel serverless function: POST /api/contact
 //
-// Sends the contact form to CONTACT_EMAIL via Resend's HTTP API. No SDK: Resend's
-// whole surface here is one JSON POST, so a dependency would buy nothing over fetch --
-// same reasoning as refresh.js's use of the built-in fetch for the GitHub API.
+// Sends the contact form via Resend's HTTP API. No SDK: Resend's whole surface here is
+// one JSON POST, so a dependency would buy nothing over fetch -- same reasoning as
+// refresh.js's use of the built-in fetch for the GitHub API.
 //
-// Requires one Vercel environment variable (Project Settings -> Environment Variables,
+// Requires two Vercel environment variables (Project Settings -> Environment Variables,
 // never committed to the repo):
-//   RESEND_API_KEY   from resend.com. The free tier's sandbox sender
-//                     (onboarding@resend.dev) is enough here: every message goes to
-//                     CONTACT_EMAIL, which is also the address the Resend account is
-//                     registered under, and the sandbox sender can deliver to that
-//                     address without a verified domain. The visitor never sees the
-//                     "from" address -- their own address travels as reply-to instead.
+//   RESEND_API_KEY    from resend.com. The free tier's sandbox sender
+//                      (onboarding@resend.dev) is enough here: every message goes to
+//                      CONTACT_TO_EMAIL, which is also the address the Resend account is
+//                      registered under, and the sandbox sender can deliver to that
+//                      address without a verified domain. The visitor never sees the
+//                      "from" address -- their own address travels as reply-to instead.
+//   CONTACT_TO_EMAIL   the destination inbox. Deliberately not a constant in this file:
+//                      the owner's address exists nowhere in this repository, public or
+//                      private, only in Vercel's environment.
 //
 // No dependencies: Vercel's Node runtime ships a global fetch and parses a plain HTML
 // form's application/x-www-form-urlencoded body into req.body for free.
@@ -20,8 +23,6 @@
 // (site.css .hp-trap) but a bot filling in every input on the page does. A submission
 // that fills it is redirected the same as a genuine one and nothing is sent, so a bot
 // never learns its post was dropped.
-
-const CONTACT_EMAIL = "rusch.mh@gmail.com";
 
 function redirect(res, path) {
   res.writeHead(302, { Location: path });
@@ -51,7 +52,8 @@ module.exports = async (req, res) => {
   }
 
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
+  const toEmail = process.env.CONTACT_TO_EMAIL;
+  if (!apiKey || !toEmail) {
     redirect(res, "/contact.html#error");
     return;
   }
@@ -65,7 +67,7 @@ module.exports = async (req, res) => {
       },
       body: JSON.stringify({
         from: "TCI contact form <onboarding@resend.dev>",
-        to: [CONTACT_EMAIL],
+        to: [toEmail],
         reply_to: email,
         subject: `Contact form: ${name || email}`,
         text: `From: ${name || "(no name given)"} <${email}>\n\n${message}`,

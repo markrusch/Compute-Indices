@@ -265,6 +265,6 @@ filter effect in §6, which are arithmetic rather than inferential.
 ---
 
 *EU-CRI is a research publication. It is not investment advice and may not be used as a
-reference price in financial instruments. Author and administrator: Mark Rusch
-(rusch.mh@gmail.com). Conflicts: the author may hold positions on venues whose prices the
-index observes; see GOVERNANCE.md.*
+reference price in financial instruments. Author and administrator: Mark Rusch.
+Conflicts: the author may hold positions on venues whose prices the index observes; see
+GOVERNANCE.md.*

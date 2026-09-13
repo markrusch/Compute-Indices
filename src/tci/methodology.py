@@ -436,8 +436,9 @@ date (`config/methodology/succession.yaml`).
 
 *{DISCLAIMER}*
 
-*Author and administrator: Mark Rusch (rusch.mh@gmail.com). Conflicts: the author may
-hold positions on venues whose prices the index observes; see GOVERNANCE.md.*
+*Author and administrator: Mark Rusch — contact via
+[the contact page](contact.html). Conflicts: the author may hold positions on venues
+whose prices the index observes; see GOVERNANCE.md.*
 """
 
 

@@ -1,6 +1,7 @@
 # TCI Governance
 
-Administrator and author: **Mark Rusch** (rusch.mh@gmail.com), Amsterdam.
+Administrator and author: **Mark Rusch**, Amsterdam — contact via
+[the contact page](contact.html).
 This document implements the IOSCO Principles for Financial Benchmarks (2013) as
 voluntary best practice. TCI is a research publication: it is not licensed for use in
 financial instruments and any request to hard-wire it into a financial contract will be
@@ -144,7 +145,8 @@ A print requires at least the configured minimum of qualifying providers
 
 ## 6. Complaints
 
-Complaints or challenges to any print: rusch.mh@gmail.com. Acknowledged within 7 days;
+Complaints or challenges to any print: use [the contact page](contact.html).
+Acknowledged within 7 days;
 outcome (correction or rationale for no change) published with the next print.
 
 ## 7. Review
