@@ -1088,15 +1088,38 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
 /* Texture, not data: no cell carries a value, a name or a tooltip. The mask
    keeps it clear of the headline and the CTAs — it only reaches full strength
    in the bottom fifth, behind the bars. */
+/* No mask on this layer: a mask would make it a stacking context, and a cell's
+   hover label could then never paint above the bars. The top-to-bottom fade lives
+   on the cells instead, as a per-row --rowa written in the markup. */
 .wave__grid { position: absolute; inset-block: 0; inset-inline: 0 var(--space-5);
               display: grid; grid-template-columns: repeat(16, 1fr);
-              grid-template-rows: repeat(8, 1fr); gap: 3px; pointer-events: none;
-              -webkit-mask-image: linear-gradient(to bottom, transparent,
-                                  transparent 55%, black 82%);
-              mask-image: linear-gradient(to bottom, transparent,
-                          transparent 55%, black 82%); }
-.wave__cell { border-radius: 3px; background: var(--cell-rest);
+              grid-template-rows: repeat(8, 1fr); gap: 3px; pointer-events: none; }
+.wave__cell { position: relative; border-radius: 3px; background: var(--cell-rest);
+              opacity: var(--rowa, 1);
               animation: tci-cellripple 4.2s ease-in-out var(--cd, 0s) infinite; }
+
+/* A cell that stands for a real constituent answers the cursor: it names the provider
+   and the price that went into today's print. Only labelled cells take a pointer, so
+   the masked-out upper rows (which sit over the headline's column) stay inert, and on
+   a gap day nothing in the field is hoverable at all.
+
+   The label is a CSS-generated ::after rather than 64 extra tooltip elements. The page
+   is inlined into every HTML file, so markup here is paid for 17 times over. */
+.wave__cell[data-label] { pointer-events: auto; }
+.wave__cell[data-label]:hover { z-index: 5; opacity: 1; background: rgba(101, 3, 4, .22);
+                                box-shadow: inset 0 0 0 1px var(--red); }
+.wave__cell[data-label]:hover::after {
+  content: attr(data-label); position: absolute; inset-block-end: calc(100% + 8px);
+  inset-inline-start: 50%; transform: translateX(-50%);
+  background: var(--surface); color: var(--ink-1);
+  border: var(--border-hairline) solid var(--rule-strong); border-radius: var(--radius-md);
+  padding: 6px 10px; white-space: nowrap; font-family: var(--font-mono);
+  font-size: var(--text-2xs); line-height: 1; box-shadow: var(--shadow-raised); }
+/* Same specificity as the rule above, so this has to come after it: the last few
+   columns hang the label off their right edge instead of centring it, which is what
+   keeps it inside the viewport on a narrower screen. */
+.wave__cell--tipend[data-label]:hover::after {
+  inset-inline-start: auto; inset-inline-end: 0; transform: none; }
 
 /* ---- the bouncing bits -------------------------------------------------- */
 /* The band the bits bounce in is exactly the band the bars occupy: 220px tall,
@@ -1140,117 +1163,117 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
    apex ratio 0.90 across all twelve bounces, period/sqrt(apex) constant at 2.00,
    minimum clearance +12.6px over 377 sampled phases, no frame below the curve. */
 @keyframes tci-bitfly {
-  0% { inset-block-start: 61.4px; color: var(--ink-3); }
-  1% { inset-block-start: 48.0px; color: var(--ink-3); }
-  2% { inset-block-start: 36.6px; color: var(--ink-3); }
-  3% { inset-block-start: 27.2px; color: var(--ink-3); }
-  4% { inset-block-start: 19.8px; color: var(--ink-3); }
-  5% { inset-block-start: 14.4px; color: var(--ink-3); }
-  6% { inset-block-start: 11.0px; color: var(--ink-3); }
-  7% { inset-block-start: 9.6px; color: var(--ink-3); }
-  8% { inset-block-start: 10.2px; color: var(--ink-3); }
-  9% { inset-block-start: 12.8px; color: var(--ink-3); }
-  10% { inset-block-start: 17.4px; color: var(--ink-3); }
-  11% { inset-block-start: 23.2px; color: var(--ink-3); }
-  12% { inset-block-start: 14.1px; color: var(--ink-3); }
-  13% { inset-block-start: 7.0px; color: var(--ink-3); }
-  14% { inset-block-start: 2.0px; color: var(--ink-3); }
-  15% { inset-block-start: -1.1px; color: var(--ink-3); }
-  16% { inset-block-start: -2.0px; color: var(--ink-3); }
-  17% { inset-block-start: -1.2px; color: var(--ink-3); }
-  18% { inset-block-start: 1.7px; color: var(--ink-3); }
-  19% { inset-block-start: 6.6px; color: var(--ink-3); }
-  20% { inset-block-start: 13.6px; color: var(--ink-3); }
-  21% { inset-block-start: 22.5px; color: var(--ink-3); }
-  21.3% { inset-block-start: 25.6px; color: var(--ink-3); }
-  22% { inset-block-start: 22.9px; color: var(--ink-3); }
-  23% { inset-block-start: 19.8px; color: var(--ink-3); }
-  24% { inset-block-start: 18.7px; color: var(--ink-3); }
-  25% { inset-block-start: 19.5px; color: var(--ink-3); }
-  26% { inset-block-start: 22.4px; color: var(--ink-3); }
-  27% { inset-block-start: 27.3px; color: var(--ink-3); }
-  28% { inset-block-start: 34.2px; color: var(--ink-3); }
-  29% { inset-block-start: 43.1px; color: var(--ink-3); }
-  30% { inset-block-start: 54.0px; color: var(--ink-3); }
-  31% { inset-block-start: 66.9px; color: var(--ink-3); }
-  31.2% { inset-block-start: 69.7px; color: var(--ink-3); }
-  32% { inset-block-start: 66.4px; color: var(--red); }
-  33% { inset-block-start: 64.0px; color: var(--red); }
-  34% { inset-block-start: 63.7px; color: var(--red); }
-  35% { inset-block-start: 65.4px; color: var(--red); }
-  36% { inset-block-start: 69.0px; color: var(--red); }
-  37% { inset-block-start: 74.7px; color: var(--red); }
-  38% { inset-block-start: 82.4px; color: var(--red); }
-  39% { inset-block-start: 92.0px; color: var(--red); }
-  40% { inset-block-start: 103.7px; color: var(--red); }
-  40.5% { inset-block-start: 110.3px; color: var(--red); }
-  41% { inset-block-start: 108.3px; color: var(--red); }
-  42% { inset-block-start: 103.9px; color: var(--red); }
-  43% { inset-block-start: 101.4px; color: var(--red); }
-  44% { inset-block-start: 101.0px; color: var(--red); }
-  45% { inset-block-start: 102.5px; color: var(--red); }
-  46% { inset-block-start: 106.1px; color: var(--red); }
-  47% { inset-block-start: 111.7px; color: var(--red); }
-  48% { inset-block-start: 119.2px; color: var(--red); }
-  49% { inset-block-start: 127.9px; color: var(--red); }
-  49.4% { inset-block-start: 133.2px; color: var(--red); }
-  50% { inset-block-start: 130.9px; color: var(--red); }
-  51% { inset-block-start: 128.1px; color: var(--red); }
-  52% { inset-block-start: 127.4px; color: var(--red); }
-  53% { inset-block-start: 128.6px; color: var(--red); }
-  54% { inset-block-start: 131.9px; color: var(--red); }
-  55% { inset-block-start: 137.1px; color: var(--red); }
-  56% { inset-block-start: 144.4px; color: var(--red); }
-  57% { inset-block-start: 153.6px; color: var(--red); }
-  57.8% { inset-block-start: 162.5px; color: var(--red); }
-  58% { inset-block-start: 162.1px; color: var(--red); }
-  59% { inset-block-start: 158.2px; color: var(--red); }
-  60% { inset-block-start: 156.4px; color: var(--red); }
-  61% { inset-block-start: 156.5px; color: var(--red); }
-  62% { inset-block-start: 158.7px; color: var(--red); }
-  63% { inset-block-start: 162.8px; color: var(--red); }
-  64% { inset-block-start: 169.0px; color: var(--red); }
-  65% { inset-block-start: 177.1px; color: var(--red); }
-  65.8% { inset-block-start: 185.1px; color: var(--red); }
-  66% { inset-block-start: 182.9px; color: var(--red); }
-  67% { inset-block-start: 170.2px; color: var(--red); }
-  68% { inset-block-start: 159.6px; color: var(--red); }
-  69% { inset-block-start: 151.0px; color: var(--ink-3); }
-  70% { inset-block-start: 144.4px; color: var(--ink-3); }
-  71% { inset-block-start: 139.8px; color: var(--ink-3); }
-  72% { inset-block-start: 137.2px; color: var(--ink-3); }
-  73% { inset-block-start: 136.6px; color: var(--ink-3); }
-  73.4% { inset-block-start: 136.9px; color: var(--ink-3); }
-  74% { inset-block-start: 127.8px; color: var(--ink-3); }
-  75% { inset-block-start: 114.3px; color: var(--ink-3); }
-  76% { inset-block-start: 102.8px; color: var(--ink-3); }
-  77% { inset-block-start: 93.2px; color: var(--ink-3); }
-  78% { inset-block-start: 85.7px; color: var(--ink-3); }
-  79% { inset-block-start: 80.2px; color: var(--ink-3); }
-  80% { inset-block-start: 76.7px; color: var(--ink-3); }
-  80.6% { inset-block-start: 75.4px; color: var(--ink-3); }
-  81% { inset-block-start: 71.2px; color: var(--ink-3); }
-  82% { inset-block-start: 62.3px; color: var(--ink-3); }
-  83% { inset-block-start: 55.3px; color: var(--ink-3); }
-  84% { inset-block-start: 50.3px; color: var(--ink-3); }
-  85% { inset-block-start: 47.4px; color: var(--ink-3); }
-  86% { inset-block-start: 46.4px; color: var(--ink-3); }
-  87% { inset-block-start: 47.5px; color: var(--ink-3); }
-  87.4% { inset-block-start: 48.4px; color: var(--ink-3); }
-  88% { inset-block-start: 44.6px; color: var(--ink-3); }
-  89% { inset-block-start: 39.8px; color: var(--ink-3); }
-  90% { inset-block-start: 37.0px; color: var(--ink-3); }
-  91% { inset-block-start: 36.1px; color: var(--ink-3); }
-  92% { inset-block-start: 37.3px; color: var(--ink-3); }
-  93% { inset-block-start: 40.5px; color: var(--ink-3); }
-  93.9% { inset-block-start: 44.7px; color: var(--ink-3); }
-  94% { inset-block-start: 44.1px; color: var(--ink-3); }
-  95% { inset-block-start: 39.2px; color: var(--ink-3); }
-  96% { inset-block-start: 36.4px; color: var(--ink-3); }
-  97% { inset-block-start: 35.5px; color: var(--ink-3); }
-  98% { inset-block-start: 36.6px; color: var(--ink-3); }
-  99% { inset-block-start: 39.8px; color: var(--ink-3); }
-  100% { inset-block-start: 44.9px; color: var(--ink-3); }
+  0% { inset-block-start: 100.0px; color: var(--ink-3); }
+  1% { inset-block-start: 83.1px; color: var(--ink-3); }
+  2% { inset-block-start: 68.8px; color: var(--ink-3); }
+  3% { inset-block-start: 57.2px; color: var(--ink-3); }
+  4% { inset-block-start: 48.3px; color: var(--ink-3); }
+  5% { inset-block-start: 42.0px; color: var(--ink-3); }
+  6% { inset-block-start: 38.5px; color: var(--ink-3); }
+  7% { inset-block-start: 37.5px; color: var(--ink-3); }
+  8% { inset-block-start: 39.3px; color: var(--ink-3); }
+  9% { inset-block-start: 43.7px; color: var(--ink-3); }
+  10% { inset-block-start: 50.8px; color: var(--ink-3); }
+  11% { inset-block-start: 59.3px; color: var(--ink-3); }
+  12% { inset-block-start: 47.1px; color: var(--ink-3); }
+  13% { inset-block-start: 37.6px; color: var(--ink-3); }
+  14% { inset-block-start: 30.7px; color: var(--ink-3); }
+  15% { inset-block-start: 26.5px; color: var(--ink-3); }
+  16% { inset-block-start: 25.0px; color: var(--ink-3); }
+  17% { inset-block-start: 26.1px; color: var(--ink-3); }
+  18% { inset-block-start: 29.9px; color: var(--ink-3); }
+  19% { inset-block-start: 36.4px; color: var(--ink-3); }
+  20% { inset-block-start: 45.5px; color: var(--ink-3); }
+  21% { inset-block-start: 57.3px; color: var(--ink-3); }
+  21.3% { inset-block-start: 61.4px; color: var(--ink-3); }
+  22% { inset-block-start: 56.7px; color: var(--ink-3); }
+  23% { inset-block-start: 50.9px; color: var(--ink-3); }
+  24% { inset-block-start: 47.8px; color: var(--ink-3); }
+  25% { inset-block-start: 47.3px; color: var(--ink-3); }
+  26% { inset-block-start: 49.5px; color: var(--ink-3); }
+  27% { inset-block-start: 54.4px; color: var(--ink-3); }
+  28% { inset-block-start: 62.0px; color: var(--ink-3); }
+  29% { inset-block-start: 72.2px; color: var(--ink-3); }
+  30% { inset-block-start: 85.0px; color: var(--ink-3); }
+  31% { inset-block-start: 100.6px; color: var(--ink-3); }
+  31.2% { inset-block-start: 104.0px; color: var(--ink-3); }
+  32% { inset-block-start: 97.3px; color: var(--red); }
+  33% { inset-block-start: 91.4px; color: var(--red); }
+  34% { inset-block-start: 88.1px; color: var(--red); }
+  35% { inset-block-start: 87.4px; color: var(--red); }
+  36% { inset-block-start: 89.5px; color: var(--red); }
+  37% { inset-block-start: 94.2px; color: var(--red); }
+  38% { inset-block-start: 101.6px; color: var(--red); }
+  39% { inset-block-start: 111.6px; color: var(--red); }
+  40% { inset-block-start: 124.4px; color: var(--red); }
+  40.5% { inset-block-start: 131.7px; color: var(--red); }
+  41% { inset-block-start: 128.5px; color: var(--red); }
+  42% { inset-block-start: 121.7px; color: var(--red); }
+  43% { inset-block-start: 117.5px; color: var(--red); }
+  44% { inset-block-start: 115.9px; color: var(--red); }
+  45% { inset-block-start: 117.0px; color: var(--red); }
+  46% { inset-block-start: 120.8px; color: var(--red); }
+  47% { inset-block-start: 127.3px; color: var(--red); }
+  48% { inset-block-start: 136.4px; color: var(--red); }
+  49% { inset-block-start: 148.2px; color: var(--red); }
+  49.4% { inset-block-start: 153.7px; color: var(--red); }
+  50% { inset-block-start: 149.7px; color: var(--red); }
+  51% { inset-block-start: 144.4px; color: var(--red); }
+  52% { inset-block-start: 141.7px; color: var(--red); }
+  53% { inset-block-start: 141.8px; color: var(--red); }
+  54% { inset-block-start: 144.4px; color: var(--red); }
+  55% { inset-block-start: 149.8px; color: var(--red); }
+  56% { inset-block-start: 157.8px; color: var(--red); }
+  57% { inset-block-start: 168.5px; color: var(--red); }
+  57.8% { inset-block-start: 179.0px; color: var(--red); }
+  58% { inset-block-start: 178.2px; color: var(--red); }
+  59% { inset-block-start: 171.5px; color: var(--red); }
+  60% { inset-block-start: 167.4px; color: var(--red); }
+  61% { inset-block-start: 166.1px; color: var(--red); }
+  62% { inset-block-start: 167.4px; color: var(--red); }
+  63% { inset-block-start: 171.4px; color: var(--red); }
+  64% { inset-block-start: 178.0px; color: var(--red); }
+  65% { inset-block-start: 187.4px; color: var(--red); }
+  65.8% { inset-block-start: 196.7px; color: var(--red); }
+  66% { inset-block-start: 194.5px; color: var(--red); }
+  67% { inset-block-start: 182.0px; color: var(--red); }
+  68% { inset-block-start: 172.1px; color: var(--red); }
+  69% { inset-block-start: 164.9px; color: var(--ink-3); }
+  70% { inset-block-start: 160.4px; color: var(--ink-3); }
+  71% { inset-block-start: 158.6px; color: var(--ink-3); }
+  72% { inset-block-start: 159.4px; color: var(--ink-3); }
+  73% { inset-block-start: 162.9px; color: var(--ink-3); }
+  73.4% { inset-block-start: 164.9px; color: var(--ink-3); }
+  74% { inset-block-start: 155.6px; color: var(--ink-3); }
+  75% { inset-block-start: 142.2px; color: var(--ink-3); }
+  76% { inset-block-start: 131.5px; color: var(--ink-3); }
+  77% { inset-block-start: 123.5px; color: var(--ink-3); }
+  78% { inset-block-start: 118.1px; color: var(--ink-3); }
+  79% { inset-block-start: 115.4px; color: var(--ink-3); }
+  80% { inset-block-start: 115.4px; color: var(--ink-3); }
+  80.6% { inset-block-start: 112.3px; color: var(--ink-3); }
+  81% { inset-block-start: 109.0px; color: var(--ink-3); }
+  82% { inset-block-start: 93.8px; color: var(--ink-3); }
+  83% { inset-block-start: 82.7px; color: var(--ink-3); }
+  84% { inset-block-start: 75.8px; color: var(--ink-3); }
+  85% { inset-block-start: 73.0px; color: var(--ink-3); }
+  86% { inset-block-start: 74.3px; color: var(--ink-3); }
+  87% { inset-block-start: 79.7px; color: var(--ink-3); }
+  87.4% { inset-block-start: 83.0px; color: var(--ink-3); }
+  88% { inset-block-start: 77.5px; color: var(--ink-3); }
+  89% { inset-block-start: 70.4px; color: var(--ink-3); }
+  90% { inset-block-start: 66.0px; color: var(--ink-3); }
+  91% { inset-block-start: 64.2px; color: var(--ink-3); }
+  92% { inset-block-start: 65.1px; color: var(--ink-3); }
+  93% { inset-block-start: 68.7px; color: var(--ink-3); }
+  93.9% { inset-block-start: 73.7px; color: var(--ink-3); }
+  94% { inset-block-start: 72.9px; color: var(--ink-3); }
+  95% { inset-block-start: 66.6px; color: var(--ink-3); }
+  96% { inset-block-start: 63.0px; color: var(--ink-3); }
+  97% { inset-block-start: 62.0px; color: var(--ink-3); }
+  98% { inset-block-start: 63.6px; color: var(--ink-3); }
+  99% { inset-block-start: 68.0px; color: var(--ink-3); }
+  100% { inset-block-start: 75.0px; color: var(--ink-3); }
 }
 /* No mobile rule for these two: .hero__wave itself goes display:none below
    900px and takes both layers with it. */
@@ -2256,7 +2279,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="masthead">
-<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-14T11:12:25Z">AS OF 2026-09-14 11:12:25 UTC</div></div>
+<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.25</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.0</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-14T18:27:27Z">AS OF 2026-09-14 18:27:27 UTC</div></div>
   <div class="masthead__bar">
     <div class="wrap masthead__inner">
       <a class="brand" href="index.html"><span class="brand__mark" style="--brand-h:24px" aria-hidden="true"><span class="brand__tc">TC</span><span class="brand__i"><span class="brand__dot"></span><span class="brand__bar"></span></span></span><span class="brand__name">The Compute Indices</span></a>
@@ -2369,7 +2392,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
       welcome and must carry its own name.</p>
       <p class="disclaimer__meta num">TCI-CRI&#8209;M v0.3.0-dev
       &#183; methodology hash sha256:29551a012dad&#8230; &#183; generated
-      2026-09-14T11:12:25Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
+      2026-09-14T18:27:27Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
       at the ECB reference rate dated on or before the print date.</p>
     </div>
   </div>

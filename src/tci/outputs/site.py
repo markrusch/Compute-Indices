@@ -1137,7 +1137,7 @@ def _ticker(ctx: SiteContext) -> str:
 # --- landing-page components ----------------------------------------------
 
 
-def _wave() -> str:
+def _wave(ctx: SiteContext) -> str:
     """The hero's wave graphic — brand furniture, not a chart.
 
     Deliberately abstract: no axis, no scale, no readable value, and aria-hidden, so it
@@ -1147,8 +1147,8 @@ def _wave() -> str:
     breathes only while hovered (tci-wave) — motion that answers the reader rather than
     looping at them.
 
-    Two ambient layers sit behind and above the bars: a tile field (texture only) and
-    the 0/1 bits that bounce along the curve. Those two do loop, which is the one place
+    Two ambient layers sit behind and above the bars: the tile field and the 0/1 bits
+    that bounce along the curve. Those two do loop, which is the one place
     this page spends motion on decoration rather than on an answer, so both are held
     faint, both are aria-hidden, and both stop dead under prefers-reduced-motion. While
     the cursor is driving the wave the bits fade out entirely — the crest scales bars
@@ -1175,26 +1175,59 @@ def _wave() -> str:
             '<span class="wave__dot"></span><span class="wave__bar"></span></span>'
         )
 
-    # The tile field behind the bars. Texture, nothing more: no cell carries a value,
-    # a name or a tooltip. An earlier design draft hung per-provider prices off these
-    # cells; those numbers were invented and the provider names were real, which is
-    # exactly the thing this repo does not publish. A cell's ripple is keyed to the
-    # brand curve at its own column instead, so the field is derived from the same
-    # shape as the bars rather than from data it does not have.
+    # The tile field behind the bars. Each cell stands for one real constituent of
+    # today's headline print, so hovering a cell names the provider and the price that
+    # went into the index — the same provider/price pairs the constituents table lower
+    # down the page already publishes, not a second, softer set of numbers. A cell's
+    # ripple is keyed to that provider's price against the day's own spread, so the
+    # brighter cells really are the dearer compute.
+    #
+    # Only the bottom half of the field takes a pointer. The upper rows are masked to
+    # transparent anyway, and the wave overlaps the headline's column, so letting an
+    # invisible cell up there swallow a hover would be a trap.
+    #
+    # On a gap day there are no constituents; the cells then carry no label and no
+    # pointer, and the field falls back to being texture. It never invents a price to
+    # fill itself with.
+    priced = [
+        (row["provider"], row["price_usd"])
+        for row in constituents_for(ctx.conn, HEADLINE, ctx.date)
+        if row["included"] and row["price_usd"]
+    ]
+    lo = min((v for _, v in priced), default=0.0)
+    hi = max((v for _, v in priced), default=0.0)
     cell_cols, cell_rows = 16, 8
     cx, cy = (cell_cols - 1) / 2, (cell_rows - 1) / 2
     cells = []
     for r in range(cell_rows):
         for c in range(cell_cols):
-            t = c / (cell_cols - 1)
-            curve = 90 + sin(t * pi * 2.2 + 0.5) * 60 + sin(t * pi * 5) * 16
-            # 0..1 across the curve's own range, so a taller part of the wave sits
-            # over a slightly warmer cell.
-            weight = min(1.0, max(0.0, (curve - 14) / 152))
+            idx = r * cell_cols + c
             dist = ((c - cx) ** 2 + (r - cy) ** 2) ** 0.5
+            # The field fades in towards the bottom so it never crowds the headline.
+            # This used to be a mask on the layer, but a mask makes a stacking context
+            # and a cell's hover label could not then lift above the bars.
+            centre = (r + 0.5) / cell_rows * 100
+            rowa = min(1.0, max(0.0, (centre - 55) / 27))
+            attrs = ""
+            klass = "wave__cell"
+            weight = 0.5
+            if priced:
+                provider, price = priced[idx % len(priced)]
+                weight = (price - lo) / (hi - lo) if hi > lo else 0.5
+                # Only the right half is labelled. The layer's horizontal mask fades
+                # everything left of ~45% out, and the headline column is painted over
+                # that same region, so a label there could never be read or even
+                # reached — it would just be markup shipped 17 times for nothing.
+                if rowa >= 0.3 and c >= cell_cols // 2:
+                    label = f"{provider} \u00b7 ${price:,.2f}/GPU-hr"
+                    attrs = f' data-label="{_e(label)}"'
+                    # The last columns hang their label off their right edge instead of
+                    # centring it, so it cannot be clipped by the viewport.
+                    if c >= cell_cols - 3:
+                        klass += " wave__cell--tipend"
             cells.append(
-                f'<span class="wave__cell" style="--peak:{0.05 + weight * 0.06:.3f};'
-                f'--cd:{dist * 0.22:.2f}s"></span>'
+                f'<span class="{klass}"{attrs} style="--peak:{0.05 + weight * 0.06:.3f};'
+                f'--rowa:{rowa:.3f};--cd:{dist * 0.22:.2f}s"></span>'
             )
     grid = f'<span class="wave__grid">{"".join(cells)}</span>'
 
@@ -1216,9 +1249,9 @@ def _wave() -> str:
     )
 
 
-def _hero() -> str:
+def _hero(ctx: SiteContext) -> str:
     return f"""<section class="hero">
-  {_wave()}
+  {_wave(ctx)}
   <div class="hero__inner">
     <h1 class="hero__h">Independent. Transparent.<br>Built for the compute
     market<span class="hero__stop">.</span></h1>
@@ -2209,7 +2242,7 @@ def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
         )
     body = f"""<main id="main">
   <div class="wrap">
-    {_hero()}
+    {_hero(ctx)}
   </div>
 {_notice_banner(_load_notices())}
 
