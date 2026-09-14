@@ -1194,8 +1194,8 @@ def _wave(ctx: SiteContext) -> str:
         for row in constituents_for(ctx.conn, HEADLINE, ctx.date)
         if row["included"] and row["price_usd"]
     ]
-    lo = min((v for _, v in priced), default=0.0)
-    hi = max((v for _, v in priced), default=0.0)
+    price_lo = min((v for _, v in priced), default=0.0)
+    price_hi = max((v for _, v in priced), default=0.0)
     cell_cols, cell_rows = 16, 8
     cx, cy = (cell_cols - 1) / 2, (cell_rows - 1) / 2
     cells = []
@@ -1213,7 +1213,8 @@ def _wave(ctx: SiteContext) -> str:
             weight = 0.5
             if priced:
                 provider, price = priced[idx % len(priced)]
-                weight = (price - lo) / (hi - lo) if hi > lo else 0.5
+                span = price_hi - price_lo
+                weight = (price - price_lo) / span if span > 0 else 0.5
                 # Only the right half is labelled. The layer's horizontal mask fades
                 # everything left of ~45% out, and the headline column is painted over
                 # that same region, so a label there could never be read or even
