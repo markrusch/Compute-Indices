@@ -1144,8 +1144,16 @@ def _wave() -> str:
     can never be mistaken for a price series. The shape is the brand guide's own curve
     (two summed sines), evaluated here rather than in JavaScript so the graphic is
     present with scripting disabled. It draws in once on load (tci-rise, staggered) and
-    breathes only while hovered (tci-wave) — motion that answers the reader instead of
-    looping at them, and silenced entirely by prefers-reduced-motion.
+    breathes only while hovered (tci-wave) — motion that answers the reader rather than
+    looping at them.
+
+    Two ambient layers sit behind and above the bars: a tile field (texture only) and
+    the 0/1 bits that bounce along the curve. Those two do loop, which is the one place
+    this page spends motion on decoration rather than on an answer, so both are held
+    faint, both are aria-hidden, and both stop dead under prefers-reduced-motion. While
+    the cursor is driving the wave the bits fade out entirely — the crest scales bars
+    far past their resting height, and a bit bouncing on a surface that is moving under
+    it reads as a bug rather than as physics.
     """
     from math import pi, sin
 
@@ -1166,7 +1174,46 @@ def _wave() -> str:
             f'--wd:{1.3 + (i % 5) * 0.15:.2f}s">'
             '<span class="wave__dot"></span><span class="wave__bar"></span></span>'
         )
-    return f'<div class="hero__wave" aria-hidden="true">{"".join(cols)}</div>'
+
+    # The tile field behind the bars. Texture, nothing more: no cell carries a value,
+    # a name or a tooltip. An earlier design draft hung per-provider prices off these
+    # cells; those numbers were invented and the provider names were real, which is
+    # exactly the thing this repo does not publish. A cell's ripple is keyed to the
+    # brand curve at its own column instead, so the field is derived from the same
+    # shape as the bars rather than from data it does not have.
+    cell_cols, cell_rows = 16, 8
+    cx, cy = (cell_cols - 1) / 2, (cell_rows - 1) / 2
+    cells = []
+    for r in range(cell_rows):
+        for c in range(cell_cols):
+            t = c / (cell_cols - 1)
+            curve = 90 + sin(t * pi * 2.2 + 0.5) * 60 + sin(t * pi * 5) * 16
+            # 0..1 across the curve's own range, so a taller part of the wave sits
+            # over a slightly warmer cell.
+            weight = min(1.0, max(0.0, (curve - 14) / 152))
+            dist = ((c - cx) ** 2 + (r - cy) ** 2) ** 0.5
+            cells.append(
+                f'<span class="wave__cell" style="--peak:{0.05 + weight * 0.06:.3f};'
+                f'--cd:{dist * 0.22:.2f}s"></span>'
+            )
+    grid = f'<span class="wave__grid">{"".join(cells)}</span>'
+
+    # The 0/1 bits that bounce along the curve. The trajectory is not hand-drawn: it is
+    # parabolic free-fall between touchdowns computed against these same bar heights,
+    # with the apex decaying by a fixed restitution each bounce and each bounce's
+    # duration scaling with the square root of its apex — constant gravity, in other
+    # words. See site.css (BOUNCING BITS) for the measured invariants.
+    bits = "".join(
+        f'<span class="wave__bit" style="--bd:{dur}s;--bdelay:{delay}s">{glyph}</span>'
+        for dur, delay, glyph in (
+            (7.5, 0, "1"), (9, 2.4, "0"), (6.5, 5.1, "0"),
+            (8.2, 1.2, "1"), (10, 6.8, "1"), (7, 3.6, "0"),
+        )
+    )
+    return (
+        f'<div class="hero__wave" aria-hidden="true">{grid}{"".join(cols)}'
+        f'<span class="wave__bits">{bits}</span></div>'
+    )
 
 
 def _hero() -> str:

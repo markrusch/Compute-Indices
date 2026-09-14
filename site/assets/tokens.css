@@ -242,6 +242,11 @@
   --wave-dot:      rgba(245, 245, 246, 0.35);
   --wave-bar:      rgba(245, 245, 246, 0.18);
   --wave-bar-hi:   rgba(255, 0, 0, 0.60);
+  /* The tile field behind the bars, at rest. Its lit state is per-cell (--peak,
+     written in the markup) and wine-tinted, so this is the only value it needs
+     here. Deliberately this faint: the field has to read as texture at a glance
+     and all but disappear when you look straight at it. */
+  --cell-rest:     rgba(245, 245, 246, 0.028);
 
   /* Compatibility aliases. site.css and the chart CSS were written against an
      `--accent` vocabulary; the two reds map onto it so nothing has to guess
