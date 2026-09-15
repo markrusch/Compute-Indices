@@ -694,6 +694,50 @@ def write_series_api(conn: sqlite3.Connection, out_dir: Path | None = None) -> l
     return written
 
 
+FORWARD_DIR = REPO_ROOT / "site" / "data" / "forward"
+FORWARD_CSV_HEADER = (
+    "date,component,horizon_days,revision,value_usd,p10,p50,p90,n_inputs,method_version"
+)
+
+
+def write_forward(conn: sqlite3.Connection, out_dir: Path | None = None) -> Path | None:
+    """site/data/forward/latest.json, history.csv and calibration.json (tci.forward_data).
+
+    Read from the ledger, never recomputed here: the published history is what was estimated
+    on each date. history.csv carries estimates made on their own date only; backfilled rows
+    stay in the database and in latest.json's count, and never in the history.
+    """
+    from tci import forward_data
+
+    tables = forward_data.forward_tables(conn)
+    if tables is None:
+        return None
+    target = out_dir or FORWARD_DIR
+    target.mkdir(parents=True, exist_ok=True)
+    latest = {k: v for k, v in tables.items() if k != "history"}
+    latest["note"] = (
+        "Forward estimate of the EU-CRI-H100 print. M: expected mean of the published print"
+        " over the window (horizon_days), with percentiles of that mean. T: term-implied"
+        " diagnostic, never used to form M. L: cheapest lockable EU cost per used GPU-hour, a"
+        " price and not a bound on the index. value_usd null is a gap with its reason in"
+        " detail.gap. Research output, not a reference price for any financial instrument."
+    )
+    lines = [FORWARD_CSV_HEADER]
+    for r in tables["history"]:
+        lines.append(",".join("" if v is None else str(v) for v in (
+            r["date"], r["component"], r["horizon_days"], r["revision"], r["value_usd"],
+            r["p10"], r["p50"], r["p90"], r["n_inputs"], r["method_version"])))
+    (target / "history.csv").write_text("\n".join(lines) + "\n", encoding="utf-8",
+                                        newline="\n")
+    (target / "calibration.json").write_text(
+        json.dumps(tables["calibration"], indent=1, sort_keys=True) + "\n", encoding="utf-8",
+        newline="\n")
+    path = target / "latest.json"
+    path.write_text(json.dumps(latest, indent=1, sort_keys=True) + "\n", encoding="utf-8",
+                    newline="\n")
+    return path
+
+
 def generate(conn: sqlite3.Connection) -> Path:
     # The version live today, which is what today's print was computed under. The head
     # of the succession can be an announced version whose effective date is still ahead.
@@ -735,5 +779,10 @@ def generate(conn: sqlite3.Connection) -> Path:
         write_curve(conn)
     except Exception:  # noqa: BLE001
         log.exception("webdata: curve tables not written")
+    # The forward estimate: research beside the index on the same terms.
+    try:
+        write_forward(conn)
+    except Exception:  # noqa: BLE001
+        log.exception("webdata: forward estimate not written")
     log.info("webdata: %s", OUT_PATH)
     return OUT_PATH

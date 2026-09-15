@@ -143,3 +143,13 @@ def test_reproduce_passes_inside_the_copy(repo_copy: Path) -> None:
     proc = _run(repo_copy, "reproduce", "--published")
     assert "MISMATCH" not in proc.stdout
     assert "MISSING" not in proc.stdout
+
+
+def test_forward_records_and_publishes_from_the_copy(repo_copy: Path) -> None:
+    """The forward estimate's own entrypoint, the step the daily run takes after its prints."""
+    _run(repo_copy, "forward", "--date", "2026-09-12")
+    latest = repo_copy / "site" / "data" / "forward" / "latest.json"
+    data = json.loads(latest.read_text(encoding="utf-8"))
+    assert data["series"] == "EU-CRI-H100" and data["as_of"] == "2026-09-12"
+    assert {r["component"] for r in data["latest"]} == {"M", "T", "L"}
+    assert (repo_copy / "site" / "data" / "forward" / "history.csv").exists()

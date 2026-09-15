@@ -118,6 +118,34 @@ def _cmd_mlperf(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_forward(args: argparse.Namespace) -> int:
+    """Record the forward estimate for a date and write site/data/forward/.
+
+    Earlier stored dates with no estimate are written too, flagged backfilled. The daily run
+    does exactly this after its prints; this is the same step on demand.
+    """
+    from tci import db, forward_data
+    from tci.outputs import webdata
+
+    conn = db.connect()
+    db.migrate(conn)
+    date = args.date or conn.execute(
+        "SELECT MAX(r.utc_date) FROM runs r JOIN observations o ON o.run_id = r.run_id"
+    ).fetchone()[0]
+    if date is None:
+        print("no stored observations to estimate from")
+        return 1
+    written = forward_data.record_forward(conn, date)
+    path = webdata.write_forward(conn)
+    print(f"forward {date}: {written} ledger rows written; {path}")
+    tables = forward_data.forward_tables(conn)
+    for r in (tables or {}).get("latest", []):
+        state = (f"{r['value_usd']:.4f}" if r["value_usd"] is not None
+                 else f"gap: {r['detail'].get('gap')}")
+        print(f"  {r['component']} {r['horizon_days']:>3}d  {state}")
+    return 0
+
+
 def _cmd_term(args: argparse.Namespace) -> int:
     """The term tables for one date: every pooled cell, and how far each is from
     publishing. Roadmap L5.3: "re-check quarterly whether any tenor has reached three
@@ -274,6 +302,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     p_term.add_argument("--date", help="YYYY-MM-DD (default: the latest term-priced date)")
 
+    p_fwd = sub.add_parser(
+        "forward", help="record the forward estimate for a date and write site/data/forward"
+    )
+    p_fwd.add_argument("--date", help="YYYY-MM-DD (default: the latest collection date)")
+
     p_rel = sub.add_parser(
         "reliability", help="the record's gaps, and how close a series is to its gate"
     )
@@ -342,6 +375,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_effect(args)
     if args.command == "term":
         return _cmd_term(args)
+    if args.command == "forward":
+        return _cmd_forward(args)
     if args.command in {"daily", "constituents", "backfill", "weights", "validate", "post"}:
         from tci import commands
 

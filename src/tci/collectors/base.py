@@ -18,7 +18,7 @@ import requests
 
 from tci import USER_AGENT
 from tci.db import utc_now_iso
-from tci.models import MarketOffer, Observation
+from tci.models import MarketOffer, Observation, TermQuote
 
 log = logging.getLogger("tci.collectors")
 
@@ -112,6 +112,9 @@ def run_collector(
     book: list[MarketOffer] = getattr(collector, "offer_book", None) or []
     if book:
         notes += "; " + _store_offer_book(conn, collector.name, run_id, book)
+    quotes: list[TermQuote] = getattr(collector, "term_quotes", None) or []
+    if quotes:
+        notes += "; " + _store_term_quotes(conn, collector.name, run_id, quotes)
 
     with conn:
         conn.execute(
@@ -153,3 +156,36 @@ def _store_offer_book(
         log.exception("%s: offer book not stored (prices unaffected)", name)
         return f"offer book not stored: {type(exc).__name__}: {exc}"[:300]
     return f"{len(book)} market offers"
+
+
+def _store_term_quotes(
+    conn: sqlite3.Connection, name: str, run_id: str, quotes: list[TermQuote]
+) -> str:
+    """Store term quotes the same way as an offer book: after the run's prices, fail-soft.
+
+    A collector that returns only quotes stores no observations, so without this the quotes
+    would be read, counted in the log and thrown away.
+    """
+    try:
+        with conn:
+            conn.executemany(
+                "INSERT INTO term_quotes (run_id, ts_utc, source, queried_name, requested_days,"
+                " offer_id, machine_id, host_id, gpu_model, num_gpus, country, verification,"
+                " hosting_type, dph_total, discounted_dph_total, max_duration_days,"
+                " in_index_scope, raw_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
+                " ?, ?, ?)",
+                [
+                    (
+                        run_id, q.ts_utc, q.source, q.queried_name, q.requested_days,
+                        q.offer_id, q.machine_id, q.host_id, q.gpu_model, q.num_gpus,
+                        q.country, q.verification, q.hosting_type, q.dph_total,
+                        q.discounted_dph_total, q.max_duration_days, int(q.in_index_scope),
+                        q.raw_json,
+                    )
+                    for q in quotes
+                ],
+            )
+    except Exception as exc:
+        log.exception("%s: term quotes not stored", name)
+        return f"term quotes not stored: {type(exc).__name__}: {exc}"[:300]
+    return f"{len(quotes)} term quotes"

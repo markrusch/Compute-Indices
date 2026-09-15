@@ -31,6 +31,7 @@ from tci.collectors.scaleway import ScalewayCollector
 from tci.collectors.seeweb import SeewebCollector
 from tci.collectors.static_yaml import StaticYamlCollector
 from tci.collectors.vast_ai import VastAiCollector
+from tci.collectors.vast_reserved import VastReservedCollector
 from tci.index import compute_print
 from tci.models import Constituent, IndexPrint
 from tci.normalise import NormalisedObs, normalise_observations, unadmitted_providers
@@ -56,6 +57,8 @@ def collectors_for_daily() -> list[base.Collector]:
         VastAiCollector(), RunPodCollector(), GpuHuntCollector(), StaticYamlCollector(),
         ScalewayCollector(), AzureRetailCollector(), SeewebCollector(),
         *computable_collectors(),
+        # Last: its spaced requests start well after vast_ai's own book has been read.
+        VastReservedCollector(),
     ]
 
 
@@ -553,6 +556,9 @@ def cmd_daily(args: argparse.Namespace) -> int:
 
     session = base.make_session()
     collect_fx(conn, session)  # fail-soft; calc falls back to last stored rate
+    from tci.collectors.rates import collect_rates
+
+    collect_rates(conn, session, utc_date)  # overlay only; restates prepaid term prices
     from tci.collectors.entsoe import collect_overlay
 
     collect_overlay(conn, session, utc_date)  # overlay only; skips without token
@@ -585,7 +591,24 @@ def cmd_daily(args: argparse.Namespace) -> int:
 
     compute_all_series(conn, utc_date)
     export_csv(conn)
+    _record_forward(conn, utc_date)
     return 0 if _maybe_outputs(conn, utc_date) else 1
+
+
+def _record_forward(conn: sqlite3.Connection, utc_date: str) -> None:
+    """The forward estimate ledger (tci.forward_data), after the prints, before outputs.
+
+    Research beside the index on the same terms as the term and curve tables: a failure here
+    is recorded in `runs` and costs the estimate, never the day's prints or site.
+    """
+    from tci import forward_data
+
+    try:
+        written = forward_data.record_forward(conn, utc_date)
+        log.info("forward: %d ledger rows written", written)
+    except Exception as exc:  # noqa: BLE001
+        log.exception("forward estimate not recorded; prints and outputs unaffected")
+        forward_data.note_failure(conn, utc_date, exc)
 
 
 def _maybe_outputs(conn: sqlite3.Connection, utc_date: str) -> bool:

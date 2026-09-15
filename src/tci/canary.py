@@ -97,7 +97,11 @@ def _summarise(
         "SELECT COALESCE(notes, '') FROM runs WHERE source = ? ORDER BY started_utc DESC"
         " LIMIT 1", (source,)
     ).fetchone()[0]
-    rows = row["n"]
+    # A term-quote collector stores no observations; its rows are the quotes it read.
+    quotes = conn.execute(
+        "SELECT COUNT(*) FROM term_quotes WHERE source = ?", (source,)
+    ).fetchone()[0]
+    rows = row["n"] + quotes
     models = tuple(sorted(m for m in row["m"].split(",") if m))
     # A collector that returns cleanly and hands back nothing is the failure mode a
     # fail-soft pipeline hides best: no exception, no log line, just a source that has

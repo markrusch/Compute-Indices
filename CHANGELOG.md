@@ -3,6 +3,56 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Forward estimate: the expected index, the cost to lock, and the record that scores them — 2026-09-15 — no methodology change
+
+- **`forward.html`, `site/data/forward/`, `python -m tci.run forward`.** For windows of one,
+  three, six and twelve months: the expected mean of the EU-CRI-H100 print with its 10th and
+  90th percentiles, and beside it the cheapest price an EU buyer can lock the same unit at
+  today. Estimated every day after the prints, stored as made in a new append-only table,
+  `forward_estimates`, and never revised in place.
+- **The estimate is an expectation.** A GPU-hour cannot be stored, so spot does not pin a
+  forward by carry, and there is no traded forward on this index to price against: CME's and
+  ICE's contracts settle on competitors' indices and are not used. The price level is treated
+  as a martingale. The print moves in steps: on the record to 15 September it took one of four
+  values on most days, the lag-1 autocorrelation of its daily log changes was -0.32, and the
+  3.49 print on 12 September supplied 56% of its variance. It is modelled as a level plus
+  measurement noise, a local-level filter fitted by maximum likelihood over a fixed grid.
+  Drift is zero, because 22 prints cannot estimate one.
+- **Estimates see only what was knowable on their date.** The anchor is recomputed in memory
+  from each day's stored observations and never read from `daily_index`, because a print can
+  be revised after its date. Where a window crosses an announced methodology change (v0.5.0
+  on 22 September, v0.6.0 on 1 October), the later days use the index recomputed under the new
+  version, and a version counts only once its notice was published. Recomputed under their own
+  version, all 22 published prints reproduce exactly.
+- **The cost to lock is a price.** It is the cheapest cost per used hour across vast.ai listed
+  asks with a long enough host contract, vast.ai reserved quotes restated as paid monthly, and
+  EU rate cards charged for their whole contract. On 15 September the only EU offer on the
+  index's unit covering a month was Azure's 12-month reservation, so a one-month lock costs
+  $111.97 per used hour. It cannot bound the index, which is a median of offers that no single
+  rental reproduces.
+- **Term-implied figures sit beside the estimate and never form it.** They need three
+  independent EU sellers in the index population at exactly the tenor. On 15 September no
+  tenor has three. A schedule that prices every chip alike is not counted.
+- **Two collectors, both outside the calculation path.** `vast_reserved` asks vast.ai for
+  reserved H100 SXM at 30, 90 and 180 days, three requests eight seconds apart, and stores every
+  quote in `term_quotes`. On 15 September one verified Czech host quoted 0.9626 of on-demand at
+  90 days and the other six offers quoted no discount. `rates` stores the ECB euro short-term
+  rate and AAA spot curve and the US Treasury par curve in `overlay_rates`, used only to restate
+  a prepaid price in its own currency.
+- **Parameters are locked by their own version.** `config/forward.yaml` was fixed before the
+  first backfill. Every ledger row records `1.0.0+<hash>`, and a test fails if the file changes
+  without a new version.
+- **Backfill is labelled.** The first run estimates every earlier stored date from data
+  knowable on it and flags those rows `backfilled`. They are shown apart and are not a track
+  record. Calibration counts only non-overlapping closed windows and reports nothing below 20.
+- **Screened and not used**, each with its reason in `config/source_registry.yaml`: SF
+  Compute's order book (forward-starting fills; needs a token), DigitalOcean's 12-month reserved
+  prices (contact sales, no region), AWS Capacity Blocks (one price a quarter), archived pricing
+  pages (rendered in JavaScript or missing), gpuhunt catalog history (not listable), Akash GPU
+  prices (no location, no term), and the CME and ICE compute futures (competitors' indices).
+- `docs/FORWARD-SPOT.md` records the design and the review findings it answers. Not in the
+  calculation path and not under the lock; `test_reproduce.py` passes.
+
 ## A privacy notice, and two hardened headers — 2026-09-15 — no methodology change
 
 - **`PRIVACY.md` and `site/privacy.html`, new.** The site had no privacy notice despite

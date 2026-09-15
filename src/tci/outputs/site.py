@@ -103,6 +103,7 @@ NAV: tuple[tuple[str, str], ...] = (
     ("index.html", "Indices"),
     ("basis.html", "Basis"),
     ("term.html", "Term"),
+    ("forward.html", "Forward"),
     ("methodology.html", "Methodology"),
     ("data.html", "Data"),
     ("research.html", "Research"),
@@ -3799,6 +3800,14 @@ def _contributed_section() -> str:
   <tbody>{"".join(rows)}</tbody></table></div></div>"""
 
 
+def _forward(ctx: SiteContext) -> str:
+    # Research beside the index, rendered in its own module. A failure there becomes a page
+    # saying so, inside that module, and the rest of the site is still generated.
+    from tci.outputs import forward_page
+
+    return forward_page.render(ctx)
+
+
 def _term(ctx: SiteContext) -> str:
     # Research beside the index: if the table cannot be built, the page says so and the
     # rest of the site is still generated.
@@ -4326,6 +4335,7 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         (SITE_DIR / "index.html", _dashboard(ctx, notes)),
         (SITE_DIR / "basis.html", _basis(ctx)),
         (SITE_DIR / "term.html", _term(ctx)),
+        (SITE_DIR / "forward.html", _forward(ctx)),
         (SITE_DIR / "methodology.html", _methodology(ctx)),
         (SITE_DIR / "data.html", _data(ctx)),
         (SITE_DIR / "governance.html", _governance(ctx)),

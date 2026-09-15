@@ -1,0 +1,335 @@
+{
+ "as_of": "2026-09-15",
+ "calibration": [
+  {
+   "backfilled": false,
+   "bias": null,
+   "coverage": null,
+   "horizon_days": 30,
+   "n_closed": 0,
+   "n_nonoverlapping": 0,
+   "required": 20,
+   "rmse": null
+  },
+  {
+   "backfilled": false,
+   "bias": null,
+   "coverage": null,
+   "horizon_days": 91,
+   "n_closed": 0,
+   "n_nonoverlapping": 0,
+   "required": 20,
+   "rmse": null
+  },
+  {
+   "backfilled": false,
+   "bias": null,
+   "coverage": null,
+   "horizon_days": 182,
+   "n_closed": 0,
+   "n_nonoverlapping": 0,
+   "required": 20,
+   "rmse": null
+  },
+  {
+   "backfilled": false,
+   "bias": null,
+   "coverage": null,
+   "horizon_days": 365,
+   "n_closed": 0,
+   "n_nonoverlapping": 0,
+   "required": 20,
+   "rmse": null
+  },
+  {
+   "backfilled": true,
+   "bias": null,
+   "coverage": null,
+   "horizon_days": 30,
+   "n_closed": 0,
+   "n_nonoverlapping": 0,
+   "required": 20,
+   "rmse": null
+  },
+  {
+   "backfilled": true,
+   "bias": null,
+   "coverage": null,
+   "horizon_days": 91,
+   "n_closed": 0,
+   "n_nonoverlapping": 0,
+   "required": 20,
+   "rmse": null
+  },
+  {
+   "backfilled": true,
+   "bias": null,
+   "coverage": null,
+   "horizon_days": 182,
+   "n_closed": 0,
+   "n_nonoverlapping": 0,
+   "required": 20,
+   "rmse": null
+  },
+  {
+   "backfilled": true,
+   "bias": null,
+   "coverage": null,
+   "horizon_days": 365,
+   "n_closed": 0,
+   "n_nonoverlapping": 0,
+   "required": 20,
+   "rmse": null
+  }
+ ],
+ "latest": [
+  {
+   "backfilled": false,
+   "component": "L",
+   "date": "2026-09-15",
+   "detail": {
+    "commit_days": 365,
+    "covers_days": 365,
+    "kind": "rate_card",
+    "price_usd": 9.202754,
+    "seller": "azure"
+   },
+   "horizon_days": 30,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 33,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": 111.96684
+  },
+  {
+   "backfilled": false,
+   "component": "L",
+   "date": "2026-09-15",
+   "detail": {
+    "commit_days": 365,
+    "covers_days": 365,
+    "kind": "rate_card",
+    "price_usd": 9.202754,
+    "seller": "azure"
+   },
+   "horizon_days": 91,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 33,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": 36.912145
+  },
+  {
+   "backfilled": false,
+   "component": "L",
+   "date": "2026-09-15",
+   "detail": {
+    "commit_days": 365,
+    "covers_days": 365,
+    "kind": "rate_card",
+    "price_usd": 9.202754,
+    "seller": "azure"
+   },
+   "horizon_days": 182,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 33,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": 18.456073
+  },
+  {
+   "backfilled": false,
+   "component": "L",
+   "date": "2026-09-15",
+   "detail": {
+    "commit_days": 365,
+    "covers_days": 365,
+    "kind": "rate_card",
+    "price_usd": 9.202754,
+    "seller": "azure"
+   },
+   "horizon_days": 365,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 33,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": 9.202754
+  },
+  {
+   "backfilled": false,
+   "component": "M",
+   "date": "2026-09-15",
+   "detail": {
+    "gap": "4 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
+   },
+   "horizon_days": 30,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 0,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": null
+  },
+  {
+   "backfilled": false,
+   "component": "M",
+   "date": "2026-09-15",
+   "detail": {
+    "gap": "4 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
+   },
+   "horizon_days": 91,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 0,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": null
+  },
+  {
+   "backfilled": false,
+   "component": "M",
+   "date": "2026-09-15",
+   "detail": {
+    "gap": "4 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
+   },
+   "horizon_days": 182,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 0,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": null
+  },
+  {
+   "backfilled": false,
+   "component": "M",
+   "date": "2026-09-15",
+   "detail": {
+    "gap": "4 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
+   },
+   "horizon_days": 365,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 0,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": null
+  },
+  {
+   "backfilled": false,
+   "component": "T",
+   "date": "2026-09-15",
+   "detail": {
+    "gap": "no martingale estimate to scale",
+    "sellers": []
+   },
+   "horizon_days": 30,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 0,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": null
+  },
+  {
+   "backfilled": false,
+   "component": "T",
+   "date": "2026-09-15",
+   "detail": {
+    "gap": "no martingale estimate to scale",
+    "sellers": [
+     [
+      "seeweb",
+      "administered_untested"
+     ]
+    ]
+   },
+   "horizon_days": 91,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 0,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": null
+  },
+  {
+   "backfilled": false,
+   "component": "T",
+   "date": "2026-09-15",
+   "detail": {
+    "gap": "no martingale estimate to scale",
+    "sellers": [
+     [
+      "seeweb",
+      "administered_untested"
+     ]
+    ]
+   },
+   "horizon_days": 182,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 0,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": null
+  },
+  {
+   "backfilled": false,
+   "component": "T",
+   "date": "2026-09-15",
+   "detail": {
+    "gap": "no martingale estimate to scale",
+    "sellers": [
+     [
+      "seeweb",
+      "administered_untested"
+     ]
+    ]
+   },
+   "horizon_days": 365,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 0,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": null
+  }
+ ],
+ "method_version": "1.0.0+4b8640d50d57",
+ "n_backfilled_dates": 41,
+ "note": "Forward estimate of the EU-CRI-H100 print. M: expected mean of the published print over the window (horizon_days), with percentiles of that mean. T: term-implied diagnostic, never used to form M. L: cheapest lockable EU cost per used GPU-hour, a price and not a bound on the index. value_usd null is a gap with its reason in detail.gap. Research output, not a reference price for any financial instrument.",
+ "parameters": {
+  "horizons_days": [
+   30,
+   91,
+   182,
+   365
+  ],
+  "min_nonoverlapping_windows": 20,
+  "min_printed_share": 0.5,
+  "min_prints": 8,
+  "quantiles": [
+   0.1,
+   0.5,
+   0.9
+  ],
+  "term_min_sellers": 3
+ },
+ "series": "EU-CRI-H100"
+}

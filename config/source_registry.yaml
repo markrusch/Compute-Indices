@@ -1137,3 +1137,193 @@ sources:
       that needs our credentials, and reproducibility is the whole claim. Rejected on
       those grounds, not on availability. The data itself is good.
     recheck: "AWS publishes capacity-block clearing prices without authentication"
+
+  # ---- forward estimate inputs and screened sources (docs/FORWARD-SPOT.md) ----
+  - id: vast_reserved
+    name: Vast.ai reserved (prepaid) quotes by requested duration
+    kind: marketplace
+    status: shadow
+    tier: executable
+    collector: vast_reserved
+    homepage: https://cloud.vast.ai/
+    endpoint: "POST https://console.vast.ai/api/v0/bundles/ (type=reserved, duration >= 30/90/180 days)"
+    auth: none
+    blocks: [EU_EEA, US]
+    gpu_classes: [H100]
+    access_basis: >-
+      The same public search API the vast_ai collector uses, with two more query fields.
+      Three requests a day, eight seconds apart.
+    discovered: 2026-09-15
+    discovered_via: "forward spot data inventory"
+    last_reviewed: 2026-09-15
+    notes: >-
+      Stored in term_quotes, never in observations. On 2026-09-15 one verified Czech host
+      (214845) quoted 0.9751, 0.9626 and 0.9573 of on-demand at 30, 90 and 180 days; the
+      other offers returned quoted no discount. Read only by the forward estimate's term
+      diagnostic and lockable cost.
+
+  - id: government_rate_curves
+    name: ECB euro short-term rate and AAA spot curve; US Treasury par curve
+    kind: reference
+    status: live
+    tier: reference
+    collector: rates
+    homepage: https://data.ecb.europa.eu/
+    endpoint: "GET data-api.ecb.europa.eu/service/data/EST/B.EU000A2X2A25.WT and .../YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_3M+SR_6M+SR_1Y+SR_2Y+SR_3Y+SR_5Y; GET home.treasury.gov daily-treasury-rates.csv/{year}/all"
+    auth: none
+    blocks: []
+    gpu_classes: []
+    access_basis: >-
+      Official statistical releases published for public use: the ECB Data Portal API and the
+      US Treasury's daily par yield curve file.
+    discovered: 2026-09-15
+    discovered_via: "forward spot data inventory"
+    last_reviewed: 2026-09-15
+    notes: >-
+      Stored in overlay_rates. Used only to restate prepaid term prices as pay-as-delivered in
+      their own currency. Never a price input.
+
+  - id: sfcompute_orderbook
+    name: SF Compute order book (quotes, depth and fills by delivery window)
+    kind: marketplace
+    status: watchlist
+    tier: executable
+    homepage: https://sfcompute.com/
+    endpoint: "GET /preview/v2/orderbook/{quote,depth,fills}?requirements=accelerator:h100;availability_zone:<zone>&start_at=<epoch>&end_at=<epoch>"
+    auth: token
+    blocks: [EU_EEA, US]
+    gpu_classes: [H100]
+    access_basis: >-
+      Unverified. Needs an account, a bearer token, and a reading of the terms on storing
+      market data and publishing aggregates.
+    discovered: 2026-09-15
+    discovered_via: "forward spot data inventory"
+    recheck: >-
+      A repository secret SFCOMPUTE_API_TOKEN exists and one live response has been captured.
+      Confirm GPUs per node, the Amsterdam zone identifier and the terms, then write the
+      collector against the captured response.
+    notes: >-
+      The only market-formed forward-starting prices found: market-wide, participant-anonymous
+      fills for a future delivery window, in dollars per node-hour, with an Amsterdam zone. They
+      price SF Compute nodes rather than the index, so they would enter as a basis-adjusted
+      diagnostic beside the estimate, never as the estimate.
+
+  - id: digitalocean_reserved
+    name: DigitalOcean 12-month reserved GPU Droplet prices
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://www.digitalocean.com/pricing/gpu-droplets
+    endpoint: "GET https://www.digitalocean.com/pricing/gpu-droplets"
+    auth: none
+    blocks: [EU_EEA, US]
+    gpu_classes: [H100, H200, B300]
+    access_basis: "Public, server-rendered pricing page."
+    discovered: 2026-09-15
+    discovered_via: "forward spot data inventory"
+    recheck: "The page states where a reservation can be placed, or offers it self-service."
+    notes: >-
+      H100 $3.26, H200 $3.40, B300 $7.94 per GPU-hour at 12 months reserved, effective 1 August
+      2026, read 2026-09-15. The footnote reads "Reserve via a contractual commitment of 12
+      months ... contact sales" and no region is stated, so a buyer cannot lock it and it
+      cannot be placed in the EU/EEA.
+
+  - id: aws_capacity_blocks_pricing_page
+    name: AWS EC2 Capacity Blocks for ML, public pricing page
+    kind: hyperscaler
+    status: watchlist
+    tier: list
+    homepage: https://aws.amazon.com/ec2/capacityblocks/pricing/
+    endpoint: "GET https://aws.amazon.com/ec2/capacityblocks/pricing/ (prices embedded in the page)"
+    auth: none
+    blocks: [US]
+    gpu_classes: [H100, H200, B200]
+    access_basis: "Public pricing page."
+    discovered: 2026-09-15
+    discovered_via: "forward spot data inventory"
+    recheck: "Prices vary with start date, or an EU/EEA region is offered."
+    notes: >-
+      Forward-starting capacity up to eight weeks out, but one price per instance and region,
+      repriced quarterly, in US regions and London. One administered number a quarter carries
+      no term structure.
+
+  - id: internet_archive_pricing_pages
+    name: Internet Archive snapshots of provider pricing pages
+    kind: reference
+    status: watchlist
+    tier: reference
+    homepage: https://web.archive.org/
+    endpoint: "GET https://web.archive.org/cdx/search/cdx and https://web.archive.org/web/<timestamp>id_/<url>"
+    auth: none
+    blocks: []
+    gpu_classes: [H100, A100]
+    access_basis: "Public archive of the providers' own published pages."
+    discovered: 2026-09-15
+    discovered_via: "forward spot data inventory"
+    recheck: "A provider whose archived pricing page carries server-rendered prices across 2023-2026."
+    notes: >-
+      Would give past term prices and the spot that followed them, the fastest route to
+      measuring the term premium. Monthly snapshots exist from 2023 for Lambda, CoreWeave,
+      DataCrunch, RunPod and Paperspace, but Lambda's 2024 page renders prices in JavaScript,
+      and the Paperspace, DataCrunch and RunPod snapshots tried on 2026-09-15 returned 503 or
+      nothing.
+
+  - id: akash_gpu_prices
+    name: Akash Network GPU price API
+    kind: marketplace
+    status: watchlist
+    tier: executable
+    homepage: https://akash.network/
+    endpoint: "GET https://console-api.akash.network/v1/gpu-prices"
+    auth: none
+    blocks: []
+    gpu_classes: [H100, A100]
+    access_basis: "Public API of a public decentralised marketplace."
+    discovered: 2026-09-15
+    discovered_via: "forward spot data inventory"
+    recheck: "Offers carry a location, so an EU/EEA subset can be taken."
+    notes: "Global spot minimum, median and maximum by model on 2026-09-15; no location, no term prices."
+
+  - id: gpuhunt_catalog_history
+    name: gpuhunt historical price catalogs
+    kind: reference
+    status: rejected
+    tier: reference
+    homepage: https://github.com/dstackai/gpuhunt
+    endpoint: "https://dstack-gpu-pricing.s3.eu-west-1.amazonaws.com/v2/<version>/catalog.zip"
+    auth: none
+    blocks: []
+    gpu_classes: []
+    discovered: 2026-09-15
+    discovered_via: "forward spot data inventory"
+    reason: "The bucket listing returns 403 and version names are not enumerable, so past catalogs cannot be found."
+
+  - id: cme_silicon_data_futures
+    name: CME Silicon Data H100 and B200 Rental Index futures
+    kind: reference
+    status: rejected
+    tier: reference
+    homepage: https://www.cmegroup.com/
+    endpoint: "Exchange settlement prices, trading from 2026-10-05"
+    auth: licence
+    blocks: [US]
+    gpu_classes: [H100, B200]
+    discovered: 2026-09-15
+    discovered_via: "forward spot data inventory"
+    reason: >-
+      Settles on a competitor's index (Silicon Data). TCI uses no competitor data, including
+      prices derived from a competitor's index.
+
+  - id: ice_ornn_futures
+    name: ICE GPU compute futures on Ornn's Compute Price Index
+    kind: reference
+    status: rejected
+    tier: reference
+    homepage: https://www.ice.com/
+    endpoint: "Exchange settlement prices, launch announced in 2026"
+    auth: licence
+    blocks: [US]
+    gpu_classes: [H100, H200, B200]
+    discovered: 2026-09-15
+    discovered_via: "forward spot data inventory"
+    reason: "Settles on a competitor's index (Ornn). TCI uses no competitor data."

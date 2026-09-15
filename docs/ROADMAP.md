@@ -465,6 +465,31 @@ Civo and Latitude are off the panel, Verda's knots come from a published schedul
 than a panel source, and OVHcloud enters with v0.5.0 on 22 September. The only pooled rows
 are Azure alone in hyperscaler, at 1 of 3.
 
+### L5.5 The forward spot estimate — built 15 September
+
+`docs/FORWARD-SPOT.md`. The requirement: an estimate of future spot that is forward-looking,
+martingale-type or at least no-arbitrage, usable as a hedge, free of competitor data, and
+automated end to end. Built: `S*` as the martingale expectation of the EU-CRI-H100 window mean
+(local level, pro-forma under announced versions, knowledge-time reads); the lockable-cost
+curve `L` for hedging one's own usage; a term-implied diagnostic `T`. All three are published
+on `forward.html` and recorded daily in an append-only ledger. The plan went through an
+adversarial review before implementation; §10 of that file lists the 21 findings and fixes.
+
+**The limits, stated.** Strict no-arbitrage says little here: with no traded forward on the
+index, free disposal bounds a buyer's cost, not the index. `T` gaps at every tenor today.
+Calibration needs 20 non-overlapping closed windows, which at the current print rate is more
+than a year away at one month and many years at twelve.
+
+**The one human step left.** SF Compute's order book is the only market-formed
+forward-starting price found. It needs an account, a token (secret `SFCOMPUTE_API_TOKEN`), a
+reading of its terms and a captured response before a collector is written. Registry row
+`sfcompute_orderbook` carries the steps.
+
+**Next, in order.** (1) Confirm the first scheduled runs populate `term_quotes` and
+`overlay_rates`. (2) SF Compute, as above. (3) Re-screen EU term prices monthly for the three
+sellers `T` needs. (4) No switch to a term-based headline until a pre-registered test on
+non-overlapping windows supports one.
+
 The short version: cumulative cost `C(m) = m × 730 × K(m)` is the primitive, forwards
 bootstrap off it as `ΔC/Δh`, interpolation is flat-forward so every published forward
 traces to exactly two observed prices, nothing extrapolates past the last observed knot,

@@ -1,0 +1,37 @@
+# Parameters of the forward spot estimate (tci.forward, docs/FORWARD-SPOT.md).
+#
+# Read by nothing in the calculation path and not part of METHODOLOGY.lock. Locked instead
+# by its own version: tests/test_forward.py holds the sha256 of this file for each version,
+# so a parameter cannot change without the version changing, and every ledger row records
+# `<version>+<hash>`. These values were fixed before the first backfill was computed, so
+# none of them was chosen by looking at how the backfill scored.
+version: "1.0.0"
+
+anchor_series: EU-CRI-H100
+
+# Window lengths in calendar days: one, three, six and twelve months.
+horizons_days: [30, 91, 182, 365]
+
+# The local-level fit needs at least this many pro-forma prints of a version, and a print on
+# the estimate date itself. Below either, the estimate gaps.
+min_prints: 8
+
+# Grid for the maximum-likelihood fit, as [log10 low, log10 high, points]. Variances are per
+# day in log-price units. The level grid spans daily volatilities from 0.01% to 10%; the noise
+# grid spans measurement errors from 0.01% to 32%.
+grid_log10_q: [-8.0, -2.0, 25]
+grid_log10_r: [-8.0, -1.0, 29]
+
+quantiles: [0.10, 0.50, 0.90]
+
+term:
+  min_sellers: 3
+  admit_formations: [administered_differentiated, administered_untested, market_quoted]
+
+# Prepayment credit risk is not priced in v1; prepaid prices are restated at the risk-free
+# curve of their currency plus this spread (annual, decimal).
+prepaid_credit_spread: 0.0
+
+calibration:
+  min_printed_share: 0.5
+  min_nonoverlapping_windows: 20

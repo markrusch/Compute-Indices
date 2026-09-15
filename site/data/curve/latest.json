@@ -1,0 +1,2100 @@
+{
+ "date": "2026-09-15",
+ "forward_spot": {
+  "published": false,
+  "reason": "S* = PHI + pi. A forward spot curve needs market-quoted or transacted term prices and a measured term premium, and this table holds neither.",
+  "sellers_market_quoted": 0
+ },
+ "note": "Committed-cost curves: what a named seller charges per GPU-hour to lock each tenor, and the forwards bootstrapped from them. Commitment prices, not a forecast of spot; a forward is the break-even rate between locking and rolling. price_formation 'administered_uniform' is a schedule identical across chip generations and carries no chip-specific information. A pooled curve is the index level for its segment times the median seller discount, shown only with at least 3 panel sellers. A research table, not an index series.",
+ "parameters": {
+  "chip_invariance_tol": 0.005,
+  "hours_per_month": 730.0,
+  "interpolation": "flat_forward",
+  "max_span_months": 6,
+  "max_tenor_months": 60,
+  "min_providers": 3
+ },
+ "pooled": [
+  {
+   "curve": null,
+   "gpu_model": "A100_SXM",
+   "level_series": null,
+   "level_usd": null,
+   "model_class": "A100",
+   "points": [
+    {
+     "max_ratio": null,
+     "median_ratio": null,
+     "min_ratio": null,
+     "n_providers": 1,
+     "providers": [
+      "azure"
+     ],
+     "published": false,
+     "tenor_months": 12
+    },
+    {
+     "max_ratio": null,
+     "median_ratio": null,
+     "min_ratio": null,
+     "n_providers": 1,
+     "providers": [
+      "azure"
+     ],
+     "published": false,
+     "tenor_months": 36
+    }
+   ],
+   "segment": "hyperscaler",
+   "status": "no tenor has 3 panel sellers in this segment"
+  },
+  {
+   "curve": null,
+   "gpu_model": "H100_PCIE",
+   "level_series": null,
+   "level_usd": null,
+   "model_class": "H100P",
+   "points": [
+    {
+     "max_ratio": null,
+     "median_ratio": null,
+     "min_ratio": null,
+     "n_providers": 1,
+     "providers": [
+      "azure"
+     ],
+     "published": false,
+     "tenor_months": 12
+    },
+    {
+     "max_ratio": null,
+     "median_ratio": null,
+     "min_ratio": null,
+     "n_providers": 1,
+     "providers": [
+      "azure"
+     ],
+     "published": false,
+     "tenor_months": 36
+    }
+   ],
+   "segment": "hyperscaler",
+   "status": "no tenor has 3 panel sellers in this segment"
+  },
+  {
+   "curve": null,
+   "gpu_model": "H100_SXM",
+   "level_series": "EU-CRI-H100-HS",
+   "level_usd": null,
+   "model_class": "H100",
+   "points": [
+    {
+     "max_ratio": null,
+     "median_ratio": null,
+     "min_ratio": null,
+     "n_providers": 1,
+     "providers": [
+      "azure"
+     ],
+     "published": false,
+     "tenor_months": 12
+    },
+    {
+     "max_ratio": null,
+     "median_ratio": null,
+     "min_ratio": null,
+     "n_providers": 1,
+     "providers": [
+      "azure"
+     ],
+     "published": false,
+     "tenor_months": 36
+    },
+    {
+     "max_ratio": null,
+     "median_ratio": null,
+     "min_ratio": null,
+     "n_providers": 1,
+     "providers": [
+      "azure"
+     ],
+     "published": false,
+     "tenor_months": 60
+    }
+   ],
+   "segment": "hyperscaler",
+   "status": "no tenor has 3 panel sellers in this segment"
+  },
+  {
+   "curve": null,
+   "gpu_model": "H200_SXM",
+   "level_series": null,
+   "level_usd": null,
+   "model_class": "H200",
+   "points": [
+    {
+     "max_ratio": null,
+     "median_ratio": null,
+     "min_ratio": null,
+     "n_providers": 1,
+     "providers": [
+      "azure"
+     ],
+     "published": false,
+     "tenor_months": 12
+    },
+    {
+     "max_ratio": null,
+     "median_ratio": null,
+     "min_ratio": null,
+     "n_providers": 1,
+     "providers": [
+      "azure"
+     ],
+     "published": false,
+     "tenor_months": 36
+    }
+   ],
+   "segment": "hyperscaler",
+   "status": "no tenor has 3 panel sellers in this segment"
+  }
+ ],
+ "price_formation": {
+  "azure": "administered_differentiated",
+  "civo": "administered_differentiated",
+  "latitude": "administered_uniform",
+  "ovhcloud": "administered_differentiated",
+  "seeweb": "administered_untested",
+  "verda": "administered_uniform"
+ },
+ "sellers": [
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 12,
+     "rate": 3.1213,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 12,
+     "m2": 36,
+     "rate": 1.0973,
+     "span_months": 24,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "A100_PCIE",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 4.775,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 27343.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 3.1213,
+     "ratio": 0.6537,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 46567.25,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.772,
+     "ratio": 0.3711,
+     "tenor_months": 36
+    }
+   ],
+   "provider": "azure",
+   "region_block": "EU",
+   "segment": "hyperscaler",
+   "spot": 4.775,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 12,
+     "rate": 3.277,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 12,
+     "m2": 36,
+     "rate": 1.7409,
+     "span_months": 24,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "A100_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 5.1203,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 28706.5,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 3.277,
+     "ratio": 0.64,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 59207.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 2.2529,
+     "ratio": 0.44,
+     "tenor_months": 36
+    }
+   ],
+   "provider": "azure",
+   "region_block": "EU",
+   "segment": "hyperscaler",
+   "spot": 5.1203,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 12,
+     "rate": 6.8055,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 12,
+     "m2": 36,
+     "rate": 4.0833,
+     "span_months": 24,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "H100_PCIE",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 9.074,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 59616.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 6.8055,
+     "ratio": 0.75,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 131155.64,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 4.9907,
+     "ratio": 0.55,
+     "tenor_months": 36
+    }
+   ],
+   "provider": "azure",
+   "region_block": "EU",
+   "segment": "hyperscaler",
+   "spot": 9.074,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 12,
+     "rate": 9.2028,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 12,
+     "m2": 36,
+     "rate": 4.8674,
+     "span_months": 24,
+     "wide_span": true
+    },
+    {
+     "m1": 36,
+     "m2": 60,
+     "rate": 4.9105,
+     "span_months": 24,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "H100_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 14.3793,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 80616.12,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 9.2028,
+     "ratio": 0.64,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 165892.88,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 6.3125,
+     "ratio": 0.439,
+     "tenor_months": 36
+    },
+    {
+     "cum_cost": 251925.38,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 5.7517,
+     "ratio": 0.4,
+     "tenor_months": 60
+    }
+   ],
+   "provider": "azure",
+   "region_block": "EU",
+   "segment": "hyperscaler",
+   "spot": 14.3793,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 12,
+     "rate": 7.5597,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 12,
+     "m2": 36,
+     "rate": 6.5117,
+     "span_months": 24,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "H200_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 13.78,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 66223.03,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 7.5597,
+     "ratio": 0.5486,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 180308.74,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 6.8611,
+     "ratio": 0.4979,
+     "tenor_months": 36
+    }
+   ],
+   "provider": "azure",
+   "region_block": "EU",
+   "segment": "hyperscaler",
+   "spot": 13.78,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 6,
+     "rate": 0.99,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 0.79,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 0.69,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 24,
+     "m2": 36,
+     "rate": 0.49,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "A100_40GB",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.09,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 4336.2,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.99,
+     "ratio": 0.9083,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 7796.4,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.89,
+     "ratio": 0.8165,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 13840.8,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.79,
+     "ratio": 0.7248,
+     "tenor_months": 24
+    },
+    {
+     "cum_cost": 18133.2,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.69,
+     "ratio": 0.633,
+     "tenor_months": 36
+    }
+   ],
+   "provider": "civo",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 1.09,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 6,
+     "rate": 1.69,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 1.49,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 1.39,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 24,
+     "m2": 36,
+     "rate": 1.19,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "A100_UNSPEC",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.79,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 7402.2,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.69,
+     "ratio": 0.9441,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 13928.4,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.59,
+     "ratio": 0.8883,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 26104.8,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.49,
+     "ratio": 0.8324,
+     "tenor_months": 24
+    },
+    {
+     "cum_cost": 36529.2,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.39,
+     "ratio": 0.7765,
+     "tenor_months": 36
+    }
+   ],
+   "provider": "civo",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 1.79,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 12,
+     "rate": 6.49,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 5.49,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 24,
+     "m2": 36,
+     "rate": 4.49,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "B300_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 7.49,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 56852.4,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 6.49,
+     "ratio": 0.8665,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 104944.8,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 5.99,
+     "ratio": 0.7997,
+     "tenor_months": 24
+    },
+    {
+     "cum_cost": 144277.2,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 5.49,
+     "ratio": 0.733,
+     "tenor_months": 36
+    }
+   ],
+   "provider": "civo",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 7.49,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 6,
+     "rate": 2.79,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 2.59,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 2.49,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 24,
+     "m2": 36,
+     "rate": 2.29,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "H100_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 2.99,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 12220.2,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 2.79,
+     "ratio": 0.9331,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 23564.4,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 2.69,
+     "ratio": 0.8997,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 45376.8,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 2.59,
+     "ratio": 0.8662,
+     "tenor_months": 24
+    },
+    {
+     "cum_cost": 65437.2,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 2.49,
+     "ratio": 0.8328,
+     "tenor_months": 36
+    }
+   ],
+   "provider": "civo",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 2.99,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 6,
+     "rate": 3.29,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 3.09,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 2.99,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 24,
+     "m2": 36,
+     "rate": 2.79,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "H200_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 3.49,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 14410.2,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 3.29,
+     "ratio": 0.9427,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 27944.4,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 3.19,
+     "ratio": 0.914,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 54136.8,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 3.09,
+     "ratio": 0.8854,
+     "tenor_months": 24
+    },
+    {
+     "cum_cost": 78577.2,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 2.99,
+     "ratio": 0.8567,
+     "tenor_months": 36
+    }
+   ],
+   "provider": "civo",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 3.49,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 6,
+     "rate": 1.19,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 0.99,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 0.89,
+     "span_months": 12,
+     "wide_span": true
+    },
+    {
+     "m1": 24,
+     "m2": 36,
+     "rate": 0.69,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "L40S",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.29,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 5212.2,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.19,
+     "ratio": 0.9225,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 9548.4,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.09,
+     "ratio": 0.845,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 17344.8,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.99,
+     "ratio": 0.7674,
+     "tenor_months": 24
+    },
+    {
+     "cum_cost": 23389.2,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.89,
+     "ratio": 0.6899,
+     "tenor_months": 36
+    }
+   ],
+   "provider": "civo",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 1.29,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 8.0,
+     "span_months": 1,
+     "wide_span": false
+    },
+    {
+     "m1": 1,
+     "m2": 12,
+     "rate": 5.3818,
+     "span_months": 11,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "B300_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 16.0,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 5840.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 8.0,
+     "ratio": 0.5,
+     "tenor_months": 1
+    },
+    {
+     "cum_cost": 49056.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 5.6,
+     "ratio": 0.35,
+     "tenor_months": 12
+    }
+   ],
+   "provider": "latitude",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 16.0,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 1.6849,
+     "span_months": 1,
+     "wide_span": false
+    },
+    {
+     "m1": 1,
+     "m2": 12,
+     "rate": 1.1336,
+     "span_months": 11,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "H100_UNSPEC",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 3.37,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 1229.98,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.6849,
+     "ratio": 0.5,
+     "tenor_months": 1
+    },
+    {
+     "cum_cost": 10332.42,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.1795,
+     "ratio": 0.35,
+     "tenor_months": 12
+    }
+   ],
+   "provider": "latitude",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 3.37,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 3.125,
+     "span_months": 1,
+     "wide_span": false
+    },
+    {
+     "m1": 1,
+     "m2": 12,
+     "rate": 2.1023,
+     "span_months": 11,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "RTX_PRO_6000",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 6.25,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 2281.25,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 3.125,
+     "ratio": 0.5,
+     "tenor_months": 1
+    },
+    {
+     "cum_cost": 19162.5,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 2.1875,
+     "ratio": 0.35,
+     "tenor_months": 12
+    }
+   ],
+   "provider": "latitude",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 6.25,
+   "violations": []
+  },
+  {
+   "currency": "EUR",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 1.5068,
+     "span_months": 1,
+     "wide_span": false
+    }
+   ],
+   "gpu_model": "A100_UNSPEC",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 2.75,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 1099.96,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.5068,
+     "ratio": 0.5479,
+     "tenor_months": 1
+    }
+   ],
+   "provider": "ovhcloud",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 2.75,
+   "violations": []
+  },
+  {
+   "currency": "EUR",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 2.6575,
+     "span_months": 1,
+     "wide_span": false
+    }
+   ],
+   "gpu_model": "H100_PCIE",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 2.8,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 1939.98,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 2.6575,
+     "ratio": 0.9491,
+     "tenor_months": 1
+    }
+   ],
+   "provider": "ovhcloud",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 2.8,
+   "violations": []
+  },
+  {
+   "currency": "EUR",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 0.7397,
+     "span_months": 1,
+     "wide_span": false
+    }
+   ],
+   "gpu_model": "L4",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.75,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 539.98,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.7397,
+     "ratio": 0.9863,
+     "tenor_months": 1
+    }
+   ],
+   "provider": "ovhcloud",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 0.75,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 0.9863,
+     "span_months": 1,
+     "wide_span": false
+    }
+   ],
+   "gpu_model": "L4",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.0,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 720.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.9863,
+     "ratio": 0.9863,
+     "tenor_months": 1
+    }
+   ],
+   "provider": "ovhcloud",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 1.0,
+   "violations": []
+  },
+  {
+   "currency": "EUR",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 1.3808,
+     "span_months": 1,
+     "wide_span": false
+    }
+   ],
+   "gpu_model": "L40S",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.4,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 1007.98,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.3808,
+     "ratio": 0.9863,
+     "tenor_months": 1
+    }
+   ],
+   "provider": "ovhcloud",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 1.4,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 1.7753,
+     "span_months": 1,
+     "wide_span": false
+    }
+   ],
+   "gpu_model": "L40S",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.8,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 1295.97,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 1.7753,
+     "ratio": 0.9863,
+     "tenor_months": 1
+    }
+   ],
+   "provider": "ovhcloud",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 1.8,
+   "violations": []
+  },
+  {
+   "currency": "EUR",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 0.6904,
+     "span_months": 1,
+     "wide_span": false
+    }
+   ],
+   "gpu_model": "V100",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.7,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 503.99,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.6904,
+     "ratio": 0.9863,
+     "tenor_months": 1
+    }
+   ],
+   "provider": "ovhcloud",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 0.7,
+   "violations": []
+  },
+  {
+   "currency": "EUR",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 0.789,
+     "span_months": 1,
+     "wide_span": false
+    }
+   ],
+   "gpu_model": "V100S",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.8,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 575.97,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.789,
+     "ratio": 0.9862,
+     "tenor_months": 1
+    }
+   ],
+   "provider": "ovhcloud",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 0.8,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 0.8685,
+     "span_months": 1,
+     "wide_span": false
+    }
+   ],
+   "gpu_model": "V100S",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.88,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 633.98,
+     "observed": true,
+     "price_formation": "administered_differentiated",
+     "rate": 0.8685,
+     "ratio": 0.9869,
+     "tenor_months": 1
+    }
+   ],
+   "provider": "ovhcloud",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 0.88,
+   "violations": []
+  },
+  {
+   "currency": "EUR",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 3,
+     "rate": 1.8,
+     "span_months": 3,
+     "wide_span": false
+    },
+    {
+     "m1": 3,
+     "m2": 6,
+     "rate": 1.6,
+     "span_months": 3,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 1.52,
+     "span_months": 6,
+     "wide_span": false
+    }
+   ],
+   "gpu_model": "H100_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_untested",
+     "rate": 1.89,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 3942.0,
+     "observed": true,
+     "price_formation": "administered_untested",
+     "rate": 1.8,
+     "ratio": 0.9524,
+     "tenor_months": 3
+    },
+    {
+     "cum_cost": 7446.0,
+     "observed": true,
+     "price_formation": "administered_untested",
+     "rate": 1.7,
+     "ratio": 0.8995,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 14103.6,
+     "observed": true,
+     "price_formation": "administered_untested",
+     "rate": 1.61,
+     "ratio": 0.8519,
+     "tenor_months": 12
+    }
+   ],
+   "provider": "seeweb",
+   "region_block": "EU",
+   "segment": "neocloud",
+   "spot": 1.89,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 1.6925,
+     "span_months": 1,
+     "wide_span": false
+    },
+    {
+     "m1": 1,
+     "m2": 3,
+     "rate": 1.6666,
+     "span_months": 2,
+     "wide_span": false
+    },
+    {
+     "m1": 3,
+     "m2": 6,
+     "rate": 1.6407,
+     "span_months": 3,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 1.5198,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 1.0017,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "A100_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.727,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 1235.5,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.6925,
+     "ratio": 0.98,
+     "tenor_months": 1
+    },
+    {
+     "cum_cost": 3668.67,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.6752,
+     "ratio": 0.97,
+     "tenor_months": 3
+    },
+    {
+     "cum_cost": 7261.69,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.6579,
+     "ratio": 0.96,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 13918.24,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.5888,
+     "ratio": 0.92,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 22692.78,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.2953,
+     "ratio": 0.75,
+     "tenor_months": 24
+    }
+   ],
+   "provider": "verda",
+   "region_block": "EU",
+   "segment": "unclassified",
+   "spot": 1.727,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 1.2262,
+     "span_months": 1,
+     "wide_span": false
+    },
+    {
+     "m1": 1,
+     "m2": 3,
+     "rate": 1.2075,
+     "span_months": 2,
+     "wide_span": false
+    },
+    {
+     "m1": 3,
+     "m2": 6,
+     "rate": 1.1887,
+     "span_months": 3,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 1.1011,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 0.7257,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "A100_SXM_40GB",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.2512,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 895.14,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.2262,
+     "ratio": 0.98,
+     "tenor_months": 1
+    },
+    {
+     "cum_cost": 2658.03,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.2137,
+     "ratio": 0.97,
+     "tenor_months": 3
+    },
+    {
+     "cum_cost": 5261.26,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.2012,
+     "ratio": 0.96,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 10084.07,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 1.1512,
+     "ratio": 0.92,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 16441.42,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 0.9384,
+     "ratio": 0.75,
+     "tenor_months": 24
+    }
+   ],
+   "provider": "verda",
+   "region_block": "EU",
+   "segment": "unclassified",
+   "spot": 1.2512,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 6.1691,
+     "span_months": 1,
+     "wide_span": false
+    },
+    {
+     "m1": 1,
+     "m2": 3,
+     "rate": 6.0747,
+     "span_months": 2,
+     "wide_span": false
+    },
+    {
+     "m1": 3,
+     "m2": 6,
+     "rate": 5.9803,
+     "span_months": 3,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 5.5396,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 3.6511,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "B200_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 6.295,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 4503.44,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 6.1691,
+     "ratio": 0.98,
+     "tenor_months": 1
+    },
+    {
+     "cum_cost": 13372.47,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 6.1061,
+     "ratio": 0.97,
+     "tenor_months": 3
+    },
+    {
+     "cum_cost": 26469.22,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 6.0432,
+     "ratio": 0.96,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 50732.66,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 5.7914,
+     "ratio": 0.92,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 82716.3,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 4.7212,
+     "ratio": 0.75,
+     "tenor_months": 24
+    }
+   ],
+   "provider": "verda",
+   "region_block": "EU",
+   "segment": "unclassified",
+   "spot": 6.295,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 7.497,
+     "span_months": 1,
+     "wide_span": false
+    },
+    {
+     "m1": 1,
+     "m2": 3,
+     "rate": 7.3823,
+     "span_months": 2,
+     "wide_span": false
+    },
+    {
+     "m1": 3,
+     "m2": 6,
+     "rate": 7.2675,
+     "span_months": 3,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 6.732,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 4.437,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "B300_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 7.65,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 5472.81,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 7.497,
+     "ratio": 0.98,
+     "tenor_months": 1
+    },
+    {
+     "cum_cost": 16250.9,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 7.4205,
+     "ratio": 0.97,
+     "tenor_months": 3
+    },
+    {
+     "cum_cost": 32166.72,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 7.344,
+     "ratio": 0.96,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 61652.88,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 7.038,
+     "ratio": 0.92,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 100521.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 5.7375,
+     "ratio": 0.75,
+     "tenor_months": 24
+    }
+   ],
+   "provider": "verda",
+   "region_block": "EU",
+   "segment": "unclassified",
+   "spot": 7.65,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 3.2007,
+     "span_months": 1,
+     "wide_span": false
+    },
+    {
+     "m1": 1,
+     "m2": 3,
+     "rate": 3.1517,
+     "span_months": 2,
+     "wide_span": false
+    },
+    {
+     "m1": 3,
+     "m2": 6,
+     "rate": 3.1027,
+     "span_months": 3,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 2.8741,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 1.8943,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "H100_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 3.266,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 2336.5,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 3.2007,
+     "ratio": 0.98,
+     "tenor_months": 1
+    },
+    {
+     "cum_cost": 6937.96,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 3.168,
+     "ratio": 0.97,
+     "tenor_months": 3
+    },
+    {
+     "cum_cost": 13732.88,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 3.1354,
+     "ratio": 0.96,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 26321.35,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 3.0047,
+     "ratio": 0.92,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 42915.24,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 2.4495,
+     "ratio": 0.75,
+     "tenor_months": 24
+    }
+   ],
+   "provider": "verda",
+   "region_block": "EU",
+   "segment": "unclassified",
+   "spot": 3.266,
+   "violations": []
+  },
+  {
+   "currency": "USD",
+   "dropped": [],
+   "forwards": [
+    {
+     "m1": 0,
+     "m2": 1,
+     "rate": 4.1576,
+     "span_months": 1,
+     "wide_span": false
+    },
+    {
+     "m1": 1,
+     "m2": 3,
+     "rate": 4.094,
+     "span_months": 2,
+     "wide_span": false
+    },
+    {
+     "m1": 3,
+     "m2": 6,
+     "rate": 4.0304,
+     "span_months": 3,
+     "wide_span": false
+    },
+    {
+     "m1": 6,
+     "m2": 12,
+     "rate": 3.7334,
+     "span_months": 6,
+     "wide_span": false
+    },
+    {
+     "m1": 12,
+     "m2": 24,
+     "rate": 2.4607,
+     "span_months": 12,
+     "wide_span": true
+    }
+   ],
+   "gpu_model": "H200_SXM",
+   "kind": "committed",
+   "knots": [
+    {
+     "cum_cost": 0.0,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 4.2425,
+     "ratio": 1.0,
+     "tenor_months": 0
+    },
+    {
+     "cum_cost": 3035.08,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 4.1576,
+     "ratio": 0.98,
+     "tenor_months": 1
+    },
+    {
+     "cum_cost": 9012.34,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 4.1152,
+     "ratio": 0.97,
+     "tenor_months": 3
+    },
+    {
+     "cum_cost": 17838.86,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 4.0728,
+     "ratio": 0.96,
+     "tenor_months": 6
+    },
+    {
+     "cum_cost": 34191.16,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 3.9031,
+     "ratio": 0.92,
+     "tenor_months": 12
+    },
+    {
+     "cum_cost": 55746.45,
+     "observed": true,
+     "price_formation": "administered_uniform",
+     "rate": 3.1819,
+     "ratio": 0.75,
+     "tenor_months": 24
+    }
+   ],
+   "provider": "verda",
+   "region_block": "EU",
+   "segment": "unclassified",
+   "spot": 4.2425,
+   "violations": []
+  }
+ ],
+ "unbuilt": [
+  {
+   "currency": "EUR",
+   "gpu_model": "H200_SXM",
+   "provider": "ovhcloud",
+   "reason": "no committed price below on-demand"
+  }
+ ]
+}

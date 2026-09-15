@@ -81,3 +81,26 @@ class IndexPrint:
     n_executable: int
     flags: str
     constituents: tuple[Constituent, ...]
+
+
+@dataclass(frozen=True)
+class TermQuote:
+    """One marketplace quote for a requested committed duration (migration 0006)."""
+
+    ts_utc: str
+    source: str
+    queried_name: str
+    requested_days: int
+    offer_id: str | None
+    machine_id: str | None
+    host_id: str | None
+    gpu_model: str | None
+    num_gpus: int | None
+    country: str | None
+    verification: str | None
+    hosting_type: int | None
+    dph_total: float | None
+    discounted_dph_total: float | None
+    max_duration_days: float | None
+    in_index_scope: bool
+    raw_json: str
