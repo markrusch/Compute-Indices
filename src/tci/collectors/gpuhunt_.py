@@ -1,12 +1,25 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Mark Rusch
-"""List prices from dstack's published gpuhunt catalogs.
+"""List and spot prices from dstack's published gpuhunt catalogs.
 
 Scope: the catalogs gpuhunt ships offline — aws, azure, gcp, oci, lambdalabs, verda and
-nebius — for the H100, H200, B200, B300 and A100 classes, on-demand only (spot=False).
+nebius — for the H100, H200, B200, B300 and A100 classes, both on-demand and spot rows.
 Catalog item price is per instance-hour -> divide by the provider's own GPU count.
 Regions are mapped to countries below; unmapped regions yield country=None and are
 excluded by the normaliser — the safe default for new/unknown regions.
+
+Spot rows are stored as `tier="spot"`, `term="on_demand"` — spot is a pricing tier, not
+a commitment tenor, the same reading azure_retail.py already gives its own Spot meter.
+`normalise.py` admits only `tier in (executable, list)`, so a spot row is structurally
+incapable of reaching a print; it accumulates as audit data the way Azure's and vast.ai's
+spot/bid rows already do. Until 2026-09-15 this collector queried `spot=False` and
+discarded any spot row that slipped through anyway; gpuhunt's own `Catalog.query` treats
+`spot=None` (the default) as "return both", confirmed 2026-09-15 by reading the installed
+package's source (`gpuhunt/_internal/catalog.py`) and by a live query returning 591 spot
+rows alongside 999 on-demand ones from the same call — one request either way, so this
+widening adds no catalog fetch. Every row shares one `CatalogItem` shape regardless of
+`spot`, so the same `variant_of()`, `collection_floor()` and `REGION_COUNTRY` logic applies
+to both; no spot-specific mapping was needed.
 
 Which of these rows can reach a print is decided by the methodology's panel, not here.
 Until 2026-09-11 only aws/azure/gcp H100 rows were collected; the other four providers
@@ -240,7 +253,9 @@ class GpuHuntCollector:
         # session unused: gpuhunt fetches dstack's published catalog files itself
         import gpuhunt
 
-        items = gpuhunt.query(gpu_name=GPU_NAMES, provider=list(PROVIDERS), spot=False)
+        # spot omitted (None): gpuhunt's Catalog.query returns both spot and on-demand
+        # rows from the catalog it has already loaded, so this is still one request.
+        items = gpuhunt.query(gpu_name=GPU_NAMES, provider=list(PROVIDERS))
         return self.to_observations(items)
 
     def to_observations(self, items: list, utc_date: str | None = None) -> list[Observation]:
@@ -253,8 +268,7 @@ class GpuHuntCollector:
             gpu_count = int(item.gpu_count or 0)
             if gpu_count < collection_floor(item.provider, day):
                 continue
-            if getattr(item, "spot", False):
-                continue
+            tier = "spot" if getattr(item, "spot", False) else "list"
             variant = variant_of(
                 item.provider, item.instance_name or "", item.gpu_name or "",
                 getattr(item, "gpu_memory", None), gpu_count,
@@ -274,7 +288,7 @@ class GpuHuntCollector:
                     region=item.location,
                     country=country,
                     interconnect="NVLink" if variant.endswith("_SXM") else "PCIe",
-                    tier="list",
+                    tier=tier,
                     term="on_demand",
                     raw_json=json.dumps(
                         {

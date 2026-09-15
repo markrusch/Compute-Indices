@@ -263,9 +263,28 @@ def test_gpuhunt_rows_before_and_after_the_floor_change() -> None:
              _Item("verda", "8H100.80S.176V", "FIN-01", 26.0, 8, "H100", spot=True)]
     before = GpuHuntCollector().to_observations(items, utc_date="2026-09-14")
     after = GpuHuntCollector().to_observations(items, utc_date="2026-09-15")
-    assert {(o.provider, o.gpu_count) for o in before} == {("aws", 8), ("lambdalabs", 2)}
+    # verda's spot row clears the (unchanged, non-legacy) floor on both dates and is
+    # stored as tier="spot", not dropped -- only the floor gates which providers appear.
+    assert {(o.provider, o.gpu_count) for o in before} == {
+        ("aws", 8), ("lambdalabs", 2), ("verda", 8)}
     assert {(o.provider, o.gpu_count) for o in after} == {
-        ("aws", 8), ("gcp", 4), ("lambdalabs", 2)}  # spot rows never collected as on-demand
+        ("aws", 8), ("gcp", 4), ("lambdalabs", 2), ("verda", 8)}
+
+
+def test_gpuhunt_spot_rows_are_stored_with_tier_spot_not_dropped() -> None:
+    """The safety property this depends on lives in normalise.py, not here: tier='spot'
+    is structurally excluded from every print (test_normalise.py checks that generically).
+    This test only proves the collector still stores the row instead of discarding it."""
+    items = [_Item("aws", "p5.48xlarge", "eu-north-1", 63.86, 8, "H100", spot=False),
+             _Item("aws", "p5.48xlarge", "eu-north-1", 38.32, 8, "H100", spot=True)]
+    out = GpuHuntCollector().to_observations(items, utc_date="2026-09-15")
+    by_tier = {o.tier: o for o in out}
+    assert set(by_tier) == {"list", "spot"}
+    spot = by_tier["spot"]
+    assert spot.term == "on_demand"  # spot is a tier, not a commitment tenor
+    assert spot.gpu_model == by_tier["list"].gpu_model == "H100_SXM"
+    assert spot.country == by_tier["list"].country == "SE"
+    assert abs(spot.price_usd_per_gpu_hr - 38.32 / 8) < 1e-9
 
 
 # ------------------------------------------------------------------- runpod

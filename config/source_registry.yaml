@@ -108,7 +108,11 @@ sources:
     notes: >-
       The widest region reach in the panel and the cheapest to widen further: the package
       queries a downloaded catalog, so an extra region costs zero requests. Known gap: the
-      azure catalog carried no H100 rows on 2026-07-18.
+      azure catalog carried no H100 rows on 2026-07-18. From 2026-09-15 also carries each
+      provider's spot rows as a second row at tier=spot, term=on_demand, from the same
+      query: gpuhunt returns both when the spot filter is omitted, so this cost nothing
+      extra either. None of it can reach a print (normalise.py admits only tier in
+      (executable, list)).
 
   - id: static_yaml
     name: Manually verified pricing pages
