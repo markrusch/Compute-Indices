@@ -503,24 +503,26 @@
    "max_ratio": null,
    "median_ratio": null,
    "min_ratio": null,
-   "n_sellers": 1,
+   "n_sellers": 2,
    "published": false,
    "segment": "neocloud",
    "sellers": [
+    "seeweb",
     "verda"
    ],
    "tenor_months": 3
   },
   {
    "gpu_model": "H100_SXM",
-   "max_ratio": null,
-   "median_ratio": null,
-   "min_ratio": null,
-   "n_sellers": 2,
-   "published": false,
+   "max_ratio": 0.96,
+   "median_ratio": 0.9331,
+   "min_ratio": 0.8995,
+   "n_sellers": 3,
+   "published": true,
    "segment": "neocloud",
    "sellers": [
     "civo",
+    "seeweb",
     "verda"
    ],
    "tenor_months": 6
@@ -540,14 +542,15 @@
   },
   {
    "gpu_model": "H100_SXM",
-   "max_ratio": null,
-   "median_ratio": null,
-   "min_ratio": null,
-   "n_sellers": 2,
-   "published": false,
+   "max_ratio": 0.92,
+   "median_ratio": 0.8997,
+   "min_ratio": 0.8519,
+   "n_sellers": 3,
+   "published": true,
    "segment": "neocloud",
    "sellers": [
     "civo",
+    "seeweb",
     "verda"
    ],
    "tenor_months": 12
@@ -4585,6 +4588,48 @@
    "tenor_months": 1
   },
   {
+   "committed": 1.61,
+   "country": "IT",
+   "currency": "EUR",
+   "gpu_model": "H100_SXM",
+   "gpus": 1,
+   "on_demand": 1.89,
+   "product": null,
+   "provider": "seeweb",
+   "ratio": 0.8519,
+   "region": null,
+   "source": "seeweb",
+   "tenor_months": 12
+  },
+  {
+   "committed": 1.8,
+   "country": "IT",
+   "currency": "EUR",
+   "gpu_model": "H100_SXM",
+   "gpus": 1,
+   "on_demand": 1.89,
+   "product": null,
+   "provider": "seeweb",
+   "ratio": 0.9524,
+   "region": null,
+   "source": "seeweb",
+   "tenor_months": 3
+  },
+  {
+   "committed": 1.7,
+   "country": "IT",
+   "currency": "EUR",
+   "gpu_model": "H100_SXM",
+   "gpus": 1,
+   "on_demand": 1.89,
+   "product": null,
+   "provider": "seeweb",
+   "ratio": 0.8995,
+   "region": null,
+   "source": "seeweb",
+   "tenor_months": 6
+  },
+  {
    "committed": 1.6925,
    "country": null,
    "currency": "USD",
@@ -5015,7 +5060,7 @@
     "3": 0.03,
     "6": 0.04
    },
-   "last_verified": "2026-09-11",
+   "last_verified": "2026-09-15",
    "provider": "verda",
    "segment": "neocloud",
    "url": "https://verda.com/pricing"
@@ -5491,6 +5536,36 @@
    "provider": "ovhcloud",
    "segment": "neocloud",
    "tenor_months": 1
+  },
+  {
+   "gpu_model": "H100_SXM",
+   "max_ratio": 0.9524,
+   "median_ratio": 0.9524,
+   "min_ratio": 0.9524,
+   "n_configs": 1,
+   "provider": "seeweb",
+   "segment": "neocloud",
+   "tenor_months": 3
+  },
+  {
+   "gpu_model": "H100_SXM",
+   "max_ratio": 0.8995,
+   "median_ratio": 0.8995,
+   "min_ratio": 0.8995,
+   "n_configs": 1,
+   "provider": "seeweb",
+   "segment": "neocloud",
+   "tenor_months": 6
+  },
+  {
+   "gpu_model": "H100_SXM",
+   "max_ratio": 0.8519,
+   "median_ratio": 0.8519,
+   "min_ratio": 0.8519,
+   "n_configs": 1,
+   "provider": "seeweb",
+   "segment": "neocloud",
+   "tenor_months": 12
   },
   {
    "gpu_model": "A100_SXM",
