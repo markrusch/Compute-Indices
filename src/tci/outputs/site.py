@@ -1182,9 +1182,12 @@ def _wave(ctx: SiteContext) -> str:
     # ripple is keyed to that provider's price against the day's own spread, so the
     # brighter cells really are the dearer compute.
     #
-    # Only the bottom half of the field takes a pointer. The upper rows are masked to
-    # transparent anyway, and the wave overlaps the headline's column, so letting an
-    # invisible cell up there swallow a hover would be a trap.
+    # Every cell that has a real price gets a label: each stands for one included
+    # constituent of today's print, so the same data point is true anywhere in the
+    # field. A cell that sits under the headline text is simply unreachable there —
+    # the text is on top and takes the pointer first — so there is nothing to gate on
+    # purpose; the browser's own stacking already keeps a hover from landing somewhere
+    # that reads as empty space.
     #
     # On a gap day there are no constituents; the cells then carry no label and no
     # pointer, and the field falls back to being texture. It never invents a price to
@@ -1226,17 +1229,12 @@ def _wave(ctx: SiteContext) -> str:
                 provider, price = priced[idx % len(priced)]
                 span = price_hi - price_lo
                 weight = (price - price_lo) / span if span > 0 else 0.5
-                # Only the right half is labelled. The layer's horizontal mask fades
-                # everything left of ~45% out, and the headline column is painted over
-                # that same region, so a label there could never be read or even
-                # reached — it would just be markup shipped 17 times for nothing.
-                if rowa >= 0.3 and c >= cell_cols // 2:
-                    label = f"{provider} \u00b7 ${price:,.2f}/GPU-hr"
-                    attrs = f' data-label="{_e(label)}"'
-                    # The last columns hang their label off their right edge instead of
-                    # centring it, so it cannot be clipped by the viewport.
-                    if c >= cell_cols - 3:
-                        klass += " wave__cell--tipend"
+                label = f"{provider} \u00b7 ${price:,.2f}/GPU-hr"
+                attrs = f' data-label="{_e(label)}"'
+                # The last columns hang their label off their right edge instead of
+                # centring it, so it cannot be clipped by the viewport.
+                if c >= cell_cols - 3:
+                    klass += " wave__cell--tipend"
             cells.append(
                 f'<span class="{klass}"{attrs} style="--peak:{0.05 + weight * 0.06:.3f};'
                 f'--cella:{alpha:.3f};--cd:{dist * 0.22:.2f}s"></span>'
