@@ -359,6 +359,252 @@ def write_term(conn: sqlite3.Connection, out_dir: Path | None = None) -> Path | 
     return path
 
 
+CURVE_DIR = REPO_ROOT / "site" / "data" / "curve"
+
+# The index series drawn from exactly one segment, by GPU model. A pooled discount shape is
+# applied only to a level from the same population: the H100 headline draws on marketplace
+# and neocloud together, and a neocloud shape on it would state one population's discount
+# at another population's price. A (model, segment) with no series here gets no aggregate,
+# and says why.
+LEVEL_SERIES: dict[tuple[str, str], str] = {
+    ("H100_SXM", "neocloud"): "EU-CRI-H100-NC",
+    ("H100_SXM", "hyperscaler"): "EU-CRI-H100-HS",
+    ("H100_SXM", "marketplace"): "EU-CRI-H100-MKT",
+}
+
+CURVE_CSV_HEADER = (
+    "date,curve,gpu_model,provider,segment,currency,price_formation,tenor_months,rate,ratio,"
+    "forward_from,forward_rate,span_months,wide_span,violation"
+)
+
+
+def _print_on(conn: sqlite3.Connection, series: str, date: str) -> float | None:
+    """The print for exactly `date`, at its latest revision, or None.
+
+    Not `_value_on`, which walks back to the last non-null print. An aggregate curve whose
+    level was borrowed from an earlier session would show an old print as current. A
+    withdrawn or gapped latest revision is None here as well.
+    """
+    row = conn.execute(
+        "SELECT value_usd FROM daily_index WHERE series = ? AND date = ?"
+        " ORDER BY revision DESC LIMIT 1",
+        (series, date),
+    ).fetchone()
+    return None if row is None or row["value_usd"] is None else float(row["value_usd"])
+
+
+def _curve_json(c: Any) -> dict[str, Any]:
+    from tci import curve
+
+    fwd, bad = curve.forwards(c)
+    return {
+        "gpu_model": c.key.gpu_model, "provider": c.key.provider, "segment": c.key.segment,
+        "region_block": c.key.region_block, "currency": c.currency, "kind": c.kind,
+        "spot": round(c.spot, 4),
+        "knots": [
+            {"tenor_months": k.tenor_months, "rate": round(k.rate, 4),
+             "ratio": round(k.rate / c.spot, 4), "cum_cost": round(k.cum_cost, 2),
+             "observed": k.observed, "price_formation": k.price_formation}
+            for k in c.knots
+        ],
+        "forwards": [
+            {"m1": f.m1, "m2": f.m2, "rate": round(f.rate, 4), "span_months": f.span_months,
+             "wide_span": f.wide_span}
+            for f in fwd
+        ],
+        "violations": [dict(v.__dict__) for v in bad],
+        "dropped": [dict(d.__dict__) for d in c.dropped],
+    }
+
+
+def _currency_choice(counts: dict[str, int]) -> str:
+    """One currency per seller for pooling: most configurations, USD on a tie."""
+    return sorted(counts, key=lambda cur: (-counts[cur], cur != "USD", cur))[0]
+
+
+def curve_tables(conn: sqlite3.Connection, date: str) -> dict[str, Any]:
+    """Committed-cost curves for one collection date (tci.curve), as published.
+
+    A seller's knot at tenor m is its median on-demand price times its median discount at
+    m, so every ratio on a curve is the ratio term.html publishes for that seller. One curve
+    per (seller, GPU model, currency): OVHcloud quotes some GPUs in EUR and in USD, and a
+    curve is never converted. The pooled leg takes only (seller, source, class) triples the
+    panel live on `date` admits, one currency per seller, and a level from the one series
+    drawn from that segment alone, on that date only.
+    """
+    from statistics import median
+
+    from tci import curve, term
+
+    factors = load_factors(for_date=date)
+    segment_of = {**TERM_SEGMENT_FALLBACK, **factors.segments}
+    class_of = {v: name for name, mc in factors.model_classes.items() for v in mc.variants}
+    rows = _term_rows(conn, date)
+    pairs = term.seller_terms(rows)
+    schedules, _stale = term.load_schedules(TERM_SCHEDULES, date)
+    for sched in schedules:
+        pairs += term.schedule_terms(sched, rows)
+
+    ratios: dict[str, dict[str, dict[int, float]]] = {}
+    for r in term.schedule(pairs):
+        if r.median_ratio < 1.0:
+            ratios.setdefault(r.provider, {}).setdefault(r.gpu_model, {})[r.tenor_months] = (
+                r.median_ratio)
+    formation = {p: curve.classify(by_model) for p, by_model in ratios.items()}
+
+    def build(provider: str, gpu_model: str, currency: str, terms: list[Any]) -> Any:
+        spot = median(t.on_demand for t in terms)
+        return curve.build(
+            curve.CurveKey(gpu_model, provider, segment_of.get(provider, "unclassified")),
+            date, spot, [(t.tenor_months, spot * t.ratio) for t in terms],
+            currency=currency,
+            price_formation=formation.get(provider, "administered_untested"),
+        )
+
+    groups: dict[tuple[str, str, str], list[Any]] = {}
+    for t in pairs:
+        groups.setdefault((t.provider, t.gpu_model, t.currency), []).append(t)
+    sellers: list[Any] = []
+    unbuilt: list[dict[str, Any]] = []
+    for (provider, gpu_model, currency), terms in sorted(groups.items()):
+        c = build(provider, gpu_model, currency, terms)
+        if c is None:
+            unbuilt.append({"provider": provider, "gpu_model": gpu_model, "currency": currency,
+                            "reason": "no committed price below on-demand"})
+        else:
+            sellers.append(c)
+
+    admitted: dict[tuple[str, str], dict[str, list[Any]]] = {}
+    for t in pairs:
+        cls = class_of.get(t.gpu_model)
+        if cls is None or not factors.admits(t.provider, t.source, cls):
+            continue
+        admitted.setdefault((t.provider, t.gpu_model), {}).setdefault(t.currency, []).append(t)
+    by_cell: dict[tuple[str, str], list[Any]] = {}
+    for (provider, gpu_model), by_currency in sorted(admitted.items()):
+        cur = _currency_choice({k: len(v) for k, v in by_currency.items()})
+        c = build(provider, gpu_model, cur, by_currency[cur])
+        if c is not None:
+            by_cell.setdefault((gpu_model, c.key.segment), []).append(c)
+
+    pooled: list[dict[str, Any]] = []
+    for (gpu_model, segment), cs in sorted(by_cell.items()):
+        points = curve.pool(cs)
+        series = LEVEL_SERIES.get((gpu_model, segment))
+        level = _print_on(conn, series, date) if series else None
+        agg = None
+        if not any(p.published for p in points):
+            status = f"no tenor has {curve.MIN_PROVIDERS} panel sellers in this segment"
+        elif series is None:
+            status = "no index series is drawn from this segment alone for this GPU"
+        elif level is None:
+            status = f"{series} did not print on {date}"
+        else:
+            agg = curve.apply_level(points, level, curve.CurveKey(gpu_model, None, segment),
+                                    date)
+            status = "published" if agg is not None else "no usable pooled tenor"
+        agg_json = _curve_json(agg) if agg is not None else None
+        if agg_json is not None:
+            for v in agg_json["violations"]:
+                v["detail"] += ("; in a pooled curve this can only mean different sellers"
+                                " voted at the two tenors")
+        pooled.append({
+            "gpu_model": gpu_model, "segment": segment, "model_class": class_of.get(gpu_model),
+            "status": status, "level_series": series, "level_usd": level,
+            "points": [dict(p.__dict__) | {"providers": list(p.providers)} for p in points],
+            "curve": agg_json,
+        })
+
+    return {
+        "date": date,
+        "note": (
+            "Committed-cost curves: what a named seller charges per GPU-hour to lock each"
+            " tenor, and the forwards bootstrapped from them. Commitment prices, not a"
+            " forecast of spot; a forward is the break-even rate between locking and rolling."
+            " price_formation 'administered_uniform' is a schedule identical across chip"
+            " generations and carries no chip-specific information. A pooled curve is the"
+            " index level for its segment times the median seller discount, shown only with"
+            f" at least {curve.MIN_PROVIDERS} panel sellers. A research table, not an index"
+            " series."
+        ),
+        "parameters": {
+            "hours_per_month": curve.HOURS_PER_MONTH, "interpolation": "flat_forward",
+            "min_providers": curve.MIN_PROVIDERS, "max_span_months": curve.MAX_SPAN_MONTHS,
+            "max_tenor_months": curve.MAX_TENOR_MONTHS,
+            "chip_invariance_tol": curve.CHIP_INVARIANCE_TOL,
+        },
+        "price_formation": dict(sorted(formation.items())),
+        "sellers": [_curve_json(c) for c in sellers],
+        "unbuilt": unbuilt,
+        "pooled": pooled,
+        "forward_spot": {
+            "published": False,
+            "sellers_market_quoted": sum(
+                1 for v in formation.values() if v in curve.FORWARD_SPOT_FORMATIONS),
+            "reason": (
+                "S* = PHI + pi. A forward spot curve needs market-quoted or transacted term"
+                " prices and a measured term premium, and this table holds neither."
+            ),
+        },
+    }
+
+
+def curve_rows(tables: dict[str, Any]) -> list[str]:
+    """history.csv lines for one date's curve tables: one row per curve per tenor.
+
+    The forward columns describe the segment ending at that tenor, so every row stands on
+    its own and the spot anchor's row carries none.
+    """
+    date = tables["date"]
+    out: list[str] = []
+
+    def emit(kind: str, c: dict[str, Any]) -> None:
+        into = {f["m2"]: f for f in c["forwards"]}
+        bad = {v["m2"]: v for v in c["violations"]}
+        for k in c["knots"]:
+            f = into.get(k["tenor_months"])
+            v = bad.get(k["tenor_months"])
+            start = f["m1"] if f else (v["m1"] if v else "")
+            out.append(",".join(str(x) for x in (
+                date, kind, c["gpu_model"], c["provider"] or "", c["segment"] or "",
+                c["currency"], k["price_formation"], k["tenor_months"], k["rate"], k["ratio"],
+                start, f["rate"] if f else "", f["span_months"] if f else "",
+                int(f["wide_span"]) if f else "", v["reason"] if v else "",
+            )))
+
+    for c in tables["sellers"]:
+        emit("seller", c)
+    for p in tables["pooled"]:
+        if p["curve"] is not None:
+            emit("pooled", p["curve"])
+    return out
+
+
+def write_curve(conn: sqlite3.Connection, out_dir: Path | None = None) -> Path | None:
+    """site/data/curve/latest.json and history.csv: committed-cost curves (tci.curve).
+
+    Rebuilt in full from stored observations on every run, as write_term is, so history.csv
+    is a strike ledger running from the first day a term price was stored rather than from
+    the day this function first ran. A research table beside the index, not a series in it.
+    """
+    target = out_dir or CURVE_DIR
+    dates = term_dates(conn)
+    if not dates:
+        return None
+    target.mkdir(parents=True, exist_ok=True)
+    lines = [CURVE_CSV_HEADER]
+    latest: dict[str, Any] = {}
+    for date in dates:
+        latest = curve_tables(conn, date)
+        lines += curve_rows(latest)
+    (target / "history.csv").write_text("\n".join(lines) + "\n", encoding="utf-8",
+                                        newline="\n")
+    path = target / "latest.json"
+    path.write_text(json.dumps(latest, indent=1, sort_keys=True) + "\n", encoding="utf-8",
+                    newline="\n")
+    return path
+
+
 
 def write_series_api(conn: sqlite3.Connection, out_dir: Path | None = None) -> list[Path]:
     """One file per series holding its whole history, plus a catalogue naming them all.
@@ -484,5 +730,10 @@ def generate(conn: sqlite3.Connection) -> Path:
         write_term(conn)
     except Exception:  # noqa: BLE001
         log.exception("webdata: term table not written")
+    # The curves are research beside the index on the same terms as the term table.
+    try:
+        write_curve(conn)
+    except Exception:  # noqa: BLE001
+        log.exception("webdata: curve tables not written")
     log.info("webdata: %s", OUT_PATH)
     return OUT_PATH

@@ -443,6 +443,59 @@ behind it, and the statement that it cannot be recomputed from public data.
   threshold, and which cells are one seller short. This is the quarterly recheck tool —
   today's reading, 0 of 64 cells published, 10 one seller away.
 
+### L5.4 The curve itself — C1 and C4 built 15 September
+
+L2 and L5.3 built the intake. Neither produced a curve. The model, the no-arbitrage
+conditions, the aggregation argument, the architecture and the UI shape are in
+`docs/FORWARD-CURVE.md`, which carries build steps C1–C7 with an acceptance line each.
+
+Built: `src/tci/curve.py` (C1, strict mypy) and `site/data/curve/latest.json` +
+`history.csv` from `outputs/webdata.write_curve` (C4), hooked into the daily export beside
+the term table and fail-soft like it. Parameters are module constants, as `tci.term`'s
+are, until open question 3 (inside or outside the lock) is answered. Decided 15 September:
+`S*` stays a research rail with the BMR posture unchanged, and C1 + C4 go first.
+
+Not built: C2 (config block and lock), C3 (`run curve`), C5 (pages), C6 (calculator),
+C7 (premium).
+
+**The pooled gauge is harsher than §2.3's count.** `run term` reports cells "one seller
+short" across every seller that publishes a term price. The aggregate curve admits only
+what the panel admits, and on 15 September that leaves no neocloud H100 SXM seller at all:
+Civo and Latitude are off the panel, Verda's knots come from a published schedule rather
+than a panel source, and OVHcloud enters with v0.5.0 on 22 September. The only pooled rows
+are Azure alone in hyperscaler, at 1 of 3.
+
+The short version: cumulative cost `C(m) = m × 730 × K(m)` is the primitive, forwards
+bootstrap off it as `ΔC/Δh`, interpolation is flat-forward so every published forward
+traces to exactly two observed prices, nothing extrapolates past the last observed knot,
+and the aggregate is the headline index times a pooled *ratio* curve rather than a pooled
+level. Per-seller curves publish on day one. The aggregate does not — no tenor of any GPU
+clears three sellers inside one segment today, which is the same finding §2.3 already
+records, now with a page that counts it.
+
+**The correction that matters.** The first draft built the committed-cost curve `K` and
+called its bootstrap an implied forward *spot* curve, which is Silicon Data's label and is
+wrong for this data. They are different objects: `S* = Φ + π`, and the term premium `π` is
+large and unmeasured. Evidence from our own database — Verda prints 0.9200 at 12 months on
+all six of A100, A100-40GB, B200, B300, H100 and H200; Latitude prints 0.3500 on a B300, an
+H100 and an RTX PRO 6000. A schedule that cannot tell a Blackwell from a workstation card
+carries no forward information. **TCI holds zero market-quoted or transacted term prices
+today**, and the vast.ai offer book is not the way out: `discounted_dph_total` equals
+`dph_total` on all 169 stored offers.
+
+So `K` and `Φ` ship as *procurement* numbers, `S*` gets a structurally present and visibly
+empty rail, and the route to filling it is §5.2 of the design doc: a strike ledger measured
+against our own daily spot index. That measurement is the thing no rate-card holder can
+copy. Its clock is already running: term observations have been stored daily since 11
+September and every curve rebuilds from them, so C4 publishes the strike history rather
+than starting it. The one thing that stops the clock is the daily Action not running.
+
+**Acceptance:** per-seller curves for all five sellers with committed prices render on
+`curve.html` with a table twin and CSS-only seller filtering, scripting disabled; the
+arithmetic strip reproduces `Φ(12,36) = $4.8674` for Azure H100 SXM by hand; Verda and
+Latitude carry an `administered, chip-invariant` badge; the `S*` tab is present, disabled
+and counting.
+
 **L5 evaluation gate:** would a lender size a facility using the published cell? If the
 answer needs a caveat longer than the number, the cell is not ready.
 

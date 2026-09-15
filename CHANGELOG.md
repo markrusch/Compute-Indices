@@ -3,6 +3,60 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## A privacy notice, and two hardened headers — 2026-09-15 — no methodology change
+
+- **`PRIVACY.md` and `site/privacy.html`, new.** The site had no privacy notice despite
+  `site/middleware.js` logging a hashed IP+UA per visit into Upstash and the contact form
+  passing an email address through Resend — both personal-data processing under GDPR, and
+  neither was disclosed anywhere. Written from what the code actually does, not a
+  template: names the three processors (Vercel, Upstash, Resend), the two-part legal basis
+  (legitimate interest, no cookie so no consent banner required), and the administrator's
+  actual status — an unregistered individual in Amsterdam, not a company. Linked from the
+  footer's Company column, nav-highlighted as a child of Contact.
+- **`site/middleware.js`: the per-day hit-count and unique-visitor keys now expire.**
+  `tci:day:*:hits` and `tci:day:*:uniq` had no TTL and were kept in Upstash forever; they
+  now expire 396 days (13 months) after being written, matching the retention PRIVACY.md
+  states. The rolling `tci:recent` list was already capped by count and is unchanged.
+- **`site/vercel.json`: added `Strict-Transport-Security` and `Content-Security-Policy`.**
+  The site already makes no request to any origin but itself (`CLAUDE.md`'s
+  self-containment rule), which is what makes a strict CSP (`default-src 'self'`, no
+  external script/style/img/font/connect source) possible without breaking anything.
+  `'unsafe-inline'` stays on `script-src` and `style-src`: the stylesheet is inlined per
+  page and one page (the dashboard) ships an inline `<script>` for the hero pointer effect;
+  closing that gap with nonces is future work, not done here.
+
+## Committed-cost curves beside the term table — 2026-09-15 — no methodology change
+
+- **`src/tci/curve.py`, new.** Per-seller committed-cost curves `K(m)` and the forwards
+  bootstrapped from them. Cumulative cost `C(m) = m × 730 × K(m)` is the primitive and
+  interpolation is flat-forward, so every forward follows from exactly two published prices.
+  Azure H100 SXM on 15 September: `Φ(12,36) = $4.8674` and `Φ(36,60) = $4.9105`. Nothing
+  extrapolates past a seller's longest published tenor. Nothing interpolates below its
+  shortest either, because interpolating from spot would quote Azure a three-month
+  reservation it does not sell.
+- **These are commitment prices, not a forward spot curve.** Each seller's schedule is
+  tagged by a chip-invariance test. Verda prints 0.9200 of on-demand at twelve months on all
+  six of its chips with a term price. Latitude prints 0.3500 on a B300, an H100 and an RTX PRO
+  6000. Neither schedule distinguishes one chip's future from another's, and `build` refuses
+  to make a forward spot curve from any administered price. None is published.
+- **A negative forward gaps its segment and is reported, never smoothed.** There were none on
+  15 September. In a pooled curve a violation can only mean different sellers quoted the two
+  tenors: with the same sellers at both, the median preserves the condition.
+- **`site/data/curve/latest.json` and `history.csv`**, written by
+  `outputs/webdata.write_curve` beside the term table and fail-soft like it. They are rebuilt
+  from stored observations on every run, so the history starts on 11 September, the first
+  day a term price was stored. That is 445 rows over five sessions.
+- **The pooled curve admits only what the panel admits.** Its level is the single-segment
+  H100 series printed on that same date and never an earlier one; `_value_on` walks back to
+  the last non-null print, so it is not used here. On 15 September no neocloud H100 SXM
+  seller is admitted. The only pooled rows are Azure alone in hyperscaler, and nothing pools.
+- **Found while building: OVHcloud's H200 monthly "commitment" is priced at exactly
+  on-demand**, ratio 1.0000. `tci.term` keeps it because it excludes only ratios above 1. The
+  curve drops it with a reason, because a knot at zero discount is not a term price.
+  `term.html` is unchanged.
+- Not in the calculation path and not under the lock. `test_reproduce.py` passes, and
+  `reproduce --published` matches 1,085 of 1,085 digests.
+
 ## Research Note 2026-05, and the full vast.ai offer book kept beside the prices — 2026-09-14 — no methodology change
 
 - **`research/nine-sellers-cannot-price-a-grade.md`.** Published. The draft as first
