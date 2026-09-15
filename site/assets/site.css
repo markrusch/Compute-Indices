@@ -395,12 +395,14 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
    in the bottom fifth, behind the bars. */
 /* No mask on this layer: a mask would make it a stacking context, and a cell's
    hover label could then never paint above the bars. The top-to-bottom fade lives
-   on the cells instead, as a per-row --rowa written in the markup. */
+   on the cells instead, as a per-cell --cella written in the markup: a vertical
+   ramp towards the bars, combined with a horizontal one that brings the field back
+   to full strength once a column is clear of the headline. */
 .wave__grid { position: absolute; inset-block: 0; inset-inline: 0 var(--space-5);
               display: grid; grid-template-columns: repeat(16, 1fr);
               grid-template-rows: repeat(8, 1fr); gap: 3px; pointer-events: none; }
 .wave__cell { position: relative; border-radius: 3px; background: var(--cell-rest);
-              opacity: var(--rowa, 1);
+              opacity: var(--cella, 1);
               animation: tci-cellripple 4.2s ease-in-out var(--cd, 0s) infinite; }
 
 /* A cell that stands for a real constituent answers the cursor: it names the provider

@@ -1203,11 +1203,22 @@ def _wave(ctx: SiteContext) -> str:
         for c in range(cell_cols):
             idx = r * cell_cols + c
             dist = ((c - cx) ** 2 + (r - cy) ** 2) ** 0.5
-            # The field fades in towards the bottom so it never crowds the headline.
-            # This used to be a mask on the layer, but a mask makes a stacking context
-            # and a cell's hover label could not then lift above the bars.
+            # The field has to keep clear of the headline without going dark
+            # everywhere else. The headline only reaches across the leftmost eighth or
+            # so of the wave, so a straight top-to-bottom fade was blanking the whole
+            # upper half to solve a problem that exists in one corner. Two ramps
+            # instead: the vertical one still lifts the field towards the bars, and the
+            # horizontal one brings it back to full strength once a column is clear of
+            # the text. Taking the larger of the two leaves the top-left corner dark
+            # and fills the rest of the backdrop.
+            #
+            # (This used to be a mask on the layer. A mask makes a stacking context, and
+            # a cell's hover label could not then lift above the bars.)
             centre = (r + 0.5) / cell_rows * 100
             rowa = min(1.0, max(0.0, (centre - 55) / 27))
+            colx = (c + 0.5) / cell_cols
+            clear = min(1.0, max(0.0, (colx - 0.08) / 0.30))
+            alpha = max(rowa, clear * 0.85)
             attrs = ""
             klass = "wave__cell"
             weight = 0.5
@@ -1228,7 +1239,7 @@ def _wave(ctx: SiteContext) -> str:
                         klass += " wave__cell--tipend"
             cells.append(
                 f'<span class="{klass}"{attrs} style="--peak:{0.05 + weight * 0.06:.3f};'
-                f'--rowa:{rowa:.3f};--cd:{dist * 0.22:.2f}s"></span>'
+                f'--cella:{alpha:.3f};--cd:{dist * 0.22:.2f}s"></span>'
             )
     grid = f'<span class="wave__grid">{"".join(cells)}</span>'
 
