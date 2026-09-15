@@ -212,6 +212,29 @@ sources:
     last_reviewed: 2026-07-18
     notes: "FX only. Never a price input."
 
+  - id: verda_pricing_schedule
+    name: Verda published commitment discounts (verda.com/pricing)
+    kind: reference
+    status: live
+    tier: reference
+    collector: term_schedule_refresh
+    homepage: https://verda.com/pricing
+    endpoint: "GET https://verda.com/pricing"
+    auth: none
+    blocks: []
+    gpu_classes: []
+    access_basis: "Public marketing page; the seller's own stated commitment-discount table."
+    discovered: 2026-09-11
+    discovered_via: "quarterly term-schedule review (config/term_schedules.yaml)"
+    last_reviewed: 2026-09-15
+    notes: >-
+      Feeds config/term_schedules.yaml's verda row, read by term.html only — never an
+      index input. Automated 2026-09-15: strict parse of the 'Reserved' table, fail-soft
+      at the daily-run boundary. A reshaped page is left for the next human review rather
+      than guessed at; see that file's own header for the staleness gate this falls back
+      to. Distinct from verda_catalog (below, in the shadow section), which is gpuhunt's
+      downloaded price list and carries no discount data.
+
   # ---- built, blocked -------------------------------------------------------
   - id: entsoe
     name: ENTSO-E Transparency Platform

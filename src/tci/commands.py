@@ -554,6 +554,25 @@ def cmd_daily(args: argparse.Namespace) -> int:
     from tci.collectors.entsoe import collect_overlay
 
     collect_overlay(conn, session, utc_date)  # overlay only; skips without token
+
+    # term.html research table only, never a print input (CLAUDE.md). refresh() is
+    # already fail-soft on its own (network/shape/file failures all leave
+    # config/term_schedules.yaml untouched and log a warning); this try/except is a second,
+    # belt-and-braces layer so an unexpected error in wiring it up here still cannot take
+    # the rest of the daily run down with it. Only run for today's own date: a --date
+    # override recomputing an earlier day must not stamp a live fetch as verified in the
+    # past (the same reasoning `backfill` uses to never re-collect).
+    if utc_date == datetime.now(UTC).strftime("%Y-%m-%d"):
+        try:
+            from tci.collectors.term_schedule_refresh import refresh as refresh_term_schedules
+
+            refresh_term_schedules(session=session, today=utc_date)
+        except Exception:
+            log.exception(
+                "term schedule refresh failed unexpectedly; term.html falls back to the"
+                " stored last_verified date"
+            )
+
     statuses = {
         c.name: base.run_collector(conn, c, utc_date, session) for c in collectors_for_daily()
     }

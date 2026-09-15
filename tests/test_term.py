@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -115,7 +116,9 @@ def test_a_published_schedule_applies_only_to_gpus_priced_that_day(tmp_path: Pat
 
 
 def test_the_shipped_schedules_file_loads() -> None:
-
+    # `last_verified` is refreshed daily by tci.collectors.term_schedule_refresh, so this
+    # pins to today (always >= last_verified) rather than a date that ages past the file.
     path = Path(__file__).resolve().parents[1] / "config" / "term_schedules.yaml"
-    fresh, _ = term.load_schedules(path, "2026-09-11")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
+    fresh, _ = term.load_schedules(path, today)
     assert any(s.provider == "verda" and s.discounts[24] == 0.25 for s in fresh)
