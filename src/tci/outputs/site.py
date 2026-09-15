@@ -870,6 +870,7 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <a href="{prefix}research.html">Research</a>
         <a href="{_e(REPO_URL)}" rel="noopener">GitHub</a>
         <a href="{prefix}contact.html">Contact</a>
+        <a href="{prefix}privacy.html">Privacy</a>
       </nav>
     </div>
     <div class="disclaimer">
@@ -3238,6 +3239,45 @@ def _governance(ctx: SiteContext) -> str:
     )
 
 
+# ---- privacy ----------------------------------------------------------------
+
+
+def _privacy(ctx: SiteContext) -> str:
+    """Renders PRIVACY.md verbatim, same as _governance renders GOVERNANCE.md.
+
+    Borrows Contact's nav highlight (current="contact.html") rather than adding a
+    dedicated top-nav entry: a legal notice does not need a place in the primary nav,
+    but test_pages_carry_one_h1_and_a_current_nav_marker still requires exactly one
+    aria-current="page" per page, so it has to claim an existing nav item's marker.
+    """
+    doc = markdown.render(_read(REPO_ROOT / "PRIVACY.md"), heading_offset=1)
+    body = f"""<main class="wrap" id="main">
+  <div class="pagehead">
+    <div class="eyebrow">Legal</div>
+    <h1 class="pagehead__h pagehead__h--display">Privacy notice</h1>
+    <p class="pagehead__dek">What this site collects from a visitor, why, and for how
+    long — and what it does not collect. No cookies are set anywhere on this site.</p>
+  </div>
+
+  <div class="doc">
+    {_toc(doc.headings)}
+    <div class="md">{doc.html}</div>
+  </div>
+</main>"""
+    return _shell(
+        ctx,
+        title=f"Privacy notice — {BRAND}",
+        description=(
+            f"What {BRAND} collects from a visitor (a contact form, hashed visit "
+            "logging, same-origin analytics), why, for how long, and how to exercise "
+            "your GDPR rights."
+        ),
+        current="contact.html",
+        canonical="privacy.html",
+        body=body,
+    )
+
+
 # ---- data -----------------------------------------------------------------
 
 
@@ -4344,6 +4384,7 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         (SITE_DIR / "performance.html", _performance(ctx)),
         (SITE_DIR / "research.html", _research_index(ctx, notes)),
         (SITE_DIR / "contact.html", _contact(ctx)),
+        (SITE_DIR / "privacy.html", _privacy(ctx)),
     ]
     pages += [
         (SITE_DIR / "research" / f"{n.slug}.html", _research_note(ctx, n)) for n in notes

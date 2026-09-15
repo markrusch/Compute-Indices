@@ -38,7 +38,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # Everything the pipeline reads or writes through REPO_ROOT, plus the packaging metadata
 # needed to import tci from the copy.
 _COPIED = ("src", "config", "data", "site", "research")
-_COPIED_FILES = ("pyproject.toml", "METHODOLOGY.md", "METHODOLOGY.lock", "GOVERNANCE.md")
+_COPIED_FILES = (
+    "pyproject.toml", "METHODOLOGY.md", "METHODOLOGY.lock", "GOVERNANCE.md", "PRIVACY.md",
+)
 
 # The one page under site/ that `site.generate` does not write. It is a design-system
 # gallery, linked from nowhere and Disallowed in robots.txt, maintained by hand alongside

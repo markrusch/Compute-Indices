@@ -88,8 +88,9 @@ pytest
 - `site/` — the published site, **regenerated from the database on every daily run** by
   `src/tci/outputs/site.py`; do not hand-edit the HTML. Pages: `index.html`
   (dashboard), `basis.html` (the EU-US basis), `term.html` (commitment discounts),
-  `methodology.html`, `data.html`, `governance.html`, `notices.html`, `research.html`
-  and `research/*.html`. Plus `assets/` (the design system: `tokens.css`, `site.css`),
+  `methodology.html`, `data.html`, `governance.html`, `notices.html`, `research.html`,
+  `privacy.html` and `research/*.html`. Plus `assets/` (the design system: `tokens.css`,
+  `site.css`),
   `reliability.html` (every session that did not print). Plus `assets/` (the design
   system: `tokens.css`, `site.css`), `data/` (CSV history, `latest.json`, one print
   file per date under `prints/`, and the versioned read interface under `v1/`: a

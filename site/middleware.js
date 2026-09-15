@@ -10,9 +10,9 @@
 // NO COOKIE: a visitor is identified by SHA-256(day + ip + user-agent), rotated daily, so
 // the same person is one "unique" within a day and an unlinkable different hash the next.
 // That sidesteps the GDPR non-essential-cookie consent-banner requirement a persistent
-// tracking cookie would trigger -- this site has no consent banner and no privacy-policy
-// page today, and adding one is a real ongoing cost this project chose not to take on for
-// pageview-adjacent visibility it can get without it.
+// tracking cookie would trigger -- this site has no consent banner because it sets no
+// cookie, not because it lacks a privacy notice. What is logged here, why, and for how
+// long (RETENTION_SECONDS below) is described in PRIVACY.md and site/privacy.html.
 //
 // Requires two Vercel environment variables (Project Settings -> Environment Variables):
 //   UPSTASH_REDIS_REST_URL     from a free Upstash Redis database
@@ -36,6 +36,10 @@ export const config = {
   // view is a visit worth counting, and every skipped path is one less Upstash command.
   matcher: ["/((?!api/|assets/|data/|charts/).*)"],
 };
+
+// 13 months, matching the retention stated in PRIVACY.md. Without this the per-day hit
+// hash and unique-visitor sketch keys had no expiry and accumulated forever.
+const RETENTION_SECONDS = 60 * 60 * 24 * 396;
 
 async function dailyVisitorHash(day, request) {
   const ip =
@@ -64,11 +68,14 @@ async function logHit(request) {
   const referer = (request.headers.get("referer") || "").slice(0, 300);
   const event = JSON.stringify({ t: Date.now(), path, country, referer });
 
-  // One HTTP round trip for all four writes. The recent-events list is capped at 200 so
-  // it stays a rolling window rather than growing without bound.
+  // One HTTP round trip for all six writes. The recent-events list is capped at 200 so
+  // it stays a rolling window rather than growing without bound; the two per-day keys
+  // are capped by time instead, via EXPIRE, since a calendar day can't be capped by count.
   const commands = [
     ["HINCRBY", `tci:day:${day}:hits`, path, 1],
+    ["EXPIRE", `tci:day:${day}:hits`, RETENTION_SECONDS],
     ["PFADD", `tci:day:${day}:uniq`, visitor],
+    ["EXPIRE", `tci:day:${day}:uniq`, RETENTION_SECONDS],
     ["LPUSH", "tci:recent", event],
     ["LTRIM", "tci:recent", 0, 199],
   ];
