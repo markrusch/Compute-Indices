@@ -128,6 +128,39 @@ sources:
     notes: >-
       8 providers, 3 priced. Warned at 45d, excluded at 90d. This is the row that grows
       when the discovery process finds a neocloud with a readable rate card and no API.
+      Seeweb's on-demand price is still carried here by hand as of 2026-09-15; see
+      `seeweb_pricing_page` below for the automated collector that now also reads this
+      same page's committed-rate prices.
+
+  # ---- shadow: an automated collector exists, but no print reads its rows -----------
+
+  - id: seeweb_pricing_page
+    name: Seeweb GPU pricing page (on-demand + committed rates)
+    kind: neocloud
+    status: shadow
+    tier: list
+    collector: seeweb
+    homepage: https://www.seeweb.it/en/products/cloud-server-gpu
+    endpoint: "GET https://www.seeweb.it/en/products/cloud-server-gpu"
+    auth: none
+    blocks: [EU_EEA]
+    gpu_classes: [H100]
+    access_basis: >-
+      Public, server-rendered pricing page (confirmed no JavaScript required by a live
+      fetch on 2026-09-15).
+    discovered: 2026-09-15
+    discovered_via: "re-reading the static_yaml source's own page for term prices"
+    last_reviewed: 2026-09-15
+    notes: >-
+      Reads the NVIDIA H100 SXM card's on-demand price plus its published 3/6/12-month
+      committed rate (EUR 1.89/1.80/1.70/1.61 per GPU-hr on 2026-09-15) in one GET,
+      stored under source="seeweb" -- a source name the panel does not list for the
+      `seeweb` provider (only `static_yaml` is), so none of these rows reaches a print.
+      Duplicates the on-demand figure the static entry already carries by hand; the two
+      are independent readings of the same page; static_yaml.py is unchanged.
+      Promoting this collector to replace the static entry, the way scaleway's live API
+      read superseded config/providers/scaleway.yaml, is a candidate for a future
+      version, not done here.
 
   - id: scaleway
     name: Scaleway

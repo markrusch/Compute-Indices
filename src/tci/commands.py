@@ -28,6 +28,7 @@ from tci.collectors.fx import collect_fx, rate_for
 from tci.collectors.gpuhunt_ import GpuHuntCollector
 from tci.collectors.runpod import RunPodCollector
 from tci.collectors.scaleway import ScalewayCollector
+from tci.collectors.seeweb import SeewebCollector
 from tci.collectors.static_yaml import StaticYamlCollector
 from tci.collectors.vast_ai import VastAiCollector
 from tci.index import compute_print
@@ -53,7 +54,8 @@ def collectors_for_daily() -> list[base.Collector]:
     # panel store rows that no print reads (see factors.yaml `panel`).
     return [
         VastAiCollector(), RunPodCollector(), GpuHuntCollector(), StaticYamlCollector(),
-        ScalewayCollector(), AzureRetailCollector(), *computable_collectors(),
+        ScalewayCollector(), AzureRetailCollector(), SeewebCollector(),
+        *computable_collectors(),
     ]
 
 
