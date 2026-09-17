@@ -3,6 +3,36 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Withdrawn prints were reappearing in latest.json and the post — 2026-09-17 — no methodology change
+
+- **What was wrong.** Four places in the code resolved "the current value of a series on a
+  date" and two of them resolved it incorrectly. They filtered `value_usd IS NOT NULL`
+  before taking `MAX(revision)`, which selects the newest revision that still carries a
+  number rather than the newest revision. When a correction withdraws a print, the
+  withdrawn value survives that filter and gets published again. On the database as it
+  stands this affects 24 (date, series) keys, and 45 of 548 stored prints resolve to a
+  different comparison basis depending on which of the four readers you ask.
+- **What it reached.** `wow_pct`, `mom_pct`, `prev_date` and `prev_value_usd` in
+  `site/data/latest.json`, which is the machine-readable feed, and the week- and
+  month-over-month figures in the Substack post. For EU-CRI-H100 on 2026-08-16 the
+  week-over-week denominator was 3.29, taken from the 08-15 revision 1 print that
+  revision 2 withdrew, instead of 3.25 from 08-10, the last print that still stands.
+  The HTML site was never wrong: it reads through `site.py`, which had the rule right and
+  a test to hold it there. So the pages a person reads showed the gap honestly while the
+  feed a machine reads did not.
+- **The third reader.** `commands._prev_prices` supplies the previous per-provider prices
+  that `index.compute_print` measures its jump flag against. It had the same defect, so a
+  jump was measured against a session the index had retracted. No stored print changes:
+  `reproduce --published` still matches all 534 reproducible prints and all 1107 digests.
+- **The fix.** Revision resolution now lives in one module, `tci.series_read`, holding the
+  definitions `site.py` already shipped. `site.py`, `webdata.py`, `post.py` and
+  `commands.py` all read through it, and `tests/test_series_read.py` covers the
+  withdrawal case for each surface, including the two that had no test at all before.
+  `post.py` had no test file of any kind.
+- **Indexes.** Migration 0009 adds `(series, date)` on `daily_index` and `constituents`.
+  The primary key leads with `date`, so every read that starts from a series was scanning
+  the table.
+
 ## Forward estimate: the expected index, the cost to lock, and the record that scores them — 2026-09-15 — no methodology change
 
 - **`forward.html`, `site/data/forward/`, `python -m tci.run forward`.** For windows of one,

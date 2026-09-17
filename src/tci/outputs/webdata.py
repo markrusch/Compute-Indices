@@ -18,7 +18,7 @@ from typing import Any
 
 import yaml
 
-from tci import DISCLAIMER, __version__
+from tci import DISCLAIMER, __version__, series_read
 from tci.commands import COMPOSITE, SERIES_BY_CLASS
 from tci.config import CONFIG_DIR, load_factors, load_static_providers
 from tci.db import utc_now_iso
@@ -48,32 +48,13 @@ ALL_SERIES = [
 ]
 
 
-def _latest_print(conn: sqlite3.Connection, series: str) -> sqlite3.Row | None:
-    return conn.execute(
-        "SELECT * FROM daily_index WHERE series = ? ORDER BY date DESC, revision DESC LIMIT 1",
-        (series,),
-    ).fetchone()
-
-
-def _value_on(conn: sqlite3.Connection, series: str, date: str) -> float | None:
-    row = conn.execute(
-        "SELECT value_usd FROM daily_index WHERE series = ? AND date <= ?"
-        " AND value_usd IS NOT NULL ORDER BY date DESC, revision DESC LIMIT 1",
-        (series, date),
-    ).fetchone()
-    return row["value_usd"] if row else None
-
-
-def _prior_print(
-    conn: sqlite3.Connection, series: str, before_date: str
-) -> tuple[str, float] | None:
-    """The most recent (date, value_usd) strictly before before_date, for the print-meta tile."""
-    row = conn.execute(
-        "SELECT date, value_usd FROM daily_index WHERE series = ? AND date < ?"
-        " AND value_usd IS NOT NULL ORDER BY date DESC, revision DESC LIMIT 1",
-        (series, before_date),
-    ).fetchone()
-    return (row["date"], row["value_usd"]) if row else None
+# Revision resolution is tci.series_read's job, not this module's. The three readers
+# below were spelled inline here and two of them filtered `value_usd IS NOT NULL` before
+# resolving MAX(revision), which republished withdrawn prints into latest.json, the
+# public JSON feed, while the HTML site next to it correctly showed the gap.
+_latest_print = series_read.latest_print
+_value_on = series_read.value_on_or_before
+_prior_print = series_read.previous_published
 
 
 def _pct(new: float | None, old: float | None) -> float | None:

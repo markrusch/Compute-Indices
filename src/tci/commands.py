@@ -19,7 +19,7 @@ from datetime import UTC, datetime, timedelta
 from datetime import date as date_type
 from pathlib import Path
 
-from tci import config, db, weights
+from tci import config, db, series_read, weights
 from tci.basis import compute_basis
 from tci.collectors import base
 from tci.collectors.azure_retail import AzureRetailCollector
@@ -103,20 +103,7 @@ def _observations_for_date(conn: sqlite3.Connection, utc_date: str) -> list[sqli
 
 
 def _prev_prices(conn: sqlite3.Connection, series: str, before_date: str) -> dict[str, float]:
-    row = conn.execute(
-        "SELECT date, MAX(revision) AS rev FROM daily_index"
-        " WHERE series = ? AND date < ? AND value_usd IS NOT NULL"
-        " GROUP BY date ORDER BY date DESC LIMIT 1",
-        (series, before_date),
-    ).fetchone()
-    if row is None:
-        return {}
-    rows = conn.execute(
-        "SELECT provider, price_usd FROM constituents"
-        " WHERE date = ? AND series = ? AND revision = ? AND included = 1",
-        (row["date"], series, row["rev"]),
-    ).fetchall()
-    return {r["provider"]: r["price_usd"] for r in rows}
+    return series_read.previous_included_prices(conn, series, before_date)
 
 
 def _next_revision(conn: sqlite3.Connection, date: str, series: str) -> int:
@@ -159,16 +146,7 @@ def _store_print(
     return revision
 
 
-def _latest_values(conn: sqlite3.Connection, series: str, dates: list[str]) -> list[float | None]:
-    out: list[float | None] = []
-    for d in dates:
-        row = conn.execute(
-            "SELECT value_usd FROM daily_index WHERE date = ? AND series = ?"
-            " ORDER BY revision DESC LIMIT 1",
-            (d, series),
-        ).fetchone()
-        out.append(row["value_usd"] if row else None)
-    return out
+_latest_values = series_read.head_values
 
 
 @dataclass(frozen=True)
@@ -312,13 +290,7 @@ def _review_weights(
     return rw
 
 
-def _latest_value_on(conn: sqlite3.Connection, series: str, date: str) -> float | None:
-    row = conn.execute(
-        "SELECT value_usd FROM daily_index WHERE date = ? AND series = ?"
-        " ORDER BY revision DESC LIMIT 1",
-        (date, series),
-    ).fetchone()
-    return row["value_usd"] if row else None
+_latest_value_on = series_read.head_value
 
 
 def _compute_composite(

@@ -41,7 +41,7 @@ from pathlib import Path
 
 import yaml
 
-from tci import DISCLAIMER, attributes, mlperf, reliability
+from tci import DISCLAIMER, attributes, mlperf, reliability, series_read
 from tci.commands import COMPOSITE, HEADLINE, SERIES_7D
 from tci.config import (
     Factors,
@@ -344,117 +344,17 @@ def _read(path: Path) -> str:
 # ==========================================================================
 # data access — always the latest revision of a (date, series)
 # ==========================================================================
+# Resolution lives in tci.series_read so that webdata.py, post.py and commands.py
+# read prints the same way this module does. These names stay importable from
+# `site` because the site templates and tests have always reached for them here.
 
-
-@dataclass(frozen=True)
-class Point:
-    """One session on the published curve. `value` None means the print gapped."""
-
-    date: str
-    value: float | None
-    value_eur: float | None = None
-    flags: str = ""
-
-
-def series_history(
-    conn: sqlite3.Connection, series: str, *, since: str | None = None
-) -> list[Point]:
-    """Published history for one series, one row per date, latest revision only.
-
-    A correction is stored as a NEW revision rather than an edit (db triggers enforce
-    append-only), so any read that forgets `MAX(revision)` silently republishes a value
-    that was already withdrawn. Every read path on the site goes through here.
-    """
-    sql = (
-        "SELECT d.date, d.value_usd, d.value_eur, d.flags FROM daily_index d JOIN ("
-        "  SELECT date, series, MAX(revision) AS rev FROM daily_index"
-        "  WHERE series = ? GROUP BY date, series"
-        ") m ON d.date = m.date AND d.series = m.series AND d.revision = m.rev"
-        " WHERE d.series = ?"
-    )
-    params: list[object] = [series, series]
-    if since is not None:
-        sql += " AND d.date >= ?"
-        params.append(since)
-    sql += " ORDER BY d.date"
-    return [
-        Point(r["date"], r["value_usd"], r["value_eur"], r["flags"] or "")
-        for r in conn.execute(sql, params)
-    ]
-
-
-def latest_print(conn: sqlite3.Connection, series: str) -> sqlite3.Row | None:
-    return conn.execute(
-        "SELECT * FROM daily_index WHERE series = ? ORDER BY date DESC, revision DESC LIMIT 1",
-        (series,),
-    ).fetchone()
-
-
-def current_print(conn: sqlite3.Connection, series: str, date: str) -> sqlite3.Row | None:
-    """The print for THIS session, or None — never an older one dressed as current.
-
-    `latest_print` returns a series' newest row whatever its date, which is right for
-    history but wrong for a live surface: a series that stops being computed keeps
-    rendering its last good value forever. That is exactly what happened to the retired
-    `EU-CRI-H100-CLOUD`, which sat in the ticker showing 3.85 from 2026-08-15 under
-    methodology 0.2.0-dev — for a while the only number on a ticker where every live
-    series was honestly gapped. A stale value presented as current is the one failure
-    mode this project cannot afford, so the live surfaces ask for the session's row by
-    date and get nothing if it does not exist.
-    """
-    row = latest_print(conn, series)
-    return row if row is not None and row["date"] == date else None
-
-
-def previous_published(
-    conn: sqlite3.Connection, series: str, before: str
-) -> tuple[str, float] | None:
-    row = conn.execute(
-        "SELECT d.date, d.value_usd FROM daily_index d JOIN ("
-        "  SELECT date, MAX(revision) AS rev FROM daily_index WHERE series = ? GROUP BY date"
-        ") m ON d.date = m.date AND d.revision = m.rev"
-        " WHERE d.series = ? AND d.date < ? AND d.value_usd IS NOT NULL"
-        " ORDER BY d.date DESC LIMIT 1",
-        (series, series, before),
-    ).fetchone()
-    return (row["date"], row["value_usd"]) if row else None
-
-
-def value_on_or_before(
-    conn: sqlite3.Connection, series: str, date: str
-) -> float | None:
-    """The last published value at or before DATE, for a fixed-horizon comparison.
-
-    A 30-day delta on a series that gaps as often as this one cannot ask for "the value
-    exactly 30 days ago" — most sessions have none. It asks for the most recent print up
-    to that date instead, which is a comparison against a value that was genuinely
-    published, never an interpolation onto a day the index said nothing.
-    """
-    row = conn.execute(
-        "SELECT d.value_usd FROM daily_index d JOIN ("
-        "  SELECT date, MAX(revision) AS rev FROM daily_index WHERE series = ? GROUP BY date"
-        ") m ON d.date = m.date AND d.revision = m.rev"
-        " WHERE d.series = ? AND d.date <= ? AND d.value_usd IS NOT NULL"
-        " ORDER BY d.date DESC LIMIT 1",
-        (series, series, date),
-    ).fetchone()
-    return row["value_usd"] if row else None
-
-
-def constituents_for(conn: sqlite3.Connection, series: str, date: str) -> list[sqlite3.Row]:
-    rev = conn.execute(
-        "SELECT MAX(revision) AS rev FROM daily_index WHERE date = ? AND series = ?",
-        (date, series),
-    ).fetchone()
-    if rev is None or rev["rev"] is None:
-        return []
-    return list(
-        conn.execute(
-            "SELECT * FROM constituents WHERE date = ? AND series = ? AND revision = ?"
-            " ORDER BY included DESC, price_usd",
-            (date, series, rev["rev"]),
-        )
-    )
+Point = series_read.Point
+series_history = series_read.series_history
+latest_print = series_read.latest_print
+current_print = series_read.current_print
+previous_published = series_read.previous_published
+value_on_or_before = series_read.value_on_or_before
+constituents_for = series_read.constituents_for
 
 
 def _window(end: str, days: int = WINDOW_DAYS) -> list[str]:

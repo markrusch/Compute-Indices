@@ -10,7 +10,7 @@ import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from tci import DISCLAIMER
+from tci import DISCLAIMER, series_read
 from tci.config import load_factors
 
 log = logging.getLogger("tci.outputs.post")
@@ -19,20 +19,12 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 POST_PATH = REPO_ROOT / "site" / "substack_post.md"
 
 
-def _latest_print(conn: sqlite3.Connection, series: str) -> sqlite3.Row | None:
-    return conn.execute(
-        "SELECT * FROM daily_index WHERE series = ? ORDER BY date DESC, revision DESC LIMIT 1",
-        (series,),
-    ).fetchone()
-
-
-def _value_on(conn: sqlite3.Connection, series: str, date: str) -> float | None:
-    row = conn.execute(
-        "SELECT value_usd FROM daily_index WHERE series = ? AND date <= ?"
-        " AND value_usd IS NOT NULL ORDER BY date DESC, revision DESC LIMIT 1",
-        (series, date),
-    ).fetchone()
-    return row["value_usd"] if row else None
+# See tci.series_read: the week- and month-over-month basis must come from a print that
+# still stands. The copy of `_value_on` that lived here resolved the revision after
+# discarding NULLs, so a retracted session could become the denominator of a published
+# percentage, in a newsletter, which unlike the site cannot be corrected after sending.
+_latest_print = series_read.latest_print
+_value_on = series_read.value_on_or_before
 
 
 def _pct(new: float, old: float | None) -> str:
@@ -42,13 +34,7 @@ def _pct(new: float, old: float | None) -> str:
 
 
 def _constituent_lines(conn: sqlite3.Connection, date: str) -> list[str]:
-    rows = conn.execute(
-        "SELECT c.* FROM constituents c JOIN ("
-        "  SELECT MAX(revision) AS rev FROM daily_index"
-        "  WHERE date = ? AND series = 'EU-CRI-H100') m ON c.revision = m.rev"
-        " WHERE c.date = ? AND c.series = 'EU-CRI-H100' ORDER BY c.included DESC, c.price_usd",
-        (date, date),
-    ).fetchall()
+    rows = series_read.constituents_for(conn, "EU-CRI-H100", date)
     lines = []
     for c in rows:
         status = "" if c["included"] else f" *(excluded: {c['exclusion_reason']})*"
