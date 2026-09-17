@@ -18,7 +18,6 @@ import pytest
 from tci import config, db, forward_data
 
 REPO = Path(__file__).resolve().parents[1]
-DATE = "2026-09-15"
 
 # One hash per version of config/forward.yaml. A parameter changed without a new version fails
 # here, which is what stops a parameter being tuned after looking at how estimates scored.
@@ -45,6 +44,19 @@ def record(tmp_path_factory: pytest.TempPathFactory) -> sqlite3.Connection:
     shutil.copy(REPO / "data" / "eucri.db", dst)
     conn = db.connect(dst)
     db.migrate(conn)
+    # daily_index and observations come from the real committed record on purpose (see the
+    # module docstring), but forward_estimates does not: a live daily run always records
+    # forward for the date it just printed (commands.py's `_record_forward`), so the real
+    # committed ledger is - by construction, every day - already caught up through its own
+    # latest print. Copying that forward_estimates as-is would leave this suite's backfill
+    # tests with no gap left to backfill, forever, from the first day this ever ran against
+    # a repo where the daily job had actually completed once. DROP + recreate rather than
+    # DELETE: forward_estimates is append-only (fwd_no_delete), and that guarantee is about
+    # the real repo's ledger, not a throwaway copy this test then writes fresh rows into.
+    migration = (REPO / "src" / "tci" / "migrations" / "0008_forward_estimates.sql").read_text(
+        encoding="utf-8")
+    conn.executescript("DROP TABLE forward_estimates;\n" + migration)
+    conn.commit()
     return conn
 
 
@@ -65,43 +77,64 @@ def test_the_recomputed_anchor_reproduces_every_published_print(
 
 
 @pytest.fixture(scope="module")
-def recorded(record: sqlite3.Connection) -> tuple[sqlite3.Connection, int]:
-    return record, forward_data.record_forward(record, DATE)
+def latest_date(record: sqlite3.Connection) -> str:
+    """The most recent published EU-CRI-H100 print in the copied record.
+
+    Not a fixed literal: this suite runs against the real committed data/eucri.db (see the
+    module docstring), which a live daily run extends every day it prints. A hardcoded date
+    here previously matched only the day this test was written (2026-09-15) and started
+    failing the first time these tests ran against a later day's real commit — `as_of` in
+    forward_tables() is always the latest live date in the table, not whatever date this
+    suite happens to name.
+    """
+    row = record.execute(
+        "SELECT MAX(date) AS d FROM daily_index WHERE series = 'EU-CRI-H100'"
+        " AND value_usd IS NOT NULL"
+    ).fetchone()
+    assert row["d"], "no published EU-CRI-H100 print in data/eucri.db"
+    return row["d"]
+
+
+@pytest.fixture(scope="module")
+def recorded(
+    record: sqlite3.Connection, latest_date: str
+) -> tuple[sqlite3.Connection, int, str]:
+    return record, forward_data.record_forward(record, latest_date), latest_date
 
 
 def test_earlier_dates_are_backfilled_and_flagged(
-        recorded: tuple[sqlite3.Connection, int]) -> None:
-    conn, written = recorded
+        recorded: tuple[sqlite3.Connection, int, str]) -> None:
+    conn, written, date = recorded
     assert written > 0
     flags = dict(conn.execute(
         "SELECT date, MAX(backfilled) FROM forward_estimates GROUP BY date").fetchall())
-    assert flags[DATE] == 0
-    assert len(flags) > 20 and all(v == 1 for d, v in flags.items() if d < DATE)
+    assert flags[date] == 0
+    assert len(flags) > 20 and all(v == 1 for d, v in flags.items() if d < date)
 
 
 def test_every_row_is_either_a_value_or_a_stated_gap(
-        recorded: tuple[sqlite3.Connection, int]) -> None:
-    conn, _ = recorded
+        recorded: tuple[sqlite3.Connection, int, str]) -> None:
+    conn, _, _ = recorded
     for value, detail in conn.execute("SELECT value_usd, detail FROM forward_estimates"):
         assert (value is None) == ('"gap"' in detail), detail
 
 
-def test_a_rerun_writes_nothing(recorded: tuple[sqlite3.Connection, int]) -> None:
-    conn, _ = recorded
-    assert forward_data.record_forward(conn, DATE) == 0
+def test_a_rerun_writes_nothing(recorded: tuple[sqlite3.Connection, int, str]) -> None:
+    conn, _, date = recorded
+    assert forward_data.record_forward(conn, date) == 0
 
 
-def test_the_ledger_is_append_only(recorded: tuple[sqlite3.Connection, int]) -> None:
-    conn, _ = recorded
+def test_the_ledger_is_append_only(recorded: tuple[sqlite3.Connection, int, str]) -> None:
+    conn, _, _ = recorded
     with pytest.raises(sqlite3.DatabaseError, match="immutable"):
         conn.execute("UPDATE forward_estimates SET value_usd = 0")
 
 
 def test_published_tables_keep_backfill_out_of_the_history(
-        recorded: tuple[sqlite3.Connection, int]) -> None:
-    conn, _ = recorded
+        recorded: tuple[sqlite3.Connection, int, str]) -> None:
+    conn, _, date = recorded
     tables = forward_data.forward_tables(conn)
-    assert tables is not None and tables["as_of"] == DATE
+    assert tables is not None and tables["as_of"] == date
     assert tables["history"] and all(not r["backfilled"] for r in tables["history"])
     assert tables["n_backfilled_dates"] > 20
     assert {("M", 30), ("T", 30), ("L", 30)} <= {(r["component"], r["horizon_days"])
@@ -111,9 +144,9 @@ def test_published_tables_keep_backfill_out_of_the_history(
 
 
 def test_later_revisions_and_later_days_do_not_move_an_estimate(
-        recorded: tuple[sqlite3.Connection, int]) -> None:
+        recorded: tuple[sqlite3.Connection, int, str]) -> None:
     """The leak a `date <= t` filter on daily_index would have: a revision computed later."""
-    conn, _ = recorded
+    conn, _, _ = recorded
     t = "2026-09-12"
     params, _ = forward_data.load_params()
 
