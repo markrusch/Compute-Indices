@@ -703,7 +703,103 @@ code, kbd, samp, pre,
 .wrap      { max-width: var(--content-max); margin-inline: auto;
              padding-inline: max(var(--space-8), env(safe-area-inset-left))
                              max(var(--space-8), env(safe-area-inset-right)); }
-.scroll-x  { overflow-x: auto; overscroll-behavior-x: contain; min-inline-size: 0; }
+/* A scroll container is `position: relative` for a reason that is not layout: an
+   absolutely positioned descendant is only clipped by an ancestor's overflow if
+   that ancestor is in its containing-block chain. Without a position here, every
+   `.vh` caption inside a wide table resolves against the initial containing block,
+   escapes the scroller, and reports its far edge to the DOCUMENT — which is how
+   four screen-reader-only spans in the constituents tables were giving index.html
+   a 419px scroll width and letting a phone drag the whole page 29px sideways at
+   390px, 59px at 360px. The clip-path on `.vh` hides them; only this contains them. */
+.scroll-x  { overflow-x: auto; overscroll-behavior-x: contain; min-inline-size: 0;
+             position: relative; }
+/* `.tableview__scroll` (the 30-session table behind the disclosure) holds a `.vh`
+   caption too, and scrolls on both axes. Same containment, same reason. */
+.tableview__scroll { position: relative; }
+
+/* ---- scroll affordance --------------------------------------------------
+   Eleven scrollers across the dashboard and the methodology hide between 107px
+   and 826px of content on a 390px phone, and a touch browser draws no scrollbar
+   until a drag is already under way. So a reader was shown the Provider column of
+   a seven-column constituents table, or Version and Effective-from of the
+   methodology ledger with Status off-screen, and nothing said there was more. The
+   card's rounded border ran down the cut, which reads as a finished table.
+
+   Two layers, because they fail in opposite directions.
+
+   First, a wash pinned to the scrollport (`scroll`) under a page-coloured cover that
+   travels with the content (`local`): at rest the cover hides the wash, and scrolling
+   slides the cover off it. That is exact by construction and needs neither JavaScript
+   nor a modern engine, which matters on pages that must render with scripting off.
+   It is also nearly invisible, and the usual dark shadow is worse than invisible here
+   — a black gradient on #0B0C0D is nothing at all — so the wash is light, and weak
+   enough not to sit behind text at a contrast that tokens.css would object to.
+
+   Second, the edge is faded out of the picture, which reads clearly. A static fade
+   cannot be used: on desktop these tables fit, and a fade would eat the last column
+   of a table that is hiding nothing. So the fade width is driven by scroll position.
+   An unscrollable container has no active timeline, the animation never applies, and
+   the fade stays at the 0 in the base rule — the desktop case is correct because
+   nothing had to detect it. Engines without scroll-driven animations (Firefox today)
+   keep the wash and lose the fade, which is the status quo, not a regression.
+
+   `--page` is safe as the cover colour: #0B0C0D is the only page background there is
+   (one-theme contract), and every one of the eleven was measured sitting on it. */
+@property --edge-s { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --edge-e { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+.scroll-x, .tableview__scroll {
+  background-image:
+    linear-gradient(to right, var(--page), rgba(11, 12, 13, 0)),
+    linear-gradient(to left,  var(--page), rgba(11, 12, 13, 0)),
+    linear-gradient(to right, rgba(245, 245, 246, .20), rgba(245, 245, 246, 0)),
+    linear-gradient(to left,  rgba(245, 245, 246, .20), rgba(245, 245, 246, 0));
+  background-position: left center, right center, left center, right center;
+  background-size: 34px 100%, 34px 100%, 26px 100%, 26px 100%;
+  background-repeat: no-repeat;
+  background-attachment: local, local, scroll, scroll;
+
+  /* --edge-s fades the inline START, --edge-e the inline END. Both 0 unless the
+     container actually scrolls. The gradient runs inline-wards, so an rtl scroller
+     (see .scroll-x--recent) has to reverse it — done below, not here. */
+  --edge-s: 0px;
+  --edge-e: 0px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--edge-s),
+                        #000 calc(100% - var(--edge-e)), transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0, #000 var(--edge-s),
+                        #000 calc(100% - var(--edge-e)), transparent 100%);
+}
+@supports (animation-timeline: scroll()) {
+  .scroll-x, .tableview__scroll {
+    animation: tci-scroll-edge linear both;
+    animation-timeline: scroll(self inline);
+  }
+  @keyframes tci-scroll-edge {
+    from { --edge-s:  0px; --edge-e: 40px; }   /* at the start: more to come */
+    to   { --edge-s: 40px; --edge-e:  0px; }   /* at the end: it is behind you */
+  }
+}
+
+/* A time series is read from its right-hand end. The chart holds a 660px floor so
+   its 11px axis labels stay legible (they are viewBox units and scale with the
+   picture), which on a 324px phone column means 336px of it is off-screen — and
+   left-anchored, the half a phone got was the oldest sessions, with the current
+   print, its marker and the entire y-axis scale outside the view. Measured at
+   390px: the visible labels were "19 Aug", "26 Aug" and the points from 20-31 Aug.
+   Starting the scroller at its inline end puts today on screen instead. Only the
+   direction of the scroll container is flipped; the text inside is put back to ltr,
+   and an SVG is not affected by either. The forward curve deliberately does NOT
+   get this: its near horizon is the one that matters and that is on the left. */
+.scroll-x--recent { direction: rtl; }
+.scroll-x--recent > * { direction: ltr; }
+/* Its inline start is the right-hand edge, so the fade has to run the other way or
+   the cue points at the end the reader is already looking at. */
+.scroll-x--recent {
+  -webkit-mask-image: linear-gradient(to left, transparent 0, #000 var(--edge-s),
+                        #000 calc(100% - var(--edge-e)), transparent 100%);
+          mask-image: linear-gradient(to left, transparent 0, #000 var(--edge-s),
+                        #000 calc(100% - var(--edge-e)), transparent 100%);
+}
 
 /* A grid or flex item defaults to min-width:auto, which is min-CONTENT — so a
    card holding a 660px-min chart refuses to shrink and pushes the whole page
@@ -2281,7 +2377,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="masthead">
-<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-17T11:10:59Z">AS OF 2026-09-17 11:10:59 UTC</div></div>
+<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-17T19:56:59Z">AS OF 2026-09-17 19:56:59 UTC</div></div>
   <div class="masthead__bar">
     <div class="wrap masthead__inner">
       <a class="brand" href="index.html"><span class="brand__mark" style="--brand-h:24px" aria-hidden="true"><span class="brand__tc">TC</span><span class="brand__i"><span class="brand__dot"></span><span class="brand__bar"></span></span></span><span class="brand__name">The Compute Indices</span></a>
@@ -2714,7 +2810,7 @@ eu_eea_countries: [&quot;AT&quot;, &quot;BE&quot;, &quot;BG&quot;, &quot;HR&quot
       welcome and must carry its own name.</p>
       <p class="disclaimer__meta num">TCI-CRI&#8209;M v0.4.0
       &#183; methodology hash sha256:29551a012dad&#8230; &#183; generated
-      2026-09-17T11:10:59Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
+      2026-09-17T19:56:59Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
       at the ECB reference rate dated on or before the print date.</p>
     </div>
   </div>
