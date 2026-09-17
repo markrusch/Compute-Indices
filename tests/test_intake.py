@@ -460,3 +460,43 @@ def test_a_recompute_into_an_unmigrated_database_still_succeeds() -> None:
 def test_yield_pct_on_an_empty_session_is_none() -> None:
     assert intake.yield_pct([]) is None
     assert intake.render([], "2026-09-17", "0.4.0", []) == "2026-09-17: nothing collected"
+
+def test_the_page_never_prints_a_series_name_that_does_not_exist(
+    conn: sqlite3.Connection,
+) -> None:
+    """The watch list names a compute class, and a class is not a series.
+
+    Building `EU-CRI-<class>` and rebranding it yields TCI-CRI-H100P, and that class is
+    published as TCI-CRI-H100-PCIE. `display_series` is a pure string rebrand that raises
+    on nothing, so nothing would have caught it: the page would simply have carried an
+    identifier that does not exist. CLAUDE.md keeps series keys to two translation points
+    for this reason.
+    """
+    from tci.outputs import site as site_mod
+
+    # H100P is the class where pasting differs from the published series name.
+    assert commands.SERIES_BY_CLASS["H100P"] == "EU-CRI-H100-PCIE"
+    assert site_mod.display_series("EU-CRI-H100-PCIE") == "TCI-CRI-H100-PCIE"
+
+    for day in range(10, 17):
+        _seed(
+            conn, f"2026-09-{day}",
+            [intake.Cell("ovh", "ovhcloud", "H100P", "admitted", 1)],
+        )
+    _seed(
+        conn, "2026-09-17",
+        [intake.Cell("ovh", "ovhcloud", "H100P", "not_in_panel", 1)],
+    )
+    dropped = intake.dropouts(conn, "2026-09-17")
+    assert [d.model_class for d in dropped] == ["H100P"]
+
+    ctx = site_mod.SiteContext(
+        conn=conn, factors=load_factors(), version="0.6.0", lock_hash="x",
+        generated_at="2026-09-17T00:00:00Z", head=None, date="2026-09-17",
+    )
+    html = site_mod._intake_watch(ctx)
+    assert "H100P" in html, "the class should still be named"
+    assert "CRI-H100P" not in html, (
+        "the page built a series identifier out of a class name; TCI-CRI-H100P is not a"
+        " published series"
+    )

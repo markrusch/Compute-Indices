@@ -4462,11 +4462,17 @@ def _intake_watch(ctx: SiteContext) -> str:
         )
     items: list[str] = []
     for d in intake.dropouts(ctx.conn, ctx.date):
-        cls = display_series(f"EU-CRI-{d.model_class}") if d.model_class else "no class"
+        # The compute CLASS, not a series name. Pasting the class into `EU-CRI-<class>`
+        # and rebranding it reads as a series identifier and is wrong for at least one
+        # class: H100P is published as TCI-CRI-H100-PCIE, so that route printed a
+        # TCI-CRI-H100P that does not exist. The ledger's grain is the class, and a class
+        # is not a series, so it is named as itself.
+        cls = d.model_class or "a class the index does not price"
         items.append(
             f"<li><strong>{_e(d.provider)}</strong> through <code>{_e(d.source)}</code>"
-            f" in {_e(cls)} was reaching the calculation on recent sessions and is not on"
-            f" this one. Its rows now stop at <code>{_e(d.gate)}</code>.</li>"
+            f" in the {_e(cls)} class was reaching the calculation on recent sessions and"
+            f" is not on this one. Its rows now stop at"
+            f" <code>{_e(d.gate)}</code>.</li>"
         )
     for s in intake.shifts(ctx.conn, ctx.date):
         direction = "more" if s.today > s.baseline else "fewer"
