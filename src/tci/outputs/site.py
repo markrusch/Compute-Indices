@@ -41,7 +41,7 @@ from pathlib import Path
 
 import yaml
 
-from tci import DISCLAIMER, attributes, mlperf, reliability, series_read
+from tci import DISCLAIMER, attributes, intake, mlperf, reliability, series_read
 from tci.commands import COMPOSITE, HEADLINE, SERIES_7D
 from tci.config import (
     Factors,
@@ -762,6 +762,7 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <a href="{prefix}governance.html">Governance</a>
         <a href="{prefix}notices.html">Methodology notices</a>
         <a href="{prefix}reliability.html">Reliability</a>
+        <a href="{prefix}intake.html">Intake</a>
         <a href="{prefix}performance.html">Price vs performance</a>
       </nav>
       <nav class="footer__nav" aria-label="Footer, data">
@@ -4286,6 +4287,7 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         (SITE_DIR / "governance.html", _governance(ctx)),
         (SITE_DIR / "notices.html", _notices(ctx)),
         (SITE_DIR / "reliability.html", _reliability(ctx)),
+        (SITE_DIR / "intake.html", _intake(ctx)),
         (SITE_DIR / "performance.html", _performance(ctx)),
         (SITE_DIR / "research.html", _research_index(ctx, notes)),
         (SITE_DIR / "contact.html", _contact(ctx)),
@@ -4364,3 +4366,252 @@ def _write_robots() -> Path:
         newline="\n",
     )
     return path
+
+
+# ==========================================================================
+# intake: of everything collected, what reached the calculation
+# ==========================================================================
+
+
+def _intake_gate_rows(cells: list[intake.Cell], total: int) -> str:
+    rows = []
+    for gate, n in sorted(intake.by_gate(cells).items(), key=lambda kv: -kv[1]):
+        share = n / total * 100 if total else 0.0
+        label = (
+            "reached the calculation"
+            if gate == "admitted"
+            else _e(intake.GATE_REASONS.get(gate, gate))
+        )
+        rows.append(
+            f'<tr><td class="num ta-r">{n}</td>'
+            f'<td class="num ta-r u">{_num(share, 1)}%</td>'
+            f"<td>{label}</td>"
+            f'<td class="u"><code>{_e(gate)}</code></td></tr>'
+        )
+    return "".join(rows)
+
+
+def _intake_source_rows(cells: list[intake.Cell]) -> str:
+    rows = []
+    for s in intake.source_yields(cells):
+        where = (
+            _e(intake.GATE_REASONS.get(s.top_gate, s.top_gate))
+            if s.top_gate_rows
+            else "&#8212;"
+        )
+        # `.chip` is nowrap, so this label stays short or it widens the table on a phone.
+        mark = (
+            f'<br><span class="chip chip--warning">{_icon("warn")}'
+            "<span>no route to a print</span></span>"
+            if s.structurally_blocked
+            else ""
+        )
+        rows.append(
+            f"<tr><td>{_e(s.source)}{mark}</td>"
+            f'<td class="num ta-r">{s.collected}</td>'
+            f'<td class="num ta-r">{s.admitted}</td>'
+            f'<td class="num ta-r">{_num(s.pct, 1)}%</td>'
+            f'<td class="u">{where}</td></tr>'
+        )
+    return "".join(rows)
+
+
+def _intake_history(ctx: SiteContext) -> str:
+    """Rows collected against rows admitted, per session. The divergence is the story.
+
+    Empty until a session has been recorded, which says so rather than showing a table of
+    one row as though that were a history.
+    """
+    rows = []
+    for date in intake.dates(ctx.conn)[-21:]:
+        cells = intake.head(ctx.conn, date)
+        total = sum(c.n_rows for c in cells)
+        admitted = intake.by_gate(cells).get("admitted", 0)
+        pct = intake.yield_pct(cells)
+        share = f"{_num(pct, 1)}%" if pct is not None else "&#8212;"
+        rows.append(
+            f'<tr><td class="num">{_e(_human_date(date))}</td>'
+            f'<td class="num ta-r">{total}</td>'
+            f'<td class="num ta-r">{admitted}</td>'
+            f'<td class="num ta-r">{share}</td></tr>'
+        )
+    return "".join(rows)
+
+
+def _intake_watch(ctx: SiteContext) -> str:
+    """What stopped qualifying, and what rule is holding an unusual number of rows.
+
+    Both detectors compare this session against stored earlier ones, so with no stored
+    ledger there is nothing to compare and the honest answer is that the question has not
+    been asked. Saying "nothing moved" there would be the same failure this page exists to
+    catch, one level up: an instrument that reports all-clear when it has not looked.
+    """
+    if not intake.dates(ctx.conn):
+        return (
+            '<div class="slot"><h3 class="slot__h">Not yet measurable</h3><p>Both checks '
+            "compare this session against earlier ones, and no earlier session has a "
+            "stored ledger. They report from the session after the first one recorded.</p>"
+            "</div>"
+        )
+    items: list[str] = []
+    for d in intake.dropouts(ctx.conn, ctx.date):
+        cls = display_series(f"EU-CRI-{d.model_class}") if d.model_class else "no class"
+        items.append(
+            f"<li><strong>{_e(d.provider)}</strong> through <code>{_e(d.source)}</code>"
+            f" in {_e(cls)} was reaching the calculation on recent sessions and is not on"
+            f" this one. Its rows now stop at <code>{_e(d.gate)}</code>.</li>"
+        )
+    for s in intake.shifts(ctx.conn, ctx.date):
+        direction = "more" if s.today > s.baseline else "fewer"
+        items.append(
+            f"<li><code>{_e(s.gate)}</code> holds {s.today} rows, {direction} than its"
+            f" mean of {_num(s.baseline, 1)} over the previous {s.n_days} sessions.</li>"
+        )
+    if not items:
+        return (
+            '<div class="slot"><h3 class="slot__h">Nothing moved</h3><p>No constituent'
+            " stopped qualifying on this session, and no rule is holding a materially"
+            " different number of rows than it held recently.</p></div>"
+        )
+    return (
+        '<div class="card"><div class="card__body"><ul class="list">'
+        f'{"".join(items)}</ul></div></div>'
+    )
+
+
+def _intake_history_card(ctx: SiteContext) -> str:
+    """The per-session table, or a line saying no session has been recorded yet."""
+    rows = _intake_history(ctx)
+    if not rows:
+        return (
+            '<div class="slot"><h3 class="slot__h">No sessions recorded yet</h3><p>The '
+            "ledger is written by the daily run. This table fills from the first run "
+            "after the table was created.</p></div>"
+        )
+    return f'''<div class="card card__body--flush"><div class="scroll-x">
+    <table class="grid">
+      <caption class="vh">Rows collected and admitted, per session</caption>
+      <thead><tr>
+        <th scope="col">Session</th>
+        <th scope="col" class="ta-r">Collected</th>
+        <th scope="col" class="ta-r">Admitted</th>
+        <th scope="col" class="ta-r">Yield</th>
+      </tr></thead>
+      <tbody>{rows}</tbody>
+    </table></div></div>'''
+
+
+def _intake(ctx: SiteContext) -> str:
+    """The funnel from collection to calculation, and what the difference is made of.
+
+    This page exists because the index could not answer the question a user of a reference
+    price asks second, after "what is the number": how much of the market did you look at,
+    and what did you throw away. Nine rules can stop a row and none of them was published.
+
+    The honesty constraint is the ordering note in the lede. Attribution is to the FIRST
+    rule a row fails, so the counts partition the session exactly - which also means no
+    single gate's count is the volume that would print if that rule were relaxed. Saying
+    so costs a sentence and stops the page reading as a list of missed opportunities.
+    """
+    cells = intake.head(ctx.conn, ctx.date)
+    if not cells:
+        cells, _ = intake.compute(ctx.conn, ctx.date)
+    total = sum(c.n_rows for c in cells)
+    admitted = intake.by_gate(cells).get("admitted", 0)
+    pct = intake.yield_pct(cells)
+    share = f"{_num(pct, 1)}%" if pct is not None else "not measurable"
+
+    body = f"""<main id="main"><div class="wrap">
+  <section class="section">
+    <div class="section__head"><div>
+      <h1 class="section__h">Intake</h1>
+      <p class="section__dek">{total} observations were collected for the
+      {_e(_human_date(ctx.date))} session. {admitted} of them reached the calculation,
+      {share}. This page is the difference, itemised.</p></div></div>
+    <div class="card"><div class="card__body">
+      <p>A row qualifies for a print only if it clears every rule of the unit definition:
+      the right GPU, a provider the panel admits through the collector that saw it, an
+      on-demand price rather than a term commitment, firm or list capacity rather than
+      spot, a datacenter inside the block being priced, a node at or above the size floor,
+      a currency there is a rate for, and a price inside the band. Most collected rows fail
+      one of those, and most of the time that is the index working rather than failing: a
+      broad catalogue holds a great many GPUs it does not price.</p>
+      <p>Each row below is attributed to the <strong>first</strong> rule it failed, so the
+      counts add up to the session exactly. That also means a rule's count is not the
+      number of rows that would print if it were loosened &#8212; a row stopped at the
+      panel may be outside the block and spot-priced as well.</p>
+    </div></div>
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">Where the session's rows stopped</h2>
+      <p class="section__dek">Every rule, with what it holds and why.</p></div></div>
+    <div class="card card__body--flush"><div class="scroll-x">
+    <table class="grid">
+      <caption class="vh">Rows by the first rule they failed</caption>
+      <thead><tr>
+        <th scope="col" class="ta-r">Rows</th>
+        <th scope="col" class="ta-r">Share</th>
+        <th scope="col">Rule</th>
+        <th scope="col">Recorded as</th>
+      </tr></thead>
+      <tbody>{_intake_gate_rows(cells, total)}</tbody>
+    </table></div></div>
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">What each collector contributed</h2>
+      <p class="section__dek">A collector at zero is not necessarily broken. Several
+      collect against region blocks that are not published yet, or sit outside the panel
+      on purpose so they can accumulate the history a future constituent needs. Where
+      nothing a collector produces can reach a print at all, that is marked, because the
+      reason is a decision somebody should be making rather than a fact nobody has
+      noticed.</p></div></div>
+    <div class="card card__body--flush"><div class="scroll-x">
+    <table class="grid">
+      <caption class="vh">Rows collected and rows admitted, per collector</caption>
+      <thead><tr>
+        <th scope="col">Collector</th>
+        <th scope="col" class="ta-r">Collected</th>
+        <th scope="col" class="ta-r">Admitted</th>
+        <th scope="col" class="ta-r">Yield</th>
+        <th scope="col">Where the rest stopped</th>
+      </tr></thead>
+      <tbody>{_intake_source_rows(cells)}</tbody>
+    </table></div></div>
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">What moved</h2>
+      <p class="section__dek">A constituent that was qualifying and has stopped, or a rule
+      holding a materially different number of rows than it held recently. A collector
+      whose rows all fail one rule looks exactly like a collector that is working: the
+      session succeeds, the stored row count rises, and the print survives on the
+      constituents it already had. That is the failure this watches for.</p></div></div>
+    {_intake_watch(ctx)}
+  </section>
+
+  <section class="section">
+    <div class="section__head"><div>
+      <h2 class="section__h">Collected against admitted</h2>
+      <p class="section__dek">Rows collected each session beside rows that reached the
+      calculation. The two columns moving apart is the ordinary consequence of adding a
+      collector, whose rows are stored for weeks before a methodology version admits
+      them.</p></div></div>
+    {_intake_history_card(ctx)}
+  </section>
+</div></main>"""
+    return _shell(
+        ctx,
+        title=f"Intake — {BRAND}",
+        description=(
+            "Of every price TCI collected, what reached the calculation and why the rest"
+            " did not, generated from the record."
+        ),
+        current="governance.html",
+        canonical="intake.html",
+        body=body,
+    )

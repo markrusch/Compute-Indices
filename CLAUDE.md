@@ -29,6 +29,7 @@ python -m tci.run validate                     # dropout sensitivity + check-ser
 python -m tci.run post                         # regenerate site/substack_post.md
 python -m tci.run docs                         # regenerate METHODOLOGY.md + METHODOLOGY.lock
 python -m tci.run sources [--due|--status S|--block B]   # source register + region coverage
+python -m tci.run intake [--date D] [--backfill]   # collected-to-print funnel, per rule
 python -m tci.run reproduce [--date D] [--published]    # recompute stored prints, check digests
 python -m tci.run contrib validate|ingest|aggregate    # contributed term prices (private store)
 

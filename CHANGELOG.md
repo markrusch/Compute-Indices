@@ -3,6 +3,71 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Intake: what every collected price did, and the two defects that found — 2026-09-17 — no methodology change
+
+- **`intake.html`, `python -m tci.run intake`, and a new append-only `intake` table.** Of the
+  1,979 observations stored for the 17 September session, 75 reached the calculation. The other
+  1,904 were dropped inside `normalise.py` by one of nine rules, and the repository recorded
+  none of them. The ledger stores one count per session, collector, provider, class and rule,
+  and the daily run writes it.
+- **Attribution is to the first rule a row fails**, so the counts partition the session and sum
+  to the rows collected. A rule's count is therefore not the volume that would print if it were
+  loosened: a row stopped at the panel is often outside the EU/EEA and spot-priced as well. The
+  page says so, because the alternative is a page that reads as a list of missed revenue.
+- **Nothing in the calculation path changed.** `normalise.py` is hash-locked, so counting inside
+  it would have cost a version bump, a notice and a succession entry for a change that moves no
+  number. The ledger classifies rows beside the calculation instead. The methodology hash is
+  unchanged and all 534 stored prints reproduce.
+- **A test pays for the duplication.** Two copies of an admission rule can drift apart, and an
+  audit that disagrees with the calculation without saying so is worse than no audit at all.
+  `test_intake.py` replays all 43 stored sessions under the version live on each and asserts
+  that the rows the ledger calls admitted are exactly the rows `normalise_observations` returns,
+  compared as a multiset of provider, collector, variant, node size and converted price. A
+  ledger that admitted the right number of wrong rows would fail it.
+- **Two detectors, because one threshold cannot cover both failures.** `shifts` watches rule
+  totals against a trailing seven-session mean and needs a floor of 20 rows to stay quiet.
+  `dropouts` watches each collector, provider and class that was qualifying and has stopped,
+  with no floor at all, because the failure below cost nine prints and was one row a day.
+- **The instrument runs without being asked.** `tci.run reliability` and `tci.run sources`
+  answer adjacent questions and are invoked by no workflow, so they report only when somebody
+  remembers to look. That is how a five-week collector defect got found in week six. The ledger
+  is written by `tci.run daily`, and a dropout or a rule shift is logged at warning level in the
+  run that observes it. It cannot fail a run or move a number, and on a database that predates
+  migration 0010 it does nothing at all rather than breaking a recomputation.
+- **The 43 sessions already on the record need one command.** The daily run writes its own
+  session and no more, so `python -m tci.run intake --backfill` is what recovers the history
+  from stored observations. Both detectors compare a session against earlier ones, so until
+  that runs they report that the comparison is not yet possible rather than that nothing
+  moved. An instrument claiming all-clear before it has looked is the same failure this page
+  exists to catch.
+
+**Found, not fixed: RunPod's node size, and nine headline gaps.** Between 5 August and 11
+September RunPod's secure-cloud H100 arrived with no GPU count on 11 of the sessions it was
+collected, and `normalise.py` dropped it for not stating its size. The headline gapped on ten of
+them. On 18 August, 4 September and 11 September the qualifying population was exactly four
+against a gate of five, and the fifth constituent was in the database with its price in hand.
+`reliability.html` records those sessions as fewer qualifying providers than the gate requires,
+which is what the calculation saw and is not the cause. The collector defect is already fixed,
+by probing 8, 4 and 2 GPUs rather than 8 alone, and it was found by reading the collector by
+hand. Both detectors flag all eight of the affected sessions that have enough prior history, and
+name the rule. The prints are not restated: a gap stays a gap, and those sessions stand under
+the version they record.
+
+**Found, not fixed: the live Seeweb collector cannot reach a print.** The panel admits Seeweb
+through `static_yaml` only. The real collector added in 5ff190e stores rows under
+`source='seeweb'`, which no version admits, so its four rows a session stop at the panel while a
+hand-maintained static entry for the same company goes on pricing it. `factors.yaml` documents
+the correct handover for exactly this case, twice: Verda replacing the static `datacrunch` entry,
+and Nebius replacing its own. It was not done for Seeweb. Admission is a methodology event and
+needs a version, a notice and an effective date, so this is raised rather than patched.
+
+**Raised, not answered: four collectors record no country, honestly.** `civo`, `hyperstack`,
+`lambda_pricing` and `crusoe` have never stored a country, because their `region_as_published`
+is "unspecified" or "EU-heavy". Those providers publish one price for every region, so the rows
+are accurate and cannot enter a print scoped to a block. Whether a region-uniform list price
+from a seller with EU datacentres belongs in an EU/EEA index, and under what rule, is a question
+for the methodology rather than a defect in the collectors.
+
 ## Withdrawn prints were reappearing in latest.json and the post — 2026-09-17 — no methodology change
 
 - **What was wrong.** Four places in the code resolved "the current value of a series on a
@@ -32,6 +97,7 @@ All methodology-affecting changes require an entry here **before** the lock rege
 - **Indexes.** Migration 0009 adds `(series, date)` on `daily_index` and `constituents`.
   The primary key leads with `date`, so every read that starts from a series was scanning
   the table.
+
 
 ## Forward estimate: the expected index, the cost to lock, and the record that scores them — 2026-09-15 — no methodology change
 

@@ -201,6 +201,67 @@ def _cmd_reliability(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_intake(args: argparse.Namespace) -> int:
+    """The collected-to-published funnel, from the stored ledger or computed on the spot."""
+    import uuid
+
+    from tci import db, intake
+
+    conn = db.connect()
+    if args.backfill:
+        done = set(intake.dates(conn, args.block, limit=10_000))
+        pending = [
+            r[0] for r in conn.execute(
+                "SELECT DISTINCT r.utc_date FROM runs r JOIN observations o"
+                " ON o.run_id = r.run_id ORDER BY r.utc_date"
+            )
+            if r[0] not in done
+        ]
+        if not pending:
+            print(f"every collection day already has an intake ledger for {args.block}")
+            return 0
+        run_id = str(uuid.uuid4())
+        conn.execute(
+            "INSERT INTO runs (run_id, utc_date, source, started_utc, status)"
+            " VALUES (?, ?, 'intake', ?, 'ok')",
+            (run_id, pending[-1], db.utc_now_iso()),
+        )
+        conn.commit()
+        for date in pending:
+            cells, factors = intake.compute(conn, date, args.block)
+            if cells:
+                intake.store(
+                    conn, date, args.block, cells, factors.methodology_version, run_id
+                )
+        print(f"stored an intake ledger for {len(pending)} collection days")
+        return 0
+
+    date = args.date
+    if not date:
+        row = conn.execute(
+            "SELECT MAX(utc_date) FROM runs r JOIN observations o ON o.run_id = r.run_id"
+        ).fetchone()
+        date = row[0] if row else None
+    if not date:
+        print("no observations stored")
+        return 1
+
+    stored = intake.head(conn, date, args.block)
+    cells, factors = intake.compute(conn, date, args.block)
+    if stored and stored != cells:
+        # Worth saying out loud rather than silently preferring one: the stored ledger is
+        # what the run recorded, the recomputation is what today's code makes of the same
+        # rows. They differ when the classifier changed, which is exactly when a reader
+        # wants to know.
+        print(f"note: the stored ledger for {date} differs from a recomputation today")
+    print(intake.render(
+        stored or cells, date, factors.methodology_version,
+        intake.shifts(conn, date, args.block),
+        intake.dropouts(conn, date, args.block),
+    ))
+    return 0
+
+
 def _cmd_canary(args: argparse.Namespace) -> int:
     """Live collection into a throwaway database. Exit 1 if a source stopped reporting."""
     from tci import canary
@@ -316,6 +377,17 @@ def main(argv: list[str] | None = None) -> int:
     p_rel.add_argument("--days", type=int, default=21, help="sessions to replay (default 21)")
     p_rel.add_argument("--limit", type=int, default=40, help="gaps to list (default 40)")
 
+    p_intake = sub.add_parser(
+        "intake",
+        help="of everything collected, what reached the calculation and why the rest did not",
+    )
+    p_intake.add_argument("--date", help="YYYY-MM-DD (default: the newest collection day)")
+    p_intake.add_argument("--block", default="EU_EEA", help="region block (default EU_EEA)")
+    p_intake.add_argument(
+        "--backfill", action="store_true",
+        help="store a ledger revision for every collection day that has none",
+    )
+
     p_eff = sub.add_parser(
         "effect",
         help="recompute one date under two methodology versions and show the difference",
@@ -367,6 +439,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_reproduce(args)
     if args.command == "canary":
         return _cmd_canary(args)
+    if args.command == "intake":
+        return _cmd_intake(args)
     if args.command == "reliability":
         return _cmd_reliability(args)
     if args.command == "mlperf":

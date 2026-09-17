@@ -13,13 +13,13 @@ import csv
 import logging
 import sqlite3
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from datetime import date as date_type
 from pathlib import Path
 
-from tci import config, db, series_read, weights
+from tci import config, db, intake, series_read, weights
 from tci.basis import compute_basis
 from tci.collectors import base
 from tci.collectors.azure_retail import AzureRetailCollector
@@ -100,6 +100,55 @@ def _observations_for_date(conn: sqlite3.Connection, utc_date: str) -> list[sqli
         " WHERE r.utc_date = ?",
         (utc_date,),
     ).fetchall()
+
+
+def _store_intake(
+    conn: sqlite3.Connection,
+    utc_date: str,
+    rows: Sequence[sqlite3.Row],
+    factors: config.Factors,
+    fx_eur_usd: float | None,
+    run_id: str,
+) -> None:
+    """Record where every collected observation stopped, and log what stopped arriving.
+
+    This runs inside the daily job on purpose. The two instruments the project already had
+    for this class of failure - `tci.run reliability` and `tci.run sources` - are invoked
+    by no workflow, so they only ever caught something when a person remembered to look.
+    An instrument that depends on somebody looking is how a collector defect ran for five
+    weeks and cost the headline nine prints.
+
+    It cannot fail the run. A gap stays a gap and a print stays a print whatever the
+    ledger says; this writes a record and logs a warning, and nothing here touches a
+    number.
+    """
+    if not intake.stored(conn):
+        # A database that predates migration 0010, which includes the throwaway copies
+        # `reproduce` and `effect` recompute into. The ledger is an observer and must
+        # never be the reason a recomputation of the published record fails.
+        return
+    cells = intake.ledger(rows, factors, fx_eur_usd)
+    if not cells:
+        return
+    revision = intake.store(
+        conn, utc_date, "EU_EEA", cells, factors.methodology_version, run_id
+    )
+    pct = intake.yield_pct(cells)
+    log.info(
+        "%s intake rev%d: %d observations, %d admitted (%.1f%%)",
+        utc_date, revision, sum(c.n_rows for c in cells),
+        intake.by_gate(cells).get("admitted", 0), pct or 0.0,
+    )
+    for d in intake.dropouts(conn, utc_date):
+        log.warning(
+            "%s intake: %s/%s %s admitted %.1f rows/session recently, none today (now %s)",
+            utc_date, d.provider, d.source, d.model_class, d.was_admitted, d.gate,
+        )
+    for s in intake.shifts(conn, utc_date):
+        log.warning(
+            "%s intake: gate %s holds %d rows against a recent mean of %.1f",
+            utc_date, s.gate, s.today, s.baseline,
+        )
 
 
 def _prev_prices(conn: sqlite3.Connection, series: str, before_date: str) -> dict[str, float]:
@@ -397,6 +446,7 @@ def compute_all_series(
     # at print time from their native amount, never from a rate frozen at collection.
     normalised = normalise_observations(rows, factors, fx_eur_usd=fx[0] if fx else None)
     unadmitted = unadmitted_providers(rows, factors)
+    _store_intake(conn, utc_date, rows, factors, fx[0] if fx else None, run_id)
     rw = _review_weights(conn, utc_date, factors)
     headline_class = factors.headline_class
 
