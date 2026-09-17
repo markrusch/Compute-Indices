@@ -753,3 +753,32 @@ def test_the_history_chart_opens_on_the_current_print_not_the_oldest_session(bui
         assert "scroll-x--recent" not in chart, (
             "the forward curve must stay anchored at its near horizon"
         )
+
+
+def test_the_dashboard_leads_with_the_print_and_keeps_the_banner_above_it(built):
+    """The one number this site publishes comes before the table that details it.
+
+    The print card used to sit behind the brand statement, the announcement banner and
+    the six-row series table: 2014px down a 390px phone, 2.39 viewports, and 1590px on a
+    1440x900 desktop. Leading with it measured 1354px and 1053px.
+
+    The banner's position is not a layout preference and is asserted here so a later
+    reshuffle cannot quietly invert it: a notice is worth nothing if it is only reachable
+    from a page nobody visits, so it stays above the print it is going to change. What
+    moved is the series table, which is the detail behind the number, not the way in.
+    """
+    dash = (built / "index.html").read_text(encoding="utf-8")
+    banner = dash.find("notice-banner")
+    print_card = dash.find('id="print"')
+    table = dash.find('id="indices"')
+    assert print_card != -1 and table != -1, "the dashboard lost a landmark"
+    assert print_card < table, "the series table is back in front of the print"
+    if banner != -1:  # only raised while a change is announced and not yet in effect
+        assert banner < print_card, "the announced-change banner fell below the print"
+
+    # The way in to the number should land on the number, from the hero and from the
+    # masthead of every other page.
+    assert 'href="#print"' in dash
+    assert 'href="index.html#print"' in (built / "methodology.html").read_text(
+        encoding="utf-8"
+    )

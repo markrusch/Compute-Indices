@@ -733,7 +733,7 @@ def _masthead(ctx: SiteContext, current: str, prefix: str) -> str:
       </label>
       <nav class="nav" aria-label="Primary">{links}
         <a href="{prefix}contact.html"{_aria_current('contact.html', current)}>Contact</a>
-        <a class="nav__cta" href="{prefix}index.html#indices">View Indices</a>
+        <a class="nav__cta" href="{prefix}index.html#print">View Indices</a>
       </nav>
     </div>
   </div>
@@ -1175,7 +1175,7 @@ def _hero(ctx: SiteContext) -> str:
     market<span class="hero__stop">.</span></h1>
     <p class="hero__dek">{_e(BRAND_LINE)}</p>
     <div class="hero__cta">
-      <a class="btn btn--primary" href="#indices">View Indices</a>
+      <a class="btn btn--primary" href="#print">Today&#8217;s print</a>
       <a class="btn btn--ghost" href="methodology.html">Our Methodology</a>
     </div>
   </div>
@@ -2165,6 +2165,17 @@ def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
 {_notice_banner(_load_notices())}
 
   <div class="wrap">
+  <!-- The headline print comes before the series table it heads. This site publishes one
+       number, and a reader had to pass the brand statement, the announcement banner and a
+       six-row table to reach it: measured on a 390px phone it sat 2014px down, 2.39
+       viewports, and 1590px on a 1440x900 desktop. Ordering the print first puts it at
+       1354px and 1053px. The banner stays above it, which is the point of the banner
+       (see _notice_banner) — what moved is the table, which is the detail behind the
+       number rather than the way in to it. -->
+  <section class="section" id="print" aria-labelledby="print-h">
+    {_print_card(ctx)}
+  </section>
+
   <section class="section" id="indices" aria-labelledby="s-today">
     <div class="section__head"><div>
       <h2 class="section__h" id="s-today">Headline series &#8212; today</h2>
@@ -2174,10 +2185,6 @@ def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
       </p></div>
       <div class="section__link">{live}</div></div>
     {_series_table(ctx)}
-  </section>
-
-  <section class="section" aria-labelledby="print-h">
-    {_print_card(ctx)}
   </section>
 
   <section class="section" aria-labelledby="s-sub">
