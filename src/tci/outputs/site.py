@@ -560,7 +560,12 @@ def line_chart(points: list[Point], *, symbol: str, ccy: str = "$", dp: int = 2)
         f" Latest {ccy}{last_v:,.{dp}f}."
     )
     return (
-        '<div class="scroll-x"><svg class="chart" viewBox="0 0 880 300" role="group"'
+        # --recent starts the scroller at its right-hand end. The chart cannot shrink
+        # below 660px without its axis labels going with it, so on a phone a third of
+        # it is off-screen; anchored left, the third a reader saw was August and the
+        # current print was not in it. See the .scroll-x--recent note in site.css.
+        '<div class="scroll-x scroll-x--recent">'
+        '<svg class="chart" viewBox="0 0 880 300" role="group"'
         f' aria-label="{_e(summary)}">'
         f'<g aria-hidden="true">{"".join(grid)}'
         f'<line class="ch-axis" x1="{PL}" y1="{PB}" x2="{PR}" y2="{PB}"/></g>'

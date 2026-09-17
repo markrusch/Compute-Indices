@@ -664,3 +664,92 @@ def test_the_performance_page_survives_a_missing_mlperf_snapshot(built, monkeypa
     monkeypatch.setattr(mlperf, "load", boom)
     site.generate(conn)  # must not raise
     assert (built / "index.html").exists()
+
+
+def test_a_scroll_container_contains_its_absolutely_positioned_children(built):
+    """`.scroll-x` must carry a position, or a `.vh` inside it escapes to the document.
+
+    Overflow only clips an absolutely positioned descendant when the clipping ancestor
+    is in its containing-block chain. Unpositioned, the four screen-reader captions in
+    the constituents tables resolved against the initial containing block and reported
+    their far edge to `documentElement`: index.html measured 419px of scroll width
+    against a 390px viewport, and a phone could drag the whole page 29px sideways (59px
+    at 360px). `clip-path` hid those spans; it did not stop them widening the document.
+    """
+    css = (built / "assets" / "site.css").read_text(encoding="utf-8")
+    m = re.search(r"\.scroll-x\s*\{([^}]*)\}", css)
+    assert m, ".scroll-x rule is gone"
+    assert re.search(r"position:\s*(relative|sticky)", m.group(1)), (
+        "`.scroll-x` has no position, so an absolutely positioned child of a wide table "
+        "will widen the document again"
+    )
+
+
+def test_every_scroller_shows_that_it_has_more_to_show(built):
+    """A hidden column needs a cue, and a touch browser draws no scrollbar at rest.
+
+    Eleven scrollers hide 107-826px of content on a 390px phone. The methodology ledger
+    showed Version and Effective-from while Status sat off-screen, inside a rounded card
+    border that reads as "this table is complete". The cue is a pair of shadow layers
+    pinned to the scrollport under a pair of page-coloured layers that travel with the
+    content, so it appears only while something really is hidden in that direction.
+    """
+    css = (built / "assets" / "site.css").read_text(encoding="utf-8")
+    m = re.search(r"\.scroll-x,\s*\.tableview__scroll\s*\{(.*?)\n\}", css, re.S)
+    assert m, "the scroll-affordance rule is gone"
+    block = m.group(1)
+    # The pairing is what makes the wash exact: drop the `local` layers and it never
+    # goes away at the ends; drop the `scroll` layers and there is nothing to reveal.
+    assert "background-attachment: local, local, scroll, scroll" in block
+    assert block.count("linear-gradient") == 6  # 4 wash layers + 2 mask (prefixed pair)
+    assert "--page" in block, "the cover layers must use the one page background"
+    # The wash must be light. A dark shadow is the conventional choice and it is
+    # invisible on #0B0C0D, which is what made this look done when it was not.
+    assert "rgba(0, 0, 0, .6)" not in block
+    assert "rgba(245, 245, 246, .20)" in block
+
+    # The fade is driven by scroll position so that a table which fits keeps its last
+    # column. Base state is zero at both edges; only an active timeline moves it.
+    assert re.search(r"--edge-s:\s*0px", block) and re.search(r"--edge-e:\s*0px", block)
+    assert "@property --edge-s" in css and "@property --edge-e" in css, (
+        "custom properties must be registered as <length> or they cannot interpolate"
+    )
+    assert "@supports (animation-timeline: scroll())" in css, (
+        "the fade must be behind a support query: without one, an engine that cannot "
+        "run it is left with a mask referring to properties that never animate"
+    )
+    assert "animation-timeline: scroll(self inline)" in css
+
+    # No JavaScript may be involved: these pages have to work with scripting off.
+    dash = (built / "index.html").read_text(encoding="utf-8")
+    body = dash[dash.index("<body") :]
+    for script in re.findall(r"<script\b[^>]*>(.*?)</script>", body, re.S):
+        assert "scrollLeft" not in script, "the scroll cue must not depend on scripting"
+
+
+def test_the_history_chart_opens_on_the_current_print_not_the_oldest_session(built):
+    """The 30-session chart is 660px wide at its floor and a phone column is 324px.
+
+    Anchored at the left, the third of the picture a phone showed was the start of the
+    window: at 390px the visible labels were "19 Aug", "26 Aug" and the points from
+    20-31 Aug, with the current print, its marker and the whole y-axis scale off-screen
+    — on the one chart whose job is to show that the price moved. The 660px floor stays,
+    because the axis labels are viewBox units and shrink with the picture; the scroller
+    starts at its inline end instead.
+    """
+    css = (built / "assets" / "site.css").read_text(encoding="utf-8")
+    assert re.search(r"\.scroll-x--recent\s*\{[^}]*direction:\s*rtl", css)
+    # rtl on the container only. Anything inside it reads left-to-right as before.
+    assert re.search(r"\.scroll-x--recent\s*>\s*\*\s*\{[^}]*direction:\s*ltr", css)
+
+    dash = (built / "index.html").read_text(encoding="utf-8")
+    assert 'class="scroll-x scroll-x--recent"' in dash, (
+        "the dashboard history chart is not opening on the latest session"
+    )
+    # The forward curve is read from its near horizon, which is on the left, so it must
+    # not pick this up by being a chart.
+    fwd = (built / "forward.html").read_text(encoding="utf-8")
+    for chart in re.findall(r'<div class="([^"]*scroll-x[^"]*)"><svg class="chart"', fwd):
+        assert "scroll-x--recent" not in chart, (
+            "the forward curve must stay anchored at its near horizon"
+        )
