@@ -360,6 +360,11 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
 
 .section { padding-block: var(--space-9); border-top: var(--border-hairline) solid var(--rule-strong); }
 .section:first-of-type { border-top: 0; }
+/* A section that can be linked to has to clear the masthead, which is stuck at a
+   different height per breakpoint. Only the markdown headings carried this, so
+   jumping to #print landed the print card under the bar with its eyebrow and its
+   USD/EUR toggle behind it — the one control on the card. */
+.section[id] { scroll-margin-top: var(--sticky-h); }
 .section__head { display: flex; align-items: flex-end; gap: var(--space-5); flex-wrap: wrap;
                  margin-bottom: var(--space-6); }
 .section__h { margin: 0; font-size: var(--text-xl); font-weight: var(--weight-semibold);
