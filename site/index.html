@@ -1055,6 +1055,11 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
 
 .section { padding-block: var(--space-9); border-top: var(--border-hairline) solid var(--rule-strong); }
 .section:first-of-type { border-top: 0; }
+/* A section that can be linked to has to clear the masthead, which is stuck at a
+   different height per breakpoint. Only the markdown headings carried this, so
+   jumping to #print landed the print card under the bar with its eyebrow and its
+   USD/EUR toggle behind it — the one control on the card. */
+.section[id] { scroll-margin-top: var(--sticky-h); }
 .section__head { display: flex; align-items: flex-end; gap: var(--space-5); flex-wrap: wrap;
                  margin-bottom: var(--space-6); }
 .section__h { margin: 0; font-size: var(--text-xl); font-weight: var(--weight-semibold);
@@ -2377,7 +2382,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="masthead">
-<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-17T20:11:07Z">AS OF 2026-09-17 20:11:07 UTC</div></div>
+<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.35</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-17T20:19:32Z">AS OF 2026-09-17 20:19:32 UTC</div></div>
   <div class="masthead__bar">
     <div class="wrap masthead__inner">
       <a class="brand" href="index.html"><span class="brand__mark" style="--brand-h:24px" aria-hidden="true"><span class="brand__tc">TC</span><span class="brand__i"><span class="brand__dot"></span><span class="brand__bar"></span></span></span><span class="brand__name">The Compute Indices</span></a>
@@ -2388,7 +2393,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
       </label>
       <nav class="nav" aria-label="Primary"><a href="index.html" aria-current="page">Indices</a><a href="basis.html">Basis</a><a href="term.html">Term</a><a href="forward.html">Forward</a><a href="methodology.html">Methodology</a><a href="data.html">Data</a><a href="research.html">Research</a><a href="governance.html">Governance</a>
         <a href="contact.html">Contact</a>
-        <a class="nav__cta" href="index.html#indices">View Indices</a>
+        <a class="nav__cta" href="index.html#print">View Indices</a>
       </nav>
     </div>
   </div>
@@ -2402,7 +2407,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
     market<span class="hero__stop">.</span></h1>
     <p class="hero__dek">TCI publishes reproducible reference prices for AI and HPC compute — methodology-driven, vendor-neutral, and rebuildable from public sources by anyone.</p>
     <div class="hero__cta">
-      <a class="btn btn--primary" href="#indices">View Indices</a>
+      <a class="btn btn--primary" href="#print">Today&#8217;s print</a>
       <a class="btn btn--ghost" href="methodology.html">Our Methodology</a>
     </div>
   </div>
@@ -2416,26 +2421,14 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 </div></div>
 
   <div class="wrap">
-  <section class="section" id="indices" aria-labelledby="s-today">
-    <div class="section__head"><div>
-      <h2 class="section__h" id="s-today">Headline series &#8212; today</h2>
-      <p class="section__dek">One row per class the index prices, for the
-      17 Sep 2026 session. A class below the provider gate keeps its row and
-      states the gate it missed; the last good value is never promoted into today's slot.
-      </p></div>
-      <div class="section__link"><div class="live-label"><span class="live-dot" aria-hidden="true"></span><span>Live &#183; updated daily 11:00 UTC</span></div></div></div>
-    <div class="scroll-x"><table class="stable">
-  <caption class="vh">TCI class series, print for 2026-09-17</caption>
-  <thead><tr>
-    <th scope="col">Series</th><th scope="col">Region</th>
-    <th scope="col" class="ta-r">$/GPU&#8209;hr</th>
-    <th scope="col" class="ta-r">30d &#916;</th>
-  </tr></thead>
-  <tbody><tr><th scope="row">TCI&#8209;CRI&#8209;H100</th><td class="stable__reg">EU/EEA</td><td class="ta-r">$3.49</td><td class="ta-r"><span class="delta delta--up"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M8 13V3.6M3.9 7.6 8 3.3l4.1 4.3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="num">+6.1%</span></span></td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;H200</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;B200</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">not computed</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;B300</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;A100</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;H100&#8209;PCIE</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr></tbody>
-</table></div>
-  </section>
-
-  <section class="section" aria-labelledby="print-h">
+  <!-- The headline print comes before the series table it heads. This site publishes one
+       number, and a reader had to pass the brand statement, the announcement banner and a
+       six-row table to reach it: measured on a 390px phone it sat 2014px down, 2.39
+       viewports, and 1590px on a 1440x900 desktop. Ordering the print first puts it at
+       1354px and 1053px. The banner stays above it, which is the point of the banner
+       (see _notice_banner) — what moved is the table, which is the detail behind the
+       number rather than the way in to it. -->
+  <section class="section" id="print" aria-labelledby="print-h">
     <section class="print" aria-labelledby="print-h">
   <div class="print__main">
     <div class="print__head">
@@ -2463,6 +2456,25 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
     </dl>
   </div>
 </section>
+  </section>
+
+  <section class="section" id="indices" aria-labelledby="s-today">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-today">Headline series &#8212; today</h2>
+      <p class="section__dek">One row per class the index prices, for the
+      17 Sep 2026 session. A class below the provider gate keeps its row and
+      states the gate it missed; the last good value is never promoted into today's slot.
+      </p></div>
+      <div class="section__link"><div class="live-label"><span class="live-dot" aria-hidden="true"></span><span>Live &#183; updated daily 11:00 UTC</span></div></div></div>
+    <div class="scroll-x"><table class="stable">
+  <caption class="vh">TCI class series, print for 2026-09-17</caption>
+  <thead><tr>
+    <th scope="col">Series</th><th scope="col">Region</th>
+    <th scope="col" class="ta-r">$/GPU&#8209;hr</th>
+    <th scope="col" class="ta-r">30d &#916;</th>
+  </tr></thead>
+  <tbody><tr><th scope="row">TCI&#8209;CRI&#8209;H100</th><td class="stable__reg">EU/EEA</td><td class="ta-r">$3.49</td><td class="ta-r"><span class="delta delta--up"><svg class="ico" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M8 13V3.6M3.9 7.6 8 3.3l4.1 4.3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="num">+6.1%</span></span></td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;H200</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;B200</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">not computed</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;B300</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;A100</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr><tr><th scope="row">TCI&#8209;CRI&#8209;H100&#8209;PCIE</th><td class="stable__reg">EU/EEA</td><td class="ta-r u">&#8212;</td><td class="ta-r u">gap &#183; below the provider gate</td></tr></tbody>
+</table></div>
   </section>
 
   <section class="section" aria-labelledby="s-sub">
@@ -2753,7 +2765,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
       welcome and must carry its own name.</p>
       <p class="disclaimer__meta num">TCI-CRI&#8209;M v0.4.0
       &#183; methodology hash sha256:29551a012dad&#8230; &#183; generated
-      2026-09-17T20:11:07Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
+      2026-09-17T20:19:32Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
       at the ECB reference rate dated on or before the print date.</p>
     </div>
   </div>
