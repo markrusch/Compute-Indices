@@ -65,31 +65,33 @@ jobs:
           # Mark a commit made after a failed run so the history says so plainly.
           SUFFIX=""
           if [ "${{ job.status }}" != "success" ]; then SUFFIX=" (partial: run failed)"; fi
-          git add data/eucri.db site/
-          if git diff --cached --quiet; then
-            echo "nothing to commit"
-          else
-            # commit locally before pulling: `git pull --rebase` refuses to run
-            # with staged changes in the index, which silently discarded every
-            # day's real print from 2026-07-22 onward (computed, never persisted).
-            git commit -m "daily: $(date -u +%F)${SUFFIX}"
-            if ! git pull --rebase origin main; then
-              # data/eucri.db and site/ are entirely generated, never hand-edited,
-              # so a rebase conflict here isn't real content to reconcile line by
-              # line - it means main moved (e.g. a feature merge) underneath this
-              # run. Rebuild today's outputs on top of the new tip instead of
-              # merging two independently-generated trees; collection is dated
-              # and idempotent per day, so redoing it is safe.
-              echo "::warning::main advanced during this run; rebuilding today's outputs on top of it"
-              git rebase --abort
-              git reset --hard origin/main
-              python -m tci.run daily
-              git add data/eucri.db site/
-              if git diff --cached --quiet; then
-                echo "nothing to commit after rebuild"
-              else
-                git commit -m "daily: $(date -u +%F)${SUFFIX}"
-              fi
+
+          # Bounded retry, not a single fallback. data/eucri.db is SQLite, so even one
+          # `git pull --rebase` conflict on it is not real content to reconcile line by
+          # line - every "main moved" case is handled the same way, by resetting to the
+          # new tip and recomputing from scratch (collection is dated and idempotent per
+          # day, so redoing it costs nothing) rather than attempting to merge two
+          # independently-generated trees. A single fallback attempt was not enough: on
+          # 2026-09-16 it rebuilt once and recommitted, then the final unconditional push
+          # still failed (exit 128) because main advanced a SECOND time during the ~3
+          # minutes the rebuild took, with nothing left to retry past that. Three
+          # attempts costs at most a few extra minutes against a race that, empirically,
+          # has never needed more than one retry to clear.
+          for attempt in 1 2 3; do
+            git add data/eucri.db site/ config/term_schedules.yaml
+            if git diff --cached --quiet; then
+              echo "nothing to commit"
+              break
             fi
-            git push origin main
-          fi
+            git commit -m "daily: $(date -u +%F)${SUFFIX}"
+            if git push origin main; then
+              break
+            fi
+            echo "::warning::push rejected on attempt ${attempt}/3; main advanced during this run, rebuilding today's outputs on top of it"
+            git reset --hard origin/main
+            if [ "$attempt" = "3" ]; then
+              echo "::error::still losing the race after 3 attempts; today's run is not committed"
+            else
+              python -m tci.run daily
+            fi
+          done
