@@ -226,6 +226,49 @@ def stored(conn: sqlite3.Connection) -> bool:
     ).fetchone() is not None
 
 
+def collection_dates(conn: sqlite3.Connection) -> list[str]:
+    """Every session with stored observations, oldest first."""
+    return [
+        r[0] for r in conn.execute(
+            "SELECT DISTINCT r.utc_date FROM runs r JOIN observations o"
+            " ON o.run_id = r.run_id ORDER BY r.utc_date"
+        )
+    ]
+
+
+def missing(conn: sqlite3.Connection, block: str = "EU_EEA") -> list[str]:
+    """Sessions that have observations but no ledger, oldest first."""
+    if not stored(conn):
+        return []
+    done = set(dates(conn, block, limit=100_000))
+    return [d for d in collection_dates(conn) if d not in done]
+
+
+def backfill(conn: sqlite3.Connection, block: str, run_id: str) -> list[str]:
+    """Write a ledger for every session that has observations and no ledger.
+
+    WHY THE DAILY RUN DOES THIS AND NOT JUST A PERSON WITH A COMMAND. The ledger is a
+    deterministic function of stored observations, so a session it never recorded can be
+    recovered exactly at any time. That makes an unrecorded session a bug with a free fix,
+    and both detectors depend on the fix: `shifts` and `dropouts` compare a session against
+    earlier ones, and with no earlier ledger they report that they cannot yet tell. An
+    instrument whose history has holes in it is quiet on exactly the days around them.
+
+    So this fills holes rather than requiring a migration to be followed by somebody
+    remembering a second command. It runs on the first session after the table is created
+    and recovers the whole record; afterwards it is a no-op, except where a session's own
+    write failed, which it then repairs on the next run.
+    """
+    filled = []
+    for date in missing(conn, block):
+        cells, factors = compute(conn, date, block)
+        if not cells:
+            continue
+        store(conn, date, block, cells, factors.methodology_version, run_id)
+        filled.append(date)
+    return filled
+
+
 def head(conn: sqlite3.Connection, date: str, block: str = "EU_EEA") -> list[Cell]:
     """The latest revision of one date's ledger. An earlier revision is history, not data."""
     if not stored(conn):

@@ -4456,9 +4456,9 @@ def _intake_watch(ctx: SiteContext) -> str:
     if not intake.dates(ctx.conn):
         return (
             '<div class="slot"><h3 class="slot__h">Not yet measurable</h3><p>Both checks '
-            "compare this session against earlier ones, and no earlier session has a "
-            "stored ledger. They report from the session after the first one recorded.</p>"
-            "</div>"
+            "compare this session against earlier ones, and no session has a stored "
+            "ledger yet. The next daily run recovers the record from the observations "
+            "already held, and both checks report from that run onwards.</p></div>"
         )
     items: list[str] = []
     for d in intake.dropouts(ctx.conn, ctx.date):
@@ -4492,8 +4492,9 @@ def _intake_history_card(ctx: SiteContext) -> str:
     if not rows:
         return (
             '<div class="slot"><h3 class="slot__h">No sessions recorded yet</h3><p>The '
-            "ledger is written by the daily run. This table fills from the first run "
-            "after the table was created.</p></div>"
+            "ledger is written by the daily run, which also recovers any session it has "
+            "no record of. The first run after this table was created fills it with the "
+            "whole record at once.</p></div>"
         )
     return f'''<div class="card card__body--flush"><div class="scroll-x">
     <table class="grid">

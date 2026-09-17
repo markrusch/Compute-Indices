@@ -209,14 +209,9 @@ def _cmd_intake(args: argparse.Namespace) -> int:
 
     conn = db.connect()
     if args.backfill:
-        done = set(intake.dates(conn, args.block, limit=10_000))
-        pending = [
-            r[0] for r in conn.execute(
-                "SELECT DISTINCT r.utc_date FROM runs r JOIN observations o"
-                " ON o.run_id = r.run_id ORDER BY r.utc_date"
-            )
-            if r[0] not in done
-        ]
+        # The daily run now repairs its own gaps (see intake.backfill), so this is for
+        # filling the record ahead of the next run rather than the only way it happens.
+        pending = intake.missing(conn, args.block)
         if not pending:
             print(f"every collection day already has an intake ledger for {args.block}")
             return 0
@@ -227,13 +222,8 @@ def _cmd_intake(args: argparse.Namespace) -> int:
             (run_id, pending[-1], db.utc_now_iso()),
         )
         conn.commit()
-        for date in pending:
-            cells, factors = intake.compute(conn, date, args.block)
-            if cells:
-                intake.store(
-                    conn, date, args.block, cells, factors.methodology_version, run_id
-                )
-        print(f"stored an intake ledger for {len(pending)} collection days")
+        filled = intake.backfill(conn, args.block, run_id)
+        print(f"stored an intake ledger for {len(filled)} collection days")
         return 0
 
     date = args.date

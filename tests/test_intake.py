@@ -368,6 +368,84 @@ def test_readers_are_quiet_on_a_database_without_the_table() -> None:
     assert intake.dropouts(bare, "2026-09-17") == []
 
 
+def test_missing_names_sessions_with_observations_and_no_ledger(
+    conn: sqlite3.Connection,
+) -> None:
+    for date in ("2026-09-15", "2026-09-16", "2026-09-17"):
+        conn.execute(
+            "INSERT OR IGNORE INTO runs (run_id, utc_date, source, started_utc, status)"
+            " VALUES (?, ?, 'test', ?, 'ok')",
+            (f"c-{date}", date, f"{date}T00:00:00Z"),
+        )
+        conn.execute(
+            "INSERT INTO observations (run_id, ts_utc, source, provider, gpu_model,"
+            " gpu_count, price_usd_per_gpu_hr, country, tier, term, raw_json)"
+            " VALUES (?, ?, 's', 'p', 'H100_SXM', 8, 2.0, 'NL', 'list', 'on_demand', '{}')",
+            (f"c-{date}", f"{date}T00:00:00Z"),
+        )
+    conn.commit()
+    assert intake.missing(conn) == ["2026-09-15", "2026-09-16", "2026-09-17"]
+
+    intake.store(conn, "2026-09-16", "EU_EEA", _cells(admitted=1), "0.4.0", "c-2026-09-16")
+    assert intake.missing(conn) == ["2026-09-15", "2026-09-17"]
+
+
+def test_backfill_recovers_the_record_and_is_then_a_no_op(
+    conn: sqlite3.Connection,
+) -> None:
+    """The ledger is a function of stored observations, so a session it never recorded is
+    recoverable exactly. Both detectors are blind without that history, which is why the
+    daily run repairs its own gaps rather than waiting for somebody to run a command."""
+    test_missing_names_sessions_with_observations_and_no_ledger(conn)
+    filled = intake.backfill(conn, "EU_EEA", "c-2026-09-17")
+    assert filled == ["2026-09-15", "2026-09-17"]
+    assert intake.missing(conn) == []
+    # Idempotent: nothing left to repair, so nothing is written and no revision is added.
+    assert intake.backfill(conn, "EU_EEA", "c-2026-09-17") == []
+    assert len(intake.head(conn, "2026-09-16")) == 1
+
+
+def test_backfill_on_a_database_without_the_table_does_nothing() -> None:
+    bare = sqlite3.connect(":memory:")
+    bare.row_factory = sqlite3.Row
+    assert intake.missing(bare) == []
+    assert intake.backfill(bare, "EU_EEA", "r1") == []
+
+
+def test_a_failing_ledger_cannot_gap_a_print(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An observer bug must cost the audit record and nothing else.
+
+    `_store_intake` is called from inside `compute_all_series`. Unguarded, an exception
+    there aborts the session before any print is stored and gaps every series - the one
+    failure this project cannot afford, caused by the instrument built to catch it. So the
+    guarantee is tested rather than asserted in a docstring: break the ledger outright and
+    require the call to return quietly.
+    """
+    def boom(*_a: Any, **_k: Any) -> None:
+        raise RuntimeError("ledger is broken")
+
+    monkeypatch.setattr(intake, "stored", boom)
+    commands._store_intake(
+        sqlite3.connect(":memory:"), "2026-09-17", [obs()], FACTORS, 1.17, "r1",  # type: ignore[arg-type]
+    )
+
+
+def test_the_ledger_is_written_after_every_print() -> None:
+    """Order is the other half of the guarantee, and a refactor could quietly undo it.
+
+    Storing the ledger before the prints puts an observer in front of the calculation. The
+    call therefore has to sit after the last `_store_print` in `compute_all_series`.
+    """
+    import inspect
+
+    src = inspect.getsource(commands.compute_all_series)
+    assert src.count("_store_intake(") == 1
+    assert src.rindex("_store_print(") < src.index("_store_intake("), (
+        "_store_intake must come after the last _store_print, or an observer failure"
+        " can cost a session its prints"
+    )
+
+
 def test_a_recompute_into_an_unmigrated_database_still_succeeds() -> None:
     """`reproduce` and `effect` recompute the published record into a throwaway copy of
     the database, and that copy predates the migration. The ledger is an observer, so it

@@ -34,12 +34,23 @@ All methodology-affecting changes require an entry here **before** the lock rege
   is written by `tci.run daily`, and a dropout or a rule shift is logged at warning level in the
   run that observes it. It cannot fail a run or move a number, and on a database that predates
   migration 0010 it does nothing at all rather than breaking a recomputation.
-- **The 43 sessions already on the record need one command.** The daily run writes its own
-  session and no more, so `python -m tci.run intake --backfill` is what recovers the history
-  from stored observations. Both detectors compare a session against earlier ones, so until
-  that runs they report that the comparison is not yet possible rather than that nothing
-  moved. An instrument claiming all-clear before it has looked is the same failure this page
-  exists to catch.
+- **The run repairs its own gaps.** A session the ledger never recorded is recoverable
+  exactly, because the ledger is a function of stored observations, so the daily run fills
+  any session that has observations and no ledger. On the first run after the migration that
+  recovers the whole record in one pass, measured at 42 earlier sessions from a copy of the
+  live database; afterwards it is a no-op except where a session's own write failed, which it
+  then repairs. This matters because both detectors compare a session against earlier ones:
+  with holes in the history they go quiet on exactly the days around them, and until any
+  history exists they report that the comparison is not yet possible rather than that nothing
+  moved. An instrument claiming all-clear before it has looked is the failure this page exists
+  to catch. `python -m tci.run intake --backfill` does the same thing on demand.
+- **The ledger cannot cost a print.** It is written after every series is stored, and every
+  failure inside it is swallowed with a logged traceback. Both halves are needed and both are
+  tested: called from where it first sat, before the prints, an exception would have aborted
+  the session and gapped every series — the one failure this project cannot afford, caused by
+  the instrument built to prevent it. Verified by breaking the ledger outright against a copy
+  of the live database: the headline still printed $3.49 on six providers and the run still
+  recorded `ok`.
 
 **Found, not fixed: RunPod's node size, and nine headline gaps.** Between 5 August and 11
 September RunPod's secure-cloud H100 arrived with no GPU count on 11 of the sessions it was

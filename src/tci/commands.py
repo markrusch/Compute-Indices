@@ -118,36 +118,57 @@ def _store_intake(
     An instrument that depends on somebody looking is how a collector defect ran for five
     weeks and cost the headline nine prints.
 
-    It cannot fail the run. A gap stays a gap and a print stays a print whatever the
-    ledger says; this writes a record and logs a warning, and nothing here touches a
-    number.
+    WHY IT IS GUARDED, AND WHY IT RUNS LAST. The ledger is an observer of the calculation
+    and is worth less than any print. It is called after every series is stored, and every
+    failure inside it is swallowed with a logged traceback, so the worst an observer bug
+    can cost is the day's audit record. Without both of those an exception here would abort
+    `compute_all_series` before a single print was written and gap every series for the
+    session - which is the one failure this project cannot afford, caused by the instrument
+    built to prevent it. `_record_forward` and the term-schedule refresh in `cmd_daily` are
+    the same shape for the same reason.
     """
-    if not intake.stored(conn):
-        # A database that predates migration 0010, which includes the throwaway copies
-        # `reproduce` and `effect` recompute into. The ledger is an observer and must
-        # never be the reason a recomputation of the published record fails.
-        return
-    cells = intake.ledger(rows, factors, fx_eur_usd)
-    if not cells:
-        return
-    revision = intake.store(
-        conn, utc_date, "EU_EEA", cells, factors.methodology_version, run_id
-    )
-    pct = intake.yield_pct(cells)
-    log.info(
-        "%s intake rev%d: %d observations, %d admitted (%.1f%%)",
-        utc_date, revision, sum(c.n_rows for c in cells),
-        intake.by_gate(cells).get("admitted", 0), pct or 0.0,
-    )
-    for d in intake.dropouts(conn, utc_date):
-        log.warning(
-            "%s intake: %s/%s %s admitted %.1f rows/session recently, none today (now %s)",
-            utc_date, d.provider, d.source, d.model_class, d.was_admitted, d.gate,
+    try:
+        if not intake.stored(conn):
+            # A database that predates migration 0010, which includes the throwaway copies
+            # `reproduce` and `effect` recompute into. The ledger is an observer and must
+            # never be the reason a recomputation of the published record fails.
+            return
+        cells = intake.ledger(rows, factors, fx_eur_usd)
+        if not cells:
+            return
+        revision = intake.store(
+            conn, utc_date, "EU_EEA", cells, factors.methodology_version, run_id
         )
-    for s in intake.shifts(conn, utc_date):
-        log.warning(
-            "%s intake: gate %s holds %d rows against a recent mean of %.1f",
-            utc_date, s.gate, s.today, s.baseline,
+        pct = intake.yield_pct(cells)
+        log.info(
+            "%s intake rev%d: %d observations, %d admitted (%.1f%%)",
+            utc_date, revision, sum(c.n_rows for c in cells),
+            intake.by_gate(cells).get("admitted", 0), pct or 0.0,
+        )
+        # Earlier sessions with no ledger, recovered from their stored observations. On the
+        # first run after migration 0010 that is the whole record; afterwards it repairs a
+        # session whose own write failed. Both detectors below need that history to say
+        # anything at all. See intake.backfill.
+        recovered = intake.backfill(conn, "EU_EEA", run_id)
+        if recovered:
+            log.info(
+                "intake: recovered %d earlier session(s) with no ledger, %s to %s",
+                len(recovered), recovered[0], recovered[-1],
+            )
+        for d in intake.dropouts(conn, utc_date):
+            log.warning(
+                "%s intake: %s/%s %s admitted %.1f rows/session recently, none today"
+                " (now %s)",
+                utc_date, d.provider, d.source, d.model_class, d.was_admitted, d.gate,
+            )
+        for s in intake.shifts(conn, utc_date):
+            log.warning(
+                "%s intake: gate %s holds %d rows against a recent mean of %.1f",
+                utc_date, s.gate, s.today, s.baseline,
+            )
+    except Exception:  # noqa: BLE001
+        log.exception(
+            "%s intake ledger not recorded; prints and outputs unaffected", utc_date
         )
 
 
@@ -446,7 +467,6 @@ def compute_all_series(
     # at print time from their native amount, never from a rate frozen at collection.
     normalised = normalise_observations(rows, factors, fx_eur_usd=fx[0] if fx else None)
     unadmitted = unadmitted_providers(rows, factors)
-    _store_intake(conn, utc_date, rows, factors, fx[0] if fx else None, run_id)
     rw = _review_weights(conn, utc_date, factors)
     headline_class = factors.headline_class
 
@@ -538,6 +558,10 @@ def compute_all_series(
             constituents=(),
         )
     _store_print(conn, smoothed, version, run_id, common_extra)
+
+    # Last, and after every print: the audit record of what the observations above did.
+    # See _store_intake for why it is both last and guarded.
+    _store_intake(conn, utc_date, rows, factors, fx[0] if fx else None, run_id)
 
     with conn:
         conn.execute(
