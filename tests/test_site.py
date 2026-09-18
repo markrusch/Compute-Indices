@@ -799,22 +799,31 @@ def test_the_scroll_entrance_is_gated_and_never_touches_the_print(built):
     1300px of scrolling while a 91px heading faded over 45px.
     """
     css = (built / "assets" / "site.css").read_text(encoding="utf-8")
-    m = re.search(
+    gate = re.search(
         r"@supports \(animation-timeline: view\(\)\)\s*\{\s*"
-        r"@media \(prefers-reduced-motion: no-preference\)\s*\{(.*)",
+        r"@media \(prefers-reduced-motion: no-preference\)\s*\{",
         css,
-        re.S,
     )
-    assert m, "the entrance is not behind both a support query and a motion query"
-    block = m.group(1)
-    assert "animation-name: tci-fadeup" in block
-    assert re.search(r"animation-range: entry 0px entry \d+px", block), (
+    assert gate, "the entrance is not behind both a support query and a motion query"
+
+    # The entrance rule ONLY, bounded at its own closing brace. Capturing to the end of
+    # the file instead let this assertion pass against the chart rules further down: the
+    # range check below was satisfied by `entry 0px entry 340px` on the draw while the
+    # entrance itself had been switched to a percentage. 85kB of accidental capture.
+    rule = re.search(
+        r"\n(\s*\.section__head,.*?)\{(.*?)\n\s*\}", css[gate.end() :], re.S
+    )
+    assert rule, "the entrance rule is gone"
+    selectors, decls = rule.group(1), rule.group(2)
+
+    assert "animation-name: tci-fadeup" in decls
+    assert "animation-timing-function: linear" in decls
+    assert re.search(r"animation-range: entry 0px entry \d+px", decls), (
         "the range must be a pixel length; a percentage of entry scales with the element"
     )
-    assert "animation-timing-function: linear" in block
+    assert "%" not in re.search(r"animation-range:[^;]+", decls).group(0)
 
     # The print card carries the one published number and must never fade.
-    selectors = block.split("{")[0]
     assert ".print" not in selectors
     dash = (built / "index.html").read_text(encoding="utf-8")
     assert 'class="print"' in dash
@@ -868,3 +877,16 @@ def test_the_chart_draw_cannot_strand_a_half_drawn_price_line(built):
         html = (built / page).read_text(encoding="utf-8")
         for attrs in re.findall(r"<path class=\"ch-line\"([^>]*)/>", html):
             assert 'pathLength="1"' in attrs, f"{page} has a ch-line without pathLength"
+
+    # The forward page draws its curve from its own module, and the fixture database has
+    # no forward data, so nothing above reaches it — stripping the attribute there went
+    # unnoticed. Every module that emits a price line is checked at the source instead,
+    # which also covers the next chart somebody adds.
+    outputs = Path(site.__file__).parent
+    emitters = 0
+    for mod in sorted(outputs.glob("*.py")):
+        src = mod.read_text(encoding="utf-8")
+        for emission in re.findall(r'<path class="ch-line"[^>]*?/>', src):
+            emitters += 1
+            assert 'pathLength="1"' in emission, f"{mod.name} emits a ch-line without pathLength"
+    assert emitters >= 2, f"expected the history and forward charts, found {emitters}"
