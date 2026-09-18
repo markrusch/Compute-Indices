@@ -890,3 +890,86 @@ def test_the_chart_draw_cannot_strand_a_half_drawn_price_line(built):
             emitters += 1
             assert 'pathLength="1"' in emission, f"{mod.name} emits a ch-line without pathLength"
     assert emitters >= 2, f"expected the history and forward charts, found {emitters}"
+
+
+def test_no_entrance_animated_block_sits_inside_a_scroll_container(built):
+    """An entrance inside a scroller strands part-way and stays there.
+
+    `tci-fadeup` starts at `opacity: 0` and holds its frame with `animation-fill-mode:
+    both`, so unlike the chart draw — whose base is the fully drawn line — a timeline
+    that resolves but never advances leaves the block stuck at whatever progress that
+    degenerate timeline reports. Nested into a `.scroll-x` deliberately, a section
+    heading held 0.51 in Chromium and 0.50 in WebKit through a full scroll of the page:
+    permanent half-opacity body content, which is a legibility defect rather than a
+    visible one somebody would report.
+
+    That is the same trap as the stranded price line — `overflow-x: auto` makes
+    overflow-y compute to `auto`, so a horizontal scroller is a scroll container on both
+    axes and never scrolls vertically — but it fails quietly instead of conspicuously.
+    The guards on the draw do not help here, so the arrangement is forbidden outright:
+    no animated block may have a scroll container above it.
+
+    Nothing on the site does this today. This exists so that a later refactor that wraps
+    a section in a scroller fails here rather than shipping faded copy.
+    """
+    from html.parser import HTMLParser
+
+    SCROLLERS = {"scroll-x", "tableview__scroll"}
+    GROUPS = {"tiles", "stack", "pillars", "famcards", "linklist"}
+
+    class Finder(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__(convert_charrefs=True)
+            self.stack: list[tuple[str, set[str]]] = []
+            self.bad: list[str] = []
+
+        def handle_starttag(self, tag, attrs):  # type: ignore[no-untyped-def]
+            if tag in ("br", "img", "input", "meta", "link", "hr", "path", "use"):
+                return
+            classes = set()
+            for k, v in attrs:
+                if k == "class" and v:
+                    classes = set(v.split())
+            parent = self.stack[-1][1] if self.stack else set()
+            animated = (
+                "section__head" in classes
+                or "teaser" in classes
+                or bool(parent & GROUPS)
+                or ("section" in parent and bool(classes & {"card", "scroll-x"}))
+            )
+            # strictly ancestors: `.section > .scroll-x` animates the scroller itself,
+            # which is fine — its own timeline resolves against the page.
+            if animated and any(cls & SCROLLERS for _, cls in self.stack):
+                self.bad.append(f"<{tag} class={sorted(classes)}>")
+            self.stack.append((tag, classes))
+
+        def handle_endtag(self, tag):  # type: ignore[no-untyped-def]
+            for i in range(len(self.stack) - 1, -1, -1):
+                if self.stack[i][0] == tag:
+                    del self.stack[i:]
+                    return
+
+    # Positive control first. A detector that has never fired is indistinguishable from
+    # one that cannot, and this whole test is an assertion of absence — so prove it sees
+    # the arrangement it forbids before believing it when it says the site is clean.
+    control = Finder()
+    control.feed(
+        '<section class="section"><div class="scroll-x"><table>'
+        '<tr><td><div class="section__head">x</div></td></tr>'
+        "</table></div></section>"
+    )
+    assert control.bad, "the detector cannot see a heading nested inside a scroller"
+
+    # And the arrangement that is fine must NOT trip it: `.section > .scroll-x` animates
+    # the scroller itself, whose own timeline resolves against the page.
+    ok = Finder()
+    ok.feed('<section class="section"><div class="scroll-x"><table></table></div></section>')
+    assert not ok.bad, "the detector flags the scroller it is supposed to allow"
+
+    seen = 0
+    for page in sorted(built.glob("*.html")):
+        f = Finder()
+        f.feed(page.read_text(encoding="utf-8"))
+        seen += 1
+        assert not f.bad, f"{page.name} animates a block inside a scroller: {f.bad[:3]}"
+    assert seen >= 10, f"the page sweep found only {seen} pages"
