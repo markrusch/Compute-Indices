@@ -189,11 +189,21 @@ def test_admitted_set_matches_normalise_over_the_whole_record(block: str) -> Non
         ]
         # Re-normalise each admitted row on its own to recover the converted price the
         # calculation would have used, so the comparison is on values and not just counts.
-        got = sorted(
-            _key(o)
-            for row in admitted
-            for o in normalise_observations([row], factors, fx, countries)
-        )
+        #
+        # Each admitted row MUST yield exactly one observation, and that check is the whole
+        # reason this test can see over-admission. Written as a flattening comprehension it
+        # could not: a row the ledger wrongly admitted fails normalisation, yields nothing,
+        # and disappears from `got` instead of failing the comparison. Removing the panel
+        # gate from `classify` passed this test until the assert below existed.
+        got = []
+        for row in admitted:
+            one = normalise_observations([row], factors, fx, countries)
+            assert len(one) == 1, (
+                f"{date}: the ledger admitted a row the calculation does not take"
+                f" ({row['provider']}/{row['source']} {row['gpu_model']})"
+            )
+            got.append(_key(one[0]))
+        got = sorted(got)
         assert got == expected, (
             f"{date} (v{factors.methodology_version}): the intake ledger and"
             f" normalise_observations disagree on which rows qualify."
