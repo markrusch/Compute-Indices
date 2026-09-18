@@ -485,7 +485,12 @@ def line_chart(points: list[Point], *, symbol: str, ccy: str = "$", dp: int = 2)
             run.append((x(i), y(p.value)))
     if len(run) > 1:
         segments.append(run)
-    paths = "".join(f'<path class="ch-line" d="{_monotone_path(seg)}"/>' for seg in segments)
+    # pathLength normalises every segment to 1 so one stroke-dasharray value draws them
+    # all, whatever their real length. Inert on its own; site.css keys the entrance
+    # draw off the attribute's presence, so a path without it is never dashed.
+    paths = "".join(
+        f'<path class="ch-line" pathLength="1" d="{_monotone_path(seg)}"/>' for seg in segments
+    )
     # An isolated print (both neighbours gapped) would otherwise draw nothing at all.
     isolated = "".join(
         f'<circle class="ch-marker-ring" cx="{x(i)}" cy="{y(p.value)}" r="4.5"/>'

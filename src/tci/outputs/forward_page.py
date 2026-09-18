@@ -114,7 +114,10 @@ def _horizon_chart(s: Any, horizons: list[int], mean: list[float | None],
         ' stroke-linejoin="round" stroke-linecap="round"/>'
         for series in (low, high) for d in _segments(pts(series))
     )
-    line = "".join(f'<path class="ch-line" d="{d}"/>' for d in _segments(pts(mean)))
+    # pathLength="1": see the note beside the same attribute in site.py's history chart.
+    line = "".join(
+        f'<path class="ch-line" pathLength="1" d="{d}"/>' for d in _segments(pts(mean))
+    )
     first = next((i for i, v in enumerate(mean) if v is not None), None)
     markers = []
     for i, v in enumerate(mean):

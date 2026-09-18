@@ -782,3 +782,89 @@ def test_the_dashboard_leads_with_the_print_and_keeps_the_banner_above_it(built)
     assert 'href="index.html#print"' in (built / "methodology.html").read_text(
         encoding="utf-8"
     )
+
+
+def test_the_scroll_entrance_is_gated_and_never_touches_the_print(built):
+    """Motion that cannot be turned off, or that hides content, is worse than none.
+
+    The entrance rides a scroll-driven timeline, and three things keep it safe. It sits
+    behind `@supports`, so an engine without scroll-driven animations renders the flat
+    page it renders today rather than a page of invisible blocks. It sits behind
+    `prefers-reduced-motion: no-preference`, so under `reduce` the rule never applies at
+    all — it is NOT switched off afterwards, because the blanket override in tokens.css
+    is `animation-duration: 1ms !important` and duration does not govern a scroll-driven
+    animation, so a rule relying on that would have kept animating for exactly the
+    readers who asked it not to. And the range is a pixel length, not a percentage of
+    `entry`, which scales with the subject: the 2594px notice card would have faded over
+    1300px of scrolling while a 91px heading faded over 45px.
+    """
+    css = (built / "assets" / "site.css").read_text(encoding="utf-8")
+    m = re.search(
+        r"@supports \(animation-timeline: view\(\)\)\s*\{\s*"
+        r"@media \(prefers-reduced-motion: no-preference\)\s*\{(.*)",
+        css,
+        re.S,
+    )
+    assert m, "the entrance is not behind both a support query and a motion query"
+    block = m.group(1)
+    assert "animation-name: tci-fadeup" in block
+    assert re.search(r"animation-range: entry 0px entry \d+px", block), (
+        "the range must be a pixel length; a percentage of entry scales with the element"
+    )
+    assert "animation-timing-function: linear" in block
+
+    # The print card carries the one published number and must never fade.
+    selectors = block.split("{")[0]
+    assert ".print" not in selectors
+    dash = (built / "index.html").read_text(encoding="utf-8")
+    assert 'class="print"' in dash
+
+
+def test_the_chart_draw_cannot_strand_a_half_drawn_price_line(built):
+    """A price line frozen part-way across is a false chart, so three things prevent it.
+
+    The timeline is named on the SCROLLER. An anonymous `view()` on the path resolves
+    against `.scroll-x` — `overflow-x: auto` makes overflow-y compute to `auto`, so the
+    scroller is a scroll container on both axes and never scrolls vertically — which
+    measured as a timeline that never advanced and every segment stranded at
+    stroke-dashoffset 0.297. Naming it on the scroller makes the page the scrollport.
+    Anchoring to the svg is the same trap: it is inside the scroller, and it froze at
+    0.338 in both engines.
+
+    The base is `stroke-dashoffset: 0`, fully drawn, so a timeline that never resolves
+    leaves a complete line rather than a truncated one.
+
+    And the rule is keyed to `[pathLength]`. Without that attribute `stroke-dasharray: 1`
+    means one user unit and renders the line dashed, which DESIGN.md §3 forbids outright:
+    a dashed line reads as a projection in a data product.
+    """
+    css = (built / "assets" / "site.css").read_text(encoding="utf-8")
+    assert re.search(r"\.scroll-x:has\(\.chart\)\s*\{[^}]*view-timeline-name:\s*--tci-chart", css)
+    assert not re.search(r"\.card:has\(\.chart\)\s*\{[^}]*view-timeline-name", css), (
+        "the card is 278px above the plot, so a range measured from it is spent before "
+        "the chart is on screen"
+    )
+    assert not re.search(r"svg\.chart\s*\{[^}]*view-timeline-name", css), (
+        "the svg is inside the scroller and its timeline never advances"
+    )
+
+    draw = re.search(r"\.chart \.ch-line\[pathLength\]\s*\{([^}]*)\}", css)
+    assert draw, "the draw must be keyed to [pathLength] or it renders a dashed line"
+    assert "stroke-dashoffset: 0" in draw.group(1), "an unresolved timeline must leave it drawn"
+    assert "stroke-dasharray: 1" in draw.group(1)
+
+    # Every line the chart draws has to carry the attribute the rule keys off, or that
+    # `stroke-dasharray: 1` lands on it as one user unit and dashes it.
+    drawn = site.line_chart(
+        [site.Point(f"2026-08-0{d}", 3.0 + d / 10) for d in (1, 2, 3)], symbol="X"
+    )
+    paths = re.findall(r"<path class=\"ch-line\"([^>]*)/>", drawn)
+    assert paths, "the chart stopped drawing a line"
+    for attrs in paths:
+        assert 'pathLength="1"' in attrs
+
+    # And whatever a built page happens to contain must satisfy the same rule.
+    for page in ("index.html", "forward.html"):
+        html = (built / page).read_text(encoding="utf-8")
+        for attrs in re.findall(r"<path class=\"ch-line\"([^>]*)/>", html):
+            assert 'pathLength="1"' in attrs, f"{page} has a ch-line without pathLength"
