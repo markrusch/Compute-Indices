@@ -1090,6 +1090,122 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
 .hero__cta { display: flex; gap: var(--space-4); flex-wrap: wrap;
              animation: tci-fadeup var(--dur-fadeup) var(--ease-out) .2s both; }
 
+/* ---- entrance on scroll --------------------------------------------------
+   The hero choreographs its entrance on load with tci-fadeup. Below it the page
+   runs to sixteen viewports on a phone, and all of it arrived flat: the same
+   three hero lines get a considered entrance and the other fifteen screens get
+   none. This continues that choreography down the page rather than introducing a
+   second idiom — same keyframes, same easing, driven by scroll position instead
+   of by a clock.
+
+   tokens.css §12 permits motion that "choreographs entrance" and forbids
+   animating a static value to add movement, and the split here follows that line
+   exactly. The print card is deliberately absent from the selector list below.
+   It carries the one number this site publishes, and a published price has no
+   business fading: it is present, at full contrast, the instant it is on screen.
+   Everything that explains or supports it is what arrives.
+
+   Three properties carry the safety, and each is load-bearing:
+
+   `@supports` — an engine without scroll-driven animations applies none of this
+   and every element keeps its base state, which is fully visible. WebKit 26 (the
+   Safari 26 engine, so current iOS) supports it, and so does Chromium; Firefox
+   does not yet, and gets the flat page it has today.
+
+   `prefers-reduced-motion: no-preference` — under `reduce` the rule never
+   applies, rather than being switched off afterwards. That matters because the
+   blanket override in tokens.css §14 is `animation-duration: 1ms !important`,
+   and duration does not govern a scroll-driven animation: the timeline does. A
+   rule that relied on that override would have kept animating for exactly the
+   readers who asked it not to.
+
+   `animation-range` in PIXELS, not percentages — a percentage of `entry` scales
+   with the subject, so the 2594px notice card on notices.html would have faded
+   over 1300px of scrolling while a 91px section heading faded over 45px. A fixed
+   length makes every element travel the same short distance and, more
+   importantly, finish. `both` holds the final frame afterwards. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .section__head,
+    .section > .card,
+    .section > .scroll-x,
+    .tiles > *, .stack > *, .pillars > *, .famcards > *, .linklist > *,
+    .teaser {
+      animation-name: tci-fadeup;
+      animation-fill-mode: both;
+      /* linear, and not one of the two house curves, because on a scroll-driven
+         timeline the reader's own scrolling is the easing — nobody scrolls at a
+         constant rate — and a curve on top of that eases the same motion twice.
+         Measured over the 240px range in 24px steps, --ease-out put 3 of 11
+         samples in the perceptible 0.1-0.9 band and was 90% opaque within 60px:
+         the reveal was finished before it could be seen. linear puts 8 of 11
+         there and tracks the thumb. */
+      animation-timing-function: linear;
+      animation-timeline: view();
+      animation-range: entry 0px entry 240px;
+    }
+
+    /* The price line draws itself as the chart arrives — the one flourish here,
+       and the only one that says anything: a series is a thing that accumulated
+       left to right, and drawing it restates that.
+
+       It needs a NAMED timeline rather than `view()`. A chart sits inside
+       `.scroll-x`, and `overflow-x: auto` makes overflow-y compute to `auto`
+       too, so the scroller is a scroll container on BOTH axes — an anonymous
+       `view()` on the path resolves against the scroller, which never scrolls
+       vertically. Measured, that left the timeline inactive and every segment
+       frozen at stroke-dashoffset 0.297: a price line permanently drawn three
+       quarters of the way across. Naming the timeline ON the scroller fixes
+       both halves: the subject is then the scroller's own box and the scrollport
+       is the next scroller up, which is the page.
+
+       It has to be the scroller and not the card. The plot sits 278px below the
+       card's top edge, so a range measured from the card spent itself before the
+       chart was on screen — 2 of 5 drawing frames visible, against 4 of 4 from
+       the scroller. Anchoring to the svg instead is the broken case above: it is
+       inside the scroller, and it froze at 0.338 in both engines.
+
+       Two guards against that same frozen state returning. The base is
+       `stroke-dashoffset: 0` — fully drawn — so an unresolved timeline shows a
+       complete line rather than a truncated one. And the rule is keyed to
+       `[pathLength]`: without that attribute `stroke-dasharray: 1` would mean
+       one user unit and render the line dashed, which DESIGN.md §3 forbids
+       outright, since a dashed line reads as a projection in a data product. */
+    .scroll-x:has(.chart) { view-timeline-name: --tci-chart; }
+    .chart .ch-line[pathLength] {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 0;
+      animation-name: tci-draw;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+      animation-timeline: --tci-chart;
+      animation-range: entry 0px entry 340px;
+    }
+    @keyframes tci-draw {
+      from { stroke-dashoffset: 1; }
+      to   { stroke-dashoffset: 0; }
+    }
+
+    /* The current-print cluster — the rule out to the last session, the ringed
+       dot on it and the figure above — arrives as the line reaches it, on the
+       same timeline with a range that starts where the draw is nearly done.
+       Without this the marker and the price sat waiting at the right-hand end
+       for a line that had not got there yet, which read as the chart being drawn
+       around an answer it already had. Base opacity is 1, so if the timeline
+       never resolves the marker is simply present. */
+    .chart .ch-marker-rule, .chart .ch-marker-ring,
+    .chart .ch-marker, .chart .ch-cur {
+      opacity: 1;
+      animation-name: tci-mark-in;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+      animation-timeline: --tci-chart;
+      animation-range: entry 250px entry 380px;
+    }
+    @keyframes tci-mark-in { from { opacity: 0; } to { opacity: 1; } }
+  }
+}
+
 /* pointer-events:none — the wave is decoration and must never intercept a CTA. The
    pointer is tracked on .hero instead, so the crest also responds while the cursor is
    over the headline, not only when it is inside the graphic. */
@@ -2382,7 +2498,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="masthead">
-<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-18T11:13:15Z">AS OF 2026-09-18 11:13:15 UTC</div></div>
+<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.28</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.33</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">100.9</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-18T12:47:08Z">AS OF 2026-09-18 12:47:08 UTC</div></div>
   <div class="masthead__bar">
     <div class="wrap masthead__inner">
       <a class="brand" href="index.html"><span class="brand__mark" style="--brand-h:24px" aria-hidden="true"><span class="brand__tc">TC</span><span class="brand__i"><span class="brand__dot"></span><span class="brand__bar"></span></span></span><span class="brand__name">The Compute Indices</span></a>
@@ -2547,7 +2663,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
       welcome and must carry its own name.</p>
       <p class="disclaimer__meta num">TCI-CRI&#8209;M v0.4.0
       &#183; methodology hash sha256:29551a012dad&#8230; &#183; generated
-      2026-09-18T11:13:15Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
+      2026-09-18T12:47:08Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
       at the ECB reference rate dated on or before the print date.</p>
     </div>
   </div>
