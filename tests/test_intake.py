@@ -412,6 +412,37 @@ def test_backfill_on_a_database_without_the_table_does_nothing() -> None:
     assert intake.backfill(bare, "EU_EEA", "r1") == []
 
 
+def test_store_intake_actually_writes_on_the_happy_path(
+    conn: sqlite3.Connection,
+) -> None:
+    """The counterpart to the two tests below, and the reason they are safe to have.
+
+    Both of those assert that `_store_intake` does NOTHING: nothing when the ledger throws,
+    nothing when the table is absent. A no-op body satisfies both, and satisfied the whole
+    file — verified by replacing the function with `return` and watching 29 tests pass. An
+    absence-assertion with no opposite is a test that a deleted feature passes forever.
+
+    So this one asserts the presence: given a migrated database and rows that qualify, the
+    ledger is written and the counts are the ones `intake.ledger` computes.
+    """
+    conn.execute(
+        "INSERT INTO observations (run_id, ts_utc, source, provider, gpu_model, gpu_count,"
+        " price_usd_per_gpu_hr, country, tier, term, raw_json)"
+        " VALUES ('r1', '2026-09-17T00:00:00Z', 's', 'p', 'H100_SXM', 8, 2.0, 'NL',"
+        " 'list', 'on_demand', '{}')"
+    )
+    conn.commit()
+    rows = conn.execute("SELECT * FROM observations").fetchall()
+
+    assert intake.head(conn, "2026-09-17") == []
+    commands._store_intake(conn, "2026-09-17", rows, FACTORS, 1.17, "r1")
+
+    stored_cells = intake.head(conn, "2026-09-17")
+    assert stored_cells, "_store_intake wrote nothing on a database that can hold it"
+    assert stored_cells == intake.ledger(rows, FACTORS, 1.17)
+    assert intake.by_gate(stored_cells) == {"admitted": 1}
+
+
 def test_a_failing_ledger_cannot_gap_a_print(monkeypatch: pytest.MonkeyPatch) -> None:
     """An observer bug must cost the audit record and nothing else.
 
