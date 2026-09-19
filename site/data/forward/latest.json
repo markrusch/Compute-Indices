@@ -1,5 +1,5 @@
 {
- "as_of": "2026-09-18",
+ "as_of": "2026-09-19",
  "calibration": [
   {
    "backfilled": false,
@@ -86,89 +86,89 @@
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
-    "commit_days": 365,
-    "covers_days": 365,
-    "kind": "rate_card",
-    "price_usd": 9.202754,
-    "seller": "azure"
+    "commit_days": 30,
+    "covers_days": 30,
+    "kind": "reserved",
+    "price_usd": 3.141904,
+    "seller": "vast.ai:214845"
    },
    "horizon_days": 30,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 33,
+   "n_inputs": 37,
    "p10": null,
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 111.96684
+   "value_usd": 3.141904
   },
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
-    "commit_days": 365,
-    "covers_days": 365,
-    "kind": "rate_card",
-    "price_usd": 9.202754,
-    "seller": "azure"
+    "commit_days": 0.0,
+    "covers_days": 437.45862,
+    "kind": "listed",
+    "price_usd": 3.589022,
+    "seller": "vast.ai:214845"
    },
    "horizon_days": 91,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 33,
+   "n_inputs": 35,
    "p10": null,
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 36.912145
+   "value_usd": 3.589022
   },
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
-    "commit_days": 365,
-    "covers_days": 365,
-    "kind": "rate_card",
-    "price_usd": 9.202754,
-    "seller": "azure"
+    "commit_days": 0.0,
+    "covers_days": 437.45862,
+    "kind": "listed",
+    "price_usd": 3.589022,
+    "seller": "vast.ai:214845"
    },
    "horizon_days": 182,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 33,
+   "n_inputs": 34,
    "p10": null,
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 18.456073
+   "value_usd": 3.589022
   },
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
-    "commit_days": 365,
-    "covers_days": 365,
-    "kind": "rate_card",
-    "price_usd": 9.202754,
-    "seller": "azure"
+    "commit_days": 0.0,
+    "covers_days": 437.45862,
+    "kind": "listed",
+    "price_usd": 3.589022,
+    "seller": "vast.ai:214845"
    },
    "horizon_days": 365,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 33,
+   "n_inputs": 34,
    "p10": null,
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 9.202754
+   "value_usd": 3.589022
   },
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
-    "gap": "6 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
+    "gap": "7 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
    },
    "horizon_days": 30,
    "method_version": "1.0.0+4b8640d50d57",
@@ -182,9 +182,9 @@
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
-    "gap": "6 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
+    "gap": "7 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
    },
    "horizon_days": 91,
    "method_version": "1.0.0+4b8640d50d57",
@@ -198,9 +198,9 @@
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
-    "gap": "6 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
+    "gap": "7 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
    },
    "horizon_days": 182,
    "method_version": "1.0.0+4b8640d50d57",
@@ -214,9 +214,9 @@
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
-    "gap": "6 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
+    "gap": "7 pro-forma prints under 0.5.0, fewer than the 8 the fit needs"
    },
    "horizon_days": 365,
    "method_version": "1.0.0+4b8640d50d57",
@@ -230,10 +230,15 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
     "gap": "no martingale estimate to scale",
-    "sellers": []
+    "sellers": [
+     [
+      "vast.ai:214845",
+      "market_quoted"
+     ]
+    ]
    },
    "horizon_days": 30,
    "method_version": "1.0.0+4b8640d50d57",
@@ -247,13 +252,17 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
     "gap": "no martingale estimate to scale",
     "sellers": [
      [
       "seeweb",
       "administered_untested"
+     ],
+     [
+      "vast.ai:214845",
+      "market_quoted"
      ]
     ]
    },
@@ -269,13 +278,17 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
     "gap": "no martingale estimate to scale",
     "sellers": [
      [
       "seeweb",
       "administered_untested"
+     ],
+     [
+      "vast.ai:214845",
+      "market_quoted"
      ]
     ]
    },
@@ -291,7 +304,7 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-09-18",
+   "date": "2026-09-19",
    "detail": {
     "gap": "no martingale estimate to scale",
     "sellers": [
