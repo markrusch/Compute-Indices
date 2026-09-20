@@ -873,38 +873,10 @@
    "tenor_months": 1
   }
  ],
- "date": "2026-09-19",
+ "date": "2026-09-20",
  "excluded": [],
  "note": "Published commitment discounts. A ratio is committed / same-day on-demand price for one seller's same product, region and currency. `schedule` restates each seller's rate card as one median ratio per variant and tenor. A `cells` entry pools sellers and is shown only with at least 3 sellers. A research table, not an index series.",
  "pairs": [
-  {
-   "committed": 3.0013,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "A100_PCIE",
-   "gpus": 1,
-   "on_demand": 4.591,
-   "product": "Standard_NC24ads_A100_v4",
-   "provider": "azure",
-   "ratio": 0.6537,
-   "region": "francecentral",
-   "source": "azure_retail",
-   "tenor_months": 12
-  },
-  {
-   "committed": 1.7038,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "A100_PCIE",
-   "gpus": 1,
-   "on_demand": 4.591,
-   "product": "Standard_NC24ads_A100_v4",
-   "provider": "azure",
-   "ratio": 0.3711,
-   "region": "francecentral",
-   "source": "azure_retail",
-   "tenor_months": 36
-  },
   {
    "committed": 3.1213,
    "country": "DE",
@@ -1098,34 +1070,6 @@
    "provider": "azure",
    "ratio": 0.3711,
    "region": "westeurope",
-   "source": "azure_retail",
-   "tenor_months": 36
-  },
-  {
-   "committed": 3.0013,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "A100_PCIE",
-   "gpus": 2,
-   "on_demand": 4.5915,
-   "product": "Standard_NC48ads_A100_v4",
-   "provider": "azure",
-   "ratio": 0.6537,
-   "region": "francecentral",
-   "source": "azure_retail",
-   "tenor_months": 12
-  },
-  {
-   "committed": 1.7038,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "A100_PCIE",
-   "gpus": 2,
-   "on_demand": 4.5915,
-   "product": "Standard_NC48ads_A100_v4",
-   "provider": "azure",
-   "ratio": 0.3711,
-   "region": "francecentral",
    "source": "azure_retail",
    "tenor_months": 36
   },
@@ -1326,34 +1270,6 @@
    "tenor_months": 36
   },
   {
-   "committed": 3.0013,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "A100_PCIE",
-   "gpus": 4,
-   "on_demand": 4.5912,
-   "product": "Standard_NC96ads_A100_v4",
-   "provider": "azure",
-   "ratio": 0.6537,
-   "region": "francecentral",
-   "source": "azure_retail",
-   "tenor_months": 12
-  },
-  {
-   "committed": 1.7038,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "A100_PCIE",
-   "gpus": 4,
-   "on_demand": 4.5912,
-   "product": "Standard_NC96ads_A100_v4",
-   "provider": "azure",
-   "ratio": 0.3711,
-   "region": "francecentral",
-   "source": "azure_retail",
-   "tenor_months": 36
-  },
-  {
    "committed": 3.1213,
    "country": "DE",
    "currency": "USD",
@@ -1546,62 +1462,6 @@
    "provider": "azure",
    "ratio": 0.3711,
    "region": "westeurope",
-   "source": "azure_retail",
-   "tenor_months": 36
-  },
-  {
-   "committed": 3.277,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "A100_SXM",
-   "gpus": 8,
-   "on_demand": 5.1203,
-   "product": "Standard_ND96ams_A100_v4",
-   "provider": "azure",
-   "ratio": 0.64,
-   "region": "francecentral",
-   "source": "azure_retail",
-   "tenor_months": 12
-  },
-  {
-   "committed": 2.2529,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "A100_SXM",
-   "gpus": 8,
-   "on_demand": 5.1203,
-   "product": "Standard_ND96ams_A100_v4",
-   "provider": "azure",
-   "ratio": 0.44,
-   "region": "francecentral",
-   "source": "azure_retail",
-   "tenor_months": 36
-  },
-  {
-   "committed": 3.277,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "A100_SXM",
-   "gpus": 8,
-   "on_demand": 5.1203,
-   "product": "Standard_ND96amsr_A100_v4",
-   "provider": "azure",
-   "ratio": 0.64,
-   "region": "francecentral",
-   "source": "azure_retail",
-   "tenor_months": 12
-  },
-  {
-   "committed": 2.2529,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "A100_SXM",
-   "gpus": 8,
-   "on_demand": 5.1203,
-   "product": "Standard_ND96amsr_A100_v4",
-   "provider": "azure",
-   "ratio": 0.44,
-   "region": "francecentral",
    "source": "azure_retail",
    "tenor_months": 36
   },
@@ -2738,34 +2598,6 @@
    "region": "westeurope",
    "source": "azure_retail",
    "tenor_months": 60
-  },
-  {
-   "committed": 7.2689,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "H200_SXM",
-   "gpus": 8,
-   "on_demand": 13.25,
-   "product": "Standard_ND96isr_H200_v5",
-   "provider": "azure",
-   "ratio": 0.5486,
-   "region": "francecentral",
-   "source": "azure_retail",
-   "tenor_months": 12
-  },
-  {
-   "committed": 6.5972,
-   "country": "FR",
-   "currency": "USD",
-   "gpu_model": "H200_SXM",
-   "gpus": 8,
-   "on_demand": 13.25,
-   "product": "Standard_ND96isr_H200_v5",
-   "provider": "azure",
-   "ratio": 0.4979,
-   "region": "francecentral",
-   "source": "azure_retail",
-   "tenor_months": 36
   },
   {
    "committed": 7.5597,
@@ -5060,7 +4892,7 @@
     "3": 0.03,
     "6": 0.04
    },
-   "last_verified": "2026-09-19",
+   "last_verified": "2026-09-20",
    "provider": "verda",
    "segment": "neocloud",
    "url": "https://verda.com/pricing"
@@ -5072,7 +4904,7 @@
    "max_ratio": 0.6537,
    "median_ratio": 0.6537,
    "min_ratio": 0.6536,
-   "n_configs": 24,
+   "n_configs": 21,
    "provider": "azure",
    "segment": "hyperscaler",
    "tenor_months": 12
@@ -5082,7 +4914,7 @@
    "max_ratio": 0.3711,
    "median_ratio": 0.3711,
    "min_ratio": 0.3711,
-   "n_configs": 24,
+   "n_configs": 21,
    "provider": "azure",
    "segment": "hyperscaler",
    "tenor_months": 36
@@ -5092,7 +4924,7 @@
    "max_ratio": 0.6923,
    "median_ratio": 0.64,
    "min_ratio": 0.64,
-   "n_configs": 16,
+   "n_configs": 14,
    "provider": "azure",
    "segment": "hyperscaler",
    "tenor_months": 12
@@ -5102,7 +4934,7 @@
    "max_ratio": 0.44,
    "median_ratio": 0.44,
    "min_ratio": 0.4,
-   "n_configs": 16,
+   "n_configs": 14,
    "provider": "azure",
    "segment": "hyperscaler",
    "tenor_months": 36
@@ -5162,7 +4994,7 @@
    "max_ratio": 0.5486,
    "median_ratio": 0.5486,
    "min_ratio": 0.5486,
-   "n_configs": 8,
+   "n_configs": 7,
    "provider": "azure",
    "segment": "hyperscaler",
    "tenor_months": 12
@@ -5172,7 +5004,7 @@
    "max_ratio": 0.4979,
    "median_ratio": 0.4979,
    "min_ratio": 0.4979,
-   "n_configs": 8,
+   "n_configs": 7,
    "provider": "azure",
    "segment": "hyperscaler",
    "tenor_months": 36
