@@ -1,142 +1,158 @@
 {
-  "generated_at": "2026-09-21T11:12:32Z",
+  "generated_at": "2026-09-22T11:12:55Z",
   "tci_version": "0.1.0",
-  "methodology_version": "0.4.0",
+  "methodology_version": "0.5.0",
   "disclaimer": "TCI is a research publication. It is not investment advice and is not administered as a benchmark under EU Regulation 2016/1011; it may not be used as a reference price in financial instruments.",
-  "date": "2026-09-21",
+  "date": "2026-09-22",
   "series": {
     "EU-CRI-H100": {
-      "date": "2026-09-21",
+      "date": "2026-09-22",
       "revision": 1,
-      "digest": "sha256:aa449bc230834923945119327d6d2ff9c8d03b10eff3f11b0e56d89adf88b3cd",
+      "digest": "sha256:de2ef54207e59db1223b8b1bd0df8d99534c2dc410bb3326805dd80c09eeb306",
       "value_usd": 3.49,
-      "value_eur": 3.045375,
-      "fx_rate": 1.146,
-      "fx_date": "2026-09-18",
-      "n_sources": 5,
-      "n_executable": 1,
+      "value_eur": 3.037424,
+      "fx_rate": 1.149,
+      "fx_date": "2026-09-21",
+      "n_sources": 8,
+      "n_executable": 2,
       "flags": "",
       "wow_pct": 7.3846,
       "mom_pct": 6.079,
-      "prev_date": "2026-09-20",
-      "prev_value_usd": 3.28
+      "prev_date": "2026-09-21",
+      "prev_value_usd": 3.49
     },
     "EU-CRI-H100-7D": {
-      "date": "2026-09-21",
+      "date": "2026-09-22",
       "revision": 1,
-      "digest": "sha256:d7f79b669a016b89a55fe534c1cddf6d3aa1f33c5a5f0968b43f7afb9bce016f",
-      "value_usd": 3.38,
-      "value_eur": 2.949389,
-      "fx_rate": 1.146,
-      "fx_date": "2026-09-18",
+      "digest": "sha256:08dce202fec043e3345594d04fcbfdb42ebb33bb9dee63c88c56704bc786f467",
+      "value_usd": 3.42,
+      "value_eur": 2.976501,
+      "fx_rate": 1.149,
+      "fx_date": "2026-09-21",
       "n_sources": 6,
       "n_executable": 0,
       "flags": "",
-      "wow_pct": 3.3639,
-      "mom_pct": 2.7356,
-      "prev_date": "2026-09-20",
-      "prev_value_usd": 3.34
+      "wow_pct": 3.3233,
+      "mom_pct": 3.9514,
+      "prev_date": "2026-09-21",
+      "prev_value_usd": 3.38
     },
     "EU-CRI-H100-SOV": {
-      "date": "2026-09-21",
+      "date": "2026-09-22",
       "revision": 1,
-      "digest": "sha256:162eea739a979d4a7b57d4683231e19e118aa4086c26f599480f575e954008be",
+      "digest": "sha256:ece958a11282f440d58267ab4c4361f7c0a445d1192c1bf6923badf33413287b",
       "value_usd": null,
       "value_eur": null,
-      "fx_rate": 1.146,
-      "fx_date": "2026-09-18",
+      "fx_rate": 1.149,
+      "fx_date": "2026-09-21",
       "n_sources": 4,
       "n_executable": 0,
       "flags": "insufficient_sources"
     },
     "EU-CRI-H100-MKT": {
-      "date": "2026-09-21",
+      "date": "2026-09-22",
       "revision": 1,
-      "digest": "sha256:1e07dbf106ba52c2fd9139c4f64b41bf7eb68d5aff5902f4e477cbd9dfa35b36",
+      "digest": "sha256:f220d7ec0142c7e9c40197074dd4735f9230c28b828b55f019533b9cd462389c",
       "value_usd": null,
       "value_eur": null,
-      "fx_rate": 1.146,
-      "fx_date": "2026-09-18",
-      "n_sources": 1,
-      "n_executable": 1,
-      "flags": "insufficient_sources"
-    },
-    "EU-CRI-H100-NC": {
-      "date": "2026-09-21",
-      "revision": 1,
-      "digest": "sha256:f0c2bcde827302da5e9a9b462d7bf1dd9e5a068a2cf6c7771d28dbc8af2800d5",
-      "value_usd": null,
-      "value_eur": null,
-      "fx_rate": 1.146,
-      "fx_date": "2026-09-18",
-      "n_sources": 4,
-      "n_executable": 0,
-      "flags": "insufficient_sources"
-    },
-    "EU-CRI-H100-HS": {
-      "date": "2026-09-21",
-      "revision": 1,
-      "digest": "sha256:7094d0582c3b1a991386715a6c94bd0106d0660334621cb4adb45adb862e703d",
-      "value_usd": null,
-      "value_eur": null,
-      "fx_rate": 1.146,
-      "fx_date": "2026-09-18",
-      "n_sources": 3,
-      "n_executable": 0,
-      "flags": "insufficient_sources"
-    },
-    "EU-CRI-H100-PCIE": {
-      "date": "2026-09-21",
-      "revision": 1,
-      "digest": "sha256:b7168af5e0fdc660b73a6654a4f3303e4ee5d15fc0ceba7ff8904a76e448625a",
-      "value_usd": null,
-      "value_eur": null,
-      "fx_rate": 1.146,
-      "fx_date": "2026-09-18",
-      "n_sources": 1,
-      "n_executable": 0,
-      "flags": "insufficient_sources"
-    },
-    "EU-CRI-H200": {
-      "date": "2026-09-21",
-      "revision": 1,
-      "digest": "sha256:7d0ad1c53961a3b85b40a0cc032a10648e82f17c707db64d0ce01c0253f8b26d",
-      "value_usd": null,
-      "value_eur": null,
-      "fx_rate": 1.146,
-      "fx_date": "2026-09-18",
-      "n_sources": 0,
-      "n_executable": 0,
-      "flags": "insufficient_sources"
-    },
-    "EU-CRI-B300": {
-      "date": "2026-09-21",
-      "revision": 1,
-      "digest": "sha256:01ca156a42872e999ea2348738be1a6ba8654fc58b6c56a59bad95b32439c649",
-      "value_usd": null,
-      "value_eur": null,
-      "fx_rate": 1.146,
-      "fx_date": "2026-09-18",
-      "n_sources": 1,
-      "n_executable": 0,
-      "flags": "insufficient_sources"
-    },
-    "EU-CRI-A100": {
-      "date": "2026-09-21",
-      "revision": 1,
-      "digest": "sha256:ebc86dd5ce7c4c7122d7221234e0f01c6884cbab5afe6dca93bdf99690ad48f2",
-      "value_usd": null,
-      "value_eur": null,
-      "fx_rate": 1.146,
-      "fx_date": "2026-09-18",
+      "fx_rate": 1.149,
+      "fx_date": "2026-09-21",
       "n_sources": 2,
       "n_executable": 2,
       "flags": "insufficient_sources"
     },
-    "EU-CRI-COMPUTE": {
-      "date": "2026-09-21",
+    "EU-CRI-H100-NC": {
+      "date": "2026-09-22",
       "revision": 1,
-      "digest": "sha256:a43b51a1721c8231ef332d82bfcdb940524f04ba798644eb8473bee840543912",
+      "digest": "sha256:2f961d3fc0d561beedb13e6892bf33d285dd71703ebde28a7aa630961d41c9e1",
+      "value_usd": 3.803075,
+      "value_eur": 3.3099,
+      "fx_rate": 1.149,
+      "fx_date": "2026-09-21",
+      "n_sources": 6,
+      "n_executable": 0,
+      "flags": "no_executable_input",
+      "wow_pct": null,
+      "mom_pct": null,
+      "prev_date": null,
+      "prev_value_usd": null
+    },
+    "EU-CRI-H100-HS": {
+      "date": "2026-09-22",
+      "revision": 1,
+      "digest": "sha256:7b9f5eebb70501e88f2ef274acd94e0f38a4ab795598d468b6fec27b2ff65942",
+      "value_usd": null,
+      "value_eur": null,
+      "fx_rate": 1.149,
+      "fx_date": "2026-09-21",
+      "n_sources": 4,
+      "n_executable": 0,
+      "flags": "insufficient_sources"
+    },
+    "EU-CRI-H100-PCIE": {
+      "date": "2026-09-22",
+      "revision": 1,
+      "digest": "sha256:ee2dd60c4c92a89e97eb59e333efe8ff296a93d299d062ece2e95bc382f3b0d8",
+      "value_usd": null,
+      "value_eur": null,
+      "fx_rate": 1.149,
+      "fx_date": "2026-09-21",
+      "n_sources": 2,
+      "n_executable": 0,
+      "flags": "insufficient_sources"
+    },
+    "EU-CRI-H200": {
+      "date": "2026-09-22",
+      "revision": 1,
+      "digest": "sha256:0d20b6cc4473d4939b63338e13c3df96eeddd7140f7bb5313a9a47e1934ac8f3",
+      "value_usd": null,
+      "value_eur": null,
+      "fx_rate": 1.149,
+      "fx_date": "2026-09-21",
+      "n_sources": 3,
+      "n_executable": 0,
+      "flags": "insufficient_sources"
+    },
+    "EU-CRI-B200": {
+      "date": "2026-09-22",
+      "revision": 1,
+      "digest": "sha256:293abf32c50515c2b09ba081d77cb413407c3aea6b51c94ac68175e1dc512adb",
+      "value_usd": null,
+      "value_eur": null,
+      "fx_rate": 1.149,
+      "fx_date": "2026-09-21",
+      "n_sources": 2,
+      "n_executable": 0,
+      "flags": "insufficient_sources"
+    },
+    "EU-CRI-B300": {
+      "date": "2026-09-22",
+      "revision": 1,
+      "digest": "sha256:8e4dbb117be893e377bfa0648b26cad37cf14f53264874e3a399a73e3b18470c",
+      "value_usd": null,
+      "value_eur": null,
+      "fx_rate": 1.149,
+      "fx_date": "2026-09-21",
+      "n_sources": 2,
+      "n_executable": 0,
+      "flags": "insufficient_sources"
+    },
+    "EU-CRI-A100": {
+      "date": "2026-09-22",
+      "revision": 1,
+      "digest": "sha256:2f672442b920e11df7b9e33cc77c79ae4cca04fd97da9b63f11bad5ef55b78f8",
+      "value_usd": null,
+      "value_eur": null,
+      "fx_rate": 1.149,
+      "fx_date": "2026-09-21",
+      "n_sources": 3,
+      "n_executable": 1,
+      "flags": "insufficient_sources"
+    },
+    "EU-CRI-COMPUTE": {
+      "date": "2026-09-22",
+      "revision": 1,
+      "digest": "sha256:02f18d1579f61e76ee98f51a39c11a47849142b4960df264c40a800b756df64f",
       "value_usd": 107.384615,
       "value_eur": null,
       "fx_rate": null,
@@ -146,8 +162,8 @@
       "flags": "",
       "wow_pct": 7.3846,
       "mom_pct": 6.079,
-      "prev_date": "2026-09-20",
-      "prev_value_usd": 100.923077
+      "prev_date": "2026-09-21",
+      "prev_value_usd": 107.384615
     }
   },
   "constituents": {
@@ -156,8 +172,8 @@
         "provider": "seeweb",
         "source": "static_yaml",
         "tier": "list",
-        "price_usd": 2.16594,
-        "weight": 18.75,
+        "price_usd": 2.17161,
+        "weight": 10.0,
         "included": true,
         "exclusion_reason": "trimmed",
         "flags": "",
@@ -165,26 +181,38 @@
         "note": "EUR 1.89/hr on-demand H100, native currency (converted at print time, not baked in). GPU-count selector on the product page confirmed linear per-GPU pricing: 8x SXM (640 GB GPU RAM) lists at EUR 15.12/hr = EUR 1.89/GPU-hr, same rate as the 1x config - so gpu_count: 8 is a real, priced node size, not a small-order quote."
       },
       {
-        "provider": "datacrunch",
-        "source": "static_yaml",
+        "provider": "vast.ai",
+        "source": "vast_ai",
+        "tier": "executable",
+        "price_usd": 2.267407,
+        "weight": 20.0,
+        "included": true,
+        "exclusion_reason": "trimmed",
+        "flags": "",
+        "url": "https://cloud.vast.ai/",
+        "note": "Public marketplace search API; datacenter-verified hosts only."
+      },
+      {
+        "provider": "verda",
+        "source": "gpuhunt",
         "tier": "list",
-        "price_usd": 3.28,
-        "weight": 18.75,
+        "price_usd": 3.365,
+        "weight": 10.0,
         "included": true,
         "exclusion_reason": null,
         "flags": "",
-        "url": "https://verda.com/pricing",
-        "note": "H100 SXM5 80GB pay-as-you-go, $3.28/GPU-hr from public page (quoted for 1x config; 8x node assumed same per-GPU rate - re-verify). Was $3.25 as of 2026-07-18."
+        "url": null,
+        "note": null
       },
       {
         "provider": "runpod",
         "source": "runpod",
         "tier": "executable",
         "price_usd": 3.49,
-        "weight": 25.0,
+        "weight": 20.0,
         "included": true,
         "exclusion_reason": null,
-        "flags": "weight_capped",
+        "flags": "",
         "url": "https://www.runpod.io/console/gpu-cloud",
         "note": "Secure Cloud pricing via RunPod's public GraphQL API."
       },
@@ -192,8 +220,8 @@
         "provider": "scaleway",
         "source": "scaleway",
         "tier": "list",
-        "price_usd": 3.658891,
-        "weight": 18.75,
+        "price_usd": 3.66847,
+        "weight": 10.0,
         "included": true,
         "exclusion_reason": null,
         "flags": "",
@@ -202,15 +230,39 @@
       },
       {
         "provider": "nebius",
-        "source": "static_yaml",
+        "source": "gpuhunt",
         "tier": "list",
         "price_usd": 3.85,
-        "weight": 18.75,
+        "weight": 10.0,
         "included": true,
-        "exclusion_reason": "trimmed",
+        "exclusion_reason": null,
         "flags": "",
         "url": "https://nebius.com/prices",
         "note": "NVIDIA HGX H100, on-demand per GPU-hour, USD, from public pricing page (16 vCPU / 200 GB RAM per GPU)."
+      },
+      {
+        "provider": "lambdalabs",
+        "source": "gpuhunt",
+        "tier": "list",
+        "price_usd": 3.99,
+        "weight": 10.0,
+        "included": true,
+        "exclusion_reason": "trimmed",
+        "flags": "",
+        "url": null,
+        "note": null
+      },
+      {
+        "provider": "digitalocean",
+        "source": "digitalocean",
+        "tier": "list",
+        "price_usd": 4.41,
+        "weight": 10.0,
+        "included": true,
+        "exclusion_reason": "trimmed",
+        "flags": "",
+        "url": null,
+        "note": null
       },
       {
         "provider": "aws",
@@ -249,7 +301,7 @@
         "note": null
       },
       {
-        "provider": "digitalocean",
+        "provider": "datacrunch",
         "source": "",
         "tier": "",
         "price_usd": 0.0,
@@ -257,8 +309,8 @@
         "included": false,
         "exclusion_reason": "not_in_panel",
         "flags": "",
-        "url": null,
-        "note": null
+        "url": "https://verda.com/pricing",
+        "note": "H100 SXM5 80GB pay-as-you-go, $3.28/GPU-hr from public page (quoted for 1x config; 8x node assumed same per-GPU rate - re-verify). Was $3.25 as of 2026-07-18."
       },
       {
         "provider": "gcp",
@@ -273,37 +325,13 @@
         "note": "A3 (8x H100) on-demand list price, EU regions, via the gpuhunt catalog."
       },
       {
-        "provider": "lambdalabs",
-        "source": "",
-        "tier": "",
-        "price_usd": 0.0,
-        "weight": 0.0,
-        "included": false,
-        "exclusion_reason": "not_in_panel",
-        "flags": "",
-        "url": null,
-        "note": null
-      },
-      {
         "provider": "oci",
         "source": "",
         "tier": "",
         "price_usd": 0.0,
         "weight": 0.0,
         "included": false,
-        "exclusion_reason": "not_in_panel",
-        "flags": "",
-        "url": null,
-        "note": null
-      },
-      {
-        "provider": "verda",
-        "source": "",
-        "tier": "",
-        "price_usd": 0.0,
-        "weight": 0.0,
-        "included": false,
-        "exclusion_reason": "not_in_panel",
+        "exclusion_reason": "out_of_population",
         "flags": "",
         "url": null,
         "note": null
@@ -347,7 +375,57 @@
         "note": null
       },
       {
+        "provider": "oci",
+        "source": "",
+        "tier": "",
+        "price_usd": 0.0,
+        "weight": 0.0,
+        "included": false,
+        "exclusion_reason": "out_of_population",
+        "flags": "",
+        "url": null,
+        "note": null
+      },
+      {
+        "provider": "verda",
+        "source": "gpuhunt",
+        "tier": "list",
+        "price_usd": 4.41375,
+        "weight": 0.0,
+        "included": false,
+        "exclusion_reason": "insufficient_sources",
+        "flags": "",
+        "url": null,
+        "note": null
+      },
+      {
         "provider": "nebius",
+        "source": "gpuhunt",
+        "tier": "list",
+        "price_usd": 4.5,
+        "weight": 0.0,
+        "included": false,
+        "exclusion_reason": "insufficient_sources",
+        "flags": "",
+        "url": "https://nebius.com/prices",
+        "note": "NVIDIA HGX H100, on-demand per GPU-hour, USD, from public pricing page (16 vCPU / 200 GB RAM per GPU)."
+      },
+      {
+        "provider": "ovhcloud",
+        "source": "ovh",
+        "tier": "list",
+        "price_usd": 6.03225,
+        "weight": 0.0,
+        "included": false,
+        "exclusion_reason": "insufficient_sources",
+        "flags": "",
+        "url": "https://www.ovhcloud.com/en/public-cloud/prices/",
+        "note": "H100 listed as available GPU type but prices render via JS only (checked 2026-07-18); fill manually."
+      }
+    ],
+    "EU-CRI-B200": [
+      {
+        "provider": "aws",
         "source": "",
         "tier": "",
         "price_usd": 0.0,
@@ -355,8 +433,32 @@
         "included": false,
         "exclusion_reason": "not_in_panel",
         "flags": "",
-        "url": "https://nebius.com/prices",
-        "note": "NVIDIA HGX H100, on-demand per GPU-hour, USD, from public pricing page (16 vCPU / 200 GB RAM per GPU)."
+        "url": "https://aws.amazon.com/ec2/instance-types/p5/",
+        "note": "EC2 P5 (8x H100) on-demand list price, EU regions, via the gpuhunt catalog."
+      },
+      {
+        "provider": "coreweave",
+        "source": "",
+        "tier": "",
+        "price_usd": 0.0,
+        "weight": 0.0,
+        "included": false,
+        "exclusion_reason": "not_in_panel",
+        "flags": "",
+        "url": null,
+        "note": null
+      },
+      {
+        "provider": "gcp",
+        "source": "",
+        "tier": "",
+        "price_usd": 0.0,
+        "weight": 0.0,
+        "included": false,
+        "exclusion_reason": "not_in_panel",
+        "flags": "",
+        "url": "https://cloud.google.com/compute/gpus-pricing",
+        "note": "A3 (8x H100) on-demand list price, EU regions, via the gpuhunt catalog."
       },
       {
         "provider": "oci",
@@ -365,31 +467,31 @@
         "price_usd": 0.0,
         "weight": 0.0,
         "included": false,
-        "exclusion_reason": "not_in_panel",
+        "exclusion_reason": "out_of_population",
         "flags": "",
         "url": null,
         "note": null
       },
       {
-        "provider": "ovhcloud",
-        "source": "",
-        "tier": "",
-        "price_usd": 0.0,
+        "provider": "verda",
+        "source": "gpuhunt",
+        "tier": "list",
+        "price_usd": 6.55,
         "weight": 0.0,
         "included": false,
-        "exclusion_reason": "not_in_panel",
+        "exclusion_reason": "insufficient_sources",
         "flags": "",
-        "url": "https://www.ovhcloud.com/en/public-cloud/prices/",
-        "note": "H100 listed as available GPU type but prices render via JS only (checked 2026-07-18); fill manually."
+        "url": null,
+        "note": null
       },
       {
-        "provider": "verda",
-        "source": "",
-        "tier": "",
-        "price_usd": 0.0,
+        "provider": "lambdalabs",
+        "source": "gpuhunt",
+        "tier": "list",
+        "price_usd": 6.69,
         "weight": 0.0,
         "included": false,
-        "exclusion_reason": "not_in_panel",
+        "exclusion_reason": "insufficient_sources",
         "flags": "",
         "url": null,
         "note": null
@@ -398,12 +500,12 @@
     "EU-CRI-B300": [
       {
         "provider": "verda",
-        "source": "",
-        "tier": "",
-        "price_usd": 0.0,
+        "source": "gpuhunt",
+        "tier": "list",
+        "price_usd": 7.96,
         "weight": 0.0,
         "included": false,
-        "exclusion_reason": "not_in_panel",
+        "exclusion_reason": "insufficient_sources",
         "flags": "",
         "url": null,
         "note": null
@@ -412,7 +514,7 @@
         "provider": "scaleway",
         "source": "scaleway",
         "tier": "list",
-        "price_usd": 8.594999999999999,
+        "price_usd": 8.6175,
         "weight": 0.0,
         "included": false,
         "exclusion_reason": "insufficient_sources",
@@ -459,52 +561,16 @@
         "note": "A3 (8x H100) on-demand list price, EU regions, via the gpuhunt catalog."
       },
       {
-        "provider": "lambdalabs",
-        "source": "",
-        "tier": "",
-        "price_usd": 0.0,
-        "weight": 0.0,
-        "included": false,
-        "exclusion_reason": "not_in_panel",
-        "flags": "",
-        "url": null,
-        "note": null
-      },
-      {
         "provider": "oci",
         "source": "",
         "tier": "",
         "price_usd": 0.0,
         "weight": 0.0,
         "included": false,
-        "exclusion_reason": "not_in_panel",
+        "exclusion_reason": "out_of_population",
         "flags": "",
         "url": null,
         "note": null
-      },
-      {
-        "provider": "verda",
-        "source": "",
-        "tier": "",
-        "price_usd": 0.0,
-        "weight": 0.0,
-        "included": false,
-        "exclusion_reason": "not_in_panel",
-        "flags": "",
-        "url": null,
-        "note": null
-      },
-      {
-        "provider": "vast.ai",
-        "source": "vast_ai",
-        "tier": "executable",
-        "price_usd": 0.8007407407407406,
-        "weight": 0.0,
-        "included": false,
-        "exclusion_reason": "insufficient_sources",
-        "flags": "",
-        "url": "https://cloud.vast.ai/",
-        "note": "Public marketplace search API; datacenter-verified hosts only."
       },
       {
         "provider": "runpod",
@@ -517,6 +583,30 @@
         "flags": "",
         "url": "https://www.runpod.io/console/gpu-cloud",
         "note": "Secure Cloud pricing via RunPod's public GraphQL API."
+      },
+      {
+        "provider": "verda",
+        "source": "gpuhunt",
+        "tier": "list",
+        "price_usd": 1.735,
+        "weight": 0.0,
+        "included": false,
+        "exclusion_reason": "insufficient_sources",
+        "flags": "",
+        "url": null,
+        "note": null
+      },
+      {
+        "provider": "lambdalabs",
+        "source": "gpuhunt",
+        "tier": "list",
+        "price_usd": 2.79,
+        "weight": 0.0,
+        "included": false,
+        "exclusion_reason": "insufficient_sources",
+        "flags": "",
+        "url": null,
+        "note": null
       }
     ],
     "EU-CRI-H100-PCIE": [
@@ -534,12 +624,12 @@
       },
       {
         "provider": "ovhcloud",
-        "source": "",
-        "tier": "",
-        "price_usd": 0.0,
+        "source": "ovh",
+        "tier": "list",
+        "price_usd": 3.2172,
         "weight": 0.0,
         "included": false,
-        "exclusion_reason": "not_in_panel",
+        "exclusion_reason": "insufficient_sources",
         "flags": "",
         "url": "https://www.ovhcloud.com/en/public-cloud/prices/",
         "note": "H100 listed as available GPU type but prices render via JS only (checked 2026-07-18); fill manually."
@@ -548,7 +638,7 @@
         "provider": "scaleway",
         "source": "scaleway",
         "tier": "list",
-        "price_usd": 3.2850089999999996,
+        "price_usd": 3.2936085,
         "weight": 0.0,
         "included": false,
         "exclusion_reason": "insufficient_sources",
@@ -576,9 +666,48 @@
           "days_observed": 24
         },
         {
+          "provider": "lambdalabs",
+          "weight": 2.6667,
+          "days_observed": 8
+        },
+        {
+          "provider": "oci",
+          "weight": 2.6667,
+          "days_observed": 8
+        },
+        {
+          "provider": "verda",
+          "weight": 2.6667,
+          "days_observed": 8
+        },
+        {
           "provider": "vast.ai",
           "weight": 2.3333,
           "days_observed": 14
+        }
+      ],
+      "B200": [
+        {
+          "provider": "lambdalabs",
+          "weight": 2.6667,
+          "days_observed": 8
+        },
+        {
+          "provider": "oci",
+          "weight": 2.6667,
+          "days_observed": 8
+        },
+        {
+          "provider": "verda",
+          "weight": 2.6667,
+          "days_observed": 8
+        }
+      ],
+      "B300": [
+        {
+          "provider": "verda",
+          "weight": 2.6667,
+          "days_observed": 8
         }
       ],
       "H100": [
@@ -603,17 +732,7 @@
           "days_observed": 24
         },
         {
-          "provider": "datacrunch",
-          "weight": 8.0,
-          "days_observed": 24
-        },
-        {
           "provider": "gcp",
-          "weight": 8.0,
-          "days_observed": 24
-        },
-        {
-          "provider": "nebius",
           "weight": 8.0,
           "days_observed": 24
         },
@@ -621,6 +740,31 @@
           "provider": "seeweb",
           "weight": 6.0,
           "days_observed": 18
+        },
+        {
+          "provider": "digitalocean",
+          "weight": 2.6667,
+          "days_observed": 8
+        },
+        {
+          "provider": "lambdalabs",
+          "weight": 2.6667,
+          "days_observed": 8
+        },
+        {
+          "provider": "nebius",
+          "weight": 2.6667,
+          "days_observed": 8
+        },
+        {
+          "provider": "oci",
+          "weight": 2.6667,
+          "days_observed": 8
+        },
+        {
+          "provider": "verda",
+          "weight": 2.6667,
+          "days_observed": 8
         }
       ],
       "H100P": [
@@ -628,6 +772,11 @@
           "provider": "azure",
           "weight": 8.0,
           "days_observed": 24
+        },
+        {
+          "provider": "vast.ai",
+          "weight": 0.1667,
+          "days_observed": 1
         }
       ],
       "H200": [
@@ -635,14 +784,31 @@
           "provider": "azure",
           "weight": 8.0,
           "days_observed": 24
+        },
+        {
+          "provider": "nebius",
+          "weight": 2.6667,
+          "days_observed": 8
+        },
+        {
+          "provider": "oci",
+          "weight": 2.6667,
+          "days_observed": 8
+        },
+        {
+          "provider": "verda",
+          "weight": 2.6667,
+          "days_observed": 8
         }
       ]
     },
     "model_shares": {
-      "A100": 16.129,
-      "H100": 65.6546,
-      "H100P": 9.1082,
-      "H200": 9.1082
+      "A100": 19.2754,
+      "B200": 6.9565,
+      "B300": 5.0,
+      "H100": 47.8261,
+      "H100P": 7.029,
+      "H200": 13.913
     }
   },
   "sources": [
