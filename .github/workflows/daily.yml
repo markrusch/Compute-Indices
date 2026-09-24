@@ -88,6 +88,12 @@ jobs:
               break
             fi
             echo "::warning::push rejected on attempt ${attempt}/3; main advanced during this run, rebuilding today's outputs on top of it"
+            # Fetch first. A rejected push does not move origin/main, so without this the
+            # reset lands on the same stale commit the run started from, the rebuild is
+            # pushed against the same old parent, and every attempt is rejected the same
+            # way. The `git pull --rebase` this loop replaced fetched as a side effect; the
+            # loop lost that, and a race could not be recovered from at all.
+            git fetch origin main
             git reset --hard origin/main
             if [ "$attempt" = "3" ]; then
               echo "::error::still losing the race after 3 attempts; today's run is not committed"

@@ -56,7 +56,10 @@ def test_gpu_model_country_interconnect_and_count() -> None:
         assert o.gpu_model == "H100_SXM"
         assert o.country == "IT"
         assert o.interconnect == "NVLink"
-        assert o.gpu_count == 1  # the page's default 1-GPU selector state
+        # The largest size on the card's own selector, not its 1-GPU default: a 1-GPU
+        # row fails the 2-GPU node-size floor and could never enter a print.
+        assert o.gpu_count == 8
+        assert json.loads(o.raw_json)["node_sizes_offered"] == [1, 2, 4, 8]
         assert o.provider == "seeweb"
         assert o.source == "seeweb"
 
@@ -127,6 +130,14 @@ def test_raises_when_a_committed_price_markup_changes() -> None:
     )
     assert reshaped != FIXTURE, "fixture no longer carries the markup this test edits"
     with pytest.raises(RuntimeError, match="reserved_1yr"):
+        SeewebCollector().parse(reshaped)
+
+
+def test_raises_when_the_h100_card_loses_its_gpu_count_selector() -> None:
+    card = FIXTURE.index('<span class="cardname">NVIDIA H100</span>')
+    select = FIXTURE.index('name="card-number"', card)
+    reshaped = FIXTURE[:select] + 'name="gpu-number"' + FIXTURE[select + len('name="card-number"'):]
+    with pytest.raises(RuntimeError, match="GPU-count selector"):
         SeewebCollector().parse(reshaped)
 
 

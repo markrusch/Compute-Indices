@@ -31,11 +31,16 @@ than inventing a new tier for a committed rate. Tenor labels are the vocabulary 
 shared by term.py's TENOR_MONTHS and computable_sources.py's TERM_BY_MONTHS: no new tenor
 name is introduced here.
 
-GPU COUNT. Recorded as 1, the page's default GPU-count selector state. The static yaml
-entry's own config_notes record that Seeweb's H100 pricing is confirmed linear per-GPU
-(an 8x SXM config lists at EUR 15.12/hr = EUR 1.89/GPU-hr, the same rate as 1x), so 1 is
-not a small-order guess -- it is the priced unit the page actually renders before any
-selector interaction, at the same per-GPU rate every other node size resolves to.
+GPU COUNT. The largest node size the H100 card's own GPU-count selector offers
+(`<select name="card-number">`, options 1/2/4/8 as read 2026-09-15). Until 24 September
+this was recorded as 1, the selector's default state, and a 1-GPU row fails the index's
+2-GPU node-size floor: every row this collector stored before then could never have
+entered a print under any version. The per-GPU price is the same at every size on the
+selector. The static entry's config_notes record the check (8x SXM lists at EUR 15.12/hr
+= EUR 1.89/GPU-hr, the same rate as 1x), and that check is what this collector relies on;
+it reads the size from the page each day rather than from a hand-edited file. If the
+selector disappears the collector raises, because a node size it cannot see is not one
+it may assume.
 
 NATIVE CURRENCY, NOT A BAKED-IN RATE. Same stopgap field-naming as static_yaml.py and
 scaleway.py: `price_usd_per_gpu_hr` on Observation actually holds the EUR amount, and
@@ -81,12 +86,13 @@ URL = "https://www.seeweb.it/en/products/cloud-server-gpu"
 CARD_NAME = "NVIDIA H100"
 GPU_MODEL = "H100_SXM"
 COUNTRY = "IT"
-# The page's default GPU-count selector state; see module docstring "GPU COUNT".
-GPU_COUNT = 1
 
 _CARD_START_RE = re.compile(r'<div id="gpu\d+"')
 _CARDNAME_RE = re.compile(r'<span class="cardname">([^<]+)</span>')
 _HOURLY_RE = re.compile(r'<p class="hourly"><span>([\d.]+)</span>')
+# The card's GPU-count selector and its options; see module docstring "GPU COUNT".
+_COUNT_SELECT_RE = re.compile(r'<select[^>]*name="card-number"[^>]*>(.*?)</select>', re.S)
+_OPTION_RE = re.compile(r'<option value="(\d+)"')
 
 # Committed-rate spans keyed by their own CSS class -> the TCI tenor it becomes.
 # Same tenor vocabulary as term.py's TENOR_MONTHS / computable_sources.py's
@@ -125,6 +131,18 @@ def _h100_card(html: str) -> str:
     )
 
 
+def _node_sizes(card: str) -> list[int]:
+    """The GPU counts the card's own selector offers, ascending, or raise."""
+    select = _COUNT_SELECT_RE.search(card)
+    sizes = sorted({int(v) for v in _OPTION_RE.findall(select.group(1))}) if select else []
+    if not sizes:
+        raise RuntimeError(
+            f"seeweb: no GPU-count selector inside the {CARD_NAME!r} card — "
+            "page shape changed"
+        )
+    return sizes
+
+
 def _price(card: str, pattern: re.Pattern[str], label: str) -> float:
     m = pattern.search(card)
     if not m:
@@ -146,6 +164,8 @@ class SeewebCollector:
     def parse(self, html: str) -> list[Observation]:
         card = _h100_card(html)
         on_demand = _price(card, _HOURLY_RE, "on-demand")
+        sizes = _node_sizes(card)
+        gpu_count = sizes[-1]
         committed = {
             term: _price(card, pattern, term) for term, pattern in _TERM_PATTERNS.items()
         }
@@ -158,7 +178,7 @@ class SeewebCollector:
                 source=self.name,
                 provider="seeweb",
                 gpu_model=GPU_MODEL,
-                gpu_count=GPU_COUNT,
+                gpu_count=gpu_count,
                 # EUR, not USD -- see module docstring "NATIVE CURRENCY". normalise.py
                 # converts at print time from raw_json, never at collection.
                 price_usd_per_gpu_hr=price_eur,
@@ -171,6 +191,7 @@ class SeewebCollector:
                     {
                         "url": URL,
                         "card": CARD_NAME,
+                        "node_sizes_offered": sizes,
                         "currency": "EUR",
                         "price_native_per_gpu_hr": price_eur,
                     }
