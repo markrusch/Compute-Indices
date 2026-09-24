@@ -510,15 +510,20 @@ sources:
     homepage: https://www.hyperstack.cloud/gpu-pricing
     endpoint: "GET https://www.hyperstack.cloud/gpu-pricing + public stock feed"
     auth: none
-    blocks: []
-    gpu_classes: [H100, H200, B200]
+    blocks: [EU_EEA, US, CA]
+    gpu_classes: [H100, H100P, H200, B200, B300, A100]
     access_basis: "Public pricing page and stock feed."
     discovered: 2026-09-11
     discovered_via: "Computable GPU Index recipe (vendored)"
-    last_reviewed: 2026-09-11
+    last_reviewed: 2026-09-24
     notes: >-
       Reservation prices are published as "starting from" floors with no tenor, stored as
-      reserved_unspecified and never used where a tenor is needed.
+      reserved_unspecified and never used where a tenor is needed. From 2026-09-24 the
+      flat on-demand price is also recorded in NORWAY-1 (NO), CANADA-1 (CA) and US-1 (US)
+      on days the public stock feed shows a deployable machine of that flavour there, at
+      the largest deployable size, and the feed's flavour names resolve the plain
+      "NVIDIA H100"/"NVIDIA A100" labels to PCIe. Enters the panel under v0.8.0
+      (2026-10-22, notice 2026-N5), when this row becomes `live`.
 
   - id: crusoe
     name: Crusoe

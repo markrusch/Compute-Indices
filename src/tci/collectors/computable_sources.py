@@ -109,6 +109,16 @@ def term_of(obs: dict[str, Any]) -> tuple[str, str] | None:
     return None  # serverless, from-floor, instant-cluster: not a GPU-hour rental rate
 
 
+@dataclass(frozen=True)
+class Placement:
+    """One extra row for a region-flat price: where it is deliverable, on what node."""
+
+    region: str
+    country: str
+    gpu_count: int
+    evidence: dict[str, Any]
+
+
 @dataclass
 class ComputableSource:
     """One vendored recipe exposed as a TCI collector."""
@@ -129,6 +139,13 @@ class ComputableSource:
     # result dict (same shape `self.module.collect()` returns) built from exactly one
     # fetch. See `_fetch_latitude` for the one current use.
     fetch_override: Callable[[float], dict[str, Any]] | None = None
+    # For a region-flat price whose seller also publishes where it has stock: extra rows,
+    # one per datacentre showing a deployable VM of that model today. Takes the recipe's
+    # whole result (the stock lives beside the prices, not on them) and returns a function
+    # from (variant, label) to placements. See `_hyperstack_placements`.
+    stock_placements: Callable[
+        [dict[str, Any]], Callable[[str, str], list[Placement]]
+    ] | None = None
     _module: ModuleType | None = field(default=None, repr=False)
 
     @property
@@ -156,6 +173,7 @@ class ComputableSource:
     def to_observations(self, result: dict[str, Any]) -> list[Observation]:
         ts = utc_now_iso()
         out: list[Observation] = []
+        placed_by_stock = self.stock_placements(result) if self.stock_placements else None
         for obs in result.get("observations") or []:
             currency = str(obs.get("currency") or "")
             if currency not in self.currencies:
@@ -195,14 +213,22 @@ class ComputableSource:
                 if regional
                 else [(str(obs.get("region") or "") or None, self.country_of(obs))]
             )
-            for region, country in placements:
+            rows: list[tuple[str | None, str | None, int, dict[str, Any]]] = [
+                (region, country, gpu_count, raw) for region, country in placements
+            ]
+            if placed_by_stock and tier == "list" and term == "on_demand":
+                rows += [
+                    (pl.region, pl.country, pl.gpu_count, {**raw, "stock": pl.evidence})
+                    for pl in placed_by_stock(variant, label)
+                ]
+            for region, country, count, raw_row in rows:
                 out.append(
                     Observation(
                         ts_utc=ts,
                         source=self.name,
                         provider=self.provider,
                         gpu_model=variant,
-                        gpu_count=gpu_count,
+                        gpu_count=count,
                         # Native amount, as scaleway.py does: for EUR rows normalise.py
                         # converts at print time from raw_json, never at collection.
                         price_usd_per_gpu_hr=native,
@@ -211,7 +237,7 @@ class ComputableSource:
                         interconnect=None,
                         tier=tier,
                         term=term,
-                        raw_json=json.dumps(raw, default=str),
+                        raw_json=json.dumps(raw_row, default=str),
                     )
                 )
         log.info("%s: %d rows", self.name, len(out))
@@ -351,6 +377,93 @@ def _coreweave_country(obs: dict[str, Any]) -> str | None:
     return _COREWEAVE_COUNTRY.get(str(obs.get("region") or ""))
 
 
+# Hyperstack publishes one price list for every region and, separately, a public stock
+# feed per datacentre (the vendored recipe reads both; see its module docstring). The two
+# use different names for the same flavour: marketing labels on the price page, flavour
+# families in the feed. The feed is also the only first-hand statement of form factor:
+# of its three H100 families, two are PCIe ("H100-80G-PCIe", "H100-80G-PCIe-NVLink") and
+# one is SXM5, matching the page's three H100 labels "NVIDIA H100", "NVIDIA H100 NVLink"
+# and "NVIDIA H100 SXM" one for one. The A100 labels line up the same way. Until 24
+# September 2026 the unqualified labels were stored as H100_UNSPEC and A100_UNSPEC,
+# which no class admits. The NVLink-bridged PCIe cards stay out of every class: a bridge
+# is not the reference PCIe product and nobody has measured what it is worth.
+#
+# label -> (TCI variant, stock-feed model). Checked against the captured feed and page in
+# tests/fixtures/computable/hyperstack/ (live, 2026-08-22 and 2026-08-25).
+HYPERSTACK_FLAVOURS: dict[str, tuple[str, str]] = {
+    "NVIDIA H100": ("H100_PCIE", "H100-80G-PCIe"),
+    "NVIDIA H100 NVLink": ("H100_PCIE_NVLINK", "H100-80G-PCIe-NVLink"),
+    "NVIDIA H100 SXM": ("H100_SXM", "H100-80G-SXM5"),
+    "NVIDIA H200 SXM": ("H200_SXM", "H200-141G-SXM5"),
+    "NVIDIA B200": ("B200_SXM", "B200-SXM"),
+    "NVIDIA B300": ("B300_SXM", "B300-SXM"),
+    "NVIDIA A100": ("A100_PCIE", "A100-80G-PCIe"),
+    "NVIDIA A100 NVLink": ("A100_PCIE_NVLINK", "A100-80G-PCIe-NVLink"),
+    "NVIDIA A100 SXM": ("A100_SXM", "A100-80G-SXM4"),
+}
+
+# The feed's region names are the country. A region not listed here places nothing
+# until someone has read where it is.
+HYPERSTACK_REGION_COUNTRY = {"NORWAY-1": "NO", "CANADA-1": "CA", "US-1": "US"}
+
+
+def _hyperstack_variant(obs: dict[str, Any], sku: str | None) -> str | None:
+    flavour = HYPERSTACK_FLAVOURS.get(str(obs.get("sku_identifier") or ""))
+    return flavour[0] if flavour else None
+
+
+def _largest_deployable(configurations: dict[str, Any]) -> int | None:
+    """The biggest node the feed says can be deployed right now, or None.
+
+    `configurations` counts deployable VMs per size ("1x".."10x"). An explicit count
+    above zero is the only evidence of stock: the feed's `available` field is a
+    saturating floor string, and a model missing from a region is not a zero.
+    """
+    sizes = []
+    for size, vms in configurations.items():
+        count = size[:-1] if size.endswith("x") else ""
+        if count.isdigit() and isinstance(vms, int) and vms > 0:
+            sizes.append(int(count))
+    return max(sizes) if sizes else None
+
+
+def _hyperstack_placements(result: dict[str, Any]) -> Callable[[str, str], list[Placement]]:
+    """Extra rows for Hyperstack's flat price, one per datacentre with stock today.
+
+    The same rule the index already applies to RunPod's flat price in the United States
+    (notice 2026-N3): a row is recorded in a country only on a day the seller's own
+    stock feed shows that model deployable there, at the largest node it can deploy.
+    Hyperstack prices every size at one rate per GPU (the page's spec columns are
+    per-GPU shares), so the node size changes the weight, not the price.
+    """
+    stock = ((result.get("book_stats") or {}).get("gpu_stock") or {})
+    regions: dict[str, Any] = stock.get("regions") or {}
+    fetched_at = stock.get("worker_fetched_at")
+
+    def place(variant: str, label: str) -> list[Placement]:
+        flavour = HYPERSTACK_FLAVOURS.get(label)
+        if flavour is None:
+            return []
+        out = []
+        for region, models in sorted(regions.items()):
+            country = HYPERSTACK_REGION_COUNTRY.get(region)
+            if country is None:
+                continue
+            for m in models:
+                if m.get("model") != flavour[1]:
+                    continue
+                size = _largest_deployable(m.get("configurations") or {})
+                if size is not None:
+                    out.append(Placement(region, country, size, {
+                        "model": m["model"], "available": m.get("available"),
+                        "configurations": m.get("configurations"),
+                        "worker_fetched_at": fetched_at,
+                    }))
+        return out
+
+    return place
+
+
 def _voltagepark_country(obs: dict[str, Any]) -> str | None:
     # "Voltage Park owns high-performance GPU clusters in Texas, Virginia, Washington, and
     # Utah." (voltagepark.com/neocloud, read 2026-09-11). Its location API returns opaque
@@ -377,7 +490,9 @@ def computable_collectors() -> list[ComputableSource]:
                          regions_of=_digitalocean_regions),
         ComputableSource("latitude", "latitude", "latitude", country_of=_latitude_country,
                          fetch_override=_fetch_latitude),
-        ComputableSource("hyperstack", "hyperstack", "hyperstack"),
+        ComputableSource("hyperstack", "hyperstack", "hyperstack",
+                         variant_override=_hyperstack_variant,
+                         stock_placements=_hyperstack_placements),
         ComputableSource("crusoe", "crusoe", "crusoe"),
         ComputableSource("lambda_pricing", "lambda_", "lambdalabs"),
     ]

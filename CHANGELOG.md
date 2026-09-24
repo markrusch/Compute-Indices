@@ -3,6 +3,42 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## 0.8.0 — announced 2026-09-24, effective 2026-10-22 (notice 2026-N5)
+
+- **Hyperstack enters the panel** in H100, H100 PCIe, H200, B200, B300 and A100, as a
+  neocloud. Its rows count in a country only on days its own stock feed places them
+  there (below), so on a day with no stock in Norway it contributes nothing to any
+  EU/EEA series.
+- **Effect, per case, on the 23 September observations.** With H100 SXM and H200 SXM
+  deployable in Norway at Hyperstack's stored prices ($3.20 and $3.99/GPU-hr), the
+  headline is unchanged at $3.49/GPU-hr on eight providers instead of seven,
+  EU-CRI-H100-NC goes from $3.85 to $3.79 (-1.45%), and H200 reaches four providers,
+  still gapped. With H100 SXM deployable in the United States, EU-CRI-H100-US goes from
+  $3.49 to $3.20 (-8.31%) on six providers and the basis from $0.00 to $0.29. Measured
+  with hypothetical placed rows on a scratch copy of the database; none are stored yet.
+- 0.7.0 frozen under `config/methodology/0.7.0/`.
+
+## Hyperstack's flat price placed by its own stock feed — 2026-09-24 — no methodology change
+
+- **Why.** Hyperstack publishes one price list for every region, so every row it produced
+  was stored with no country and could reach no regional series. Its public stock feed,
+  which the vendored recipe already fetched and TCI discarded, names three real
+  datacentres and counts deployable machines per flavour and node size.
+- **What is recorded.** Beside the unplaced row, one row per datacentre where the feed
+  shows at least one deployable machine of that flavour: NORWAY-1 as NO, CANADA-1 as CA,
+  US-1 as US, with the largest deployable size as the node. The stock entry the row was
+  placed from is kept in `raw_json`. A flavour listed at zero, or absent, places nothing,
+  because the feed's own docstring warns that absence is not zero stock. If the feed
+  is down, the prices are still recorded, just without placement.
+- **Form factor.** The feed calls Hyperstack's three H100 flavours H100-80G-PCIe,
+  H100-80G-PCIe-NVLink and H100-80G-SXM5, one for each of the price list's "NVIDIA H100",
+  "NVIDIA H100 NVLink" and "NVIDIA H100 SXM". The unqualified label, stored until now as
+  `H100_UNSPEC`, is recorded as `H100_PCIE`; the bridged card as `H100_PCIE_NVLINK`, which
+  no class admits. A100 likewise.
+- On the captured feed (25 August) this places H100 SXM in Canada at 8 GPUs, A100 SXM in
+  the US at 8, and nothing in Norway, which listed only an RTX A4000 that day. Hyperstack
+  is not in the panel before v0.8.0, so no print moves; all stored prints reproduce.
+
 ## 0.7.0 — announced 2026-09-24, effective 2026-10-08 (notice 2026-N4)
 
 - **Seeweb is read by its collector.** The panel names `seeweb` instead of `static_yaml`

@@ -21,6 +21,52 @@
 # yet quantifiable and why.
 
 notices:
+  - id: 2026-N5
+    title: Hyperstack enters, priced in a country only on days its own stock feed shows a
+      node there
+    announced: 2026-09-24
+    effective: 2026-10-22
+    version: 0.8.0
+    status: announced
+    summary: >-
+      Hyperstack joins the panel in the H100, H100 PCIe, H200, B200, B300 and A100 classes.
+      It publishes one price for every region, so a row counts in a country only on a day
+      Hyperstack's public stock feed shows that GPU deployable in its Norway, Canada or
+      United States datacentre, at the largest node deployable there. RunPod's US rows
+      already follow this rule.
+    effect_on_level: >-
+      Depends on the day's stock, so it is stated per case, measured on the 23 September
+      observations under v0.7.0 and v0.8.0 with hypothetical placed rows at Hyperstack's
+      stored prices for that day ($3.20/GPU-hr H100 SXM, $3.99 H200 SXM). With no stock in
+      Norway or the US, nothing changes. With H100 SXM and H200 SXM deployable in Norway, the
+      headline stays at $3.49/GPU-hr (seven providers to eight), EU-CRI-H100-NC falls from
+      $3.85 to $3.79 (-1.45%), and the H200 class reaches four providers, still one short of
+      publishing. With H100 SXM deployable in the United States, EU-CRI-H100-US falls from
+      $3.49 to $3.20 (-8.31%, five providers to six) and the EU-US basis moves from $0.00 to
+      $0.29. The US figure is large because Hyperstack's price would sit below the US
+      median on a thin panel; it is stated here so that a move of that size on the first
+      day of stock is not read as a market move.
+    body: |
+      **What is added.** Hyperstack's on-demand price list names no region. It also
+      publishes a stock feed per datacentre (NORWAY-1, CANADA-1, US-1), listing for each
+      GPU flavour how many virtual machines of each size can be deployed now. The
+      collector already reads both. From this version it records, beside the unplaced row,
+      one row per datacentre where the feed shows at least one deployable machine of that
+      flavour, with that country and the largest deployable size as the node. A flavour
+      listed at zero, or not listed, places nothing. Only Norway is in the EU/EEA.
+
+      **Form factor.** The feed names Hyperstack's three H100 flavours H100-80G-PCIe,
+      H100-80G-PCIe-NVLink and H100-80G-SXM5, which match the price list's "NVIDIA H100",
+      "NVIDIA H100 NVLink" and "NVIDIA H100 SXM" one for one. The plain "NVIDIA H100" is
+      therefore priced in the H100 PCIe class and never as the SXM reference unit. The
+      NVLink-bridged cards enter no class. A100 follows the same pattern.
+
+      **Segment.** Neocloud. Hyperstack is not added to the sovereign list.
+
+      **What does not change.** The unit definition, the estimator, the trim, the weights,
+      the concentration cap and the publication gate. No row collected before the effective
+      date is admitted. Prints dated before it keep the version they record.
+
   - id: 2026-N4
     title: Every constituent price read by a collector, none typed in by hand
     announced: 2026-09-24

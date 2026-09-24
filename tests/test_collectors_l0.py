@@ -21,6 +21,7 @@ from tci.collectors.gpuhunt_ import GpuHuntCollector, _country, collection_floor
 from tci.collectors.gpuhunt_ import variant_of as gh_variant
 from tci.collectors.runpod import URL as RUNPOD_URL
 from tci.collectors.runpod import RunPodCollector, parse_datacentre_stock
+from tci.models import Observation
 from tci.vendor.computable.http import current_user_agent
 from tci.vendor.computable.sources.coreweave import parse_coreweave
 
@@ -156,9 +157,77 @@ def test_display_currency_duplicates_are_dropped(collected: dict[str, list]) -> 
                for rows in collected.values() for o in rows)
 
 
+def _sku(o: Observation) -> str:
+    return json.loads(o.raw_json)["sku_identifier"]
+
+
 def test_unlabelled_form_factor_is_never_priced_as_sxm(collected: dict[str, list]) -> None:
-    hyp = collected["hyperstack"]
-    assert "H100_UNSPEC" in {o.gpu_model for o in hyp}
+    """Hyperstack's plain "NVIDIA H100" is the PCIe card by its own stock feed, which
+    names that flavour H100-80G-PCIe; only the label saying SXM is the reference unit."""
+    by_label = {_sku(o): o.gpu_model for o in collected["hyperstack"]}
+    assert by_label["NVIDIA H100"] == "H100_PCIE"
+    assert by_label["NVIDIA H100 NVLink"] == "H100_PCIE_NVLINK"  # bridged: in no class
+    assert by_label["NVIDIA H100 SXM"] == "H100_SXM"
+    assert by_label["NVIDIA A100"] == "A100_PCIE"
+    assert by_label["NVIDIA A100 SXM"] == "A100_SXM"
+    assert not {m for m in by_label.values() if m.endswith("UNSPEC")}
+
+
+def _hyperstack_on_demand(collected: dict[str, list]) -> list[Observation]:
+    return [o for o in collected["hyperstack"] if o.tier == "list" and o.term == "on_demand"]
+
+
+def test_hyperstack_flat_price_is_placed_only_where_its_stock_feed_shows_a_node(
+    collected: dict[str, list]
+) -> None:
+    """The captured feed (2026-08-25) has H100 SXM deployable in CANADA-1 as 2 x 8-GPU
+    VMs, A100 SXM in US-1 as 2 x 8, and NORWAY-1 carrying only an RTX A4000."""
+    placed = sorted((o.gpu_model, o.region, o.country, o.gpu_count)
+                    for o in _hyperstack_on_demand(collected) if o.country)
+    assert placed == [
+        ("A100_PCIE", "CANADA-1", "CA", 4),
+        ("A100_SXM", "US-1", "US", 8),
+        ("H100_PCIE", "CANADA-1", "CA", 1),
+        ("H100_SXM", "CANADA-1", "CA", 8),
+    ]
+
+
+def test_hyperstack_zero_stock_places_nothing(collected: dict[str, list]) -> None:
+    """H200 SXM, B200 and B300 are listed in CANADA-1 with every configuration at 0.
+    Listed is not deployable, so they keep only their unplaced row."""
+    rows = [o for o in _hyperstack_on_demand(collected)
+            if o.gpu_model in ("H200_SXM", "B200_SXM", "B300_SXM")]
+    assert rows and all(o.country is None and o.gpu_count == 1 for o in rows)
+
+
+def test_hyperstack_keeps_its_unplaced_row_and_records_the_stock_it_used(
+    collected: dict[str, list]
+) -> None:
+    h100 = [o for o in _hyperstack_on_demand(collected) if o.gpu_model == "H100_SXM"]
+    assert sorted((o.region, o.country) for o in h100) == [
+        ("CANADA-1", "CA"), ("EU-heavy", None)]
+    assert len({o.price_usd_per_gpu_hr for o in h100}) == 1  # region-flat
+    placed = next(o for o in h100 if o.country)
+    stock = json.loads(placed.raw_json)["stock"]
+    assert stock["model"] == "H100-80G-SXM5"
+    assert stock["configurations"]["8x"] == 2
+    assert stock["worker_fetched_at"] == "2026-08-25T20:15:59.101Z"
+
+
+def test_hyperstack_prices_survive_a_dead_stock_feed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The feed is not a contractual API. Without it nothing is placed, and nothing
+    else is lost."""
+    src = next(c for c in computable_collectors() if c.name == "hyperstack")
+
+    def no_stock(url: str, *a: object, **k: object) -> str:
+        if "gpu-stock" in url:
+            raise requests.ConnectionError("stock worker down")
+        return _fake_fetch(url)
+
+    monkeypatch.setattr(src.module, "fetch", no_stock)
+    rows = src.collect(base.make_session())
+    assert rows and all(o.country is None for o in rows)
+    assert "H100_SXM" in {o.gpu_model for o in rows}
 
 
 def test_digitalocean_h100_is_one_row_per_region_it_is_sold_in(

@@ -89,7 +89,10 @@ blocks:
     label: "Canada"
     status: shadow
     countries: ["CA"]
-    notes: "aws ca-central-1 and gcp northamerica-northeast1/2 are collected and unmapped."
+    notes: >-
+      aws ca-central-1 and gcp northamerica-northeast1/2 are collected and unmapped.
+      DigitalOcean TOR1 rows carry CA, and from 2026-09-24 so do Hyperstack's CANADA-1
+      rows on days its stock feed shows a deployable machine there.
 
   LATAM:
     label: "Latin America"

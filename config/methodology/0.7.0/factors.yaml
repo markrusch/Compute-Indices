@@ -1,7 +1,7 @@
 # EU-CRI methodology parameters. Every number that affects a published print lives here.
 # Changing anything in this file (or sovereign.yaml, index.py, normalise.py, weights.py)
 # requires a methodology_version bump + CHANGELOG entry - enforced by CI (see GOVERNANCE.md).
-methodology_version: "0.8.0"       # effective 2026-10-22 (notice 2026-N5). See
+methodology_version: "0.7.0"       # effective 2026-10-08 (notice 2026-N4). See
                                     # config/methodology/succession.yaml for every version
                                     # and the date it takes effect.
 
@@ -62,11 +62,6 @@ model_classes:
 # 8-GPU node. hetzner, genesis_cloud and leaseweb leave: each was a static_yaml line that
 # never had a price on file, so none ever contributed. From this version no panel entry
 # reads a hand-maintained price; tests/test_panel.py holds every later version to that.
-# v0.8.0 (notice 2026-N5): hyperstack enters. Its price list is the same in every region,
-# so its rows carry a country only on a day its own public stock feed shows that model
-# deployable in a named datacentre (NORWAY-1, CANADA-1, US-1), at the largest node
-# deployable there: the rule RunPod's US rows already follow under v0.6.0. An unplaced
-# row has no country and reaches no series.
 panel:
   vast.ai:       {segment: marketplace, sources: {vast_ai: [H100, A100, H100P, H200, B200, B300]}}
   runpod:        {segment: marketplace, sources: {runpod: [H100, A100]}}
@@ -82,7 +77,6 @@ panel:
   ovhcloud:      {segment: neocloud, sources: {ovh: [H100P, H200]}}
   digitalocean:  {segment: neocloud, sources: {digitalocean: [H100]}}
   voltagepark:   {segment: neocloud, sources: {voltagepark: [H100]}}
-  hyperstack:    {segment: neocloud, sources: {hyperstack: [H100, H100P, H200, B200, B300, A100]}}
   seeweb:        {segment: neocloud, sources: {seeweb: [H100]}}
 
 # Which segments each published series draws from. The headline deliberately excludes the
