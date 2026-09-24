@@ -86,11 +86,15 @@ only a collector the daily run executes, and never `static_yaml`, the hand-edite
 under `config/providers/`; `tests/test_panel.py` fails any later version that does
 otherwise. A price someone has to go and look up is only as current as the last time
 they looked. Until v0.7.0 one constituent (Seeweb) was priced that way, and three panel
-lines (Hetzner, Genesis Cloud, Leaseweb) pointed at files that never held a price. A
-provider whose price no stranger can read without an account is not admitted by
-building a collector around a key: that fails the first gate of the source rubric
-(`.claude/skills/source-discovery/references/admission-rubric.md`), and it stays in the
-source register until a public route exists.
+lines (Hetzner, Genesis Cloud, Leaseweb) pointed at files that never held a price.
+
+**A public API is a public source, key or no key.** A collector may read a documented
+API that anyone can use, including one that issues a free self-service key, and its rows
+may be admitted like any other. A price that needs a customer account, an approval or a
+sales conversation to read is not public and is never admitted. The key is a repository
+secret, the collector skips cleanly without it, and SOURCES.md says how a reader gets
+one. The full test is gate 1 of the source rubric
+(`.claude/skills/source-discovery/references/admission-rubric.md`).
 
 **Code changes must reproduce the record.** The calculation code is shared by every
 version in the succession. A code change that would alter any stored print, under any

@@ -623,11 +623,11 @@ sources:
     discovered_via: initial-build
     last_reviewed: 2026-09-07
     reason: >-
-      Fails gate 1 and gate 5. The API is Bearer-key gated (free tier, 750 req/day), so a
-      reader with no key cannot reproduce a print from it, and it is an aggregator of other
-      people's collection decisions. Stays where it already is: a validation cross-check,
-      never ingested.
-    recheck: "an unauthenticated endpoint, which would still leave gate 5 unresolved"
+      Fails gate 5. The API is Bearer-key gated on a free tier (750 req/day), which
+      passes gate 1 as revised on 2026-09-24 (a free self-service key is public), but it
+      is an aggregator of other people's collection decisions. Stays where it already
+      is: a validation cross-check, never ingested.
+    recheck: "a per-row statement of which operator page each price was read from"
 
   - id: getdeploying
     name: GetDeploying
@@ -934,7 +934,7 @@ sources:
       405, and docs.tensordock.com does not document a no-key read path in its llms.txt
       index. Their own copy calls the API "well-documented" via a Postman link not checked
       here. Not the same failure as a Bearer-key wall -- looks unresolved, not rejected.
-    recheck: "the documented hostnode-listing endpoint, and whether it needs a key to read"
+    recheck: "the documented hostnode-listing endpoint; a free self-service key to read it passes gate 1 since 2026-09-24"
 
   - id: together_ai
     name: Together AI (GPU Clusters)

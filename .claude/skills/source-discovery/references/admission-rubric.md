@@ -10,19 +10,43 @@ price in the market and is permanently rejected on gate 1.
 
 ## Gate 1 — reproducible by a stranger
 
-**Can someone with no account, no key and no relationship read this price today?**
+**Can anyone read this price today, through a public page or a public API, with no
+relationship to the seller?**
 
 The whole claim of this index is that any reader can recompute a print from public
-sources. A source that needs our credentials breaks that claim even if the number is
-perfect, and no amount of care about the estimator repairs it.
+sources. A public API passes even when it asks for a key. A key that anyone can get the
+same way we did doesn't stop a reader checking the number. What does stop them is a
+price that exists only for a customer, or only after someone has approved them.
+
+A **public API** here means all of these:
+
+- it is documented by the operator for outside use;
+- the key, if there is one, is free and self-service: sign up and receive it, with no
+  sales contact, approval, contract or payment details;
+- it returns the operator's published price, the same for every caller, and not a price
+  negotiated with, or scoped to, the account that asks.
 
 | Verdict | |
 |---|---|
-| pass | public page, public API, or an open-source package redistributing public catalogs |
-| pass | free registration for a token, **reference series only** — never a price input (ENTSO-E) |
-| fail | signed/IAM API scoped to the caller's own account (AWS Capacity Blocks) |
-| fail | price behind a login, a quote form, or "contact sales" |
-| fail | key-gated aggregator API where the key is ours and the reader has none |
+| pass | public page, or an open-source package redistributing public catalogs |
+| pass | public API with no key |
+| pass | public API with a free self-service key (as defined above), for price inputs and reference series alike |
+| fail | key issued only after approval, a partnership or a sales conversation |
+| fail | key that needs a paying or billable customer account (payment details on file) |
+| fail | price scoped to the caller's own account (AWS Capacity Blocks: a signed EC2 action returning offers for the caller) |
+| fail | price on a web page behind a login, a quote form, or "contact sales" |
+
+A keyed source adds three duties, and a collector that misses any of them fails this gate:
+
+1. **The key is a repository secret, never a committed value**, and the collector skips
+   cleanly with no rows when the secret is absent, as `entsoe.py` does with
+   `ENTSOE_TOKEN`. A missing key must never fail the daily run.
+2. **The stored row is the evidence.** `raw_json` keeps the fields the price was read
+   from, so every print recomputes from the database without calling the API again.
+3. **SOURCES.md names the endpoint and how a reader obtains a key**, so "anyone can
+   check" is a set of steps and not a claim.
+
+Passing gate 1 settles access and nothing else. An aggregator still has to pass gate 5.
 
 ## Gate 2 — the right product
 
@@ -61,8 +85,9 @@ Record the specific basis in `access_basis`, in one sentence, naming what makes 
 permissible. "Public API" is not a basis; "the public product-catalog API the console
 itself reads" is.
 
-Automatic fails: anything behind a login, anything robots.txt disallows, any endpoint
-whose terms forbid automated access. Where a page is hostile but public, the answer is a
+Automatic fails: a web page behind a login, anything robots.txt disallows, any endpoint
+whose terms forbid automated access. A public API's free key (gate 1) is not a login,
+but its terms of use are read here like any page's. Where a page is hostile but public, the answer is a
 static entry with a `last_verified` date, not a cleverer scraper.
 
 ## Gate 5 — first-hand

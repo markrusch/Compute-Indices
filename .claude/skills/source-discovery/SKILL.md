@@ -76,8 +76,9 @@ and the one that fires first for the providers most likely to qualify.
 first failure; they are ordered cheapest-to-check first on purpose.
 
 The screen is deliberately harsh. This index publishes a gap rather than a number it
-cannot defend, and a source that cannot be re-read by a stranger with no account is not
-defensible however good its data is. That is why AWS Capacity Blocks is a permanent
+cannot defend, and a source that a stranger cannot re-read from a public page or a public
+API (a free self-service key is fine, a customer account is not) is not defensible however
+good its data is. That is why AWS Capacity Blocks is a permanent
 `rejected` row despite being the best forward-price signal in the market.
 
 ## Step 3 — record every one of them
@@ -140,8 +141,10 @@ no ceremony, which is exactly why the register should be generous and the panel 
 
 ## The rules that keep this honest
 
-- One request per source per day, honest User-Agent, robots.txt respected, nothing behind
-  a login. A source that requires an account to read is not a public price.
+- One request per source per day, honest User-Agent, robots.txt respected, no web page
+  behind a login. A public API is admissible with or without a free self-service key
+  (gate 1 has the definition); a price that needs a customer account, an approval or a
+  sales conversation to read is not a public price.
 - Never invent a provider, a price, a URL or a date. Every claim in a scan report is
   either a query against `data/eucri.db` that the report makes reproducible, or a page
   that was actually opened.

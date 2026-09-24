@@ -24,13 +24,20 @@ All methodology-affecting changes require an entry here **before** the lock rege
   switching it off. Once that date has passed, `static_yaml.py` and `config/providers/`
   can be deleted outright. The generated methodology drops its staleness step for a
   panel that has no hand-kept entries.
-- **Keyed feeds stay out.** Gate 1 of the source rubric admits only what a reader with no
-  account can recompute. The Shadeform aggregator API, for which a key is already
-  configured in the daily workflow and read by no code, fails that gate as a price input
-  and is recorded as such in SOURCES.md.
 - 0.6.0 frozen under `config/methodology/0.6.0/`.
 
-## Retired static entries, and a daily run that could not recover from a race — 2026-09-24 — no methodology change
+## Retired static entries, a public-API rule, and a daily run that could not recover from a race — 2026-09-24 — no methodology change
+
+- **A public API is admissible with a free key.** Gate 1 of the source rubric used to
+  admit a keyed API only as a reference series, never as a price input. It now admits a
+  documented API with a free self-service key as a price input too. A key that anyone
+  can get doesn't stop a reader checking a print. What still fails is a key that needs
+  approval, a sales conversation or a billable customer account, and any price scoped to
+  the caller's account. A keyed collector keeps its key as a repository secret, skips
+  cleanly without it, and SOURCES.md says how a reader gets one. Nothing in the panel
+  changes: admitting such a source is still a constituent change with its own version and
+  notice. computeprices.com now fails only on gate 5, as an aggregator. Shadeform passes
+  gate 1 and has not been screened against gate 5.
 
 - **Four static files removed.** `config/providers/{datacrunch,nebius,ovhcloud,scaleway}.yaml`.
   datacrunch and nebius had been out of the panel since v0.5.0 replaced them with
