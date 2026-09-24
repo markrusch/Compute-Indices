@@ -48,8 +48,8 @@ schedules:
   - provider: verda
     url: https://verda.com/pricing
     applies_to: self-service GPU instances
-    last_verified: 2026-09-23
+    last_verified: 2026-09-24
     # "Commitment discount: 1 month 2% off on-demand, 3 months 3% off on-demand, 6 months 4% off
     # on-demand, 1 year 8% off on-demand, 2 years 25% off on-demand" (read on the live page,
-    # 2026-09-23).
+    # 2026-09-24).
     discounts: {1: 0.02, 3: 0.03, 6: 0.04, 12: 0.08, 24: 0.25}
