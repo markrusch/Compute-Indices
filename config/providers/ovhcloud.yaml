@@ -1,9 +1,0 @@
-﻿# Static price entry — manually verified. null price = provider skipped (never invented).
-provider: ovhcloud
-url: https://www.ovhcloud.com/en/public-cloud/prices/
-gpu_model: H100_SXM
-price_usd_per_gpu_hr: null
-gpu_count: 8
-country: FR
-config_notes: "H100 listed as available GPU type but prices render via JS only (checked 2026-07-18); fill manually."
-last_verified: null

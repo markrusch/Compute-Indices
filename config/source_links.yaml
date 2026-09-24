@@ -1,9 +1,8 @@
 # Reference links for the dashboard's "sources" panel and per-constituent weblinks.
 # Presentational metadata only -- never read by the calculation path (index.py,
 # normalise.py), so this file is NOT part of METHODOLOGY.lock. Static-yaml providers
-# (config/providers/*.yaml) already carry their own authoritative `url` field and take
-# precedence over any entry here; this file covers everything else the collectors see:
-# executable-quote marketplaces and the hyperscalers gpuhunt aggregates.
+# (config/providers/*.yaml) carry their own `url` field, which takes precedence over any
+# entry here; this file covers every provider a live collector reads.
 #
 # tier: 'executable' | 'list' -- mirrors normalise.py's tier, shown as a badge.
 # collected_via: the tci collector module responsible (matches observations.source).
@@ -34,6 +33,29 @@ providers:
     tier: list
     collected_via: gpuhunt
     note: "A3 (8x H100) on-demand list price, EU regions, via the gpuhunt catalog."
+  # The four below had static entries in config/providers/ until 2026-09-24. Each has
+  # been read by a live collector since, and the static files, which still told readers
+  # the price was JS-only and filled in by hand, were retired.
+  nebius:
+    url: https://nebius.com/prices
+    tier: list
+    collected_via: gpuhunt
+    note: "HGX H100 on-demand list price, Finland and France, via the gpuhunt catalog."
+  verda:
+    url: https://verda.com/pricing
+    tier: list
+    collected_via: gpuhunt
+    note: "Formerly DataCrunch. H100 SXM5 on-demand list price, Finland and Iceland, via the gpuhunt catalog."
+  scaleway:
+    url: https://www.scaleway.com/en/pricing/gpu/
+    tier: list
+    collected_via: scaleway
+    note: "Scaleway's public Instance API, EU zones, EUR per instance converted at print-time FX."
+  ovhcloud:
+    url: https://www.ovhcloud.com/en/public-cloud/prices/
+    tier: list
+    collected_via: ovh
+    note: "Public order-catalogue API. Its H100 is PCIe, so it prices the H100 PCIe class only."
 
 collectors:
   vast_ai:

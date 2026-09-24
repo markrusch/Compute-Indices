@@ -81,12 +81,16 @@ from its first day without moving any number; admitting it is a constituent chan
 follows this procedure. Rows collected before admission are never admitted
 retroactively.
 
-Three panel entries (Hetzner, Genesis Cloud and Leaseweb, via `static_yaml`) are
-admitted but have no price on file, because none had a verifiable H100 hourly rate
-when last checked. A first price for any of them would move the print exactly as
-a new constituent does, so it is treated as one: it needs a notice and an effective date
-like any other constituent change, even though the panel line already exists. Refreshing
-a price that is already on file is not a constituent change.
+**Every panel price is collected, none is typed.** From v0.7.0 a panel entry may name
+only a collector the daily run executes, and never `static_yaml`, the hand-edited files
+under `config/providers/`; `tests/test_panel.py` fails any later version that does
+otherwise. A price someone has to go and look up is only as current as the last time
+they looked. Until v0.7.0 one constituent (Seeweb) was priced that way, and three panel
+lines (Hetzner, Genesis Cloud, Leaseweb) pointed at files that never held a price. A
+provider whose price no stranger can read without an account is not admitted by
+building a collector around a key: that fails the first gate of the source rubric
+(`.claude/skills/source-discovery/references/admission-rubric.md`), and it stays in the
+source register until a public route exists.
 
 **Code changes must reproduce the record.** The calculation code is shared by every
 version in the succession. A code change that would alter any stored print, under any

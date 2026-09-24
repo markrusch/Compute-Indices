@@ -13,13 +13,21 @@ stopgap field-naming as `collectors/scaleway.py`. Both currency and the native a
 passed through in raw_json so normalise.py converts at print time with that day's ECB
 rate, per its own module docstring: conversion never gets frozen into a stored
 observation, because a rate looked up once by hand goes stale the moment EUR/USD moves.
+
+ONLY WHAT THE PANEL STILL READS. An entry is emitted only while the methodology version
+in effect on the collection date admits `static_yaml` for that provider. Until 24
+September 2026 every priced file was collected whether or not any version could use it,
+so datacrunch and nebius kept producing hand-maintained rows for days after v0.5.0 had
+replaced both with catalogue feeds. v0.7.0 (effective 2026-10-08, notice 2026-N4) admits
+static_yaml for no provider, and from that date this collector emits nothing without
+anyone having to remember to switch it off. config/providers/ can then be deleted.
 """
 
 from __future__ import annotations
 
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 import requests
 
@@ -33,11 +41,30 @@ log = logging.getLogger("tci.collectors.static_yaml")
 class StaticYamlCollector:
     name = "static_yaml"
 
+    def __init__(self, today: date | None = None) -> None:
+        self._today = today
+
+    def admitted(self, on_date: date) -> set[str] | None:
+        """Providers the version live on `on_date` reads through this collector.
+
+        None for a parameter set without an explicit panel (before v0.4.0), where every
+        collected row was a candidate.
+        """
+        panel = load_factors(for_date=on_date.isoformat()).panel
+        if panel is None:
+            return None
+        return {p for p, entry in panel.items() if self.name in entry.sources}
+
     def collect(self, session: requests.Session) -> list[Observation]:
-        factors = load_factors()
-        today = datetime.now(UTC).date()
+        today = self._today or datetime.now(UTC).date()
+        factors = load_factors(for_date=today.isoformat())
+        admitted = self.admitted(today)
         out: list[Observation] = []
         for p in load_static_providers():
+            if admitted is not None and p.provider not in admitted:
+                log.info("%s: not read through static_yaml by the panel on %s, skipped",
+                         p.provider, today)
+                continue
             if p.price_usd_per_gpu_hr is None:
                 log.warning("%s: no verified price, skipped", p.provider)
                 continue

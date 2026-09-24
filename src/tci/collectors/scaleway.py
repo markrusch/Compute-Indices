@@ -3,12 +3,10 @@
 """Scaleway public Instance API (no auth) — EU list prices, zone by zone.
 
 Collection scope (SOURCES.md): scaleway.com/pricing renders GPU prices via JS only, so
-Scaleway is also carried as a manually verified static entry (config/providers/
-scaleway.yaml, currently a null price — never invented). This collector reads the same
-numbers straight from Scaleway's own public product-catalog API instead, one GET per
-zone. It shares the 'scaleway' provider name with that static entry, so a live reading
-here simply out-competes the static null row (representative_constituents() takes the
-min price per provider across all sources) — no special-casing needed.
+Scaleway was first carried as a static entry (config/providers/scaleway.yaml) that never
+had a price. This collector reads the numbers straight from Scaleway's own public
+product-catalog API instead, one GET per zone. The null static entry was retired on
+2026-09-24.
 
 Schema verified against a live response on 2026-08-15: servers is a dict keyed by
 instance name; hourly_price is EUR per *instance*, not per GPU and not USD. Dividing by

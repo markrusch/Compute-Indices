@@ -21,6 +21,45 @@
 # yet quantifiable and why.
 
 notices:
+  - id: 2026-N4
+    title: Every constituent price read by a collector, none typed in by hand
+    announced: 2026-09-24
+    effective: 2026-10-08
+    version: 0.7.0
+    status: announced
+    summary: >-
+      Seeweb's price is read each day from its own pricing page instead of from a file
+      that is edited by hand. Three panel lines that never had a price (Hetzner, Genesis
+      Cloud, Leaseweb) are removed. From this version no constituent is priced from a
+      manually maintained entry.
+    effect_on_level: >-
+      None. Recomputed under v0.6.0 and v0.7.0 on the stored observations for 22 and 23
+      September, with Seeweb's collector rows at the 8-GPU node it now records, every
+      series prints the same value on both days: the headline $3.49/GPU-hr on eight
+      providers either way. Both readings give Seeweb EUR 1.89/GPU-hr on the same node,
+      so the only difference is how the number arrives. A day Seeweb's page cannot be
+      read is now a day Seeweb does not report, where the hand-kept entry would have
+      carried the last price looked up; if that leaves fewer than five providers, the
+      print gaps with the reason.
+    body: |
+      **Seeweb.** Until this version Seeweb's on-demand H100 price, EUR 1.89 per GPU-hour,
+      entered the index from `config/providers/seeweb.yaml`, last checked by hand on 13
+      September. A collector has read the same page since 15 September and stores its
+      rows under its own name. It now records the size of the 8-GPU node Seeweb's own
+      configurator offers. Seeweb prices every node size at the same rate per GPU, and
+      the 8-GPU node is the size the hand-kept entry used. From the effective date the
+      panel reads Seeweb through that collector and not through the file.
+
+      **Removed.** Hetzner, Genesis Cloud and Leaseweb were admitted through hand-kept
+      files that never held a price, because none of them published a verifiable hourly
+      H100 rate when last checked. They leave the panel. None of them has ever
+      contributed to a print. Any of them can return through a collector that reads a
+      public price, under a later version and its own notice.
+
+      **What does not change.** The unit definition, the estimator, the trim, the
+      weights, the concentration cap and the publication gate. Prints dated before the
+      effective date keep the version they record.
+
   - id: 2026-N3
     title: A US reference series priced exactly like the headline, and the EU-US basis
       between them
@@ -76,7 +115,7 @@ notices:
     announced: 2026-09-11
     effective: 2026-09-22
     version: 0.5.0
-    status: announced
+    status: in_effect
     summary: >-
       The headline population widens from six priced H100 SXM sellers to eight, two static
       entries give way to daily feeds, and the FX rule stops depending on the time of day
@@ -141,7 +180,7 @@ notices:
     announced: 2026-09-08
     effective: 2026-09-15
     version: 0.4.0
-    status: announced
+    status: in_effect
     summary: >-
       Two defects found in the source audit of 7 September, both of which have been
       silently narrowing the constituent population against the published methodology.

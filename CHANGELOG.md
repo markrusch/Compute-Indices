@@ -3,6 +3,76 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## 0.7.0 — announced 2026-09-24, effective 2026-10-08 (notice 2026-N4)
+
+- **Seeweb is read by its collector.** The panel names `seeweb` instead of `static_yaml`
+  for the seeweb provider. The collector reads the same EUR 1.89/GPU-hr from the same
+  page the hand-kept file was copied from, and since 24 September records the 8-GPU node
+  the page's configurator offers. Before that it recorded 1 GPU, the configurator's
+  default, which the 2-GPU node floor rejects, so none of its rows up to then could have
+  entered a print under any version.
+- **Hetzner, Genesis Cloud and Leaseweb leave the panel.** Each was a `static_yaml` line
+  that never had a price on file, so none ever contributed.
+- **Effect: none.** Recomputed under v0.6.0 and v0.7.0 on the stored observations for 22
+  and 23 September, with Seeweb's collector rows restated to the 8-GPU node on a scratch
+  copy, every series prints the same value on both days. The headline is $3.49/GPU-hr on
+  eight providers under either version.
+- **The panel is now collected, not typed.** `tests/test_panel.py` fails any version from
+  0.7.0 onward whose panel names `static_yaml`, or names a collector the daily run does
+  not execute. The static collector emits a row only while the version in effect that day
+  reads the provider through it, so it stops producing rows on 8 October without anyone
+  switching it off. Once that date has passed, `static_yaml.py` and `config/providers/`
+  can be deleted outright. The generated methodology drops its staleness step for a
+  panel that has no hand-kept entries.
+- **Keyed feeds stay out.** Gate 1 of the source rubric admits only what a reader with no
+  account can recompute. The Shadeform aggregator API, for which a key is already
+  configured in the daily workflow and read by no code, fails that gate as a price input
+  and is recorded as such in SOURCES.md.
+- 0.6.0 frozen under `config/methodology/0.6.0/`.
+
+## Retired static entries, and a daily run that could not recover from a race — 2026-09-24 — no methodology change
+
+- **Four static files removed.** `config/providers/{datacrunch,nebius,ovhcloud,scaleway}.yaml`.
+  datacrunch and nebius had been out of the panel since v0.5.0 replaced them with
+  catalogue feeds, and were still being collected by hand every day. ovhcloud and scaleway
+  never held a price and have been read by live collectors for weeks; their files still
+  told site readers the price was JS-only and filled in by hand. Their links move to
+  `config/source_links.yaml`. No print reads any of them, and every stored print still
+  reproduces.
+- **The daily push retry could not work.** The loop added on 17 September reset to
+  `origin/main` after a rejected push without fetching first. A rejected push does not
+  move `origin/main`, so each attempt rebuilt on the same stale parent and was rejected
+  the same way. The `git pull --rebase` it replaced had fetched as a side effect. The
+  workflow now fetches before resetting.
+
+**Found, not fixed: 16 September is missing.** The database holds no observations and no
+run record for that session. It was lost to the push race above before the retry loop
+existed, and live prices cannot be re-collected for a past date, so it stays a gap.
+
+**Found, not fixed: Latitude has failed since 22 September.** The vendored recipe raises on
+a changed plan (`g3-h100-small`: "non-empty gpu spec the parser cannot read"). Latitude is
+not in the panel, so no print is affected. The fix belongs upstream in the vendored code.
+
+## 0.5.0 and 0.4.0 in effect: what each version did to its first print — 2026-09-24 — no methodology change
+
+N1 and N2 each committed to stating the size of their version's effect against the
+previous version on the same day. Both figures come from `python -m tci.run effect`, which
+recomputes one date under two versions on the same stored observations and recorded FX.
+
+- **v0.5.0 on 22 September: +$0.21/GPU-hr.** Under v0.4.0 that day's observations print
+  $3.28/GPU-hr on six providers; under v0.5.0 they print $3.49 on eight, +6.40%. The
+  published series shows no step at all: 21 September printed $3.49 under v0.4.0 because
+  the weighted median happened to land on RunPod. `EU-CRI-H100-NC` goes from a gap to
+  $3.80/GPU-hr, and the composite moves with the headline. Every other series still gaps.
+  N2 estimated $3.25 to $3.49 on the 7 September panel; the level it predicted is the
+  level that printed.
+- **v0.4.0 on 15 September: nothing.** Every series prints the same under v0.3.0-dev and
+  v0.4.0, headline $3.25/GPU-hr on six providers. N1 expected the Norway correction and
+  the lower node floor to lower the headline slightly or leave it unchanged. No Norwegian
+  row and no newly admitted small node qualified that day.
+- N1 and N2 are marked `in_effect` in `config/notices.yaml`. The site already showed them
+  so, because it derives a notice's status from its date.
+
 ## Intake: what every collected price did, and the two defects that found — 2026-09-17 — no methodology change
 
 - **`intake.html`, `python -m tci.run intake`, and a new append-only `intake` table.** Of the

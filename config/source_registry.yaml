@@ -130,11 +130,12 @@ sources:
     discovered_via: initial-build
     last_reviewed: 2026-07-18
     notes: >-
-      8 providers, 3 priced. Warned at 45d, excluded at 90d. This is the row that grows
-      when the discovery process finds a neocloud with a readable rate card and no API.
-      Seeweb's on-demand price is still carried here by hand as of 2026-09-15; see
-      `seeweb_pricing_page` below for the automated collector that now also reads this
-      same page's committed-rate prices.
+      4 providers, 1 priced (seeweb). Warned at 45d, excluded at 90d. On 2026-09-24 the
+      datacrunch, nebius, ovhcloud and scaleway entries were retired: each is read by a
+      live collector, and datacrunch and nebius had left the panel under v0.5.0. hetzner,
+      genesis_cloud and leaseweb never had a price. From v0.7.0 (2026-10-08, notice
+      2026-N4) no panel entry reads this source, the collector stops on that date, and
+      the directory can be deleted.
 
   # ---- shadow: an automated collector exists, but no print reads its rows -----------
 
@@ -158,13 +159,11 @@ sources:
     notes: >-
       Reads the NVIDIA H100 SXM card's on-demand price plus its published 3/6/12-month
       committed rate (EUR 1.89/1.80/1.70/1.61 per GPU-hr on 2026-09-15) in one GET,
-      stored under source="seeweb" -- a source name the panel does not list for the
-      `seeweb` provider (only `static_yaml` is), so none of these rows reaches a print.
-      Duplicates the on-demand figure the static entry already carries by hand; the two
-      are independent readings of the same page; static_yaml.py is unchanged.
-      Promoting this collector to replace the static entry, the way scaleway's live API
-      read superseded config/providers/scaleway.yaml, is a candidate for a future
-      version, not done here.
+      stored under source="seeweb". Until 2026-09-24 every row carried gpu_count 1, the
+      selector's default, which fails the 2-GPU node-size floor; it now records the
+      largest size on the card's own selector (8). v0.7.0 (effective 2026-10-08, notice
+      2026-N4) moves the seeweb panel entry onto this collector and off static_yaml, at
+      which point this row becomes `live`.
 
   - id: scaleway
     name: Scaleway

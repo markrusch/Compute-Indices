@@ -108,3 +108,36 @@ def test_shadow_rows_appear_in_the_audit_set_and_move_nothing(
     assert not cons["coreweave"]["included"]
     # Under 0.5.0 datacrunch is shadow too, so compare values only within one version.
     assert head["value_usd"] == before
+
+
+# From v0.7.0 every price that can reach a print is read by a collector on a schedule.
+# Before it, seeweb's constituent price lived in a hand-edited file and was only as current
+# as the last time someone opened the page, and three panel lines pointed at files that
+# never held a price. Nothing about the calculation noticed either.
+FIRST_FULLY_AUTOMATED = "0.7.0"
+HAND_MAINTAINED = {"static_yaml"}
+
+
+def _versions_from(first: str) -> list[Any]:
+    from tci.config import load_succession
+
+    versions = load_succession()
+    names = [v.version for v in versions]
+    return versions[names.index(first):]
+
+
+def test_every_panel_source_from_v070_is_a_collector_the_daily_run_executes() -> None:
+    from tci.commands import collectors_for_daily
+
+    run = {c.name for c in collectors_for_daily()}
+    for v in _versions_from(FIRST_FULLY_AUTOMATED):
+        panel = load_factors(for_date=v.effective_from).panel
+        assert panel is not None, v.version
+        for provider, entry in panel.items():
+            for source in entry.sources:
+                assert source not in HAND_MAINTAINED, (
+                    f"{v.version}: {provider} is read through {source}, a hand-maintained "
+                    "file; admit an automated collector instead")
+                assert source in run, (
+                    f"{v.version}: {provider} is read through {source}, which the daily "
+                    "run does not execute, so it can never contribute")

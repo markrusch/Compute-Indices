@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from datetime import date
 from pathlib import Path
 
 import requests
@@ -116,10 +117,15 @@ def test_vast_identity_pin_drops_mislabelled_offers() -> None:
         VastAiCollector(spacing_seconds=0).collect(base.make_session())
 
 
+# Pinned: what the collector emits depends on the version in effect on the day.
+_UNDER_V060 = date(2026, 9, 24)
+_UNDER_V070 = date(2026, 10, 8)
+
+
 def test_static_yaml_emits_only_priced_entries() -> None:
-    out = StaticYamlCollector().collect(base.make_session())
+    out = StaticYamlCollector(today=_UNDER_V060).collect(base.make_session())
     providers = {o.provider for o in out}
-    assert "nebius" in providers and "seeweb" in providers
+    assert providers == {"seeweb"}
     assert all(o.tier == "list" and o.price_usd_per_gpu_hr > 0 for o in out)
     assert all(json.loads(o.raw_json).get("last_verified") for o in out)
 
@@ -127,7 +133,7 @@ def test_static_yaml_emits_only_priced_entries() -> None:
 def test_static_yaml_passes_through_native_currency() -> None:
     """seeweb quotes EUR; the raw price must reach normalise.py unconverted, with a
     currency tag, so print-time FX is used instead of a rate baked into the yaml."""
-    out = StaticYamlCollector().collect(base.make_session())
+    out = StaticYamlCollector(today=_UNDER_V060).collect(base.make_session())
     by_provider = {o.provider: o for o in out}
 
     seeweb = by_provider["seeweb"]
@@ -135,8 +141,22 @@ def test_static_yaml_passes_through_native_currency() -> None:
     assert raw["currency"] == "EUR"
     assert raw["price_native_per_gpu_hr"] == seeweb.price_usd_per_gpu_hr == 1.89
 
-    nebius = by_provider["nebius"]
-    assert json.loads(nebius.raw_json).get("currency", "USD") == "USD"
+
+def test_static_yaml_skips_a_priced_file_the_panel_no_longer_reads() -> None:
+    """A file with a price, for a provider the live panel does not read through
+    static_yaml, produces no row. datacrunch did exactly this after v0.5.0."""
+    collector = StaticYamlCollector(today=_UNDER_V060)
+    assert collector.admitted(_UNDER_V060) == {"seeweb", "hetzner", "genesis_cloud",
+                                               "leaseweb"}
+    assert "datacrunch" not in collector.admitted(_UNDER_V060)
+
+
+def test_static_yaml_stops_by_itself_when_v070_takes_effect() -> None:
+    """v0.7.0 admits static_yaml for nobody, so on 8 October the collector goes quiet
+    with no one having to switch it off."""
+    collector = StaticYamlCollector(today=_UNDER_V070)
+    assert collector.admitted(_UNDER_V070) == set()
+    assert collector.collect(base.make_session()) == []
 
 
 class _BoomCollector:

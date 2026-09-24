@@ -154,6 +154,16 @@ def render_methodology(config_dir: Path | None = None) -> str:
         "hyperscaler": "`EU-CRI-H100-HS`",
         "sovereign": "`EU-CRI-H100-SOV`",
     }
+    hand_maintained = sorted(
+        p for p, e in (f.panel or {}).items() if "static_yaml" in e.sources
+    )
+    staleness_rule = (
+        f"Static (manually verified) entries older than {f.staleness.exclude_days} days are\n"
+        f"   excluded as stale (warning from {f.staleness.warn_days} days)."
+        if f.panel is None or hand_maintained else
+        "Every panel price is read by a collector on the day. No constituent is priced\n"
+        "   from a hand-maintained entry, so no staleness rule applies to the panel."
+    )
     populations_table = "\n".join(
         f"| {series_labels.get(role, role)} | "
         + ", ".join(sorted(segments))
@@ -295,8 +305,7 @@ Per UTC day and series. **The unit of aggregation is the offer, not the provider
 
 1. Collect all observations for the day passing the unit filters above, restricted to the
    series' market-segment population.
-2. Static (manually verified) entries older than {f.staleness.exclude_days} days are
-   excluded as stale (warning from {f.staleness.warn_days} days).
+2. {staleness_rule}
 3. **Provider weight** = {f.weights.executable_multiplier:g} if the provider has any
    executable offer, else 1. Capacity does *not* enter here: it is unobservable for every
    list source, so a capacity term at provider level is fiction that made a rate card
