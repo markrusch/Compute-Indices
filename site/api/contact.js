@@ -16,6 +16,13 @@
 //                      the owner's address exists nowhere in this repository, public or
 //                      private, only in Vercel's environment.
 //
+// And one optional one:
+//   CONTACT_FROM_EMAIL the sender, e.g. "TCI contact form <contact@thecomputeindices.com>".
+//                      Needs the domain verified in Resend first. Unset, the sandbox sender
+//                      above is used, which only delivers to the address the Resend account
+//                      is registered under: moving the form to a different inbox without a
+//                      verified domain means re-registering Resend under that inbox.
+//
 // No dependencies: Vercel's Node runtime ships a global fetch and parses a plain HTML
 // form's application/x-www-form-urlencoded body into req.body for free.
 //
@@ -66,7 +73,7 @@ module.exports = async (req, res) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "TCI contact form <onboarding@resend.dev>",
+        from: process.env.CONTACT_FROM_EMAIL || "TCI contact form <onboarding@resend.dev>",
         to: [toEmail],
         reply_to: email,
         subject: `Contact form: ${name || email}`,
