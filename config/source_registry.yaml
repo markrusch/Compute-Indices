@@ -940,6 +940,50 @@ sources:
       index. Their own copy calls the API "well-documented" via a Postman link not checked
       here. Not the same failure as a Bearer-key wall -- looks unresolved, not rejected.
     recheck: "the documented hostnode-listing endpoint; a free self-service key to read it passes gate 1 since 2026-09-24"
+    # 2026-09-25: dashboard.tensordock.com/api/docs/getting-started was not read (this
+    # session's network egress blocked the host), so last_reviewed is unchanged. The
+    # installed gpuhunt ships no tensordock provider any more, so that route is closed.
+
+  - id: gpuhunt_cloudrift
+    name: CloudRift (via the gpuhunt offline catalog)
+    kind: aggregator
+    status: watchlist
+    tier: list
+    homepage: https://www.cloudrift.ai/
+    endpoint: "gpuhunt offline catalog, provider cloudrift (same download the gpuhunt collector already makes)"
+    auth: none
+    blocks: []
+    gpu_classes: []
+    discovered: 2026-09-25
+    discovered_via: "in-panel channel: a provider added to an installed catalog package"
+    last_reviewed: 2026-09-25
+    reason: >-
+      Fails gate 2. Queried 2026-09-25: 13 rows, 8 AMD MI350X in eu-central-it-gv-1 and 5
+      RTX 4090 in ap-east-tw-kn-2, nothing in any class in factors.yaml:model_classes.
+      Would cost no extra request to collect, since the catalog is already downloaded.
+    recheck: "an H100-, H200-, B200-, B300- or A100-class row in the cloudrift catalog"
+
+  - id: gpuhunt_crusoe
+    name: Crusoe (via gpuhunt's online provider)
+    kind: aggregator
+    status: rejected
+    tier: list
+    homepage: https://crusoe.ai/cloud/pricing
+    endpoint: "gpuhunt.providers.crusoe -> https://api.crusoecloud.com/v1alpha5"
+    auth: key
+    blocks: []
+    gpu_classes: []
+    discovered: 2026-09-25
+    discovered_via: "in-panel channel: a provider added to an installed catalog package"
+    last_reviewed: 2026-09-25
+    reason: >-
+      Fails gate 1 and is no price source anyway. It needs CRUSOE_ACCESS_KEY,
+      CRUSOE_SECRET_KEY and CRUSOE_PROJECT_ID, the credentials of a Crusoe customer
+      project, not a free self-service key. Its prices are a dictionary typed into the
+      package from crusoe.ai/cloud/pricing, and its B200 figure is marked in the source as
+      "estimated from B200/H100 ratio on other providers". The live API contributes only
+      capacity. The `crusoe` collector already reads the pricing page first-hand.
+    recheck: "never as a price input; capacity by location only, if Crusoe publishes it without an account"
 
   - id: together_ai
     name: Together AI (GPU Clusters)
