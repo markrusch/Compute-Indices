@@ -8,7 +8,7 @@ All methodology-affecting changes require an entry here **before** the lock rege
 - **Latitude.** Between the 21 and 22 September sessions Latitude renamed the keys of the
   plan data embedded in its pricing page from snake_case to camelCase (`vram_per_gpu` to
   `vramPerGpu`, and four more). The vendored recipe matches the old names and raised on
-  every session from 22 September, so four sessions stored no Latitude rows. Upstream
+  the runs of 22, 23 and 24 September, so three sessions stored no Latitude rows. Upstream
   has not changed its parser, and the vendored copy stays identical to it, so TCI's
   adapter maps the five renamed keys back before either parser reads the page. On the
   live page it yields the same 18 USD rows at the same prices as 21 September. The lost
