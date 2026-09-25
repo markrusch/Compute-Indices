@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T11:12:28Z",
+  "generated_at": "2026-09-25T03:11:07Z",
   "tci_version": "0.1.0",
   "methodology_version": "0.5.0",
   "disclaimer": "TCI is a research publication. It is not investment advice and is not administered as a benchmark under EU Regulation 2016/1011; it may not be used as a reference price in financial instruments.",
@@ -189,8 +189,8 @@
         "included": true,
         "exclusion_reason": null,
         "flags": "",
-        "url": null,
-        "note": null
+        "url": "https://verda.com/pricing",
+        "note": "Formerly DataCrunch. H100 SXM5 on-demand list price, Finland and Iceland, via the gpuhunt catalog."
       },
       {
         "provider": "scaleway",
@@ -202,7 +202,7 @@
         "exclusion_reason": null,
         "flags": "",
         "url": "https://www.scaleway.com/en/pricing/gpu/",
-        "note": "H100-SXM-8-80G instance exists (PAR-2) but prices render via JS only (checked 2026-07-18); fill manually from console/pricing page."
+        "note": "Scaleway's public Instance API, EU zones, EUR per instance converted at print-time FX."
       },
       {
         "provider": "nebius",
@@ -214,7 +214,7 @@
         "exclusion_reason": null,
         "flags": "",
         "url": "https://nebius.com/prices",
-        "note": "NVIDIA HGX H100, on-demand per GPU-hour, USD, from public pricing page (16 vCPU / 200 GB RAM per GPU)."
+        "note": "HGX H100 on-demand list price, Finland and France, via the gpuhunt catalog."
       },
       {
         "provider": "lambdalabs",
@@ -285,8 +285,8 @@
         "included": false,
         "exclusion_reason": "not_in_panel",
         "flags": "",
-        "url": "https://verda.com/pricing",
-        "note": "H100 SXM5 80GB pay-as-you-go, $3.28/GPU-hr from public page (quoted for 1x config; 8x node assumed same per-GPU rate - re-verify). Was $3.25 as of 2026-07-18."
+        "url": null,
+        "note": null
       },
       {
         "provider": "gcp",
@@ -372,7 +372,7 @@
         "exclusion_reason": "insufficient_sources",
         "flags": "",
         "url": "https://nebius.com/prices",
-        "note": "NVIDIA HGX H100, on-demand per GPU-hour, USD, from public pricing page (16 vCPU / 200 GB RAM per GPU)."
+        "note": "HGX H100 on-demand list price, Finland and France, via the gpuhunt catalog."
       },
       {
         "provider": "verda",
@@ -383,8 +383,8 @@
         "included": false,
         "exclusion_reason": "insufficient_sources",
         "flags": "",
-        "url": null,
-        "note": null
+        "url": "https://verda.com/pricing",
+        "note": "Formerly DataCrunch. H100 SXM5 on-demand list price, Finland and Iceland, via the gpuhunt catalog."
       },
       {
         "provider": "ovhcloud",
@@ -396,7 +396,7 @@
         "exclusion_reason": "insufficient_sources",
         "flags": "",
         "url": "https://www.ovhcloud.com/en/public-cloud/prices/",
-        "note": "H100 listed as available GPU type but prices render via JS only (checked 2026-07-18); fill manually."
+        "note": "Public order-catalogue API. Its H100 is PCIe, so it prices the H100 PCIe class only."
       }
     ],
     "EU-CRI-B200": [
@@ -457,8 +457,8 @@
         "included": false,
         "exclusion_reason": "insufficient_sources",
         "flags": "",
-        "url": null,
-        "note": null
+        "url": "https://verda.com/pricing",
+        "note": "Formerly DataCrunch. H100 SXM5 on-demand list price, Finland and Iceland, via the gpuhunt catalog."
       },
       {
         "provider": "lambdalabs",
@@ -483,8 +483,8 @@
         "included": false,
         "exclusion_reason": "insufficient_sources",
         "flags": "",
-        "url": null,
-        "note": null
+        "url": "https://verda.com/pricing",
+        "note": "Formerly DataCrunch. H100 SXM5 on-demand list price, Finland and Iceland, via the gpuhunt catalog."
       },
       {
         "provider": "scaleway",
@@ -496,7 +496,7 @@
         "exclusion_reason": "insufficient_sources",
         "flags": "",
         "url": "https://www.scaleway.com/en/pricing/gpu/",
-        "note": "H100-SXM-8-80G instance exists (PAR-2) but prices render via JS only (checked 2026-07-18); fill manually from console/pricing page."
+        "note": "Scaleway's public Instance API, EU zones, EUR per instance converted at print-time FX."
       }
     ],
     "EU-CRI-A100": [
@@ -569,8 +569,8 @@
         "included": false,
         "exclusion_reason": "insufficient_sources",
         "flags": "",
-        "url": null,
-        "note": null
+        "url": "https://verda.com/pricing",
+        "note": "Formerly DataCrunch. H100 SXM5 on-demand list price, Finland and Iceland, via the gpuhunt catalog."
       },
       {
         "provider": "lambdalabs",
@@ -608,7 +608,7 @@
         "exclusion_reason": "insufficient_sources",
         "flags": "",
         "url": "https://www.ovhcloud.com/en/public-cloud/prices/",
-        "note": "H100 listed as available GPU type but prices render via JS only (checked 2026-07-18); fill manually."
+        "note": "Public order-catalogue API. Its H100 is PCIe, so it prices the H100 PCIe class only."
       },
       {
         "provider": "scaleway",
@@ -620,7 +620,7 @@
         "exclusion_reason": "insufficient_sources",
         "flags": "",
         "url": "https://www.scaleway.com/en/pricing/gpu/",
-        "note": "H100-SXM-8-80G instance exists (PAR-2) but prices render via JS only (checked 2026-07-18); fill manually from console/pricing page."
+        "note": "Scaleway's public Instance API, EU zones, EUR per instance converted at print-time FX."
       }
     ]
   },

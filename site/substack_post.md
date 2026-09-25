@@ -32,6 +32,6 @@ Dispersion: cheapest constituent $2.16, dearest $4.41 — a 2.0x spread for the 
 
 ---
 
-*Methodology v0.6.0 — full methodology, constituent-level audit trail, and source code are public in the repository. Corrections are published as flagged revisions, never silently.*
+*Methodology v0.8.0 — full methodology, constituent-level audit trail, and source code are public in the repository. Corrections are published as flagged revisions, never silently.*
 
 *TCI is a research publication. It is not investment advice and is not administered as a benchmark under EU Regulation 2016/1011; it may not be used as a reference price in financial instruments.*
