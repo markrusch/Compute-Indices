@@ -31,6 +31,12 @@ review_interval_days: 90   # a live or built row unreviewed for longer is flagge
                            # `python -m tci.run sources --due`
 
 scans:
+  - date: 2026-09-25
+    added: 6
+    notes: >-
+      Out-of-cycle: computepulse.net/hopper and the Shadeform catalog behind it. No
+      candidate; one EEA lead (Horizon, Iceland) with no first-hand price.
+      research/source-scans/2026-09-25.md
   - date: 2026-09-12
     added: 14
     notes: >-
@@ -1131,6 +1137,121 @@ sources:
       EUR2.019/hr", which I could not independently verify against the raw response and
       am not treating as confirmed -- recorded here rather than silently trusted.
     recheck: "whether GPU plans appear in the public /v1/plans response, or where the /dedicated-gpu-servers price actually renders from"
+
+  # ---- 2026-09-25 sweep: ComputePulse's Hopper page, and the feed behind it ----
+  - id: shadeform
+    name: Shadeform instance catalog
+    kind: aggregator
+    status: watchlist
+    tier: reference
+    homepage: https://www.shadeform.ai/
+    endpoint: "GET https://api.shadeform.ai/v1/instances/types"
+    auth: none
+    blocks: [EU_EEA, US, CA, UK, APAC_NE, APAC_S, OCEANIA, MEA]
+    gpu_classes: [H100, H200, B200, B300, A100]
+    discovered: 2026-09-25
+    discovered_via: "competitor input list (computepulse.net/hopper)"
+    last_reviewed: 2026-09-25
+    reason: >-
+      One of ComputePulse's three live inputs. The API reference documents an X-API-KEY
+      header, but on 2026-09-25 the endpoint answered a keyless GET with 299 instance
+      types from 19 named clouds, each with num_gpus, hourly_price in cents and a region
+      carrying a country prefix ("FI, Helsinki", "IS, Blonduos 2"). Clears gate 3 better
+      than most first-hand sources. Fails gate 5: it is a reseller quoting its own price
+      for other operators' capacity, and that price is not a uniform pass-through. Lambda,
+      DigitalOcean and Scaleway rows matched this project's first-hand observations for
+      2026-09-24 to the cent; Nebius H200 x8 and Verda H200 x8 came back 25-30% above the
+      gpuhunt rows for the same SKUs and countries. A mixed markup is worse than a
+      constant one, because nothing in the row says which kind it is. Gate 4 is also
+      unread: robots.txt reset the connection and /terms 404s on both domains.
+      Most useful as a name channel and as a location oracle for operators whose own
+      pages give no country (massed_compute, denvr).
+    recheck: "a published statement that hourly_price equals the operator's list price, and readable API terms"
+
+  - id: horizon_compute
+    name: Horizon Compute
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://horizoncompute.com/
+    blocks: [EU_EEA]
+    gpu_classes: [H100, H200]
+    discovered: 2026-09-25
+    discovered_via: "in-feed name harvest (shadeform catalog)"
+    last_reviewed: 2026-09-25
+    reason: >-
+      The EEA lead of this sweep: 8-GPU on-demand H100 and H200 nodes in Blonduos,
+      Iceland (IS is in eu_eea_countries), and the operator says it owns the clusters.
+      The rates exist only inside Shadeform's catalog. Horizon's own site says it prices
+      per GPU-hour but prints no figure and routes to a contact page, so gate 1 fails
+      for the first-hand route and gate 5 fails for the Shadeform one.
+    recheck: "an hourly rate on horizoncompute.com itself"
+
+  - id: excesssupply
+    name: Excess Supply
+    kind: marketplace
+    status: watchlist
+    tier: list
+    blocks: [EU_EEA, US, APAC_NE, OCEANIA]
+    gpu_classes: [H200, B300, A100]
+    discovered: 2026-09-25
+    discovered_via: "in-feed name harvest (shadeform catalog)"
+    last_reviewed: 2026-09-25
+    reason: >-
+      Seen only through Shadeform, and no operator homepage was found. Its Helsinki and
+      Paris H200 rows carry exactly the prices of Shadeform's Nebius rows in the same two
+      cities, at both 1 and 8 GPUs, which reads as resold Nebius capacity. If so it is
+      the gate-5 double-count in its purest form: one operator's price under a second
+      name.
+    recheck: "an operator homepage that names whose datacentres the Helsinki and Paris capacity is in"
+
+  - id: boostrun
+    name: Boost Run
+    kind: neocloud
+    status: watchlist
+    tier: list
+    homepage: https://boostrun.com/
+    blocks: [US]
+    gpu_classes: [H200, B200]
+    discovered: 2026-09-25
+    discovered_via: "competitor page (computepulse.net/hopper)"
+    last_reviewed: 2026-09-25
+    reason: >-
+      Fails gate 1. The operator's site says "Pricing is custom and scoped to your
+      configuration and term length" and starts with a scoping call. Shadeform lists
+      8-GPU H200 and B200 nodes in Dallas and Raleigh, US-only; ComputePulse shows the
+      same rows with region "none".
+    recheck: "a public rate card on boostrun.com"
+
+  - id: imwt
+    name: IMWT
+    kind: neocloud
+    status: watchlist
+    tier: list
+    blocks: [US]
+    gpu_classes: [H100]
+    discovered: 2026-09-25
+    discovered_via: "in-feed name harvest (shadeform catalog)"
+    last_reviewed: 2026-09-25
+    reason: >-
+      Seen only through Shadeform: H100 at 1-8 GPUs in Des Moines, US. No operator
+      pricing page found. US shadow block only.
+    recheck: "an operator pricing page"
+
+  - id: amaya
+    name: Amaya
+    kind: neocloud
+    status: watchlist
+    tier: list
+    blocks: [US]
+    gpu_classes: [H200]
+    discovered: 2026-09-25
+    discovered_via: "in-feed name harvest (shadeform catalog)"
+    last_reviewed: 2026-09-25
+    reason: >-
+      Seen only through Shadeform: one 8-GPU H200 SKU in Dowagiac, Michigan. No operator
+      page found. US shadow block only.
+    recheck: "an operator pricing page"
 
   # ---- rejected -------------------------------------------------------------
   - id: gpu_ai_index
