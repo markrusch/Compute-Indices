@@ -1162,11 +1162,15 @@ sources:
       DigitalOcean and Scaleway rows matched this project's first-hand observations for
       2026-09-24 to the cent; Nebius H200 x8 and Verda H200 x8 came back 25-30% above the
       gpuhunt rows for the same SKUs and countries. A mixed markup is worse than a
-      constant one, because nothing in the row says which kind it is. Gate 4 is also
-      unread: robots.txt reset the connection and /terms 404s on both domains.
-      Most useful as a name channel and as a location oracle for operators whose own
+      constant one, because nothing in the row says which kind it is. Fails gate 4 as
+      well, and on its own that settles it: the terms of service (shadeform.com/
+      terms-of-service, last updated 2026-08-06) s4.2(1) forbid systematically retrieving
+      data "to create databases or directories without our written permission", and
+      s4.2(2) forbid "automated systems like data mining, robots, or scrapers without
+      authorization". robots.txt allows everything, but that doesn't override the terms.
+      Same shape as tensordock. Most useful as a name channel and as a location oracle for operators whose own
       pages give no country (massed_compute, denvr).
-    recheck: "a published statement that hourly_price equals the operator's list price, and readable API terms"
+    recheck: "written permission from Shadeform for daily automated collection, then a per-row statement that hourly_price equals the operator's list price"
 
   - id: horizon_compute
     name: Horizon Compute
