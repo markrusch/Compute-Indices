@@ -925,24 +925,32 @@ sources:
     status: watchlist
     tier: list
     homepage: https://www.tensordock.com/
-    endpoint: "dashboard.tensordock.com/api/v0/client/deploy/hostnodes (unauthenticated GET, returns empty)"
-    auth: unclear
+    endpoint: "GET https://dashboard.tensordock.com/api/v2/locations (Bearer token)"
+    auth: key
     blocks: []
     gpu_classes: []
     discovered: 2026-09-12
     discovered_via: "computeindex.io coverage list"
-    last_reviewed: 2026-09-12
+    last_reviewed: 2026-09-25
+    access_basis: >-
+      Documented public API v2 (dashboard.tensordock.com/api/docs, read 2026-09-25): "All
+      API requests require authentication using a Bearer token", generated under
+      Developer Settings in a logged-in account; 100 requests/minute per organization.
     reason: >-
-      Public marketplace prices from $2.25/hr for H100 SXM5 are real (own pricing page),
-      but the listing API gate 1 needs is unresolved: the unauthenticated v0 hostnodes
-      endpoint returns "{\"success\":true,\"hostnodes\":{}}" with no listings, POST is
-      405, and docs.tensordock.com does not document a no-key read path in its llms.txt
-      index. Their own copy calls the API "well-documented" via a Postman link not checked
-      here. Not the same failure as a Bearer-key wall -- looks unresolved, not rejected.
-    recheck: "the documented hostnode-listing endpoint; a free self-service key to read it passes gate 1 since 2026-09-24"
-    # 2026-09-25: dashboard.tensordock.com/api/docs/getting-started was not read (this
-    # session's network egress blocked the host), so last_reviewed is unchanged. The
-    # installed gpuhunt ships no tensordock provider any more, so that route is closed.
+      The shape is right and gate 1 is unresolved. GET /api/v2/locations returns per
+      location a city and a country, and per GPU a v0Name ("h100-sxm5-80gb"), max_count
+      and price_per_hr; GET /api/v2/hostnodes adds per-host availableCount, uptime and a
+      datacentre tier 1-4. Without a token, /locations answers 200 with an empty list and
+      /hostnodes answers 401 (both checked 2026-09-25). Billing is prepaid ("Users deposit
+      funds", tensordock.com): whether a token can be generated, and /locations returns
+      listings, on an account with no deposit is what decides gate 1 under the
+      free-self-service rule. The dashboard's own deploy page reads GPUs through an
+      internal tRPC procedure enabled only for orgType "td_admin": undocumented, not a
+      route. Two things to settle before any build: price_per_hr is the GPU alone, with
+      vCPU, RAM and storage billed per hour on top, so it is not the bundled per-GPU-hour
+      every other constituent quotes; and hosts belong to third-party organisations, so
+      the datacentre-only scope needs a rule on `tier`.
+    recheck: "a fresh account with no deposit: can it create a token, and does /api/v2/locations return listings to it"
 
   - id: gpuhunt_cloudrift
     name: CloudRift (via the gpuhunt offline catalog)
