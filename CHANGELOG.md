@@ -3,6 +3,22 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Latitude read again, and TensorDock screened out on its terms — 2026-09-25 — no methodology change
+
+- **Latitude.** Between the 21 and 22 September sessions Latitude renamed the keys of the
+  plan data embedded in its pricing page from snake_case to camelCase (`vram_per_gpu` to
+  `vramPerGpu`, and four more). The vendored recipe matches the old names and raised on
+  every session from 22 September, so four sessions stored no Latitude rows. Upstream
+  has not changed its parser, and the vendored copy stays identical to it, so TCI's
+  adapter maps the five renamed keys back before either parser reads the page. On the
+  live page it yields the same 18 USD rows at the same prices as 21 September. The lost
+  sessions stay lost: a live price cannot be re-collected for a past date. Latitude is not
+  in the panel, so no print was affected.
+- **TensorDock.** Its v2 API has the right shape: a city, a country and a per-GPU price for
+  every location. Its terms forbid automated collection and publication of platform data
+  without written permission (s5.2(a) and (h)), which fails gate 4 whatever the key costs.
+  Recorded in the source register with the recheck that would change the answer.
+
 ## 0.8.0 — announced 2026-09-24, effective 2026-10-22 (notice 2026-N5)
 
 - **Hyperstack enters the panel** in H100, H100 PCIe, H200, B200, B300 and A100, as a
@@ -92,9 +108,8 @@ All methodology-affecting changes require an entry here **before** the lock rege
 run record for that session. It was lost to the push race above before the retry loop
 existed, and live prices cannot be re-collected for a past date, so it stays a gap.
 
-**Found, not fixed: Latitude has failed since 22 September.** The vendored recipe raises on
-a changed plan (`g3-h100-small`: "non-empty gpu spec the parser cannot read"). Latitude is
-not in the panel, so no print is affected. The fix belongs upstream in the vendored code.
+**Found, and fixed on 25 September: Latitude failed from 22 September.** See the entry
+above that date.
 
 ## 0.5.0 and 0.4.0 in effect: what each version did to its first print — 2026-09-24 — no methodology change
 

@@ -937,20 +937,22 @@ sources:
       API requests require authentication using a Bearer token", generated under
       Developer Settings in a logged-in account; 100 requests/minute per organization.
     reason: >-
-      The shape is right and gate 1 is unresolved. GET /api/v2/locations returns per
-      location a city and a country, and per GPU a v0Name ("h100-sxm5-80gb"), max_count
-      and price_per_hr; GET /api/v2/hostnodes adds per-host availableCount, uptime and a
-      datacentre tier 1-4. Without a token, /locations answers 200 with an empty list and
-      /hostnodes answers 401 (both checked 2026-09-25). Billing is prepaid ("Users deposit
-      funds", tensordock.com): whether a token can be generated, and /locations returns
-      listings, on an account with no deposit is what decides gate 1 under the
-      free-self-service rule. The dashboard's own deploy page reads GPUs through an
-      internal tRPC procedure enabled only for orgType "td_admin": undocumented, not a
-      route. Two things to settle before any build: price_per_hr is the GPU alone, with
-      vCPU, RAM and storage billed per hour on top, so it is not the bundled per-GPU-hour
-      every other constituent quotes; and hosts belong to third-party organisations, so
-      the datacentre-only scope needs a rule on `tier`.
-    recheck: "a fresh account with no deposit: can it create a token, and does /api/v2/locations return listings to it"
+      Fails gate 4. TensorDock's Terms of Service (docs.tensordock.com, last updated 24
+      September 2024, read 2026-09-25) forbid, without written permission, using "any
+      robot, spider, crawlers, scraper, or other automatic device, process, software or
+      queries that ... accesses the Platform to monitor, extract, copy or collect
+      information or data" (s5.2(h)), and publishing "any information contained on, or
+      obtained from or through, the Platform" (s5.2(a)). A daily collector feeding a
+      published index is both. Gate 1 is probably passed: its docs tie the prepaid
+      deposit to deploying ("To deploy virtual machines, users first deposit funds"), not
+      to holding an account or token, though token creation on a no-deposit account was
+      not tried. The API shape would suit: GET /api/v2/locations gives per location a city
+      and country and per GPU a v0Name, max_count and price_per_hr; without a token it
+      answers 200 with an empty list, and /api/v2/hostnodes answers 401. If permission is
+      ever granted, two things need settling first: price_per_hr is the GPU alone, with
+      vCPU, RAM and storage billed on top, and hosts are third parties, so the
+      datacentre-only scope needs a rule on the hostnode `tier` field.
+    recheck: "written permission from TensorDock for daily automated reading and publication of aggregated prices, or a change to s5.2 of its terms"
 
   - id: gpuhunt_cloudrift
     name: CloudRift (via the gpuhunt offline catalog)

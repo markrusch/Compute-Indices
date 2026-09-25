@@ -152,6 +152,38 @@ def test_latitude_annual_reading_does_not_reach_the_network_in_tests(
     assert any(o["tier"] == "reserved" for o in result["observations"])
 
 
+def test_latitude_reads_the_camel_case_keys_it_switched_to_on_22_september(
+    monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Latitude renamed its embedded plan keys to camelCase, and the vendored parser
+    raised on every session from 22 September. The fixture predates the rename, so it is
+    rewritten into the new shape here and must yield exactly what the old shape did."""
+    from tci.collectors.computable_sources import LATITUDE_KEY_RENAMES, _fetch_latitude
+    from tci.vendor.computable.sources import latitude as latitude_module
+
+    def rows(fetch: object) -> list[tuple]:
+        monkeypatch.setattr(latitude_module, "fetch", fetch)
+        return sorted(
+            (o["sku_identifier"], o["region"], o["tier"], o["currency"],
+             o["price_native_per_gpu_hr"])
+            for o in _fetch_latitude(timeout=5.0)["observations"]
+        )
+
+    def camel_case_fetch(url: str, *a: object, **k: object) -> str:
+        body = _fake_fetch(url)
+        for camel, snake in LATITUDE_KEY_RENAMES.items():
+            body = body.replace(f'"{snake}', f'"{camel}')
+        return body
+
+    camel_page = camel_case_fetch(latitude_module.URL)
+    assert "vramPerGpu" in camel_page and "vram_per_gpu" not in camel_page
+    with pytest.raises(RuntimeError, match="gpu spec"):  # the failure seen live
+        latitude_module.parse_latitude(camel_page)
+
+    before = rows(_fake_fetch)
+    assert before and rows(camel_case_fetch) == before
+
+
 def test_display_currency_duplicates_are_dropped(collected: dict[str, list]) -> None:
     assert all(json.loads(o.raw_json)["currency"] in ("USD", "EUR")
                for rows in collected.values() for o in rows)

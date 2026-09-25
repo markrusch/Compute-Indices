@@ -32,6 +32,7 @@ from __future__ import annotations
 import importlib
 import json
 import logging
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from types import ModuleType
@@ -258,6 +259,36 @@ def _latitude_country(obs: dict[str, Any]) -> str | None:
     return _LATITUDE_COUNTRY.get(str(obs.get("region") or ""))
 
 
+# Latitude renamed the keys of the plan data embedded in its pricing page from snake_case
+# to camelCase between the 21 and 22 September 2026 sessions ("vram_per_gpu" became
+# "vramPerGpu", and so on). The vendored recipe matches the old names and has raised on
+# every session since: "plan g3-h100-small has a non-empty gpu spec the parser cannot
+# read". Upstream (getcomputable/gpu-index at 528b639, read 2026-09-25) has not changed
+# its parser, and the vendored copy stays byte-identical to it, so the names are mapped
+# back here, before either parser sees the page. Checked against the live page on
+# 2026-09-25: after the mapping it yields the same 18 USD rows at the same prices as the
+# last good session (21 September). Only these five keys are renamed; a sixth renamed
+# key the parsers depend on would still raise, which is the point of their fences.
+LATITUDE_KEY_RENAMES = {
+    "vramPerGpu": "vram_per_gpu",
+    "deploysInstantly": "deploys_instantly",
+    "inStock": "in_stock",
+    "stockLevel": "stock_level",
+    "availableOperatingSystems": "available_operating_systems",
+}
+
+
+_LATITUDE_KEY_RE = re.compile(
+    r'"(' + "|".join(LATITUDE_KEY_RENAMES) + r')(?=\\?")'
+)
+
+
+def _latitude_snake_case(html: str) -> str:
+    # Anchored on both quotes, so a key is renamed only where it is a whole key: plain
+    # "key" in JSON, or \"key\" in the page's escaped flight data.
+    return _LATITUDE_KEY_RE.sub(lambda m: '"' + LATITUDE_KEY_RENAMES[m.group(1)], html)
+
+
 def _fetch_latitude(timeout: float) -> dict[str, Any]:
     """One fetch of latitude.sh/pricing, read twice: once by the unmodified vendored
     recipe (hour + month), once by TCI's own reading of the same body for the year field
@@ -278,7 +309,7 @@ def _fetch_latitude(timeout: float) -> dict[str, Any]:
     from tci.collectors.latitude_annual import parse_prepaid_annual
     from tci.vendor.computable.sources import latitude as latitude_module
 
-    html = latitude_module.fetch(latitude_module.URL, timeout=timeout)
+    html = _latitude_snake_case(latitude_module.fetch(latitude_module.URL, timeout=timeout))
     rows, partial_errors = latitude_module.parse_latitude(html)
     try:
         annual_rows, annual_errors = parse_prepaid_annual(html)
