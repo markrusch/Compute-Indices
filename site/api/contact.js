@@ -22,6 +22,17 @@
 //                      above is used, which only delivers to the address the Resend account
 //                      is registered under: moving the form to a different inbox without a
 //                      verified domain means re-registering Resend under that inbox.
+//   CONTACT_ACK_FROM   the sender of the automatic confirmation to the visitor, e.g.
+//                      "The Compute Indices <contact@thecomputeindices.com>". Unset, no
+//                      confirmation is sent. Needs a verified domain: the sandbox sender
+//                      cannot deliver to a stranger's address.
+//
+// THE CONFIRMATION CARRIES NOTHING THE VISITOR TYPED. A form that emails any address
+// entered into it, repeating the name or message back, is a free relay: a bot enters a
+// victim's address and a spam link as the "name", and this domain delivers the spam with
+// its own reputation. So the confirmation is fixed text, sent only after the owner's copy
+// was accepted, marked Auto-Submitted (RFC 3834) so autoresponders on the other end do
+// not answer it, and a failure to send it never turns a delivered message into #error.
 //
 // No dependencies: Vercel's Node runtime ships a global fetch and parses a plain HTML
 // form's application/x-www-form-urlencoded body into req.body for free.
@@ -34,6 +45,45 @@
 function redirect(res, path) {
   res.writeHead(302, { Location: path });
   res.end();
+}
+
+// Fixed text only -- see "THE CONFIRMATION CARRIES NOTHING THE VISITOR TYPED" above.
+const ACK_SUBJECT = "Your message reached The Compute Indices";
+const ACK_TEXT = [
+  "Hello,",
+  "",
+  "Thanks for getting in touch. Your message has arrived, and I read every one myself.",
+  "You can usually expect an answer within a few working days.",
+  "",
+  "This confirmation is sent automatically. If you want to add something, just reply to",
+  "it and your reply will reach me.",
+  "",
+  "Mark Rusch",
+  "The Compute Indices",
+  "https://thecomputeindices.com",
+].join("\n");
+
+// Loose on purpose: it only has to stop obvious garbage and header-injection attempts
+// (angle brackets, whitespace, commas) from becoming a recipient. Resend validates too.
+const PLAUSIBLE_EMAIL = /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/;
+
+async function sendAck(apiKey, from, to) {
+  if (!from || !PLAUSIBLE_EMAIL.test(to) || to.length > 254) return;
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from,
+        to: [to],
+        subject: ACK_SUBJECT,
+        text: ACK_TEXT,
+        headers: { "Auto-Submitted": "auto-replied" },
+      }),
+    });
+  } catch (err) {
+    // The owner's copy is already delivered; a lost confirmation is not an error to the visitor.
+  }
 }
 
 module.exports = async (req, res) => {
@@ -89,5 +139,6 @@ module.exports = async (req, res) => {
     return;
   }
 
+  await sendAck(apiKey, process.env.CONTACT_ACK_FROM, email);
   redirect(res, "/contact.html#sent");
 };
