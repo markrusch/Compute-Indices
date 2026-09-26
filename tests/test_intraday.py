@@ -653,7 +653,7 @@ def test_the_page_and_data_files_are_built(tmp_path: Path) -> None:
     rows = (tmp_path / "out" / "path.csv").read_text().splitlines()
     assert rows[0].startswith("at_utc,origin,series,value_usd")
     assert any(",insufficient_sources," in r for r in rows)
-    latest = json.loads(files[1].read_text())
+    latest = json.loads(next(f for f in files if f.name == "latest.json").read_text())
     assert latest["latest"]["values"]["EU-CRI-H100"]["value_usd"] is not None
 
     html = intraday_page.render(site.build_context(conn), built)
@@ -728,3 +728,66 @@ def test_an_incomplete_read_never_stands_in_for_a_complete_one(tmp_path: Path) -
     assert read.status == "failed" and "incomplete read, 1 rows" in (read.error or "")
     state = intraday.source_states(store, None, cfg, T0 + timedelta(hours=1))
     assert state["azure_retail"].rate_limited
+
+
+# --- constituent lines ---------------------------------------------------------------------
+
+
+@pytest.mark.usefixtures("unpanelled")
+def test_each_value_records_the_constituents_it_included(tmp_path: Path) -> None:
+    store = _panel_store(tmp_path, [[2.0, 2.2, 2.4, 2.6, 2.8], [2.0, 2.2]])
+    snaps = intraday.path(store, None, _cfg(), T0 - timedelta(hours=1),
+                          T0 + timedelta(hours=3))
+    first = dict((p, v) for p, v, _w in snaps[0].constituents["EU-CRI-H100"])
+    assert first == {"prov0": 2.0, "prov1": 2.2, "prov2": 2.4, "prov3": 2.6, "prov4": 2.8}
+    # Two providers are below the gate: the value gaps, and so do its constituents.
+    assert snaps[1].values["EU-CRI-H100"][0] is None
+    assert "EU-CRI-H100" not in snaps[1].constituents
+
+
+def _snap_with(at: datetime, cons: tuple[tuple[str, float, float], ...]) -> intraday.Snapshot:
+    return intraday.Snapshot(at=at, origin="intraday",
+                             values={"EU-CRI-H100": (3.0, None, len(cons), "")},
+                             ages={}, missing=(), constituents={"EU-CRI-H100": cons})
+
+
+def test_current_constituents_take_the_colours_before_retired_ones() -> None:
+    """datacrunch left the panel on 22 September; it must not take a slot from Verda."""
+    from tci.outputs import intraday_page
+
+    # Eight constituents in the latest read, as on 26 September; the retired name only in
+    # an earlier one. Alphabetically "datacrunch" would come first and take slot 1.
+    old = tuple((f"p{i}", 3.0, 10.0) for i in range(7)) + (("datacrunch", 3.25, 10.0),)
+    new = tuple((f"p{i}", 3.0, 10.0) for i in range(7)) + (("verda", 3.48, 10.0),)
+    built = intraday_page.Built(
+        now=T0 + timedelta(days=2), cfg=_cfg(),
+        snapshots=[_snap_with(T0, old), _snap_with(T0 + timedelta(days=1), new)],
+        settlements={}, fixings={})
+    palette = dict(intraday_page._palette(built, "EU-CRI-H100", T0 - timedelta(hours=1)))
+    assert palette["verda"].startswith("var(--series-")
+    assert palette["datacrunch"] == "var(--chart-deemph)"
+    assert len({c for c in palette.values() if c.startswith("var(--series-")}) == 8
+
+
+@pytest.mark.usefixtures("unpanelled")
+def test_the_page_can_switch_constituent_lines_off(tmp_path: Path) -> None:
+    from tci.outputs import intraday_page, site
+
+    hours = [[2.0 + h / 100, 2.2, 2.4, 2.6, 2.8] for h in range(10)]
+    store = _panel_store(tmp_path / "store", hours)
+    conn = db.connect_readonly(REPO_ROOT / "data" / "eucri.db")
+    built = intraday_page.build(conn, store, _cfg(), now=T0 + timedelta(hours=10))
+    html = intraday_page.render(site.build_context(conn), built)
+    body = html.split("</style>", 1)[1]
+    # One switch, on by default, and every chart in both states so switching off also
+    # gives back the axis drawn for the index alone.
+    assert body.count('id="cons-toggle"') == 1 and 'id="cons-toggle" checked' in body
+    assert body.count('class="cons-on"') >= 2 and body.count('class="cons-off"') >= 2
+    assert 'class="ch-con"' in body and "<title>prov0</title>" in body
+    off = body.split('class="cons-off"', 1)[1].split('class="cons-on"', 1)[0]
+    assert 'class="ch-con"' not in off
+    assert "localStorage" in body  # the choice is remembered between visits
+    files = intraday_page.write_data(built, tmp_path / "out")
+    rows = next(f for f in files if f.name == "constituents.csv").read_text().splitlines()
+    assert rows[0] == "at_utc,origin,series,provider,price_usd,weight_pct"
+    assert any(",EU-CRI-H100,prov0,2.0," in r for r in rows)

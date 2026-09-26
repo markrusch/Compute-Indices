@@ -973,6 +973,12 @@ class Snapshot:
     values: dict[str, tuple[float | None, float | None, int, str]]  # series -> usd, eur, n, flags
     ages: dict[str, int]  # source -> minutes since its read
     missing: tuple[str, ...]  # configured sources with no read inside max_age
+    # series -> ((provider, price_usd, weight_pct), ...) for the constituents INCLUDED in
+    # that value: the per-provider price the published audit table shows, so a line drawn
+    # from it is the constituent as the index saw it. Empty when the value gapped, because
+    # nothing was included: a gap stays a gap for the constituents too.
+    constituents: dict[str, tuple[tuple[str, float, float], ...]] = field(
+        default_factory=dict)
 
 
 def state_at(reads: Sequence[Read], t: datetime, cfg: IntradayConfig) -> dict[str, Read]:
@@ -1044,6 +1050,7 @@ def compute_snapshot(state: dict[str, Read], t: datetime, origin: str,
     normalised = normalise_observations(rows, factors, fx_eur_usd=fx[0] if fx else None)
     definitions = print_definitions(factors, sovereign, {o.model_class for o in normalised})
     values: dict[str, tuple[float | None, float | None, int, str]] = {}
+    constituents: dict[str, tuple[tuple[str, float, float], ...]] = {}
     for series in cfg.series:
         if series not in definitions:
             # The fixing does not compute a class series on a day with no offer in the
@@ -1054,8 +1061,11 @@ def compute_snapshot(state: dict[str, Read], t: datetime, origin: str,
         p = compute_print(date, series, [o for o in normalised if predicate(o)], factors,
                           fx, population=population)
         values[series] = (p.value_usd, p.value_eur, p.n_sources, p.flags)
+        if p.value_usd is not None:
+            constituents[series] = tuple(
+                (c.provider, c.price_usd, c.weight) for c in p.constituents if c.included)
     return Snapshot(
-        at=t, origin=origin, values=values,
+        at=t, origin=origin, values=values, constituents=constituents,
         ages={s: int((t - r.at).total_seconds() // 60) for s, r in sorted(state.items())},
         missing=tuple(sorted(set(cfg.sources) - set(state))),
     )

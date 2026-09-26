@@ -1577,6 +1577,30 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
    path itself is broken into segments so no stroke crosses a missing print. */
 .ch-gapmark { fill: none; stroke: var(--chart-deemph); stroke-width: 1; }
 
+/* ---- CONSTITUENT LINES (intraday.html, CSS-only) ------------------------ */
+/* Each constituent behind the index in its categorical colour, thinner and quieter than
+   the index line, which stays the one 2px greyscale stroke on the chart. Every chart is
+   rendered twice, with and without them, because the axis has to widen to hold them:
+   switching them off gives back the scale drawn for the index alone. The switch swaps
+   the two with :has(); a browser without it shows the lines and the switch is inert. */
+.ch-con { fill: none; stroke-width: 1.25; stroke-linejoin: round; stroke-linecap: round;
+          opacity: 0.7; }
+.cons-off { display: none; }
+main:has(#cons-toggle:not(:checked)) .cons-on { display: none; }
+main:has(#cons-toggle:not(:checked)) .cons-off { display: block; }
+.cons-switch { display: inline-flex; align-items: center; gap: var(--space-3);
+               cursor: pointer; color: var(--ink-2); }
+.cons-switch input { inline-size: 16px; block-size: 16px; margin: 0;
+                     accent-color: var(--ink-2); cursor: pointer; }
+.cons-switch input:focus-visible { outline: var(--focus-width) solid var(--focus-ring);
+                                   outline-offset: 2px; }
+.cons-legend { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid;
+               grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+               gap: var(--space-2) var(--space-6); font-size: var(--text-sm); }
+.cons-legend__i { display: grid; grid-template-columns: 18px 1fr; align-items: center;
+                  column-gap: var(--space-3); color: var(--ink-2); }
+.cons-legend__d { grid-column: 2; color: var(--ink-3); font-size: var(--text-xs); }
+
 /* ---- CURRENCY TOGGLE (CSS-only) ----------------------------------------- */
 /* Both figures are in the markup, so the value is present with scripting off.
    USD is the default render; :has() swaps which one is visible. A browser

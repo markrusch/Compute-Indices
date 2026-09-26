@@ -105,6 +105,15 @@ def write_data(built: Built, out_dir: Path | None = None) -> list[Path]:
             for series, (usd, eur, n, flags) in s.values.items():
                 w.writerow([intraday._iso(s.at), s.origin, series, usd, eur, n, flags,
                             " ".join(s.missing)])
+    cons_csv = out / "constituents.csv"
+    with open(cons_csv, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f, lineterminator="\n")
+        w.writerow(["at_utc", "origin", "series", "provider", "price_usd", "weight_pct"])
+        for sn in built.snapshots:
+            for series, rows in sorted(sn.constituents.items()):
+                for provider, price, weight in rows:
+                    w.writerow([intraday._iso(sn.at), sn.origin, series, provider, price,
+                                weight])
     latest = built.snapshots[-1] if built.snapshots else None
     doc: dict[str, Any] = {
         "generated_utc": intraday._iso(built.now),
@@ -120,6 +129,10 @@ def write_data(built: Built, out_dir: Path | None = None) -> list[Path]:
             "values": {k: {"value_usd": v[0], "value_eur": v[1], "n_sources": v[2],
                            "flags": v[3]} for k, v in latest.values.items()},
             "source_age_minutes": latest.ages, "sources_missing": list(latest.missing),
+            "constituents": {
+                series: [{"provider": p, "price_usd": v, "weight_pct": w} for p, v, w in rows]
+                for series, rows in sorted(latest.constituents.items())
+            },
         },
         "sources": {
             name: {
@@ -141,7 +154,7 @@ def write_data(built: Built, out_dir: Path | None = None) -> list[Path]:
     }
     latest_json = out / "latest.json"
     latest_json.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n", encoding="utf-8")
-    return [path_csv, latest_json]
+    return [path_csv, cons_csv, latest_json]
 
 
 def build_and_write(conn: sqlite3.Connection) -> list[Path]:
@@ -171,7 +184,7 @@ def render(ctx: Any, built: Built | None = None) -> str:
                      "could not be built from the stored reads on this run. The index and "
                      "every other page are unaffected.</p></div>")
     return s._shell(ctx, title=f"Intraday — {s.BRAND}", description=DESCRIPTION,
-                    current="intraday.html", body=body)
+                    current="intraday.html", body=body, extra_js=CONS_JS)
 
 
 def _hhmm(t: datetime) -> str:
@@ -182,16 +195,46 @@ def _when(s: Any, t: datetime) -> str:
     return f"{s._human_date(t.strftime('%Y-%m-%d'))}, {_hhmm(t)} UTC"
 
 
+Cons = list[tuple[str, str, list[tuple[datetime, float | None]]]]  # provider, colour, points
+
+
+def _segments(pts: list[tuple[datetime, float | None]], x: Any, y: Any
+              ) -> list[list[tuple[float, float]]]:
+    """Runs of consecutive values, broken at a gap or a missed sweep. Never bridged."""
+    segments: list[list[tuple[float, float]]] = []
+    run: list[tuple[float, float]] = []
+    prev_t: datetime | None = None
+    for at, v in pts:
+        broken = v is None or (
+            prev_t is not None and (at - prev_t) > timedelta(hours=MAX_JOIN_HOURS))
+        if broken and run:
+            segments.append(run)
+            run = []
+        if v is not None:
+            run.append((x(at), y(v)))
+        prev_t = at
+    if run:
+        segments.append(run)
+    return segments
+
+
 def _time_chart(s: Any, pts: list[tuple[datetime, float | None]],
                 fixings: list[tuple[datetime, float]], start: datetime, end: datetime,
-                *, symbol: str, focusable: bool) -> str:
+                *, symbol: str, focusable: bool, cons: Cons | None = None) -> str:
     """Values against real time. Straight segments, broken at a gap or a missed sweep.
 
     Straight rather than smoothed: between two hourly reads nothing was observed, and a
     curve would draw a price path nobody quoted. Fixings are squares, the reconstruction is
     a line with round markers only at its end, so the two are told apart by shape.
+
+    `cons` draws each constituent behind the index: thin, in its categorical colour, broken
+    wherever it was not in the index. The axis widens to hold them, which is why the page
+    renders every chart twice and the constituent switch picks one, rather than laying the
+    lines over a scale drawn for the index alone.
     """
-    vals = [v for _, v in pts if v is not None] + [v for _, v in fixings]
+    cons = cons or []
+    vals = ([v for _, v in pts if v is not None] + [v for _, v in fixings]
+            + [v for _, _, cp in cons for _, v in cp if v is not None])
     if not vals:
         return ('<div class="gapnote">' + s._icon("warn", 14) + f"<p>No reconstructed value "
                 f"for <strong>{s._e(symbol)}</strong> in this window. Every read in it gapped "
@@ -214,21 +257,18 @@ def _time_chart(s: Any, pts: list[tuple[datetime, float | None]],
         ticks.append(f'<text class="ch-tick" x="826" y="{gy + 4}">${t:,.2f}</text>')
         t += step
 
-    segments: list[list[tuple[float, float]]] = []
-    run: list[tuple[float, float]] = []
-    prev_t: datetime | None = None
-    for at, v in pts:
-        broken = v is None or (
-            prev_t is not None and (at - prev_t) > timedelta(hours=MAX_JOIN_HOURS))
-        if broken and run:
-            segments.append(run)
-            run = []
-        if v is not None:
-            run.append((x(at), y(v)))
-        prev_t = at
-    if run:
-        segments.append(run)
-    paths = "".join(
+    segments = _segments(pts, x, y)
+    behind = []
+    for provider, colour, cpts in cons:
+        for seg in _segments(cpts, x, y):
+            if len(seg) == 1:
+                behind.append(f'<circle class="ch-con-dot" cx="{seg[0][0]}" cy="{seg[0][1]}"'
+                              f' r="2" fill="{colour}"><title>{s._e(provider)}</title></circle>')
+            else:
+                d = "M" + " L".join(f"{a} {b}" for a, b in seg)
+                behind.append(f'<path class="ch-con" stroke="{colour}" d="{d}">'
+                              f"<title>{s._e(provider)}</title></path>")
+    paths = "".join(behind) + "".join(
         f'<path class="ch-line" pathLength="1" d="M{" L".join(f"{a} {b}" for a, b in seg)}"/>'
         for seg in segments if len(seg) > 1
     )
@@ -302,6 +342,110 @@ def _time_chart(s: Any, pts: list[tuple[datetime, float | None]],
     )
 
 
+# --- constituents ------------------------------------------------------------------------
+
+CONS_SLOTS = 8  # DESIGN.md §3 / tokens.css §6c: eight categorical slots, never cycled
+
+# Remembers the switch between visits. The page renders both states either way, so with
+# scripting off or storage refused the switch still works; it just starts on each time.
+CONS_JS = """(function(){var k='tci-intraday-constituents',c=document.getElementById('cons-toggle');
+if(!c)return;try{if(localStorage.getItem(k)==='0')c.checked=false;}catch(e){}
+c.addEventListener('change',function(){try{localStorage.setItem(k,c.checked?'1':'0');}catch(e){}});})();"""
+
+
+def _palette(built: Built, series: str, since: datetime) -> list[tuple[str, str]]:
+    """(provider, colour) for every constituent of `series` in the window.
+
+    The constituents of the latest read that has any take the slots first, alphabetically;
+    providers seen only earlier in the window follow. Without that, a name that has since
+    left the panel (datacrunch, before Verda replaced it on 22 September) took slot 1 and
+    pushed a current constituent into grey. The order is fixed for the whole page, so a
+    provider keeps its colour in the 24-hour and the 7-day chart and does not repaint when
+    another drops out. Past the eighth there is no slot: the rest share the context grey
+    and are named as such in the legend.
+    """
+    window = [sn for sn in built.snapshots if sn.at >= since]
+    current = next((sn.constituents[series] for sn in reversed(window)
+                    if sn.constituents.get(series)), ())
+    now_names = sorted({p for p, _v, _w in current})
+    earlier = sorted({p for sn in window for p, _v, _w in sn.constituents.get(series, ())}
+                     - set(now_names))
+    names = now_names + earlier
+    return [(n, f"var(--series-{i + 1})" if i < CONS_SLOTS else "var(--chart-deemph)")
+            for i, n in enumerate(names)]
+
+
+def _cons(built: Built, series: str, since: datetime, palette: list[tuple[str, str]]
+          ) -> Cons:
+    snaps = [sn for sn in built.snapshots if sn.at >= since and series in sn.values]
+    out: Cons = []
+    for provider, colour in palette:
+        pts: list[tuple[datetime, float | None]] = []
+        for sn in snaps:
+            price = next((v for p, v, _w in sn.constituents.get(series, ()) if p == provider),
+                         None)
+            pts.append((sn.at, price))
+        out.append((provider, colour, pts))
+    return out
+
+
+def _cons_legend(s: Any, cons: Cons, since: datetime) -> str:
+    """Swatch beside the name (text never wears the series colour), then the latest price
+    and its move since the first value inside `since`."""
+    items = []
+    for provider, colour, pts in cons:
+        vals = [(t, v) for t, v in pts if v is not None and t >= since]
+        swatch = (f'<svg width="18" height="8" aria-hidden="true"><line x1="1" y1="4" x2="17"'
+                  f' y2="4" stroke="{colour}" stroke-width="2" stroke-linecap="round"/></svg>')
+        if not vals:
+            detail = "not in the index in the last 24 hours"
+            items.append(f'<li class="cons-legend__i">{swatch}<span class="cons-legend__n">'
+                         f'{s._e(provider)}{_grey(colour)}</span><span class="cons-legend__d u">'
+                         f"{detail}</span></li>")
+            continue
+        else:
+            first, last = vals[0][1], vals[-1][1]
+            move = last - first
+            sign = "+" if move >= 0 else "&#8722;"
+            pct = f" ({sign}{s._num(abs(move) / first * 100)}%)" if first else ""
+            detail = (f'${s._num(last)} &#183; 24h {sign}${s._num(abs(move))}{pct}')
+        items.append(f'<li class="cons-legend__i">{swatch}<span class="cons-legend__n">'
+                     f'{s._e(provider)}{_grey(colour)}</span>'
+                     f'<span class="cons-legend__d num">{detail}</span></li>')
+    return f'<ul class="cons-legend">{"".join(items)}</ul>'
+
+
+def _grey(colour: str) -> str:
+    return " (grey: no colour slot left)" if colour == "var(--chart-deemph)" else ""
+
+
+def _pair(with_cons: str, without: str) -> str:
+    """Both renders in the markup; the switch shows one (see site.css, CONSTITUENT LINES)."""
+    return f'<div class="cons-on">{with_cons}</div><div class="cons-off">{without}</div>'
+
+
+def _switch() -> str:
+    return ('<label class="cons-switch"><input type="checkbox" id="cons-toggle" checked>'
+            '<span>Constituent lines</span></label>')
+
+
+def _cons_table(s: Any, built: Built, series: str, since: datetime,
+                palette: list[tuple[str, str]]) -> str:
+    providers = [p for p, _c in palette]
+    if not providers:
+        return ""
+    rows = []
+    for sn in reversed([x for x in built.snapshots if x.at >= since]):
+        prices = {p: v for p, v, _w in sn.constituents.get(series, ())}
+        rows.append([f'<th scope="row">{s._e(_when(s, sn.at))}</th>']
+                    + [_num_cell(s, prices.get(p)) for p in providers])
+    table = _table([("Read", False)] + [(s._e(p), True) for p in providers], rows,
+                   "Each constituent's price at every read, last 24 hours")
+    return ('<details class="tableview"><summary>Constituents at each read</summary>'
+            f"{table}</details>")
+
+
+
 def _legend() -> str:
     line = ('<svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4"'
             ' stroke="var(--chart-line)" stroke-width="2" stroke-linecap="round"/></svg>')
@@ -338,7 +482,9 @@ def _num_cell(s: Any, v: float | None, dp: int = 2) -> str:
 def _page(s: Any, status: str, inner: str, links: bool = False) -> str:
     meta_links = ('<span><a href="data/intraday/latest.json">latest.json</a></span>'
                   '<span><a href="data/intraday/path.csv">path.csv</a></span>'
+                  '<span><a href="data/intraday/constituents.csv">constituents.csv</a></span>'
                   if links else "")
+    switch = _switch() if links else ""
     return f"""<main class="wrap" id="main">
   <div class="pagehead">
     <div class="eyebrow">Intraday</div>
@@ -349,7 +495,7 @@ def _page(s: Any, status: str, inner: str, links: bool = False) -> str:
     methodology version, replayed over reads taken through the day. It is research beside
     the index: it is not a print, it is never stored as one, and it is not a reference price
     for any financial instrument.</p>
-    <div class="pagehead__meta"><span>{status}</span>{meta_links}</div>
+    <div class="pagehead__meta"><span>{status}</span>{meta_links}{switch}</div>
   </div>
   {inner}
 </main>"""
@@ -372,19 +518,33 @@ def _body(s: Any, built: Built) -> str:
     day_start = now - timedelta(hours=24)
     week_start = now - timedelta(days=CHART_DAYS)
     fix = built.fixings.get(head, [])
+    palette = _palette(built, head, week_start)
+    day_pts = _series_points(built, head, day_start)
+    week_pts = _series_points(built, head, week_start)
+
+    def pair(pts: list[tuple[datetime, float | None]], since: datetime,
+             focusable: bool) -> str:
+        return _pair(
+            _time_chart(s, pts, fix, since, now, symbol=sym, focusable=focusable,
+                        cons=_cons(built, head, since, palette)),
+            _time_chart(s, pts, fix, since, now, symbol=sym, focusable=focusable))
+
+    legend = _cons_legend(s, _cons(built, head, week_start, palette), day_start)
     charts = (
         '<div class="card"><div class="card__body">'
         '<h3 class="section__h">Last 24 hours</h3>'
-        + _time_chart(s, _series_points(built, head, day_start), fix, day_start, now,
-                      symbol=sym, focusable=True)
+        + pair(day_pts, day_start, True)
         + f'<h3 class="section__h" style="margin-top:var(--space-5)">Last {CHART_DAYS} days</h3>'
-        + _time_chart(s, _series_points(built, head, week_start), fix, week_start, now,
-                      symbol=sym, focusable=False)
-        + _legend() + _table_view(s, built, head, day_start) + "</div></div>"
+        + pair(week_pts, week_start, False)
+        + _legend() + f'<div class="cons-on">{legend}</div>'
+        + _table_view(s, built, head, day_start)
+        + _cons_table(s, built, head, day_start, palette) + "</div></div>"
     )
     main = _section("s-path", f"{s._e(sym)} through the day",
-                    "USD per GPU-hour, times in UTC. A break in the line is a read that gapped "
-                    "or a sweep that did not run; nothing is drawn across it.", charts)
+                    "USD per GPU-hour, times in UTC. A break in a line is a read that gapped, "
+                    "a sweep that did not run, or for a constituent a read it was not part of; "
+                    "nothing is drawn across it. Each constituent is drawn at its own price in "
+                    "the index at that read.", charts)
 
     others = []
     for series in cfg.series[1:]:
@@ -392,10 +552,16 @@ def _body(s: Any, built: Built) -> str:
         if not any(v is not None for _, v in pts):
             continue
         name = s.display_series(series)
+        fam_palette = _palette(built, series, week_start)
+        fam_fix = built.fixings.get(series, [])
+        chart = _pair(
+            _time_chart(s, pts, fam_fix, week_start, now, symbol=name, focusable=False,
+                        cons=_cons(built, series, week_start, fam_palette)),
+            _time_chart(s, pts, fam_fix, week_start, now, symbol=name, focusable=False))
+        fam_legend = _cons_legend(s, _cons(built, series, week_start, fam_palette), day_start)
         others.append(
             f'<div class="card"><div class="card__body"><h3 class="section__h">{s._e(name)}'
-            "</h3>" + _time_chart(s, pts, built.fixings.get(series, []), week_start, now,
-                                  symbol=name, focusable=False) + "</div></div>")
+            f'</h3>{chart}<div class="cons-on">{fam_legend}</div></div></div>')
     other = _section("s-family", f"The rest of the family, last {CHART_DAYS} days",
                      "Only series with at least one value in the window are drawn. A series "
                      "that gapped at every read is left out rather than drawn flat.",
