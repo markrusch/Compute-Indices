@@ -32,6 +32,9 @@ python -m tci.run sources [--due|--status S|--block B]   # source register + reg
 python -m tci.run intake [--date D] [--backfill]   # collected-to-print funnel, per rule
 python -m tci.run reproduce [--date D] [--published]    # recompute stored prints, check digests
 python -m tci.run contrib validate|ingest|aggregate    # contributed term prices (private store)
+python -m tci.run intraday sweep [--force] [--source S]   # read the sources that are due
+python -m tci.run intraday path|settle [--date D] [--series S]   # replayed index, window mean
+python -m tci.run intraday build|verify        # site/intraday.html + data; check the store
 
 pytest                                         # 289 tests
 pytest tests/test_site.py::test_pages_are_self_contained -q    # a single test
@@ -69,6 +72,16 @@ One direction, and each stage earns its place:
   `config/regions.yaml` (region blocks; one published, eight shadow) and reports coverage
   against them. Neither file is hash-locked. The monthly process that maintains them is
   `.claude/skills/source-discovery/`.
+
+- **`intraday.py`** is beside the pipeline, not in it. The hourly `intraday.yml` workflow
+  reads each source at the cadence in `config/intraday.yaml` and appends to
+  `data/intraday/YYYY-MM-DD.jsonl`, append-only and hash-verified on every read. The
+  index is then replayed at each read through `commands.print_definitions` →
+  `normalise` → `compute_print`, so the replay and the fixing cannot drift apart.
+  `outputs/intraday_page.py` renders `site/intraday.html`. Never store an intraday read
+  in `observations`: `_observations_for_date` takes every row dated that day, so it
+  would enter the 11:00 print without a version. The hourly job opens `eucri.db`
+  read-only and never commits it.
 
 ### Two naming systems, deliberately
 

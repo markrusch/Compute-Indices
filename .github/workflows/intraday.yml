@@ -1,0 +1,101 @@
+name: intraday
+
+# Hourly reads beside the 11:00 fixing. Research only: this job appends to data/intraday/
+# and rewrites site/intraday.html and site/data/intraday/. It opens data/eucri.db
+# read-only and never commits it, so nothing here can move a print. What is read when is
+# config/intraday.yaml; the conduct for it is in SOURCES.md.
+#
+# :17 rather than :00. Scheduled Actions at the top of the hour are the ones GitHub delays
+# or drops under load, and the daily job already owns 11:00.
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Read every source now, due or not"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: intraday-run      # one writer to data/intraday/ at a time; append-only needs it
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install -e .
+      - name: Sweep the sources that are due
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          ARGS=()
+          if [ "$FORCE" = "true" ]; then ARGS=(--force); fi
+          python -m tci.run intraday sweep "${ARGS[@]}"
+      - name: Verify the store
+        run: python -m tci.run intraday verify
+      - name: Build the intraday page and data
+        run: python -m tci.run intraday build
+
+      # Runs after a failed sweep too: a sweep in which every source failed is still a
+      # record of an hour in which nothing could be read, and it is appended like any other.
+      #
+      # The push race is handled without merging anything. This job is the only writer to
+      # data/intraday/, and its files only ever grow, so on a rejected push the store is set
+      # aside, the checkout is reset to the new main, and each saved file is put back only
+      # after checking that main's copy is a prefix of it. The page is then rebuilt against
+      # whatever main now holds. The daily job regenerates site/intraday.html too, which is
+      # why that file is rebuilt rather than rebased.
+      - name: Commit the reads and the page
+        if: success() || failure()
+        run: |
+          git config user.name "tci-bot"
+          git config user.email "rusch.mh@gmail.com"
+          SAVE="$RUNNER_TEMP/intraday-store"
+          for attempt in 1 2 3; do
+            git add data/intraday site/intraday.html site/data/intraday
+            if git diff --cached --quiet; then
+              echo "nothing to commit"
+              break
+            fi
+            git commit -m "intraday: $(date -u +'%F %H:%M') UTC"
+            if git push origin main; then
+              break
+            fi
+            echo "::warning::push rejected on attempt ${attempt}/3; main advanced, replaying onto it"
+            rm -rf "$SAVE"
+            cp -r data/intraday "$SAVE"
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p data/intraday
+            for f in "$SAVE"/*.jsonl; do
+              [ -e "$f" ] || continue
+              dest="data/intraday/$(basename "$f")"
+              if [ -f "$dest" ]; then
+                size=$(stat -c%s "$dest")
+                if ! cmp -s -n "$size" "$dest" "$f"; then
+                  echo "::error::$dest on main is not a prefix of this run's copy; refusing to overwrite"
+                  exit 1
+                fi
+              fi
+              cp "$f" "$dest"
+            done
+            if [ "$attempt" = "3" ]; then
+              echo "::error::still losing the race after 3 attempts; this hour's reads are not committed"
+              exit 1
+            else
+              python -m tci.run intraday build
+            fi
+          done

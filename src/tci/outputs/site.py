@@ -763,6 +763,7 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
       <nav class="footer__nav" aria-label="Footer, product">
         <h4>Product</h4>
         <a href="{prefix}index.html">Indices</a>
+        <a href="{prefix}intraday.html">Intraday</a>
         <a href="{prefix}methodology.html">Methodology v{_e(ctx.version)}</a>
         <a href="{prefix}governance.html">Governance</a>
         <a href="{prefix}notices.html">Methodology notices</a>
@@ -775,6 +776,7 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <a href="{prefix}data.html">Downloads &amp; terms</a>
         <a href="{prefix}data/index_history.csv">index_history.csv</a>
         <a href="{prefix}data/latest.json">latest.json</a>
+        <a href="{prefix}data/intraday/path.csv">intraday/path.csv</a>
       </nav>
       <nav class="footer__nav" aria-label="Footer, company">
         <h4>Company</h4>
@@ -1555,7 +1557,8 @@ def _chart_card(ctx: SiteContext) -> str:
     {line_chart(points, symbol=display_series(HEADLINE))}
     <p class="ledger__d" style="margin-top:var(--space-4)">A gapped session is drawn as a
     hairline tick on the baseline and the line breaks across it. Nothing is interpolated:
-    the index publishes a gap rather than a value it cannot defend.</p>
+    the index publishes a gap rather than a value it cannot defend.
+    <a href="intraday.html">The same calculation, replayed at every hourly read</a>.</p>
     <details class="tableview"><summary>Table view &#8212; {WINDOW_DAYS} sessions</summary>
       <div class="tableview__scroll"><table><caption class="vh">Every session in the window,
       published or gapped</caption><thead><tr><th scope="col">Session</th>
@@ -3766,6 +3769,13 @@ def _forward(ctx: SiteContext) -> str:
     return forward_page.render(ctx)
 
 
+def _intraday(ctx: SiteContext) -> str:
+    # Research beside the index, like forward.html: its own module, its own failure page.
+    from tci.outputs import intraday_page
+
+    return intraday_page.render(ctx)
+
+
 def _term(ctx: SiteContext) -> str:
     # Research beside the index: if the table cannot be built, the page says so and the
     # rest of the site is still generated.
@@ -4271,14 +4281,15 @@ def _write_feed(ctx: SiteContext, notes: list[Note]) -> Path:
     return path
 
 
-def generate(conn: sqlite3.Connection) -> list[Path]:
-    """Render every page into site/. Returns the paths written, newest content first."""
+def build_context(conn: sqlite3.Connection) -> SiteContext:
+    """The build context every page renders from. Also used by the hourly intraday build,
+    which renders one page and must render it exactly as the full build would."""
     # The version live today, not the head of the succession (which may be announced and
     # not yet in effect). Pages that describe announced versions read the succession.
     factors = load_factors(for_date=utc_now_iso()[:10])
     head = latest_print(conn, HEADLINE)
     now = utc_now_iso()
-    ctx = SiteContext(
+    return SiteContext(
         conn=conn,
         factors=factors,
         version=factors.methodology_version,
@@ -4287,6 +4298,11 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         head=head,
         date=head["date"] if head else now[:10],
     )
+
+
+def generate(conn: sqlite3.Connection) -> list[Path]:
+    """Render every page into site/. Returns the paths written, newest content first."""
+    ctx = build_context(conn)
     notes = _discover_notes()
 
     pages: list[tuple[Path, str]] = [
@@ -4294,6 +4310,7 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         (SITE_DIR / "basis.html", _basis(ctx)),
         (SITE_DIR / "term.html", _term(ctx)),
         (SITE_DIR / "forward.html", _forward(ctx)),
+        (SITE_DIR / "intraday.html", _intraday(ctx)),
         (SITE_DIR / "methodology.html", _methodology(ctx)),
         (SITE_DIR / "data.html", _data(ctx)),
         (SITE_DIR / "governance.html", _governance(ctx)),

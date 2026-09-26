@@ -29,6 +29,14 @@ def connect(db_path: Path | None = None) -> sqlite3.Connection:
     return conn
 
 
+def connect_readonly(db_path: Path | None = None) -> sqlite3.Connection:
+    """A connection that cannot write, for jobs that only read the record."""
+    path = (db_path or DEFAULT_DB_PATH).resolve()
+    conn = sqlite3.connect(f"{path.as_uri()}?mode=ro", uri=True)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
 def utc_now_iso() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 

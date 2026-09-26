@@ -18,7 +18,7 @@ from tests.conftest import insert_run
 # belongs, because the point is completeness. Every other test derives the list from what
 # was written, so an invariant covers a new page the day it exists.
 EXPECTED_PAGES = (
-    "forward.html",
+    "forward.html", "intraday.html",
     "index.html", "basis.html", "term.html", "methodology.html", "data.html",
     "governance.html", "notices.html", "reliability.html", "performance.html",
     "research.html", "contact.html", "privacy.html", "intake.html",

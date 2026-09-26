@@ -3,6 +3,44 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Intraday sweeps, and the index replayed over them — 2026-09-26 — no methodology change
+
+- **What.** A second workflow, `intraday.yml`, runs at 17 minutes past every hour and
+  reads each live source that is due: vast.ai, RunPod, Hyperstack and gpuhunt every hour,
+  the rate cards every six. The reads go to `data/intraday/`, one append-only JSONL file
+  per UTC day, and `site/intraday.html` shows the index recomputed at every read beside
+  the fixing as published. The cadences are in `config/intraday.yaml` and the conduct
+  change is a new row in SOURCES.md.
+- **Why it cannot move a print.** The daily run selects every observation whose run is
+  dated that day, so an hourly read stored in `observations` would have entered the
+  fixing the moment it was written. Nothing is stored there. The hourly job opens
+  `data/eucri.db` read-only and its commit step never adds it. The 11:00 fixing is
+  collected and computed exactly as before, and every stored print still reproduces.
+- **Same calculation, not a copy of it.** The series a fixing computes now come from one
+  function, `commands.print_definitions`, which the replay also calls. Replayed over the
+  fixing's own stored reads, the reconstruction equals the published value for every
+  configured series on every day whose collection finished within three hours of its
+  start. The one day since 10 September that fails that test, 15 September, was a
+  catch-up assembled between 11:10 and 17:45 UTC, and the three-hour limit on a fast
+  source's read drops the early half, as it is meant to.
+- **Settlement window.** `tci.run intraday settle` averages the reconstructed values
+  inside a window (08:00 to 11:00 UTC by default, at least two values) and sets the result
+  beside the fixing. It is research only and is stored nowhere as a print. Adopting a
+  window would be a new methodology version under GOVERNANCE.md §1.
+- **Storage.** Files rather than a second SQLite database, because the store is committed
+  every hour and git keeps a binary file whole at each commit but a text file as the
+  lines added. Each source's read is stored as a difference from its previous read that
+  day, so an unchanged catalog costs one hash. The first live sweep of all 16 sources was
+  188 KB. A week of synthetic hourly sweeps, with every marketplace row changing each
+  hour, came to about 250 KB a day.
+- **The first live read.** At 03:38 UTC on 26 September the reconstructed headline was
+  $3.49/GPU-hr, against $3.76/GPU-hr at the 25 September fixing. vast.ai returned 50
+  datacenter-verified rows, against 16 at the fixing.
+- **Found, not fixed.** The OVHcloud order catalogue came back at 8,322,791 bytes, which
+  is 99% of the vendored transport's 8,388,608-byte cap. The recipe warns about it on
+  every read. Once the catalogue grows past the cap OVHcloud stops reporting, and its
+  H100 PCIe and H200 rows leave those two classes.
+
 ## Latitude read again, and TensorDock screened out on its terms — 2026-09-25 — no methodology change
 
 - **Latitude.** Between the 21 and 22 September sessions Latitude renamed the keys of the

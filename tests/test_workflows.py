@@ -194,3 +194,29 @@ def test_the_shell_in_every_run_block_parses(path: Path) -> None:
         cleaned = re.sub(r"\$\{\{[^}]*\}\}", "PLACEHOLDER", script)
         proc = subprocess.run([bash, "-n"], input=cleaned, capture_output=True, text=True)
         assert proc.returncode == 0, f"{label} is not valid shell:\n{proc.stderr}"
+
+
+def test_the_intraday_job_commits_its_reads_and_nothing_of_the_fixing() -> None:
+    """The hourly job appends to data/intraday/ and rebuilds one page. It must keep an
+    hour's reads when a step fails, and must never be the job that commits the record the
+    prints live in: two writers to data/eucri.db is a lost day waiting to happen."""
+    text = (WORKFLOWS / "intraday.yml").read_text(encoding="utf-8")
+    steps = _steps(_load("intraday.yml"), "sweep")
+    commit = [s for s in steps if "git add" in str(s.get("run", ""))]
+    assert commit, "the intraday workflow no longer commits anything"
+    assert "failure()" in str(commit[0].get("if", "")).replace(" ", "")
+    add_lines = [ln for ln in commit[0]["run"].splitlines() if "git add" in ln]
+    for ln in add_lines:
+        assert "eucri.db" not in ln and " site/ " not in f"{ln} ", ln
+        assert "data/intraday" in ln
+    for bad in ("push --force", "push -f ", "--force-with-lease", "tci.run daily"):
+        assert bad not in text, f"intraday.yml must not use {bad!r}"
+
+
+def test_the_intraday_job_cannot_race_itself_or_sit_on_the_fixing() -> None:
+    wf = _load("intraday.yml")
+    assert wf["concurrency"].get("cancel-in-progress") is False
+    triggers = wf.get("on", wf.get(True))
+    for s in triggers["schedule"]:
+        minute = s["cron"].split()[0]
+        assert minute != "0", "the top of the hour is when scheduled runs are dropped"

@@ -1,0 +1,75 @@
+# Intraday sampling. Research beside the index, OUTSIDE the calculation path and outside
+# METHODOLOGY.lock: nothing in this file can move a published print. The 11:00 UTC daily
+# run still collects the fixing on its own, into `observations`, exactly as before. The
+# sweeps configured here go to a separate store (data/intraday/) that no print reads.
+#
+# Why the cadences differ. A marketplace book (vast.ai) or a stock-driven feed (RunPod,
+# Hyperstack) moves inside a day, and reading it once at 11:00 hides that. A rate card on a
+# pricing page changes a few times a year; reading it every hour would multiply the load on
+# somebody else's server by 24 to learn nothing. So each source is read at the cadence its
+# price can actually move, and the conduct rule in SOURCES.md ("1 request per source per
+# day unless a row says otherwise and why") is amended there, per source, to match.
+#
+# max_age_hours is how long one successful read may stand for that source in a
+# reconstructed intraday value. It exists because a sweep can miss a source (a 502, a
+# delayed Actions runner) and the alternative - the source vanishing from the panel for
+# an hour - moves the median by composition, not by price. Past max_age the source drops
+# out and the reconstructed value says so; nothing is carried further than this.
+
+version: 1
+
+# The workflow fires hourly; a source is due when its last successful read (intraday sweep
+# or the daily fixing, whichever is newer) is at least `every_hours` old, less this slack.
+# Without the slack a runner that starts at :17 one hour and :09 the next would skip a
+# source whose read is 52 minutes old and leave a two-hour hole.
+due_slack_minutes: 20
+
+sources:
+  # Marketplaces and stock-driven feeds: every sweep.
+  vast_ai:        {every_hours: 1, max_age_hours: 3}
+  runpod:         {every_hours: 1, max_age_hours: 3}
+  hyperstack:     {every_hours: 1, max_age_hours: 3}
+  # dstack's gpuhunt catalogs are downloaded from dstack's own bucket, not from the
+  # providers, and carry spot rows that move. Hourly costs the providers nothing.
+  gpuhunt:        {every_hours: 1, max_age_hours: 3}
+  # Rate cards and list catalogs: a few reads a day is plenty.
+  azure_retail:   {every_hours: 6, max_age_hours: 13}
+  scaleway:       {every_hours: 6, max_age_hours: 13}
+  seeweb:         {every_hours: 6, max_age_hours: 13}
+  ovh:            {every_hours: 6, max_age_hours: 13}
+  digitalocean:   {every_hours: 6, max_age_hours: 13}
+  voltagepark:    {every_hours: 6, max_age_hours: 13}
+  lambda_pricing: {every_hours: 6, max_age_hours: 13}
+  latitude:       {every_hours: 6, max_age_hours: 13}
+  coreweave:      {every_hours: 6, max_age_hours: 13}
+  civo:           {every_hours: 6, max_age_hours: 13}
+  crusoe:         {every_hours: 6, max_age_hours: 13}
+  # A local file: no request at all, so it rides every sweep.
+  static_yaml:    {every_hours: 1, max_age_hours: 3}
+
+# The series reconstructed at every sweep. Each is computed by the same code the daily
+# fixing uses (commands.print_definitions -> normalise -> index.compute_print), under the
+# methodology version live on the sweep's UTC date.
+series:
+  - EU-CRI-H100
+  - EU-CRI-H100-MKT
+  - EU-CRI-H100-NC
+  - EU-CRI-H100-HS
+  - EU-CRI-H200
+  - EU-CRI-B200
+  - EU-CRI-A100
+  - EU-CRI-H100-PCIE
+
+# A settlement window: the average of every reconstructed value inside [start, end) UTC on
+# a date. Reported by `tci.run intraday settle` and on intraday.html as a research
+# comparison against the 11:00 fixing. It is not a print, is stored nowhere as one, and
+# would enter the methodology only as a new version under GOVERNANCE.md §1.
+#
+# With hourly sweeps at :17 the default window holds three reads (08:17, 09:17, 10:17) and
+# closes before the fixing is collected, so the comparison is between two independent
+# measurements of the same morning rather than one measurement and itself.
+settlement:
+  start: "08:00"
+  end: "11:00"
+  method: mean        # mean | median, over the sweeps inside the window
+  min_points: 2       # fewer published values than this in the window -> no settlement value

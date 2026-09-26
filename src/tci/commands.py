@@ -94,6 +94,27 @@ def _series_definitions(
     }
 
 
+def print_definitions(
+    factors: config.Factors, sovereign: frozenset[str], observed_classes: set[str]
+) -> dict[str, SeriesDef]:
+    """Every block-default series the fixing computes, given the classes seen that day.
+
+    Public because the intraday reconstruction (tci.intraday) must price exactly the series
+    the fixing prices, by exactly the same predicates. A second copy of these rules would
+    drift from this one the first time a series was added, and the intraday path would then
+    be comparing itself with a fixing it no longer resembles.
+    """
+    headline_class = factors.headline_class
+    definitions = _series_definitions(sovereign, headline_class, factors)
+    headline_pop = factors.population_for("headline")
+    for cls, series_name in SERIES_BY_CLASS.items():
+        if cls != headline_class and cls in observed_classes:
+            definitions[series_name] = (
+                cls, headline_pop, (lambda c: (lambda o: o.model_class == c))(cls)
+            )
+    return definitions
+
+
 def _observations_for_date(conn: sqlite3.Connection, utc_date: str) -> list[sqlite3.Row]:
     return conn.execute(
         "SELECT o.* FROM observations o JOIN runs r ON o.run_id = r.run_id"
@@ -468,21 +489,15 @@ def compute_all_series(
     normalised = normalise_observations(rows, factors, fx_eur_usd=fx[0] if fx else None)
     unadmitted = unadmitted_providers(rows, factors)
     rw = _review_weights(conn, utc_date, factors)
-    headline_class = factors.headline_class
 
     common_extra = "correction" if correction else ""
     # v0.3.0 weights providers by tier only, so a missing weight review no longer changes
     # the calculation and the bootstrap flag no longer applies.
     series_extra = common_extra
 
-    definitions = _series_definitions(sovereign, headline_class, factors)
-    observed_classes = {o.model_class for o in normalised}
-    headline_pop = factors.population_for("headline")
-    for cls, series_name in SERIES_BY_CLASS.items():
-        if cls != headline_class and cls in observed_classes:
-            definitions[series_name] = (
-                cls, headline_pop, (lambda c: (lambda o: o.model_class == c))(cls)
-            )
+    definitions = print_definitions(
+        factors, sovereign, {o.model_class for o in normalised}
+    )
 
     computed: dict[str, IndexPrint] = {}
     for series, (cls, population, predicate) in definitions.items():

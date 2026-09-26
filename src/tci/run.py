@@ -264,6 +264,99 @@ def _cmd_canary(args: argparse.Namespace) -> int:
     return 1 if any(r.broken for r in results) else 0
 
 
+def _cmd_intraday(args: argparse.Namespace) -> int:
+    """Intraday sweeps and the path reconstructed from them. Never touches a print.
+
+    sweep:  read every due source once and append one sweep to data/intraday/.
+    path:   the reconstructed value at every read on a date.
+    settle: the settlement-window average on a date, against the published fixing.
+    build:  write site/data/intraday/ and site/intraday.html (the hourly workflow's step).
+    verify: re-read every stored day and check every book against its hash.
+    """
+    from datetime import UTC, datetime, timedelta
+
+    from tci import db, intraday, series_read
+
+    cfg = intraday.load_config()
+    store = intraday.Store()
+    # Read-only, and no migrate: the hourly job reads the fixing's record (its reads, its
+    # prints, the FX table) and must be structurally unable to write to it. The workflow
+    # that runs this commits data/intraday/ and never data/eucri.db.
+    conn = db.connect_readonly()
+
+    if args.action == "sweep":
+        result = intraday.run_sweep(store, conn, cfg, force=args.force, only=args.source)
+        if result.sweep is None:
+            print(f"nothing due; next reads pending for: {', '.join(result.not_due)}")
+            return 0
+        for name, r in sorted(result.sweep.sources.items()):
+            detail = f"{r.n} rows" if r.status == "ok" else r.error
+            print(f"  {name:<16}{r.status:<8}{detail}")
+        print(f"sweep {result.sweep.id} -> {result.path}")
+        # Exit 1 only if every source that was due failed: that is an outage or a broken
+        # runner, not one flaky source, and the workflow should go red for it.
+        ok = any(r.status == "ok" for r in result.sweep.sources.values())
+        return 0 if ok else 1
+
+    if args.action == "verify":
+        bad = 0
+        days = store.days()
+        for day in days:
+            try:
+                log_ = intraday.Store(store.root).load(day)
+            except intraday.IntradayStoreError as exc:
+                print(f"{day}: FAILED {exc}")
+                bad += 1
+                continue
+            print(f"{day}: {len(log_.sweeps)} sweeps, {len(log_.books)} books verified")
+        if not days:
+            print("no intraday store yet")
+        return 1 if bad else 0
+
+    if args.action == "build":
+        from tci.outputs import intraday_page
+
+        for p in intraday_page.build_and_write(conn):
+            print(p)
+        return 0
+
+    day = args.date or datetime.now(UTC).strftime("%Y-%m-%d")
+    start = datetime.strptime(day, "%Y-%m-%d").replace(tzinfo=UTC)
+    snaps = intraday.path(store, conn, cfg, start, start + timedelta(days=1, seconds=-1))
+    series = [args.series] if args.series else list(cfg.series)
+
+    if args.action == "path":
+        if not snaps:
+            print(f"no reads on {day}")
+            return 1
+        for sn in snaps:
+            cells = []
+            for name in series:
+                usd, _eur, n, flags = sn.values.get(name, (None, None, 0, "not configured"))
+                cells.append(f"{name}={usd if usd is not None else 'gap(' + flags + ')'}")
+            miss = f"  missing: {','.join(sn.missing)}" if sn.missing else ""
+            print(f"{intraday._iso(sn.at)} {sn.origin:<8} {'  '.join(cells)}{miss}")
+        return 0
+
+    if args.action == "settle":
+        window = cfg.settlement
+        if args.start or args.end or args.method:
+            window = intraday.SettlementWindow(
+                start=args.start or window.start, end=args.end or window.end,
+                method=args.method or window.method, min_points=window.min_points,
+            )
+        print(f"settlement window {window.start}-{window.end} UTC, {window.method},"
+              f" min {window.min_points} values; research only, not a print")
+        for name in series:
+            st = intraday.settle(snaps, day, name, window,
+                                 series_read.head_value(conn, name, day))
+            value = f"{st.value_usd:.4f}" if st.value_usd is not None else f"none ({st.reason})"
+            fixing = f"{st.fixing_usd:.4f}" if st.fixing_usd is not None else "none"
+            print(f"  {name:<18} window {value:<40} n={st.n_points:<3} fixing {fixing}")
+        return 0
+    return 2
+
+
 def _cmd_contrib(args: argparse.Namespace) -> int:
     """Contributed term prices: validate a file, ingest it privately, or aggregate.
 
@@ -403,6 +496,21 @@ def main(argv: list[str] | None = None) -> int:
     p_can.add_argument("--source", action="append",
                        help="check only this source (repeatable)")
 
+    p_intra = sub.add_parser(
+        "intraday",
+        help="hourly reads beside the fixing: sweep, path, settle, build, verify",
+    )
+    p_intra.add_argument("action", choices=["sweep", "path", "settle", "build", "verify"])
+    p_intra.add_argument("--date", help="UTC date for path/settle (default: today)")
+    p_intra.add_argument("--series", help="one series only (path, settle)")
+    p_intra.add_argument("--source", action="append",
+                         help="sweep only this source (repeatable)")
+    p_intra.add_argument("--force", action="store_true",
+                         help="sweep every source, due or not")
+    p_intra.add_argument("--start", help="settle: window start HH:MM UTC")
+    p_intra.add_argument("--end", help="settle: window end HH:MM UTC")
+    p_intra.add_argument("--method", choices=["mean", "median"], help="settle: aggregation")
+
     p_con = sub.add_parser(
         "contrib", help="contributed term prices: validate, ingest privately, aggregate"
     )
@@ -419,6 +527,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "contrib":
         return _cmd_contrib(args)
+    if args.command == "intraday":
+        return _cmd_intraday(args)
     if args.command == "migrate":
         return _cmd_migrate(args)
     if args.command == "docs":

@@ -18,6 +18,9 @@ dist/
 .pytest_cache/
 
 # NOTE: data/eucri.db and site/ outputs ARE committed by design (audit trail).
+# SQLite's WAL sidecars are not: they belong to an open connection, not to the record.
+data/*.db-wal
+data/*.db-shm
 
 # Design handoff working folder (mockups + prototyping runtime, not part of the build)
 Compute Index Branding/

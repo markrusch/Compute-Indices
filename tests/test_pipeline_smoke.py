@@ -174,3 +174,17 @@ def test_forward_records_and_publishes_from_the_copy(repo_copy: Path) -> None:
     assert data["series"] == "EU-CRI-H100" and data["as_of"] == date
     assert {r["component"] for r in data["latest"]} == {"M", "T", "L"}
     assert (repo_copy / "site" / "data" / "forward" / "history.csv").exists()
+
+
+def test_intraday_builds_from_the_copy_without_touching_the_record(repo_copy: Path) -> None:
+    """The hourly job's own steps: verify the store, rebuild its page and data. The record
+    it reads (data/eucri.db) must come out byte-identical."""
+    db_path = repo_copy / "data" / "eucri.db"
+    before = db_path.read_bytes()
+    _run(repo_copy, "intraday", "verify")
+    _run(repo_copy, "intraday", "build")
+    assert (repo_copy / "site" / "intraday.html").exists()
+    assert (repo_copy / "site" / "data" / "intraday" / "path.csv").exists()
+    assert json.loads((repo_copy / "site" / "data" / "intraday" / "latest.json")
+                      .read_text(encoding="utf-8"))["settlement_window"]["start_utc"]
+    assert db_path.read_bytes() == before, "the intraday build wrote to the record"
