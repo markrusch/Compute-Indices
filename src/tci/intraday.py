@@ -133,6 +133,7 @@ class IntradayConfig:
     sweep_budget_seconds: float = 900.0
     max_backoff_hours: float = 24.0
     max_segment_bytes: int = 8_000_000
+    fixing_guard: tuple[str, str] | None = ("10:40", "13:00")  # HH:MM UTC, [start, end)
 
     @property
     def longest_age(self) -> timedelta:
@@ -141,6 +142,15 @@ class IntradayConfig:
 
 def _at(day: str, hhmm: str) -> datetime:
     return datetime.strptime(f"{day} {hhmm}", "%Y-%m-%d %H:%M").replace(tzinfo=UTC)
+
+
+def _guard(raw: dict[str, Any] | None) -> tuple[str, str] | None:
+    if not raw:
+        return None
+    start, end = str(raw["start"]), str(raw["end"])
+    if not _at("2000-01-01", start) < _at("2000-01-01", end):
+        raise ValueError("intraday.yaml: fixing_guard must end after it starts")
+    return start, end
 
 
 def load_config(path: Path | None = None) -> IntradayConfig:
@@ -174,6 +184,7 @@ def load_config(path: Path | None = None) -> IntradayConfig:
         sweep_budget_seconds=float(raw.get("sweep_budget_seconds", 900)),
         max_backoff_hours=float(raw.get("max_backoff_hours", 24)),
         max_segment_bytes=int(raw.get("max_segment_bytes", 8_000_000)),
+        fixing_guard=_guard(raw.get("fixing_guard", {"start": "10:40", "end": "13:00"})),
     )
     if cfg.workers < 1 or cfg.source_timeout_seconds <= 0 or cfg.sweep_budget_seconds <= 0:
         raise ValueError("intraday.yaml: workers and both time limits must be positive")
@@ -611,6 +622,17 @@ class SourceState:
     failures: int  # consecutive, since the last successful read
     last_error: str | None = None
 
+    @property
+    def rate_limited(self) -> bool:
+        """The last failure was the source saying slow down, not a fault."""
+        return bool(self.failures and self.last_error and _RATE_LIMITED.search(self.last_error))
+
+
+# What a refusal on volume looks like in the error text each transport produces:
+# requests' HTTPError ("429 Client Error: Too Many Requests"), the vendored Computable
+# transport ("HTTP 429"), or a body that says so in words.
+_RATE_LIMITED = re.compile(r"\b429\b|too many requests|rate.?limit|throttl", re.I)
+
 
 def _attempts(store: Store, conn: sqlite3.Connection | None, cfg: IntradayConfig,
               start: datetime, end: datetime) -> list[tuple[datetime, str, bool, str | None]]:
@@ -663,12 +685,53 @@ def next_due(cfg: IntradayConfig, name: str, state: SourceState | None) -> datet
     if state is None or state.last_attempt is None:
         return None
     every = cfg.sources[name].every_hours
+    if state.rate_limited:
+        # A source that has told us to slow down is not asked again by this job for the
+        # full backoff cap. The fixing still reads it at 11:00, and that read, if it
+        # succeeds, resets the state. The hourly job must never be the reason the fixing's
+        # own request is refused.
+        return state.last_attempt + timedelta(hours=max(cfg.max_backoff_hours, every))
     # One miss is retried at the normal cadence (a single 502 is not a pattern); from the
     # second in a row the wait doubles.
     doublings = min(max(state.failures - 1, 0), 16)
     hours = min(every * 2 ** doublings, max(cfg.max_backoff_hours, every))
     return (state.last_attempt + timedelta(hours=hours)
             - timedelta(minutes=cfg.due_slack_minutes))
+
+
+def fixing_guard_holds(cfg: IntradayConfig, conn: sqlite3.Connection | None, now: datetime
+                       ) -> set[str]:
+    """Sources this job must not ask right now, so as not to crowd the 11:00 fixing.
+
+    Inside the guard window a source is held back until the fixing has asked it today.
+    The window runs well past 11:00 because the daily job is scheduled then, not run then:
+    GitHub starts scheduled jobs 10 to 30 minutes late on a normal day. Measured on
+    26 September 2026, vast.ai allows 30 requests in a window of a few seconds and one
+    read takes 9, Azure's retail feed answers with a 60-second retry-after and one read
+    takes 91 requests. An hourly read landing in the same minutes as the fixing's is the
+    one way this job could get the fixing refused, and this rules it out.
+
+    Without the record, it cannot know what the fixing has done, so inside the window it
+    holds everything back.
+    """
+    if cfg.fixing_guard is None:
+        return set()
+    day = now.strftime("%Y-%m-%d")
+    start, end = (_at(day, t) for t in cfg.fixing_guard)
+    if not start <= now < end:
+        return set()
+    if conn is None:
+        return set(cfg.sources)
+    wanted = sorted(cfg.sources)
+    marks = ",".join("?" for _ in wanted)
+    try:
+        asked = {r[0] for r in conn.execute(
+            f"SELECT DISTINCT source FROM runs WHERE utc_date = ? AND status IN"
+            f" ('ok', 'failed') AND source IN ({marks})", (day, *wanted))}
+    except sqlite3.Error as exc:
+        log.warning("intraday: fixing guard cannot read the run log (%s); holding all", exc)
+        return set(cfg.sources)
+    return set(cfg.sources) - asked
 
 
 def due_sources(cfg: IntradayConfig, states: dict[str, SourceState], now: datetime
@@ -833,6 +896,11 @@ def run_sweep(
                 # cost is one extra request, against an hour of nothing.
                 log.exception("intraday: scheduling state unreadable; treating all as due")
                 due = set(cfg.sources)
+        held = fixing_guard_holds(cfg, conn, started)
+        if held:
+            due -= held
+            log.info("intraday: fixing guard holds back %s until the 11:00 run has read"
+                     " them", ", ".join(sorted(held & set(cfg.sources))))
         run = [c for c in pool if c.name in due]
         not_due = tuple(sorted(c.name for c in pool if c.name not in due))
         if not run:

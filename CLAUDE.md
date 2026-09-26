@@ -35,6 +35,7 @@ python -m tci.run contrib validate|ingest|aggregate    # contributed term prices
 python -m tci.run intraday sweep [--force] [--source S]   # read the sources that are due
 python -m tci.run intraday path|settle [--date D] [--series S]   # replayed index, window mean
 python -m tci.run intraday build|verify|status # page + data; check the store; source health
+python -m tci.run intraday ingest              # load the log into the intraday_* tables
 
 pytest                                         # 289 tests
 pytest tests/test_site.py::test_pages_are_self_contained -q    # a single test
@@ -84,7 +85,10 @@ One direction, and each stage earns its place:
   `outputs/intraday_page.py` renders `site/intraday.html`. Never store an intraday read
   in `observations`: `_observations_for_date` takes every row dated that day, so it
   would enter the 11:00 print without a version. The hourly job opens `eucri.db`
-  read-only and never commits it.
+  read-only and never commits it; the daily run loads the log into the `intraday_*`
+  tables (`intraday_db.py`, migration 0011) after its prints. Between 10:40 and 13:00
+  UTC the hourly job reads nothing the fixing has not read that day, so it can never
+  spend a rate limit the 11:00 run needs.
 
 ### Two naming systems, deliberately
 

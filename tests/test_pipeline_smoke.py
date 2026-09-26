@@ -188,3 +188,17 @@ def test_intraday_builds_from_the_copy_without_touching_the_record(repo_copy: Pa
     assert json.loads((repo_copy / "site" / "data" / "intraday" / "latest.json")
                       .read_text(encoding="utf-8"))["settlement_window"]["start_utc"]
     assert db_path.read_bytes() == before, "the intraday build wrote to the record"
+
+
+def test_intraday_ingest_runs_from_the_copy(repo_copy: Path) -> None:
+    """The load the daily run makes after its prints, on demand: it migrates, loads what
+    the log holds (possibly nothing yet) and leaves every print where it was."""
+    conn = sqlite3.connect(repo_copy / "data" / "eucri.db")
+    before = conn.execute("SELECT COUNT(*) FROM daily_index").fetchone()[0]
+    conn.close()
+    proc = _run(repo_copy, "intraday", "ingest")
+    assert "loaded" in proc.stdout
+    conn = sqlite3.connect(repo_copy / "data" / "eucri.db")
+    assert conn.execute("SELECT COUNT(*) FROM daily_index").fetchone()[0] == before
+    conn.execute("SELECT * FROM intraday_prices LIMIT 1").fetchall()  # the view exists
+    conn.close()

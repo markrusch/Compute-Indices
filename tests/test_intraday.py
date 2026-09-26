@@ -65,6 +65,9 @@ def _cfg(sources: dict[str, tuple[float, float]] | None = None,
         sources={k: intraday.Cadence(*v) for k, v in (sources or {"fake": (1, 3)}).items()},
         series=series,
         settlement=intraday.SettlementWindow("08:00", "11:00", "mean", min_points),
+        # Off in the mechanics tests, which sweep straight through the late morning; the
+        # guard has its own tests below.
+        fixing_guard=None,
     )
 
 
@@ -454,6 +457,74 @@ def test_the_daily_site_build_survives_an_intraday_failure(
     assert "could not be built" in site._intraday(ctx)  # the page says so
     monkeypatch.setattr(intraday_page, "render", boom)
     assert site._intraday(ctx) == ""  # generate() then keeps the last good page
+
+
+def _guarded(sources: dict[str, tuple[float, float]] | None = None) -> intraday.IntradayConfig:
+    from dataclasses import replace
+
+    return replace(_cfg(sources), fixing_guard=("10:40", "13:00"))
+
+
+def test_the_fixing_guard_holds_sources_until_the_fixing_has_asked_them(
+        tmp_path: Path, conn: sqlite3.Connection) -> None:
+    """GitHub starts the 11:00 job late. An 11:17 sweep must not reach vast.ai before it."""
+    cfg = _guarded({"vast_ai": (1, 3), "runpod": (1, 3)})
+    vast = FakeCollector("vast_ai", [[_obs("a", 2.0)]])
+    runpod = FakeCollector("runpod", [[_obs("b", 2.0)]])
+    store = intraday.Store(tmp_path)
+    at = datetime(2026, 9, 20, 11, 17, tzinfo=UTC)
+
+    result = _sweep(store, cfg, [vast, runpod], at, conn=conn)
+    assert result.sweep is None and vast.calls == runpod.calls == 0
+
+    # The fixing has now asked runpod (and failed on vast.ai, which still counts as asked).
+    for run_id, source, status in (("d1", "runpod", "ok"), ("d2", "vast_ai", "failed")):
+        conn.execute(
+            "INSERT INTO runs (run_id, utc_date, source, started_utc, finished_utc, status)"
+            " VALUES (?, '2026-09-20', ?, '2026-09-20T11:24:00Z', '2026-09-20T11:25:00Z', ?)",
+            (run_id, source, status))
+    conn.commit()
+    # Once the fixing has asked a source, the guard lets it go and the ordinary cadence
+    # decides: 22 minutes after the fixing's reads, neither is due yet.
+    assert intraday.fixing_guard_holds(cfg, conn, at + timedelta(minutes=30)) == set()
+    assert _sweep(store, cfg, [vast, runpod], at + timedelta(minutes=30), conn=conn).sweep is None
+    _sweep(store, cfg, [vast, runpod], at + timedelta(hours=1), conn=conn)
+    assert vast.calls == runpod.calls == 1
+
+
+def test_the_fixing_guard_holds_everything_without_the_record(tmp_path: Path) -> None:
+    cfg = _guarded()
+    c = FakeCollector("fake", [[_obs("a", 2.0)]])
+    assert _sweep(intraday.Store(tmp_path), cfg, [c],
+                  datetime(2026, 9, 20, 10, 45, tzinfo=UTC)).sweep is None
+    # Outside the window it reads normally, record or not.
+    assert _sweep(intraday.Store(tmp_path), cfg, [c],
+                  datetime(2026, 9, 20, 10, 17, tzinfo=UTC)).sweep is not None
+    assert c.calls == 1
+
+
+def test_the_shipped_guard_covers_the_fixing() -> None:
+    cfg = intraday.load_config()
+    assert cfg.fixing_guard is not None
+    start, end = cfg.fixing_guard
+    assert start < "11:00" < end and end >= "12:00", cfg.fixing_guard
+
+
+def test_a_rate_limited_source_is_left_to_the_fixing(tmp_path: Path) -> None:
+    class Limited(FakeCollector):
+        def collect(self, session: object) -> list[Observation]:
+            self.calls += 1
+            raise RuntimeError("429 Client Error: Too Many Requests for url: https://x")
+
+    cfg = _cfg({"vast_ai": (1, 3)})
+    c = Limited("vast_ai")
+    store = intraday.Store(tmp_path)
+    for h in range(20):
+        _sweep(store, cfg, [c], T0 + timedelta(hours=h))
+    assert c.calls == 1, "asked again after a 429"
+    state = intraday.source_states(store, None, cfg, T0 + timedelta(hours=20))["vast_ai"]
+    assert state.rate_limited
+    assert not intraday.SourceState(T0, None, 1, "HTTP 502 Bad Gateway").rate_limited
 
 
 def test_a_sweep_never_writes_to_the_record(tmp_path: Path, conn: sqlite3.Connection) -> None:

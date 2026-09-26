@@ -41,6 +41,19 @@ sweep_budget_seconds: 900
 # successful read, by a sweep or by the fixing, resets it.
 max_backoff_hours: 24
 
+# The quiet window around the 11:00 fixing, UTC. Inside it this job asks no source that the
+# fixing has not already asked today, so an hourly read cannot land in the same minutes as
+# the fixing's own and use up a rate limit it needs. It ends at 13:00, not 11:15, because
+# GitHub starts the scheduled daily job 10 to 30 minutes late on a normal day. Measured
+# 26 September 2026 from response headers: vast.ai allows 30 requests per window of a few
+# seconds (one read takes 9), Scaleway 50 per second (one read takes 9), Azure's retail
+# feed sends a 60-second retry-after (one read takes 91 requests). A source that answers
+# 429 is not asked again by this job for max_backoff_hours; the fixing's next successful
+# read resets it.
+fixing_guard:
+  start: "10:40"
+  end: "13:00"
+
 # A day's reads are split into segments of at most this many bytes. A new segment also
 # starts when the current one does not verify, so a damaged file is left as it is for
 # inspection and never written after.
@@ -55,7 +68,9 @@ sources:
   # providers, and carry spot rows that move. Hourly costs the providers nothing.
   gpuhunt:        {every_hours: 1, max_age_hours: 3}
   # Rate cards and list catalogs: a few reads a day is plenty.
-  azure_retail:   {every_hours: 6, max_age_hours: 13}
+  # Azure's feed is paged: one read is about 91 requests across ten regions, for a list
+  # price that rarely moves. Twice a day, not four times.
+  azure_retail:   {every_hours: 12, max_age_hours: 25}
   scaleway:       {every_hours: 6, max_age_hours: 13}
   seeweb:         {every_hours: 6, max_age_hours: 13}
   ovh:            {every_hours: 6, max_age_hours: 13}

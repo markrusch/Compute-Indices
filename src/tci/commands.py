@@ -653,7 +653,33 @@ def cmd_daily(args: argparse.Namespace) -> int:
     compute_all_series(conn, utc_date)
     export_csv(conn)
     _record_forward(conn, utc_date)
+    _load_intraday(conn)
     return 0 if _maybe_outputs(conn, utc_date) else 1
+
+
+def _load_intraday(conn: sqlite3.Connection) -> None:
+    """Copy the hourly job's log into the intraday tables. After the prints, and guarded.
+
+    This database has one writer, this run, so the hourly reads reach SQL here rather than
+    from the hourly job (see migration 0011). Nothing a print reads is touched, and every
+    failure is swallowed with a logged traceback: the load is worth less than any print,
+    the same terms as `_record_forward` and `_store_intake`. A sweep not loaded today is
+    loaded tomorrow; the log it comes from is already committed.
+    """
+    try:
+        from tci import intraday_db
+
+        if not intraday_db.available(conn):
+            return
+        result = intraday_db.load(conn)
+        log.info(
+            "intraday: %d sweeps (%d reads, %d new row contents) loaded, %d already held",
+            result.sweeps, result.reads, result.new_rows, result.skipped,
+        )
+        for segment, problem in sorted(result.problems.items()):
+            log.warning("intraday log %s: %s (reads after it not loaded)", segment, problem)
+    except Exception:  # noqa: BLE001
+        log.exception("intraday reads not loaded into the database; prints unaffected")
 
 
 def _record_forward(conn: sqlite3.Connection, utc_date: str) -> None:

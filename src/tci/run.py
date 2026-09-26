@@ -273,6 +273,7 @@ def _cmd_intraday(args: argparse.Namespace) -> int:
     build:  write site/data/intraday/ and site/intraday.html (the hourly workflow's step).
     verify: re-read every stored day and check every book against its hash.
     status: each source's last read, consecutive failures and next due time.
+    ingest: load the log into the intraday tables of data/eucri.db (the daily run does this).
 
     Exit codes are the workflow's signal and are kept distinct: 0 done (a sweep with some
     failed sources is still done), 1 every due source failed or the store does not verify,
@@ -300,6 +301,21 @@ def _cmd_intraday(args: argparse.Namespace) -> int:
     except Exception as exc:  # noqa: BLE001
         print(f"note: data/eucri.db not readable ({exc}); continuing without the fixing")
         conn = None
+
+    if args.action == "ingest":
+        # The one intraday action that writes the record, and only its intraday tables.
+        # The daily run does this after its prints; this is the same load on demand, e.g.
+        # to bring a local copy up to the latest committed hour.
+        from tci import intraday_db
+
+        rw = db.connect()
+        db.migrate(rw)
+        loaded = intraday_db.load(rw, store)
+        print(f"loaded {loaded.sweeps} sweeps ({loaded.reads} reads, {loaded.new_rows} new"
+              f" row contents); {loaded.skipped} already held")
+        for segment, problem in sorted(loaded.problems.items()):
+            print(f"  {segment}: {problem} (reads after it not loaded)")
+        return 0
 
     if args.action == "sweep":
         try:
@@ -549,7 +565,8 @@ def main(argv: list[str] | None = None) -> int:
         help="hourly reads beside the fixing: sweep, path, settle, build, verify, status",
     )
     p_intra.add_argument("action",
-                         choices=["sweep", "path", "settle", "build", "verify", "status"])
+                         choices=["sweep", "path", "settle", "build", "verify", "status",
+                                  "ingest"])
     p_intra.add_argument("--date", help="UTC date for path/settle (default: today)")
     p_intra.add_argument("--series", help="one series only (path, settle)")
     p_intra.add_argument("--source", action="append",

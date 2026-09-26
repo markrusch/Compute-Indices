@@ -3,6 +3,27 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Intraday reads in the database, and a quiet window for the fixing — 2026-09-26 — no methodology change
+
+- **Stored in SQL.** Migration 0011 adds `intraday_sweeps`, `intraday_reads`,
+  `intraday_books`, `intraday_book_rows` and `intraday_rows`, and an `intraday_prices`
+  view with one row per offer per read. The daily run loads every sweep in the log it
+  does not already hold, after its prints and inside a guard, so a failed load costs the
+  load. The hourly job still writes only the log: this database has one writer. Row
+  content is stored once however many hours it stays listed. The first live sweep, 16
+  sources and 2,029 offers, added 470 KB. Append-only triggers like every other raw table.
+  `python -m tci.run intraday ingest` loads on demand.
+- **Rate limits.** One instrumented pass over every collector on 26 September recorded
+  each request and any limit header. vast.ai allows 30 requests per window of a few
+  seconds and a read takes 9. Scaleway allows 50 per second and a read takes 9. Azure's
+  retail feed sends a 60-second retry-after and a read takes 91 requests. Everything else
+  took one to three requests and sent no limit header. Every request returned 200.
+- **What changed because of it.** Between 10:40 and 13:00 UTC the hourly job reads no
+  source the fixing has not already read that day. The window runs to 13:00 because GitHub
+  starts the 11:00 job late on most days, and a delayed fixing must not find its limits
+  already spent. A source that answers 429 is left alone by the hourly job for 24 hours;
+  the fixing's next successful read resets it. Azure moves from every 6 hours to every 12.
+
 ## Intraday sweeps, and the index replayed over them — 2026-09-26 — no methodology change
 
 - **What.** A second workflow, `intraday.yml`, runs at 17 minutes past every hour and
