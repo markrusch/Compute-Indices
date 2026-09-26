@@ -29,7 +29,10 @@ permissions:
 jobs:
   sweep:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # The job limit sits well above the sweep step's own. A job that hits its limit is
+    # cancelled, and a cancelled job runs no further steps, commit included; a step that
+    # hits its limit only fails, and the commit step below runs on failure.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -37,17 +40,37 @@ jobs:
           python-version: "3.11"
       - name: Install
         run: pip install -e .
+      # The sweep bounds itself (config/intraday.yaml: per-source timeout and a sweep
+      # budget of 15 minutes) and writes what it has. This limit is for the case where
+      # that bound itself fails.
       - name: Sweep the sources that are due
+        timeout-minutes: 20
         env:
           FORCE: ${{ inputs.force }}
         run: |
           ARGS=()
           if [ "$FORCE" = "true" ]; then ARGS=(--force); fi
           python -m tci.run intraday sweep "${ARGS[@]}"
+      # Each of these runs whatever happened before it. A failed sweep still leaves the
+      # earlier hours to publish, and a store that fails verification is reported here
+      # while the page is built from the part of it that does verify.
       - name: Verify the store
+        if: success() || failure()
+        timeout-minutes: 5
         run: python -m tci.run intraday verify
       - name: Build the intraday page and data
+        if: success() || failure()
+        timeout-minutes: 10
         run: python -m tci.run intraday build
+      - name: Source health
+        if: success() || failure()
+        timeout-minutes: 5
+        run: |
+          {
+            echo "### Intraday sources"
+            echo
+            python -m tci.run intraday status
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Runs after a failed sweep too: a sweep in which every source failed is still a
       # record of an hour in which nothing could be read, and it is appended like any other.

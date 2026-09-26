@@ -24,6 +24,28 @@ version: 1
 # source whose read is 52 minutes old and leave a two-hour hole.
 due_slack_minutes: 20
 
+# Guards that keep one bad source from costing the rest of the sweep.
+#
+# Sources are read in parallel, `workers` at a time, each on its own HTTP session. A read
+# that has run longer than `source_timeout_seconds` is abandoned and recorded as failed;
+# whatever has not finished when `sweep_budget_seconds` is spent is recorded the same way,
+# and the sweep writes what it has. The fixing run once lost four sessions to a single
+# collector's error; a hung socket here would otherwise hold every other source's read
+# hostage until the Actions runner is killed, and a killed runner commits nothing.
+workers: 4
+source_timeout_seconds: 300
+sweep_budget_seconds: 900
+
+# A source that keeps failing is asked less often, not every hour: the wait doubles with
+# each consecutive failure (1, 2, 4, 8 ... times its cadence) up to this cap, and one
+# successful read, by a sweep or by the fixing, resets it.
+max_backoff_hours: 24
+
+# A day's reads are split into segments of at most this many bytes. A new segment also
+# starts when the current one does not verify, so a damaged file is left as it is for
+# inspection and never written after.
+max_segment_bytes: 8000000
+
 sources:
   # Marketplaces and stock-driven feeds: every sweep.
   vast_ai:        {every_hours: 1, max_age_hours: 3}

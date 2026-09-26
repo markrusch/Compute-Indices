@@ -18,7 +18,7 @@ import csv
 import json
 import logging
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -44,6 +44,8 @@ class Built:
     snapshots: list[intraday.Snapshot]
     settlements: dict[str, list[intraday.Settlement]]  # series -> newest day first
     fixings: dict[str, list[tuple[datetime, float]]]  # series -> (fixing time, published)
+    states: dict[str, intraday.SourceState] = field(default_factory=dict)
+    problems: dict[str, str] = field(default_factory=dict)  # store segment -> what is wrong
 
 
 def _data_dir() -> Path:
@@ -55,7 +57,7 @@ def _data_dir() -> Path:
 def build(conn: sqlite3.Connection, store: intraday.Store | None = None,
           cfg: intraday.IntradayConfig | None = None, now: datetime | None = None) -> Built:
     cfg = cfg or intraday.load_config()
-    store = store or intraday.Store()
+    store = store or intraday.Store(max_segment_bytes=cfg.max_segment_bytes)
     now = now or datetime.now(UTC)
     start = (now - timedelta(days=WINDOW_DAYS)).replace(hour=0, minute=0, second=0,
                                                         microsecond=0)
@@ -82,7 +84,12 @@ def build(conn: sqlite3.Connection, store: intraday.Store | None = None,
             (t, v) for day, t in sorted(fixing_at.items())
             if (v := series_read.head_value(conn, series, day)) is not None
         ]
-    return Built(now, cfg, snaps, settlements, fixings)
+    try:
+        states = intraday.source_states(store, conn, cfg, now)
+    except Exception:  # noqa: BLE001 - the health table is a courtesy, never a blocker
+        log.exception("intraday: source states not computed")
+        states = {}
+    return Built(now, cfg, snaps, settlements, fixings, states, dict(store.problems))
 
 
 def write_data(built: Built, out_dir: Path | None = None) -> list[Path]:
@@ -114,6 +121,15 @@ def write_data(built: Built, out_dir: Path | None = None) -> list[Path]:
                            "flags": v[3]} for k, v in latest.values.items()},
             "source_age_minutes": latest.ages, "sources_missing": list(latest.missing),
         },
+        "sources": {
+            name: {
+                "last_ok_utc": intraday._iso(st.last_ok) if st.last_ok else None,
+                "consecutive_failures": st.failures,
+                "last_error": st.last_error if st.failures else None,
+            }
+            for name, st in sorted(built.states.items())
+        },
+        "store_problems": built.problems,
         "settlements": {
             series: [
                 {"date": st.date, "value_usd": st.value_usd, "n_points": st.n_points,
@@ -446,19 +462,32 @@ def _freshness(s: Any, built: Built) -> str:
     for name, c in sorted(built.cfg.sources.items()):
         age = latest.ages.get(name)
         state = "no read inside its limit" if age is None else f"{age} min"
+        st = built.states.get(name)
+        failing = (f"{st.failures} in a row, retried less often"
+                   if st is not None and st.failures else "")
         rows.append([
             f'<th scope="row">{s._e(name)}</th>',
             f"<td>every {c.every_hours:g} h</td>", f"<td>{c.max_age_hours:g} h</td>",
             (f'<td class="u">{s._e(state)}</td>' if age is None
              else f"<td>{s._e(state)}</td>"),
+            f"<td>{s._e(failing)}</td>",
         ])
+    damaged = ""
+    if built.problems:
+        items = "".join(f"<li>{s._e(name)}: {s._e(why)}</li>"
+                        for name, why in sorted(built.problems.items()))
+        damaged = ('<div class="md"><p>Stored reads after these points could not be '
+                   f"verified and are left out of every value above:</p><ul>{items}</ul>"
+                   "</div>")
     return _section(
         "s-fresh", "Sources at the latest read",
         f"How old each source's read was at {s._e(_when(s, latest.at))}. A source past its "
         "limit drops out of the reconstruction, which can then gap exactly as the fixing "
-        "would with that source missing.",
+        "would with that source missing. A source that keeps failing is asked less often, "
+        "the wait doubling with each miss, until one read succeeds.",
         _table([("Source", False), ("Read", False), ("Counts for up to", False),
-                ("Age at latest read", False)], rows, "Source read ages"))
+                ("Age at latest read", False), ("Failing", False)], rows,
+               "Source read ages") + damaged)
 
 
 def _method(s: Any, cfg: intraday.IntradayConfig) -> str:

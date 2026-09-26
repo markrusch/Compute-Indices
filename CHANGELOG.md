@@ -7,9 +7,9 @@ All methodology-affecting changes require an entry here **before** the lock rege
 
 - **What.** A second workflow, `intraday.yml`, runs at 17 minutes past every hour and
   reads each live source that is due: vast.ai, RunPod, Hyperstack and gpuhunt every hour,
-  the rate cards every six. The reads go to `data/intraday/`, one append-only JSONL file
-  per UTC day, and `site/intraday.html` shows the index recomputed at every read beside
-  the fixing as published. The cadences are in `config/intraday.yaml` and the conduct
+  the rate cards every six. The reads go to `data/intraday/YYYY-MM/`, append-only JSONL
+  segments per UTC day, and `site/intraday.html` shows the index recomputed at every read
+  beside the fixing as published. The cadences are in `config/intraday.yaml` and the conduct
   change is a new row in SOURCES.md.
 - **Why it cannot move a print.** The daily run selects every observation whose run is
   dated that day, so an hourly read stored in `observations` would have entered the
@@ -33,6 +33,17 @@ All methodology-affecting changes require an entry here **before** the lock rege
   day, so an unchanged catalog costs one hash. The first live sweep of all 16 sources was
   188 KB. A week of synthetic hourly sweeps, with every marketplace row changing each
   hour, came to about 250 KB a day.
+- **What one bad source or one bad file can cost.** Sources are read four at a time, each
+  on its own session, each abandoned after 300 seconds, and the whole sweep writes what it
+  has after 900. A read that raises or overruns is recorded as failed with its reason.
+  A source that fails twice running is asked half as often, and so on down to once a day,
+  until one read succeeds. A row with no finite price is dropped and counted; the rest of
+  that read stands. A damaged file is trusted up to its first bad line, the problem is
+  shown on the page and fails `verify`, and the next sweep opens a new segment rather
+  than write after it. A value the replay cannot compute is a gap with its reason. If the
+  intraday page cannot be rendered at all, the 11:00 build keeps the previous one and
+  publishes everything else. A live parallel sweep of all 16 sources took 2 minutes 17
+  seconds, against 3 minutes 3 seconds one after another.
 - **The first live read.** At 03:38 UTC on 26 September the reconstructed headline was
   $3.49/GPU-hr, against $3.76/GPU-hr at the 25 September fixing. vast.ai returned 50
   datacenter-verified rows, against 16 at the fixing.

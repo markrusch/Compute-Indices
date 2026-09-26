@@ -220,3 +220,20 @@ def test_the_intraday_job_cannot_race_itself_or_sit_on_the_fixing() -> None:
     for s in triggers["schedule"]:
         minute = s["cron"].split()[0]
         assert minute != "0", "the top of the hour is when scheduled runs are dropped"
+
+
+def test_a_hung_or_failed_sweep_still_publishes_and_commits() -> None:
+    """The sweep step has its own time limit, below the job's: a step that times out only
+    fails, and every later step runs on failure. A job that times out is cancelled and runs
+    nothing more, which would throw the hour's reads away with the runner."""
+    wf = _load("intraday.yml")
+    job = wf["jobs"]["sweep"]
+    steps = job["steps"]
+    sweep = next(s for s in steps if "intraday sweep" in str(s.get("run", "")))
+    assert 0 < sweep["timeout-minutes"] < job["timeout-minutes"]
+    after = steps[steps.index(sweep) + 1:]
+    assert after, "nothing runs after the sweep"
+    for s in after:
+        cond = str(s.get("if", "")).replace(" ", "")
+        assert "failure()" in cond or "always()" in cond, (
+            f"step {s.get('name')!r} is skipped when the sweep fails")

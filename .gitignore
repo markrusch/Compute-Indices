@@ -21,6 +21,8 @@ dist/
 # SQLite's WAL sidecars are not: they belong to an open connection, not to the record.
 data/*.db-wal
 data/*.db-shm
+# Held only while a sweep runs; one left behind by a killed runner must not be committed.
+data/intraday/.lock
 
 # Design handoff working folder (mockups + prototyping runtime, not part of the build)
 Compute Index Branding/

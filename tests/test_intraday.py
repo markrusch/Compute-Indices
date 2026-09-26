@@ -20,6 +20,7 @@ import re
 import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -162,13 +163,21 @@ def test_only_the_calculation_part_of_raw_json_is_kept(tmp_path: Path) -> None:
     assert intraday.row_of(_obs("x", 2.0))[9] == ""
 
 
-def test_an_edited_store_is_refused(tmp_path: Path) -> None:
+def test_an_edited_store_is_refused_in_strict_mode_and_left_out_otherwise(
+        tmp_path: Path) -> None:
     store = intraday.Store(tmp_path)
-    _sweep(store, _cfg(), [FakeCollector("fake", [[_obs("a", 2.0), _obs("b", 3.0)]])], T0)
+    c = FakeCollector("fake", [[_obs("a", 2.0)], [_obs("a", 2.0), _obs("b", 3.0)]])
+    _sweep(store, _cfg(), [c], T0)
+    _sweep(store, _cfg(), [c], T0 + timedelta(hours=1))
     path = store.path_for("2026-09-20")
     path.write_text(path.read_text().replace("3.0", "2.9"), encoding="utf-8")
     with pytest.raises(intraday.IntradayStoreError, match="does not verify"):
-        intraday.Store(tmp_path).load("2026-09-20")
+        intraday.Store(tmp_path).load("2026-09-20", strict=True)
+    # Tolerant (the default for every reader but `verify`): the sweep before the edit is
+    # kept, the edited one and everything after it is not, and the reason is recorded.
+    fresh = intraday.Store(tmp_path)
+    assert len(fresh.load("2026-09-20").sweeps) == 1
+    assert "does not verify" in fresh.problems[path.name]
 
 
 def test_a_torn_last_line_is_dropped_but_a_bad_middle_line_is_not(tmp_path: Path) -> None:
@@ -178,10 +187,44 @@ def test_a_torn_last_line_is_dropped_but_a_bad_middle_line_is_not(tmp_path: Path
     path = store.path_for("2026-09-20")
     good = path.read_text()
     path.write_text(good + '{"v":1,"kind":"book","sou', encoding="utf-8")
-    assert len(intraday.Store(tmp_path).load("2026-09-20").sweeps) == 1
+    assert len(intraday.Store(tmp_path).load("2026-09-20", strict=True).sweeps) == 1
     path.write_text('{"v":1,"kind":"bo\n' + good, encoding="utf-8")
     with pytest.raises(intraday.IntradayStoreError):
-        intraday.Store(tmp_path).load("2026-09-20")
+        intraday.Store(tmp_path).load("2026-09-20", strict=True)
+
+
+def test_a_damaged_segment_is_never_written_after(tmp_path: Path) -> None:
+    """Under the first version of the store, one torn line made every later sweep of the
+    day fail. Now the writer opens the next segment and the day carries on."""
+    store = intraday.Store(tmp_path)
+    c = FakeCollector("fake", [[_obs("a", 2.0)], [_obs("a", 2.1)], [_obs("a", 2.2)]])
+    _sweep(store, _cfg(), [c], T0)
+    first = store.path_for("2026-09-20")
+    damaged = first.read_text() + '{"v":1,"kind":"sweep","id"'
+    first.write_text(damaged, encoding="utf-8")
+
+    fresh = intraday.Store(tmp_path)
+    for h in (1, 2):
+        result = _sweep(fresh, _cfg(), [c], T0 + timedelta(hours=h))
+        assert result.path == fresh.path_for("2026-09-20", 2)
+    assert first.read_text() == damaged, "the damaged segment was written to"
+    day = intraday.Store(tmp_path).load("2026-09-20", strict=True)
+    assert [sw.sources["fake"].n for sw in day.sweeps] == [1, 1, 1]
+    assert [sw.at for sw in day.sweeps] == sorted(sw.at for sw in day.sweeps)
+
+
+def test_segments_rotate_at_their_size_cap_and_stay_self_contained(tmp_path: Path) -> None:
+    store = intraday.Store(tmp_path, max_segment_bytes=1024)
+    books = [[_obs(f"p{i}", 2.0 + h / 100 + i / 10) for i in range(8)] for h in range(6)]
+    c = FakeCollector("fake", books)
+    for h in range(6):
+        _sweep(store, _cfg(), [c], T0 + timedelta(hours=h))
+    segs = store.segments("2026-09-20")
+    assert len(segs) > 1
+    assert all(p.parent.name == "2026-09" for p in segs)
+    for p in segs:  # each verifies on its own: no delta refers across a segment boundary
+        assert intraday.Store(tmp_path).load_segment(p).problem is None
+    assert len(intraday.Store(tmp_path).load("2026-09-20", strict=True).sweeps) == 6
 
 
 def test_appending_never_rewrites_what_is_already_there(tmp_path: Path) -> None:
@@ -242,6 +285,175 @@ def test_one_failing_source_is_recorded_and_the_rest_still_read(tmp_path: Path) 
     assert result.sweep.sources["good"].status == "ok"
     bad = intraday.Store(tmp_path).load("2026-09-20").sweeps[0].sources["bad"]
     assert bad.status == "failed" and "502" in (bad.error or "")
+
+
+class SlowCollector:
+    def __init__(self, name: str, seconds: float) -> None:
+        self.name = name
+        self.seconds = seconds
+
+    def collect(self, session: object) -> list[Observation]:
+        import time
+
+        time.sleep(self.seconds)
+        return [_obs("late", 2.0)]
+
+
+def test_a_hung_source_is_abandoned_and_the_rest_are_written(tmp_path: Path) -> None:
+    from dataclasses import replace
+
+    cfg = replace(_cfg({"slow": (1, 3), "fast": (1, 3)}), source_timeout_seconds=0.3)
+    store = intraday.Store(tmp_path)
+    import time
+
+    t0 = time.monotonic()
+    result = _sweep(store, cfg, [SlowCollector("slow", 30),
+                                 FakeCollector("fast", [[_obs("a", 2.0)]])], T0)
+    assert time.monotonic() - t0 < 5, "the sweep waited for the hung source"
+    assert result.sweep is not None
+    assert result.sweep.sources["fast"].status == "ok"
+    slow = result.sweep.sources["slow"]
+    assert slow.status == "failed" and "timed out" in (slow.error or "")
+
+
+def test_the_sweep_budget_bounds_the_whole_sweep(tmp_path: Path) -> None:
+    from dataclasses import replace
+
+    cfg = replace(_cfg({"a": (1, 3), "b": (1, 3), "c": (1, 3)}), workers=1,
+                  source_timeout_seconds=60, sweep_budget_seconds=0.5)
+    import time
+
+    t0 = time.monotonic()
+    result = _sweep(intraday.Store(tmp_path), cfg,
+                    [SlowCollector("a", 30), SlowCollector("b", 30), SlowCollector("c", 30)],
+                    T0)
+    assert time.monotonic() - t0 < 5
+    assert result.sweep is not None
+    errors = {n: r.error for n, r in result.sweep.sources.items()}
+    assert "finished" in (errors["a"] or "")  # it was running when the budget ran out
+    assert "started" in (errors["b"] or "") and "started" in (errors["c"] or "")
+
+
+def test_sources_are_read_in_parallel(tmp_path: Path) -> None:
+    from dataclasses import replace
+
+    names = {f"s{i}": (1.0, 3.0) for i in range(4)}
+    cfg = replace(_cfg(names), workers=4)
+    import time
+
+    t0 = time.monotonic()
+    result = _sweep(intraday.Store(tmp_path), cfg,
+                    [SlowCollector(n, 0.4) for n in names], T0)
+    assert time.monotonic() - t0 < 1.2, "four 0.4s reads took as long as running in series"
+    assert result.sweep is not None
+    assert all(r.status == "ok" for r in result.sweep.sources.values())
+
+
+def test_malformed_rows_are_dropped_and_counted_not_fatal(tmp_path: Path) -> None:
+    bad = [_obs("a", 2.0), _obs("b", float("nan")), _obs("c", float("inf"))]
+    result = _sweep(intraday.Store(tmp_path), _cfg(), [FakeCollector("fake", [bad])], T0)
+    assert result.sweep is not None
+    read = result.sweep.sources["fake"]
+    assert read.status == "ok" and read.n == 1 and read.dropped == 2
+    text = intraday.Store(tmp_path).path_for("2026-09-20").read_text()
+    assert "NaN" not in text and "Infinity" not in text
+
+
+def test_a_failing_source_backs_off_and_one_success_resets_it(tmp_path: Path) -> None:
+    cfg = _cfg({"flaky": (1, 3)})
+    c = FakeCollector("flaky", fail=True)
+    store = intraday.Store(tmp_path)
+    for h in range(12):
+        _sweep(store, cfg, [c], T0 + timedelta(hours=h))
+    # Asked at 0h, then 1h, 2h and 4h apart: 0, 1, 3, 7 - not twelve times.
+    assert c.calls == 4
+    states = intraday.source_states(store, None, cfg, T0 + timedelta(hours=12))
+    assert states["flaky"].failures == 4 and "502" in (states["flaky"].last_error or "")
+
+    c.fail, c.books = False, [[_obs("a", 2.0)]]
+    _sweep(store, cfg, [c], T0 + timedelta(hours=15))
+    assert c.calls == 5
+    for h in (16, 17):
+        _sweep(store, cfg, [c], T0 + timedelta(hours=h))
+    assert c.calls == 7, "a success did not reset the backoff to the plain cadence"
+
+
+def test_backoff_is_capped() -> None:
+    cfg = _cfg({"x": (1, 3)})
+    state = intraday.SourceState(T0, None, 40)
+    due = intraday.next_due(cfg, "x", state)
+    assert due is not None and due - T0 <= timedelta(hours=24)
+
+
+def test_a_second_sweep_does_not_run_beside_the_first(tmp_path: Path) -> None:
+    store = intraday.Store(tmp_path)
+    with store.lock(), pytest.raises(intraday.StoreBusy):
+        _sweep(intraday.Store(tmp_path), _cfg(), [FakeCollector("fake", [[_obs("a", 2)]])],
+               T0)
+    # Released afterwards, and a lock left by a dead process is taken over once stale.
+    assert not (tmp_path / ".lock").exists()
+    (tmp_path / ".lock").write_text("12345 2026-01-01T00:00:00Z\n")
+    import os
+
+    os.utime(tmp_path / ".lock", (0, 0))
+    assert _sweep(store, _cfg(), [FakeCollector("fake", [[_obs("a", 2)]])], T0).sweep
+
+
+def test_unreadable_scheduling_state_means_read_everything(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def broken(*args: object, **kwargs: object) -> None:
+        raise sqlite3.DatabaseError("database disk image is malformed")
+
+    monkeypatch.setattr(intraday, "source_states", broken)
+    c = FakeCollector("fake", [[_obs("a", 2.0)]])
+    assert _sweep(intraday.Store(tmp_path), _cfg(), [c], T0).sweep is not None
+    assert c.calls == 1
+
+
+def test_a_broken_record_costs_the_fixing_reads_not_the_path(tmp_path: Path) -> None:
+    broken = sqlite3.connect(":memory:")  # no tables at all
+    broken.row_factory = sqlite3.Row
+    assert intraday.fixing_reads(broken, T0, T0 + timedelta(hours=1), ["fake"]) == []
+    store = intraday.Store(tmp_path)
+    _sweep(store, _cfg(), [FakeCollector("fake", [[_obs("a", 2.0)]])], T0, conn=broken)
+    assert intraday.path(store, broken, _cfg(), T0 - timedelta(hours=1),
+                         T0 + timedelta(hours=1))
+
+
+@pytest.mark.usefixtures("unpanelled")
+def test_a_point_that_cannot_be_computed_is_a_gap_not_a_crash(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    store = _panel_store(tmp_path, [[2.0, 2.2, 2.4, 2.6, 2.8]] * 3)
+    real = intraday.compute_snapshot
+    calls = {"n": 0}
+
+    def flaky(*args: Any, **kwargs: Any) -> intraday.Snapshot:
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise ZeroDivisionError("bad read")
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(intraday, "compute_snapshot", flaky)
+    snaps = intraday.path(store, None, _cfg(), T0, T0 + timedelta(hours=3))
+    assert [s.values["EU-CRI-H100"][0] for s in snaps] == [2.4, None, 2.4]
+    assert snaps[1].values["EU-CRI-H100"][3] == "not_computed: ZeroDivisionError"
+
+
+def test_the_daily_site_build_survives_an_intraday_failure(
+        monkeypatch: pytest.MonkeyPatch) -> None:
+    """The 11:00 run renders this page with every other. Whatever goes wrong in here must
+    cost this page at most, and never the fixing's site."""
+    from tci.outputs import intraday_page, site
+
+    def boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("store unreadable")
+
+    conn = db.connect_readonly(REPO_ROOT / "data" / "eucri.db")
+    ctx = site.build_context(conn)
+    monkeypatch.setattr(intraday_page, "build", boom)
+    assert "could not be built" in site._intraday(ctx)  # the page says so
+    monkeypatch.setattr(intraday_page, "render", boom)
+    assert site._intraday(ctx) == ""  # generate() then keeps the last good page
 
 
 def test_a_sweep_never_writes_to_the_record(tmp_path: Path, conn: sqlite3.Connection) -> None:

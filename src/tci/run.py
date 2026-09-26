@@ -272,25 +272,49 @@ def _cmd_intraday(args: argparse.Namespace) -> int:
     settle: the settlement-window average on a date, against the published fixing.
     build:  write site/data/intraday/ and site/intraday.html (the hourly workflow's step).
     verify: re-read every stored day and check every book against its hash.
+    status: each source's last read, consecutive failures and next due time.
+
+    Exit codes are the workflow's signal and are kept distinct: 0 done (a sweep with some
+    failed sources is still done), 1 every due source failed or the store does not verify,
+    2 could not run at all (bad config, unreadable record). A sweep that finds another
+    holding the lock exits 0: the other one is doing the work.
     """
     from datetime import UTC, datetime, timedelta
 
     from tci import db, intraday, series_read
 
-    cfg = intraday.load_config()
-    store = intraday.Store()
+    try:
+        cfg = intraday.load_config()
+    except Exception as exc:  # noqa: BLE001 - any config failure is exit 2, never a pass
+        print(f"config/intraday.yaml could not be loaded: {type(exc).__name__}: {exc}")
+        return 2
+    store = intraday.Store(max_segment_bytes=cfg.max_segment_bytes)
     # Read-only, and no migrate: the hourly job reads the fixing's record (its reads, its
     # prints, the FX table) and must be structurally unable to write to it. The workflow
-    # that runs this commits data/intraday/ and never data/eucri.db.
-    conn = db.connect_readonly()
+    # that runs this commits data/intraday/ and never data/eucri.db. A missing or
+    # unreadable record costs the fixing's reads, not the sweep.
+    conn = None
+    try:
+        conn = db.connect_readonly()
+        conn.execute("SELECT 1 FROM runs LIMIT 1").fetchall()
+    except Exception as exc:  # noqa: BLE001
+        print(f"note: data/eucri.db not readable ({exc}); continuing without the fixing")
+        conn = None
 
     if args.action == "sweep":
-        result = intraday.run_sweep(store, conn, cfg, force=args.force, only=args.source)
+        try:
+            result = intraday.run_sweep(store, conn, cfg, force=args.force,
+                                        only=args.source)
+        except intraday.StoreBusy as exc:
+            print(f"another sweep is running ({exc}); leaving this hour to it")
+            return 0
         if result.sweep is None:
             print(f"nothing due; next reads pending for: {', '.join(result.not_due)}")
             return 0
         for name, r in sorted(result.sweep.sources.items()):
             detail = f"{r.n} rows" if r.status == "ok" else r.error
+            if r.dropped:
+                detail = f"{detail}, {r.dropped} malformed dropped"
             print(f"  {name:<16}{r.status:<8}{detail}")
         print(f"sweep {result.sweep.id} -> {result.path}")
         # Exit 1 only if every source that was due failed: that is an outage or a broken
@@ -303,19 +327,42 @@ def _cmd_intraday(args: argparse.Namespace) -> int:
         days = store.days()
         for day in days:
             try:
-                log_ = intraday.Store(store.root).load(day)
+                log_ = intraday.Store(store.root).load(day, strict=True)
             except intraday.IntradayStoreError as exc:
                 print(f"{day}: FAILED {exc}")
                 bad += 1
                 continue
-            print(f"{day}: {len(log_.sweeps)} sweeps, {len(log_.books)} books verified")
+            segs = len(store.segments(day))
+            note = f" ({log_.problem})" if log_.problem else ""
+            print(f"{day}: {len(log_.sweeps)} sweeps, {len(log_.books)} books verified"
+                  f" in {segs} segment(s){note}")
         if not days:
             print("no intraday store yet")
         return 1 if bad else 0
 
+    if args.action == "status":
+        now = datetime.now(UTC)
+        states = intraday.source_states(store, conn, cfg, now)
+        print("| source | every | last ok | failures | next due | last error |\n"
+              "|---|---|---|---|---|---|")
+        for name, c in cfg.sources.items():
+            state = states.get(name)
+            due = intraday.next_due(cfg, name, state)
+            last_ok = intraday._iso(state.last_ok) if state and state.last_ok else "never"
+            nxt = "now" if due is None or due <= now else intraday._iso(due)
+            fails = state.failures if state else 0
+            err = ((state.last_error or "")[:80] if state and fails else "").replace("|", "/")
+            print(f"| {name} | {c.every_hours:g}h | {last_ok} | {fails} | {nxt} | {err} |")
+        for seg, problem in sorted(store.problems.items()):
+            print(f"\nstore problem: {seg}: {problem}")
+        return 0
+
     if args.action == "build":
         from tci.outputs import intraday_page
 
+        if conn is None:
+            print("cannot build the page without data/eucri.db (it renders the site shell)")
+            return 2
         for p in intraday_page.build_and_write(conn):
             print(p)
         return 0
@@ -349,7 +396,8 @@ def _cmd_intraday(args: argparse.Namespace) -> int:
               f" min {window.min_points} values; research only, not a print")
         for name in series:
             st = intraday.settle(snaps, day, name, window,
-                                 series_read.head_value(conn, name, day))
+                                 series_read.head_value(conn, name, day)
+                                 if conn is not None else None)
             value = f"{st.value_usd:.4f}" if st.value_usd is not None else f"none ({st.reason})"
             fixing = f"{st.fixing_usd:.4f}" if st.fixing_usd is not None else "none"
             print(f"  {name:<18} window {value:<40} n={st.n_points:<3} fixing {fixing}")
@@ -498,9 +546,10 @@ def main(argv: list[str] | None = None) -> int:
 
     p_intra = sub.add_parser(
         "intraday",
-        help="hourly reads beside the fixing: sweep, path, settle, build, verify",
+        help="hourly reads beside the fixing: sweep, path, settle, build, verify, status",
     )
-    p_intra.add_argument("action", choices=["sweep", "path", "settle", "build", "verify"])
+    p_intra.add_argument("action",
+                         choices=["sweep", "path", "settle", "build", "verify", "status"])
     p_intra.add_argument("--date", help="UTC date for path/settle (default: today)")
     p_intra.add_argument("--series", help="one series only (path, settle)")
     p_intra.add_argument("--source", action="append",

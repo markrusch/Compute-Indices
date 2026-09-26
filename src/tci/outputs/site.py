@@ -3771,9 +3771,17 @@ def _forward(ctx: SiteContext) -> str:
 
 def _intraday(ctx: SiteContext) -> str:
     # Research beside the index, like forward.html: its own module, its own failure page.
-    from tci.outputs import intraday_page
+    # The render already turns any failure of its own into a page that says so. This guard
+    # is for a failure it cannot catch - the module failing to import, or the shell itself
+    # raising - and it returns nothing, so `generate` keeps the last good page and the rest
+    # of the 11:00 site is written regardless. The hourly job rebuilds it within the hour.
+    try:
+        from tci.outputs import intraday_page
 
-    return intraday_page.render(ctx)
+        return intraday_page.render(ctx)
+    except Exception:  # noqa: BLE001
+        log.exception("site: intraday page not rendered; the previous one is kept")
+        return ""
 
 
 def _term(ctx: SiteContext) -> str:

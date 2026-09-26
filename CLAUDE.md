@@ -34,7 +34,7 @@ python -m tci.run reproduce [--date D] [--published]    # recompute stored print
 python -m tci.run contrib validate|ingest|aggregate    # contributed term prices (private store)
 python -m tci.run intraday sweep [--force] [--source S]   # read the sources that are due
 python -m tci.run intraday path|settle [--date D] [--series S]   # replayed index, window mean
-python -m tci.run intraday build|verify        # site/intraday.html + data; check the store
+python -m tci.run intraday build|verify|status # page + data; check the store; source health
 
 pytest                                         # 289 tests
 pytest tests/test_site.py::test_pages_are_self_contained -q    # a single test
@@ -75,7 +75,10 @@ One direction, and each stage earns its place:
 
 - **`intraday.py`** is beside the pipeline, not in it. The hourly `intraday.yml` workflow
   reads each source at the cadence in `config/intraday.yaml` and appends to
-  `data/intraday/YYYY-MM-DD.jsonl`, append-only and hash-verified on every read. The
+  `data/intraday/YYYY-MM/YYYY-MM-DD[.N].jsonl`, append-only and hash-verified on every
+  read. Every guard in it (per-source timeout, sweep budget, backoff, segment rotation
+  past a damaged file, per-point gaps) exists so a failure costs one source, one file or
+  one point and never the sweep or the 11:00 run; keep new code inside that shape. The
   index is then replayed at each read through `commands.print_definitions` →
   `normalise` → `compute_print`, so the replay and the fixing cannot drift apart.
   `outputs/intraday_page.py` renders `site/intraday.html`. Never store an intraday read

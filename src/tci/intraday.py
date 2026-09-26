@@ -12,7 +12,8 @@ WHERE THE READS GO, AND WHY NOT INTO `observations`. `commands._observations_for
 selects every observation whose run is dated that day. An hourly read stored there would
 enter the fixing the moment it was written: the print would become an average of the
 day's reads without a version, a notice or a line in the CHANGELOG. So intraday reads live
-in `data/intraday/YYYY-MM-DD.jsonl`, one file per UTC day, appended and never rewritten.
+in `data/intraday/YYYY-MM/YYYY-MM-DD[.N].jsonl`: one folder per month, one or more segments
+per UTC day, appended and never rewritten.
 
 WHY FILES AND NOT A SECOND SQLITE DATABASE. The store is committed to git every hour. A
 binary database changes wholesale on every commit and git keeps each version whole; an
@@ -27,10 +28,17 @@ WHAT A LINE HOLDS. Two kinds, in the order written:
 A book is the full set of rows one read of one source produced, as a multiset. It is
 written as a difference from the previous book of the same source in the same file (most
 catalogs are identical from one hour to the next, so most books are a reference to an
-existing hash and cost nothing), and is verified against its hash when read back. A
-mismatch raises: a store that has been edited is not something to reconstruct prices from.
-The sweep line comes last and is what makes its books count; a runner killed between the
-two leaves orphan books that nothing refers to, never a half-recorded sweep.
+existing hash and cost nothing), and is verified against its hash when read back. The
+sweep line comes last and is what makes its books count; a runner killed between the two
+leaves orphan books that nothing refers to, never a half-recorded sweep.
+
+WHEN A FILE IS DAMAGED. A segment is trusted up to its first line that does not parse or
+verify, and nothing after it is used. The problem is recorded (`Store.problems`, the
+`verify` command, the page) rather than raised, because one bad file must cost the reads in
+it and not every later sweep: under the first version of this store, a single torn line in
+today's file made every remaining sweep of the day fail on load. The writer never appends
+to a segment that has a problem, or that has reached `max_segment_bytes`; it opens the
+next one, `.2`, `.3`, each self-contained, so a damaged file stays as it was found.
 
 A row keeps exactly the columns the calculation reads (see `CALC_RAW_KEYS` for the part of
 `raw_json` it needs). Anything else a collector records is in the daily `observations`.
@@ -41,11 +49,17 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import math
+import os
+import re
 import sqlite3
 import statistics
+import threading
+import time
 import uuid
 from collections import Counter
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Iterator, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -79,7 +93,11 @@ Row = tuple[str, str, int | None, float, str | None, str | None, str | None, str
 
 
 class IntradayStoreError(RuntimeError):
-    """The store on disk does not verify. Raised, never repaired."""
+    """The store on disk does not verify. Raised in strict mode, never repaired."""
+
+
+class StoreBusy(RuntimeError):
+    """Another sweep holds the store's lock."""
 
 
 # ==========================================================================
@@ -110,6 +128,11 @@ class IntradayConfig:
     sources: dict[str, Cadence]
     series: tuple[str, ...]
     settlement: SettlementWindow
+    workers: int = 4
+    source_timeout_seconds: float = 300.0
+    sweep_budget_seconds: float = 900.0
+    max_backoff_hours: float = 24.0
+    max_segment_bytes: int = 8_000_000
 
     @property
     def longest_age(self) -> timedelta:
@@ -141,12 +164,22 @@ def load_config(path: Path | None = None) -> IntradayConfig:
         raise ValueError(f"intraday.yaml: unknown settlement method {window.method!r}")
     if not _at("2000-01-01", window.start) < _at("2000-01-01", window.end):
         raise ValueError("intraday.yaml: settlement window must end after it starts")
-    return IntradayConfig(
+    cfg = IntradayConfig(
         due_slack_minutes=int(raw.get("due_slack_minutes", 0)),
         sources=sources,
         series=tuple(raw.get("series") or ()),
         settlement=window,
+        workers=int(raw.get("workers", 4)),
+        source_timeout_seconds=float(raw.get("source_timeout_seconds", 300)),
+        sweep_budget_seconds=float(raw.get("sweep_budget_seconds", 900)),
+        max_backoff_hours=float(raw.get("max_backoff_hours", 24)),
+        max_segment_bytes=int(raw.get("max_segment_bytes", 8_000_000)),
     )
+    if cfg.workers < 1 or cfg.source_timeout_seconds <= 0 or cfg.sweep_budget_seconds <= 0:
+        raise ValueError("intraday.yaml: workers and both time limits must be positive")
+    if cfg.max_segment_bytes < 1024:
+        raise ValueError("intraday.yaml: max_segment_bytes is too small to hold one read")
+    return cfg
 
 
 # ==========================================================================
@@ -231,6 +264,7 @@ class SourceRead:
     book: str | None = None
     n: int = 0
     error: str | None = None
+    dropped: int = 0  # malformed rows the collector returned and the store refused
 
 
 @dataclass(frozen=True)
@@ -243,53 +277,107 @@ class Sweep:
 
 @dataclass
 class DayLog:
-    """One parsed, verified day file."""
+    """The verified content of one segment, or of a whole day's segments merged."""
 
     # book hash -> (source, rows)
     books: dict[str, tuple[str, tuple[Row, ...]]] = field(default_factory=dict)
     sweeps: list[Sweep] = field(default_factory=list)
     latest_book: dict[str, str] = field(default_factory=dict)  # source -> last hash written
+    problem: str | None = None  # why reading stopped early, if it did
+
+
+_SEGMENT_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:\.(\d+))?\.jsonl$")
 
 
 class Store:
-    """Append-only, day-partitioned JSONL. The only writer is `append`."""
+    """Append-only JSONL, one folder per month and one or more segments per UTC day.
 
-    def __init__(self, root: Path | None = None) -> None:
+    `append` is the only writer. Reading never raises on a damaged segment unless asked to
+    (`strict=True`, which is what `tci.run intraday verify` uses); it keeps what verified
+    and records the rest in `problems`.
+    """
+
+    def __init__(self, root: Path | None = None, max_segment_bytes: int = 8_000_000) -> None:
         self.root = root or STORE_DIR
-        self._cache: dict[str, DayLog] = {}
+        self.max_segment_bytes = max_segment_bytes
+        self._segments: dict[Path, DayLog] = {}
+        self.problems: dict[str, str] = {}  # segment file name -> what is wrong with it
 
-    def path_for(self, day: str) -> Path:
-        return self.root / f"{day}.jsonl"
+    # --- layout -----------------------------------------------------------------------
+
+    def day_dir(self, day: str) -> Path:
+        return self.root / day[:7]
+
+    def path_for(self, day: str, segment: int = 1) -> Path:
+        name = f"{day}.jsonl" if segment == 1 else f"{day}.{segment}.jsonl"
+        return self.day_dir(day) / name
+
+    def segments(self, day: str) -> list[Path]:
+        folder = self.day_dir(day)
+        if not folder.exists():
+            return []
+        found = []
+        for p in folder.glob(f"{day}*.jsonl"):
+            m = _SEGMENT_RE.match(p.name)
+            if m and m.group(1) == day:
+                found.append((int(m.group(2) or 1), p))
+        return [p for _, p in sorted(found)]
 
     def days(self) -> list[str]:
         if not self.root.exists():
             return []
-        return sorted(p.stem for p in self.root.glob("*.jsonl"))
+        return sorted({
+            m.group(1) for p in self.root.rglob("*.jsonl")
+            if (m := _SEGMENT_RE.match(p.name))
+        })
 
-    def load(self, day: str) -> DayLog:
-        if day in self._cache:
-            return self._cache[day]
+    # --- reading ----------------------------------------------------------------------
+
+    def load_segment(self, path: Path) -> DayLog:
+        if path in self._segments:
+            return self._segments[path]
         log_ = DayLog()
-        path = self.path_for(day)
         if path.exists():
             lines = path.read_text(encoding="utf-8").split("\n")
             for i, line in enumerate(lines):
                 if not line.strip():
                     continue
+                where = f"{path.name}:{i + 1}"
                 try:
                     rec = json.loads(line)
-                except json.JSONDecodeError as exc:
+                    self._apply(log_, rec, where)
+                except (json.JSONDecodeError, IntradayStoreError, KeyError, TypeError,
+                        ValueError) as exc:
                     # A runner killed mid-write leaves a torn final line and nothing after
-                    # it. That line is dropped; its sweep line never landed, so nothing
-                    # referred to it. A bad line with more lines after it is not a torn
-                    # write and is not skipped.
-                    if all(not rest.strip() for rest in lines[i + 1:]):
-                        log.warning("%s: torn final line ignored", path.name)
-                        break
-                    raise IntradayStoreError(f"{path.name}:{i + 1}: {exc}") from exc
-                self._apply(log_, rec, f"{path.name}:{i + 1}")
-        self._cache[day] = log_
+                    # it; that is the one case that is not a problem, because the sweep
+                    # line it belonged to never landed. Anything else stops the read here.
+                    torn = isinstance(exc, json.JSONDecodeError) and all(
+                        not rest.strip() for rest in lines[i + 1:])
+                    log_.problem = f"torn final line {where}" if torn else f"{where}: {exc}"
+                    break
+            # A file that does not end in a newline has a torn tail even if every complete
+            # line verified; appending after it would glue the next line onto the fragment.
+            if log_.problem is None and lines and lines[-1] != "":
+                log_.problem = f"torn tail of {path.name}: no newline at end of file"
+        if log_.problem is not None:
+            self.problems[path.name] = log_.problem
+            level = logging.INFO if log_.problem.startswith("torn") else logging.ERROR
+            log.log(level, "intraday store: %s (reads before it are kept)", log_.problem)
+        self._segments[path] = log_
         return log_
+
+    def load(self, day: str, strict: bool = False) -> DayLog:
+        """Every verified sweep of a day, across its segments, oldest first."""
+        merged = DayLog()
+        for path in self.segments(day):
+            seg = self.load_segment(path)
+            if strict and seg.problem is not None and not seg.problem.startswith("torn"):
+                raise IntradayStoreError(seg.problem)
+            merged.books.update(seg.books)
+            merged.sweeps.extend(seg.sweeps)
+            merged.problem = merged.problem or seg.problem
+        merged.sweeps.sort(key=lambda sw: sw.at)
+        return merged
 
     @staticmethod
     def _apply(log_: DayLog, rec: dict[str, Any], where: str) -> None:
@@ -322,6 +410,7 @@ class Store:
                 sources[name] = SourceRead(
                     status=str(s["status"]), at=parse_iso(s["at"]), book=s.get("book"),
                     n=int(s.get("n") or 0), error=s.get("error"),
+                    dropped=int(s.get("dropped") or 0),
                 )
             log_.sweeps.append(Sweep(
                 id=str(rec["id"]), started=parse_iso(rec["started"]),
@@ -333,15 +422,59 @@ class Store:
         else:
             raise IntradayStoreError(f"{where}: unknown line kind {kind!r}")
 
+    # --- writing ----------------------------------------------------------------------
+
+    @contextmanager
+    def lock(self, stale_after: timedelta = timedelta(hours=2)) -> Iterator[None]:
+        """One sweep at a time, on any platform. The workflow's concurrency group already
+        serialises CI; this covers a manual sweep started beside it. A lock older than
+        `stale_after` belonged to a process that died holding it and is taken over."""
+        self.root.mkdir(parents=True, exist_ok=True)
+        path = self.root / ".lock"
+        try:
+            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            try:
+                age = time.time() - path.stat().st_mtime
+            except FileNotFoundError:
+                age = float("inf")
+            if age < stale_after.total_seconds():
+                raise StoreBusy(f"{path} is held ({age:.0f}s old)") from None
+            log.warning("intraday: taking over a stale lock (%.0fs old)", age)
+            path.unlink(missing_ok=True)
+            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        try:
+            os.write(fd, f"{os.getpid()} {_iso(datetime.now(UTC))}\n".encode())
+            yield
+        finally:
+            os.close(fd)
+            path.unlink(missing_ok=True)
+
+    def _writable_segment(self, day: str) -> tuple[Path, DayLog]:
+        existing = self.segments(day)
+        if existing:
+            last = existing[-1]
+            seg = self.load_segment(last)
+            if seg.problem is None and last.stat().st_size < self.max_segment_bytes:
+                return last, seg
+            reason = seg.problem or f"reached {self.max_segment_bytes} bytes"
+            log.warning("intraday: starting a new segment after %s (%s)", last.name, reason)
+            m = _SEGMENT_RE.match(last.name)
+            number = int(m.group(2) or 1) + 1 if m else len(existing) + 1
+        else:
+            number = 1
+        path = self.path_for(day, number)
+        return path, self._segments.setdefault(path, DayLog())
+
     def append(self, sweep: Sweep, books: dict[str, list[Row]]) -> Path:
         """Write the books this sweep read, then the sweep line that makes them count."""
         day = sweep.started.strftime("%Y-%m-%d")
-        log_ = self.load(day)
+        path, log_ = self._writable_segment(day)
         lines: list[dict[str, Any]] = []
         for source in sorted(books):
             rows = books[source]
             h = book_hash(rows)
-            # An identical book already in this file is referred to, not written again.
+            # An identical book already in this segment is referred to, not written again.
             if h not in log_.books:
                 lines.append(self._book_line(log_, source, h, rows))
                 log_.books[h] = (source, tuple(sorted(rows, key=_row_key)))
@@ -352,17 +485,19 @@ class Store:
             "sources": {
                 name: {k: v for k, v in (
                     ("status", s.status), ("at", _iso(s.at)), ("book", s.book),
-                    ("n", s.n), ("error", s.error),
+                    ("n", s.n), ("error", s.error), ("dropped", s.dropped or None),
                 ) if v is not None}
                 for name, s in sorted(sweep.sources.items())
             },
         })
-        path = self.path_for(day)
         path.parent.mkdir(parents=True, exist_ok=True)
-        # Append mode, one write per line: existing content is never rewritten.
+        # One write of the whole batch, in append mode: existing content is never
+        # rewritten, and a crash can tear at most the tail of this batch.
+        payload = "".join(json.dumps(line, separators=(",", ":")) + "\n" for line in lines)
         with open(path, "a", encoding="utf-8", newline="\n") as f:
-            for line in lines:
-                f.write(json.dumps(line, separators=(",", ":")) + "\n")
+            f.write(payload)
+            f.flush()
+            os.fsync(f.fileno())
         log_.sweeps.append(sweep)
         return path
 
@@ -372,14 +507,14 @@ class Store:
         base_hash = log_.latest_book.get(source)
         add: list[str]
         drop: list[str]
-        if base_hash is not None:
+        if base_hash is not None and base_hash in log_.books:
             old = Counter(_row_key(r) for r in log_.books[base_hash][1])
             add = sorted((new - old).elements())
             drop = sorted((old - new).elements())
             if len(add) + len(drop) >= len(rows):
                 base_hash, add, drop = None, sorted(new.elements()), []
         else:
-            add, drop = sorted(new.elements()), []
+            base_hash, add, drop = None, sorted(new.elements()), []
         return {
             "v": FORMAT_VERSION, "kind": "book", "source": source, "book": h,
             "base": base_hash, "add": [json.loads(k) for k in add],
@@ -427,23 +562,32 @@ def fixing_reads(conn: sqlite3.Connection, start: datetime, end: datetime,
 
     Timed by when each collector finished, not by the run's nominal date: a catch-up run
     for yesterday made this morning read this morning's prices.
+
+    Fail-soft: the database is the fixing's, not ours. If it is missing, locked or from a
+    schema this code does not know, the intraday path loses the fixing's reads and says so
+    in the log; it does not stop.
     """
     wanted = sorted(set(sources))
     if not wanted:
         return []
     marks = ",".join("?" for _ in wanted)
-    runs = conn.execute(
-        f"SELECT run_id, source, finished_utc FROM runs WHERE status = 'ok'"
-        f" AND finished_utc >= ? AND finished_utc <= ? AND source IN ({marks})",
-        (_iso(start), _iso(end), *wanted),
-    ).fetchall()
     out = []
-    for r in runs:
-        obs = conn.execute(
-            "SELECT * FROM observations WHERE run_id = ?", (r["run_id"],)
+    try:
+        runs = conn.execute(
+            f"SELECT run_id, source, finished_utc FROM runs WHERE status = 'ok'"
+            f" AND finished_utc >= ? AND finished_utc <= ? AND source IN ({marks})",
+            (_iso(start), _iso(end), *wanted),
         ).fetchall()
-        rows = tuple(sorted((row_of(o) for o in obs), key=_row_key))
-        out.append(Read(r["source"], parse_iso(r["finished_utc"]), rows, "fixing"))
+        for r in runs:
+            obs = conn.execute(
+                "SELECT * FROM observations WHERE run_id = ?", (r["run_id"],)
+            ).fetchall()
+            rows = tuple(sorted((row_of(o) for o in obs), key=_row_key))
+            out.append(Read(r["source"], parse_iso(r["finished_utc"]), rows, "fixing"))
+    except (sqlite3.Error, ValueError, KeyError, IndexError) as exc:
+        log.warning("intraday: the fixing's reads could not be loaded (%s); continuing"
+                    " without them", exc)
+        return []
     return out
 
 
@@ -456,31 +600,83 @@ def all_reads(store: Store, conn: sqlite3.Connection | None, cfg: IntradayConfig
 
 
 # ==========================================================================
-# scheduling and the sweep itself
+# scheduling: cadence, and backoff for a source that keeps failing
 # ==========================================================================
 
 
-def due_sources(cfg: IntradayConfig, last_read: dict[str, datetime], now: datetime
-                ) -> list[str]:
-    slack = timedelta(minutes=cfg.due_slack_minutes)
-    return [
-        name for name, c in cfg.sources.items()
-        if name not in last_read
-        or now - last_read[name] >= timedelta(hours=c.every_hours) - slack
-    ]
+@dataclass(frozen=True)
+class SourceState:
+    last_attempt: datetime | None
+    last_ok: datetime | None
+    failures: int  # consecutive, since the last successful read
+    last_error: str | None = None
 
 
-def last_reads(store: Store, conn: sqlite3.Connection | None, cfg: IntradayConfig,
-               now: datetime) -> dict[str, datetime]:
-    """When each source was last read successfully, by a sweep or by the fixing.
+def _attempts(store: Store, conn: sqlite3.Connection | None, cfg: IntradayConfig,
+              start: datetime, end: datetime) -> list[tuple[datetime, str, bool, str | None]]:
+    """(when, source, ok, error) for every attempt on a configured source, both origins.
+
+    Reads only `runs` from the database, not observations: scheduling needs to know when a
+    source was asked and how it answered, not what it said.
+    """
+    out: list[tuple[datetime, str, bool, str | None]] = []
+    for day in _days_between(start, end):
+        for sw in store.load(day).sweeps:
+            for name, s in sw.sources.items():
+                if name in cfg.sources and start <= s.at <= end:
+                    out.append((s.at, name, s.status == "ok", s.error))
+    if conn is not None:
+        wanted = sorted(cfg.sources)
+        marks = ",".join("?" for _ in wanted)
+        try:
+            for r in conn.execute(
+                f"SELECT source, status, finished_utc, notes FROM runs"
+                f" WHERE status IN ('ok', 'failed') AND finished_utc >= ?"
+                f" AND finished_utc <= ? AND source IN ({marks})",
+                (_iso(start), _iso(end), *wanted),
+            ):
+                out.append((parse_iso(r["finished_utc"]), r["source"], r["status"] == "ok",
+                            r["notes"] if r["status"] != "ok" else None))
+        except (sqlite3.Error, ValueError) as exc:
+            log.warning("intraday: the fixing's run log could not be read (%s)", exc)
+    return sorted(out, key=lambda a: a[0])
+
+
+def source_states(store: Store, conn: sqlite3.Connection | None, cfg: IntradayConfig,
+                  now: datetime) -> dict[str, SourceState]:
+    """Where each source stands: last asked, last answered, and how many misses since.
 
     The fixing counts. Without it the 11:17 sweep would read vast.ai seven minutes after
     the 11:00 run did, which is a second request for the same book.
     """
-    out: dict[str, datetime] = {}
-    for r in all_reads(store, conn, cfg, now - timedelta(days=1), now):
-        out[r.source] = max(r.at, out.get(r.source, r.at))
-    return out
+    lookback = timedelta(hours=max(cfg.max_backoff_hours, 24) * 2)
+    states: dict[str, SourceState] = {}
+    for at, name, ok, error in _attempts(store, conn, cfg, now - lookback, now):
+        prev = states.get(name, SourceState(None, None, 0))
+        states[name] = (SourceState(at, at, 0) if ok
+                        else SourceState(at, prev.last_ok, prev.failures + 1, error))
+    return states
+
+
+def next_due(cfg: IntradayConfig, name: str, state: SourceState | None) -> datetime | None:
+    """When a source may next be asked; None means now. The wait doubles per failure."""
+    if state is None or state.last_attempt is None:
+        return None
+    every = cfg.sources[name].every_hours
+    # One miss is retried at the normal cadence (a single 502 is not a pattern); from the
+    # second in a row the wait doubles.
+    doublings = min(max(state.failures - 1, 0), 16)
+    hours = min(every * 2 ** doublings, max(cfg.max_backoff_hours, every))
+    return (state.last_attempt + timedelta(hours=hours)
+            - timedelta(minutes=cfg.due_slack_minutes))
+
+
+def due_sources(cfg: IntradayConfig, states: dict[str, SourceState], now: datetime
+                ) -> list[str]:
+    return [
+        name for name in cfg.sources
+        if (t := next_due(cfg, name, states.get(name))) is None or now >= t
+    ]
 
 
 def sweep_collectors(names: Iterable[str]) -> list[base.Collector]:
@@ -489,6 +685,109 @@ def sweep_collectors(names: Iterable[str]) -> list[base.Collector]:
 
     wanted = set(names)
     return [c for c in collectors_for_daily() if c.name in wanted]
+
+
+# ==========================================================================
+# the sweep: parallel, time-boxed, fail-soft per source
+# ==========================================================================
+
+
+def clean_rows(observations: Iterable[Any]) -> tuple[list[Row], int]:
+    """Rows the store can hold, and how many were refused.
+
+    A malformed row (no price, a price that is not a finite number) is dropped and
+    counted rather than failing the read: `json` would write NaN as a bare token that
+    other readers reject, and one bad row is no reason to lose a source's other rows.
+    """
+    rows: list[Row] = []
+    dropped = 0
+    for o in observations:
+        try:
+            row = row_of(o)
+        except (TypeError, ValueError, KeyError, AttributeError):
+            dropped += 1
+            continue
+        if not math.isfinite(row[3]):
+            dropped += 1
+            continue
+        rows.append(row)
+    return rows, dropped
+
+
+def _collect_parallel(
+    collectors: Sequence[base.Collector],
+    cfg: IntradayConfig,
+    now: Callable[[], datetime],
+    session_for: Callable[[], Any],
+) -> dict[str, tuple[SourceRead, list[Row]]]:
+    """Read every collector, `cfg.workers` at a time, each inside its own time limit.
+
+    Daemon threads, deliberately. A thread cannot be killed from outside, so a read that
+    overruns is abandoned: its slot is handed to the next source, its result is ignored if
+    it ever arrives, and because the thread is a daemon it cannot keep the process alive
+    after the sweep has written what it has. concurrent.futures would join every worker at
+    exit, so one hung socket would hold the sweep open until the runner was killed, and a
+    killed runner commits nothing.
+    """
+    slots = threading.Semaphore(cfg.workers)
+    mu = threading.Lock()
+    started: dict[str, float] = {}
+    results: dict[str, tuple[SourceRead, list[Row]]] = {}
+    abandoned: set[str] = set()
+
+    def work(c: base.Collector) -> None:
+        slots.acquire()
+        with mu:
+            if c.name in abandoned:
+                slots.release()
+                return
+            started[c.name] = time.monotonic()
+        try:
+            rows, dropped = clean_rows(c.collect(session_for()))
+            outcome = (SourceRead("ok", now(), book=book_hash(rows), n=len(rows),
+                                  dropped=dropped), rows)
+            if dropped:
+                log.warning("intraday: %s returned %d malformed rows, dropped", c.name,
+                            dropped)
+        except BaseException as exc:  # noqa: BLE001 - fail-soft, reason recorded
+            log.warning("intraday: %s failed (fail-soft, continuing): %s: %s", c.name,
+                        type(exc).__name__, exc)
+            outcome = (SourceRead("failed", now(),
+                                  error=f"{type(exc).__name__}: {exc}"[:300]), [])
+        with mu:
+            if c.name in abandoned:
+                return  # the watchdog already recorded it and freed the slot
+            results[c.name] = outcome
+            slots.release()
+
+    for c in collectors:
+        threading.Thread(target=work, args=(c,), name=f"intraday-{c.name}",
+                         daemon=True).start()
+
+    budget_end = time.monotonic() + cfg.sweep_budget_seconds
+    while True:
+        with mu:
+            pending = [c.name for c in collectors
+                       if c.name not in results and c.name not in abandoned]
+            if not pending:
+                break
+            clock = time.monotonic()
+            for name in pending:
+                t0 = started.get(name)
+                if t0 is not None and clock - t0 > cfg.source_timeout_seconds:
+                    reason = f"timed out after {cfg.source_timeout_seconds:g}s"
+                elif clock > budget_end:
+                    reason = (f"sweep budget of {cfg.sweep_budget_seconds:g}s spent before"
+                              f" it {'finished' if t0 is not None else 'started'}")
+                else:
+                    continue
+                log.warning("intraday: %s abandoned: %s", name, reason)
+                abandoned.add(name)
+                results[name] = (SourceRead("failed", now(), error=reason), [])
+                if t0 is not None:
+                    slots.release()  # a waiting source may start in its place
+        time.sleep(0.05)
+    return results
 
 
 @dataclass(frozen=True)
@@ -511,42 +810,46 @@ def run_sweep(
 ) -> SweepResult:
     """Read every due source once, fail-soft per source, and append one sweep.
 
-    A source that raises is recorded as failed with its reason, exactly as the daily run
-    records it in `runs.notes`; the others are still read. Nothing is written when no
-    source was due, so an idle hour costs neither a request nor a line.
+    A source that raises or overruns is recorded as failed with its reason, exactly as the
+    daily run records it in `runs.notes`; the others are still read. Nothing is written
+    when no source was due, so an idle hour costs neither a request nor a line. Raises
+    StoreBusy if another sweep holds the store.
     """
-    started = now()
-    pool = list(collectors) if collectors is not None else sweep_collectors(cfg.sources)
-    pool = [c for c in pool if c.name in cfg.sources]
-    if only is not None:
-        keep = set(only)
-        pool = [c for c in pool if c.name in keep]
-    due = set(cfg.sources) if force else set(
-        due_sources(cfg, last_reads(store, conn, cfg, started), started)
-    )
-    run = [c for c in pool if c.name in due]
-    not_due = tuple(sorted(c.name for c in pool if c.name not in due))
-    if not run:
-        log.info("intraday: nothing due (%s)", ", ".join(not_due) or "no sources")
-        return SweepResult(None, None, not_due)
+    with store.lock():
+        started = now()
+        pool = list(collectors) if collectors is not None else sweep_collectors(cfg.sources)
+        pool = [c for c in pool if c.name in cfg.sources]
+        if only is not None:
+            keep = set(only)
+            pool = [c for c in pool if c.name in keep]
+        if force:
+            due = set(cfg.sources)
+        else:
+            try:
+                due = set(due_sources(cfg, source_states(store, conn, cfg, started),
+                                      started))
+            except Exception:  # noqa: BLE001
+                # Not knowing when a source was last read is resolved by reading it: the
+                # cost is one extra request, against an hour of nothing.
+                log.exception("intraday: scheduling state unreadable; treating all as due")
+                due = set(cfg.sources)
+        run = [c for c in pool if c.name in due]
+        not_due = tuple(sorted(c.name for c in pool if c.name not in due))
+        if not run:
+            log.info("intraday: nothing due (%s)", ", ".join(not_due) or "no sources")
+            return SweepResult(None, None, not_due)
 
-    http = session or base.make_session()
-    reads: dict[str, SourceRead] = {}
-    books: dict[str, list[Row]] = {}
-    for c in run:
-        try:
-            rows = [row_of(o) for o in c.collect(http)]
-        except Exception as exc:  # noqa: BLE001 - fail-soft, reason recorded
-            log.exception("intraday: %s failed (fail-soft, continuing)", c.name)
-            reason = f"{type(exc).__name__}: {exc}"[:300]
-            reads[c.name] = SourceRead("failed", now(), error=reason)
-            continue
-        books[c.name] = rows
-        reads[c.name] = SourceRead("ok", now(), book=book_hash(rows), n=len(rows))
-        log.info("intraday: %s %d rows", c.name, len(rows))
-    sweep = Sweep(id=str(uuid.uuid4()), started=started, at=now(), sources=reads)
-    path = store.append(sweep, books)
-    return SweepResult(sweep, path, not_due)
+        session_for: Callable[[], Any] = (
+            (lambda: session) if session is not None else base.make_session)
+        outcomes = _collect_parallel(run, cfg, now, session_for)
+        reads = {name: r for name, (r, _rows) in outcomes.items()}
+        books = {name: rows for name, (r, rows) in outcomes.items() if r.status == "ok"}
+        for name, r in sorted(reads.items()):
+            log.info("intraday: %s %s%s", name, r.status,
+                     f" {r.n} rows" if r.status == "ok" else f" ({r.error})")
+        sweep = Sweep(id=str(uuid.uuid4()), started=started, at=now(), sources=reads)
+        path = store.append(sweep, books)
+        return SweepResult(sweep, path, not_due)
 
 
 # ==========================================================================
@@ -608,8 +911,14 @@ class _Calc:
 
             factors = config.load_factors(for_date=date)
             sovereign = config.load_sovereign(for_date=date)
-            fx = (rate_for(self.conn, date, strictly_before=factors.fx.strictly_before)
-                  if self.conn is not None else None)
+            fx = None
+            if self.conn is not None:
+                try:
+                    fx = rate_for(self.conn, date, strictly_before=factors.fx.strictly_before)
+                except sqlite3.Error as exc:
+                    # Without a rate normalise.py drops EUR-quoted rows rather than guess
+                    # one, the same outcome the fixing has on a day with no rate stored.
+                    log.warning("intraday: no FX for %s (%s); EUR rows left out", date, exc)
             self._by_date[date] = (factors, sovereign, fx)
         return self._by_date[date]
 
@@ -645,13 +954,30 @@ def compute_snapshot(state: dict[str, Read], t: datetime, origin: str,
 
 def path(store: Store, conn: sqlite3.Connection | None, cfg: IntradayConfig,
          start: datetime, end: datetime) -> list[Snapshot]:
-    """Every reconstructed point in [start, end], oldest first."""
+    """Every reconstructed point in [start, end], oldest first.
+
+    A point whose calculation raises becomes a gap with its reason, not an exception: one
+    bad read must cost one point on the chart, not the chart. The fixing handles a
+    source it cannot parse the same way, by publishing without it.
+    """
     reads = all_reads(store, conn, cfg, start - cfg.longest_age, end)
     calc = _Calc(conn)
-    return [
-        compute_snapshot(state_at(reads, t, cfg), t, origin, cfg, calc)
-        for t, origin in event_times(store, reads, start, end)
-    ]
+    out = []
+    for t, origin in event_times(store, reads, start, end):
+        state = state_at(reads, t, cfg)
+        try:
+            out.append(compute_snapshot(state, t, origin, cfg, calc))
+        except Exception as exc:  # noqa: BLE001
+            log.exception("intraday: the value at %s could not be computed", _iso(t))
+            reason = f"not_computed: {type(exc).__name__}"
+            out.append(Snapshot(
+                at=t, origin=origin,
+                values={series: (None, None, 0, reason) for series in cfg.series},
+                ages={s: int((t - r.at).total_seconds() // 60)
+                      for s, r in sorted(state.items())},
+                missing=tuple(sorted(set(cfg.sources) - set(state))),
+            ))
+    return out
 
 
 # ==========================================================================
