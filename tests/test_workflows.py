@@ -247,3 +247,12 @@ def test_a_hung_or_failed_sweep_still_publishes_and_commits() -> None:
         cond = str(s.get("if", "")).replace(" ", "")
         assert "failure()" in cond or "always()" in cond, (
             f"step {s.get('name')!r} is skipped when the sweep fails")
+
+
+def test_the_push_race_restore_is_the_tested_one() -> None:
+    """The restore after a rejected push must be `tci.run intraday restore`, which walks
+    the month folders and is tested; a shell glob over the top level silently matched
+    nothing once the log moved into them."""
+    text = (WORKFLOWS / "intraday.yml").read_text(encoding="utf-8")
+    assert "intraday restore --from" in text
+    assert '"$SAVE"/*.jsonl' not in text

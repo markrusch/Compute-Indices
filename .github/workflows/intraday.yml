@@ -105,19 +105,12 @@ jobs:
             cp -r data/intraday "$SAVE"
             git fetch origin main
             git reset --hard origin/main
-            mkdir -p data/intraday
-            for f in "$SAVE"/*.jsonl; do
-              [ -e "$f" ] || continue
-              dest="data/intraday/$(basename "$f")"
-              if [ -f "$dest" ]; then
-                size=$(stat -c%s "$dest")
-                if ! cmp -s -n "$size" "$dest" "$f"; then
-                  echo "::error::$dest on main is not a prefix of this run's copy; refusing to overwrite"
-                  exit 1
-                fi
-              fi
-              cp "$f" "$dest"
-            done
+            # Every file, month folders included, and only if main's copy is a prefix of
+            # this run's: see intraday.restore_log.
+            if ! python -m tci.run intraday restore --from "$SAVE"; then
+              echo "::error::data/intraday on main is not a prefix of this run's copy; refusing to overwrite"
+              exit 1
+            fi
             if [ "$attempt" = "3" ]; then
               echo "::error::still losing the race after 3 attempts; this hour's reads are not committed"
               exit 1

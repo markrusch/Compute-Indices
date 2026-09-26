@@ -274,6 +274,7 @@ def _cmd_intraday(args: argparse.Namespace) -> int:
     verify: re-read every stored day and check every book against its hash.
     status: each source's last read, consecutive failures and next due time.
     ingest: load the log into the intraday tables of data/eucri.db (the daily run does this).
+    restore: put a saved copy of the log back after a reset (the workflow's push-race step).
 
     Exit codes are the workflow's signal and are kept distinct: 0 done (a sweep with some
     failed sources is still done), 1 every due source failed or the store does not verify,
@@ -301,6 +302,22 @@ def _cmd_intraday(args: argparse.Namespace) -> int:
     except Exception as exc:  # noqa: BLE001
         print(f"note: data/eucri.db not readable ({exc}); continuing without the fixing")
         conn = None
+
+    if args.action == "restore":
+        from pathlib import Path
+
+        if not args.saved:
+            print("restore needs --from DIR")
+            return 2
+        try:
+            put_back = intraday.restore_log(Path(args.saved), store.root)
+        except intraday.IntradayStoreError as exc:
+            print(f"refused: {exc}")
+            return 1
+        print(f"restored {len(put_back)} log file(s)")
+        for p in put_back:
+            print(f"  {p}")
+        return 0
 
     if args.action == "ingest":
         # The one intraday action that writes the record, and only its intraday tables.
@@ -566,7 +583,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     p_intra.add_argument("action",
                          choices=["sweep", "path", "settle", "build", "verify", "status",
-                                  "ingest"])
+                                  "ingest", "restore"])
+    p_intra.add_argument("--from", dest="saved",
+                         help="restore: a saved copy of data/intraday to put back")
     p_intra.add_argument("--date", help="UTC date for path/settle (default: today)")
     p_intra.add_argument("--series", help="one series only (path, settle)")
     p_intra.add_argument("--source", action="append",

@@ -18,6 +18,13 @@ All methodology-affecting changes require an entry here **before** the lock rege
   seconds and a read takes 9. Scaleway allows 50 per second and a read takes 9. Azure's
   retail feed sends a 60-second retry-after and a read takes 91 requests. Everything else
   took one to three requests and sent no limit header. Every request returned 200.
+- **Found and fixed the same day.** The hourly job's push-race recovery restored
+  `$SAVE/*.jsonl`, which matched nothing once the log moved into month folders. A
+  rejected push would have discarded that hour's reads without an error. No hour was lost:
+  the first scheduled run, at 05:13 UTC, read all 16 sources in 69 seconds and pushed on
+  its first attempt. The restore is now `tci.run intraday restore`, which walks every
+  folder, still refuses a file whose committed copy is not a prefix of its own, and is
+  tested.
 - **What changed because of it.** Between 10:40 and 13:00 UTC the hourly job reads no
   source the fixing has not already read that day. The window runs to 13:00 because GitHub
   starts the 11:00 job late on most days, and a delayed fixing must not find its limits

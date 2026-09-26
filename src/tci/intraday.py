@@ -533,6 +533,38 @@ class Store:
         }
 
 
+def restore_log(saved: Path, root: Path | None = None) -> list[Path]:
+    """Put a saved copy of the log back over a fresh checkout, refusing to lose a byte.
+
+    The workflow's answer to a rejected push: it copies the log aside, resets to the new
+    main, and calls this. This job is the only writer to the log and its files only grow,
+    so the checkout's copy of every file must be a prefix of the saved one; anything else
+    means someone else wrote to the log, and it is refused rather than overwritten.
+
+    In Python rather than the workflow's shell because the shell version globbed
+    `$SAVE/*.jsonl`, which matched nothing once segments moved into month folders: a
+    rejected push would have restored no file, and the reset would have thrown the hour's
+    reads away without an error.
+    """
+    root = root or STORE_DIR
+    restored: list[Path] = []
+    for src in sorted(saved.rglob("*.jsonl")):
+        rel = src.relative_to(saved)
+        dest = root / rel
+        new = src.read_bytes()
+        if dest.exists():
+            old = dest.read_bytes()
+            if not new.startswith(old):
+                raise IntradayStoreError(
+                    f"{rel}: the checkout's copy is not a prefix of the saved one")
+            if old == new:
+                continue
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(new)
+        restored.append(dest)
+    return restored
+
+
 # ==========================================================================
 # reads: intraday sweeps, and the daily fixing's own collection
 # ==========================================================================

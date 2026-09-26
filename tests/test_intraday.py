@@ -673,3 +673,36 @@ def test_the_chart_breaks_at_a_missed_sweep() -> None:
     svg = intraday_page._time_chart(site, pts, [], t, t + timedelta(hours=7),
                                     symbol="X", focusable=True)
     assert svg.count('class="ch-line"') == 2  # a four-hour hole is not drawn across
+
+
+def test_restore_puts_back_every_segment_in_every_month_folder(tmp_path: Path) -> None:
+    """The workflow's push-race step. Its first version globbed `$SAVE/*.jsonl`, which
+    matched nothing once segments moved into month folders: a rejected push would have
+    thrown the hour's reads away without an error."""
+    live = tmp_path / "live"
+    store = intraday.Store(live)
+    c = FakeCollector("fake", [[_obs("a", 2.0)], [_obs("a", 2.1)]])
+    _sweep(store, _cfg(), [c], T0)
+    import shutil
+
+    main_copy = tmp_path / "main"
+    shutil.copytree(live, main_copy)  # what main held before this run's sweep
+    _sweep(store, _cfg(), [c], T0 + timedelta(hours=1))
+    _sweep(store, _cfg(), [c], datetime(2026, 10, 1, 6, 0, tzinfo=UTC))  # a new month
+
+    put_back = intraday.restore_log(live, main_copy)
+    assert {p.parent.name for p in put_back} == {"2026-09", "2026-10"}
+    for src in live.rglob("*.jsonl"):
+        assert (main_copy / src.relative_to(live)).read_bytes() == src.read_bytes()
+    assert intraday.restore_log(live, main_copy) == []  # nothing left to put back
+
+
+def test_restore_refuses_to_overwrite_what_it_did_not_write(tmp_path: Path) -> None:
+    live, main_copy = tmp_path / "live", tmp_path / "main"
+    _sweep(intraday.Store(live), _cfg(), [FakeCollector("fake", [[_obs("a", 2.0)]])], T0)
+    other = main_copy / "2026-09" / "2026-09-20.jsonl"
+    other.parent.mkdir(parents=True)
+    other.write_text('{"written":"by someone else"}\n', encoding="utf-8")
+    with pytest.raises(intraday.IntradayStoreError, match="not a prefix"):
+        intraday.restore_log(live, main_copy)
+    assert other.read_text() == '{"written":"by someone else"}\n'
