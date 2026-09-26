@@ -3,6 +3,27 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Azure's retail feed waited out instead of dropped on a 429 — 2026-09-26 — no methodology change
+
+- **Found.** The first scheduled hourly read, from a GitHub runner at 05:13 UTC, got 429
+  Too Many Requests on 9 of Azure's 10 regions and stored 34 rows, reported as a
+  successful read. The collector skipped any region that raised and never looked at the
+  feed's `retry-after`. The fixing has the same exposure and has been losing regions
+  quietly: it held 7 of the 9 priced regions on 22 September and 8 on 13, 17, 20 and 21
+  September, against 9 on every other day since 11 September. The runners share outbound
+  addresses with every other job on them, so the limit is spent by strangers as often as
+  by this pipeline. The instrumented pass that measured the limits ran from a different
+  address and saw no 429 at all.
+- **Fixed.** A 429 is waited out, at the feed's own retry-after capped at 60 seconds, up
+  to 180 seconds per read. A region still refused after that is skipped as before, and
+  the run's notes now say which regions were missing and why. The fixing keeps using a
+  partial read, because partial prices beat none. The hourly job treats a partial read
+  as failed, so the last complete Azure read stands, and the 429 in the reason backs
+  Azure off for 24 hours.
+- Azure is a hyperscaler, so it reaches only EU-CRI-H100-HS among the published series,
+  which has gapped for want of providers on most days. No stored print moves; all
+  reproduce.
+
 ## Intraday reads in the database, and a quiet window for the fixing — 2026-09-26 — no methodology change
 
 - **Stored in SQL.** Migration 0011 adds `intraday_sweeps`, `intraday_reads`,

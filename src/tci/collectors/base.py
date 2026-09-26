@@ -109,6 +109,12 @@ def run_collector(
         return "failed"
 
     notes = f"{len(observations)} observations"
+    # A collector that fetched only part of its surface says so (see azure_retail). The
+    # run is still ok: partial prices beat none, which is how the fixing has always
+    # treated a skipped region. But it is on the record now, not only in a CI log.
+    incomplete: list[str] = getattr(collector, "incomplete", None) or []
+    if incomplete:
+        notes += f"; incomplete: {', '.join(incomplete)}"[:300]
     book: list[MarketOffer] = getattr(collector, "offer_book", None) or []
     if book:
         notes += "; " + _store_offer_book(conn, collector.name, run_id, book)

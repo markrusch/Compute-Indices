@@ -233,3 +233,44 @@ def test_azure_one_failing_region_does_not_kill_the_run() -> None:
     responses.add(responses.GET, AZURE_URL, json=AZURE_FIXTURE, status=200)
     out = AzureRetailCollector().collect(base.make_session())
     assert out, "a single failing region emptied the whole collection"
+
+
+# --- Azure throttling -------------------------------------------------------------------
+# The feed answers 429 with a 60-second retry-after. Until 2026-09-26 that cost the whole
+# region: the fixing held 7 or 8 of its 9 priced regions on four days in September.
+
+_THROTTLED = {"x-ms-ratelimit-retailPrices-retry-after": "60"}
+
+
+@responses.activate
+def test_azure_waits_out_a_429_and_keeps_the_region() -> None:
+    responses.add(responses.GET, AZURE_URL, status=429, headers=_THROTTLED)
+    _azure_all_regions()  # every later request succeeds
+    waits: list[float] = []
+    c = AzureRetailCollector(sleep=waits.append)
+    full = AzureRetailCollector(sleep=lambda s: None)
+    out = c.collect(base.make_session())
+    assert waits == [60.0]
+    assert c.incomplete == []
+    assert len(out) == len(full.collect(base.make_session()))
+
+
+@responses.activate
+def test_azure_records_a_region_it_could_not_fetch_once_the_budget_is_spent() -> None:
+    responses.add(responses.GET, AZURE_URL, status=429, headers=_THROTTLED)
+    waits: list[float] = []
+    c = AzureRetailCollector(retry_budget_seconds=90, sleep=waits.append)
+    assert c.collect(base.make_session()) == []
+    assert waits == [60.0], "waited past its budget"
+    assert len(c.incomplete) == len(REGIONS)
+    assert all(entry.endswith(": 429") for entry in c.incomplete)
+
+
+@responses.activate
+def test_an_incomplete_read_is_on_the_record(conn) -> None:  # type: ignore[no-untyped-def]
+    responses.add(responses.GET, AZURE_URL, status=429, headers=_THROTTLED)
+    c = AzureRetailCollector(retry_budget_seconds=0, sleep=lambda s: None)
+    assert base.run_collector(conn, c, "2026-09-26") == "ok"  # partial beats none
+    notes = conn.execute("SELECT notes FROM runs WHERE source = 'azure_retail'"
+                         ).fetchone()[0]
+    assert "incomplete" in notes and "429" in notes

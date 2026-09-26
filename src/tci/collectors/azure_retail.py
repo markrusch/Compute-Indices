@@ -48,6 +48,8 @@ from __future__ import annotations
 
 import json
 import logging
+import time
+from collections.abc import Callable
 
 import requests
 
@@ -129,20 +131,64 @@ def _interconnect(sku: str) -> str:
     return "PCIe"
 
 
-def _fetch_region(session: requests.Session, region: str) -> list[dict]:
+# Throttling. The feed answers 429 with `x-ms-ratelimit-retailPrices-retry-after: 60`.
+# Until 2026-09-26 a 429 cost the whole region: the fixing held 7 or 8 of its 9 priced
+# regions on 13, 20, 21 and 22 September, and an hourly read from a GitHub runner that
+# morning lost 9 of 10 regions. The runners share outbound addresses with every other job
+# on them, so the limit is spent by strangers as often as by us. A 429 is now waited out,
+# at most RETRY_WAIT_CAP_SECONDS at a time and RETRY_BUDGET_SECONDS in total per read, so
+# one throttled region costs a minute and not the region.
+RETRY_WAIT_CAP_SECONDS = 60.0
+RETRY_BUDGET_SECONDS = 180.0
+_RETRY_HEADERS = ("x-ms-ratelimit-retailPrices-retry-after", "Retry-After")
+
+
+class _Budget:
+    def __init__(self, seconds: float, sleep: Callable[[float], None]) -> None:
+        self.left = seconds
+        self.sleep = sleep
+
+
+def _retry_after(resp: requests.Response) -> float:
+    for header in _RETRY_HEADERS:
+        value = resp.headers.get(header)
+        if value:
+            try:
+                return max(1.0, min(float(value), RETRY_WAIT_CAP_SECONDS))
+            except ValueError:
+                continue
+    return RETRY_WAIT_CAP_SECONDS
+
+
+def _get(session: requests.Session, url: str, budget: _Budget,
+         params: dict | None = None) -> requests.Response:
+    """GET, waiting out 429s while the read's retry budget lasts; then raise as before."""
+    while True:
+        resp = session.get(url, params=params, timeout=TIMEOUT_SECONDS)
+        if resp.status_code != 429:
+            resp.raise_for_status()
+            return resp
+        wait = _retry_after(resp)
+        if wait > budget.left:
+            resp.raise_for_status()  # 429, budget spent: the region fails as it always did
+        log.info("azure_retail: 429, waiting %.0fs (%.0fs of retry budget left)",
+                 wait, budget.left)
+        budget.left -= wait
+        budget.sleep(wait)
+
+
+def _fetch_region(session: requests.Session, region: str,
+                  budget: _Budget | None = None) -> list[dict]:
     """All Items for one region, following NextPageLink up to MAX_PAGES_PER_REGION."""
+    budget = budget or _Budget(RETRY_BUDGET_SECONDS, time.sleep)
     items: list[dict] = []
-    resp = session.get(
-        URL, params={"$filter": _odata_filter(region)}, timeout=TIMEOUT_SECONDS
-    )
-    resp.raise_for_status()
+    resp = _get(session, URL, budget, params={"$filter": _odata_filter(region)})
     payload = resp.json()
     items.extend(payload.get("Items", []))
     next_link = payload.get("NextPageLink")
     pages = 1
     while next_link and pages < MAX_PAGES_PER_REGION:
-        resp = session.get(next_link, timeout=TIMEOUT_SECONDS)
-        resp.raise_for_status()
+        resp = _get(session, next_link, budget)
         payload = resp.json()
         items.extend(payload.get("Items", []))
         next_link = payload.get("NextPageLink")
@@ -243,14 +289,28 @@ def _to_observation(item: dict, region: str, ts: str) -> Observation | None:
 class AzureRetailCollector:
     name = NAME
 
+    def __init__(self, retry_budget_seconds: float = RETRY_BUDGET_SECONDS,
+                 sleep: Callable[[float], None] = time.sleep) -> None:
+        self.retry_budget_seconds = retry_budget_seconds
+        self.sleep = sleep
+        # Regions this read could not fetch, with the reason. A read that skipped a region
+        # used to look exactly like a complete one; base.run_collector now puts this in
+        # runs.notes, and the intraday sweep treats a read with any entry as failed, so a
+        # partial catalog never stands in for the last complete one.
+        self.incomplete: list[str] = []
+
     def collect(self, session: requests.Session) -> list[Observation]:
         ts = utc_now_iso()
         out: list[Observation] = []
+        self.incomplete = []
+        budget = _Budget(self.retry_budget_seconds, self.sleep)
         for region in REGIONS:
             try:
-                items = _fetch_region(session, region)
+                items = _fetch_region(session, region, budget)
             except requests.RequestException as exc:
                 log.warning("azure_retail: region %s failed (%s), skipping", region, exc)
+                status = getattr(getattr(exc, "response", None), "status_code", None)
+                self.incomplete.append(f"{region}: {status or type(exc).__name__}")
                 continue
             for item in items:
                 obs = _to_observation(item, region, ts)

@@ -706,3 +706,25 @@ def test_restore_refuses_to_overwrite_what_it_did_not_write(tmp_path: Path) -> N
     with pytest.raises(intraday.IntradayStoreError, match="not a prefix"):
         intraday.restore_log(live, main_copy)
     assert other.read_text() == '{"written":"by someone else"}\n'
+
+
+def test_an_incomplete_read_never_stands_in_for_a_complete_one(tmp_path: Path) -> None:
+    """Azure from a GitHub runner, 26 September: 9 of 10 regions refused, 34 rows, and the
+    read reported ok. A partial catalog must fail, so the last complete read stands, and a
+    429 in its reason must back the source off."""
+
+    class Partial(FakeCollector):
+        def collect(self, session: object) -> list[Observation]:
+            self.calls += 1
+            self.incomplete = ["westeurope: 429", "northeurope: 429"]
+            return [_obs("azure", 14.93)]
+
+    cfg = _cfg({"azure_retail": (1, 3)})
+    c = Partial("azure_retail")
+    store = intraday.Store(tmp_path)
+    result = _sweep(store, cfg, [c], T0)
+    assert result.sweep is not None
+    read = result.sweep.sources["azure_retail"]
+    assert read.status == "failed" and "incomplete read, 1 rows" in (read.error or "")
+    state = intraday.source_states(store, None, cfg, T0 + timedelta(hours=1))
+    assert state["azure_retail"].rate_limited

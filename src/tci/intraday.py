@@ -839,6 +839,15 @@ def _collect_parallel(
             started[c.name] = time.monotonic()
         try:
             rows, dropped = clean_rows(c.collect(session_for()))
+            incomplete = getattr(c, "incomplete", None) or []
+            if incomplete:
+                # Part of the surface refused (Azure: 9 of 10 regions answered 429 from a
+                # GitHub runner on 26 September). Stored as ok, a partial catalog would
+                # replace the last complete read and move the replay by composition. As a
+                # failure, the last complete read stands within max_age, and the reason
+                # (429 included) drives the backoff.
+                raise RuntimeError(
+                    f"incomplete read, {len(rows)} rows: {'; '.join(incomplete)}"[:280])
             outcome = (SourceRead("ok", now(), book=book_hash(rows), n=len(rows),
                                   dropped=dropped), rows)
             if dropped:
