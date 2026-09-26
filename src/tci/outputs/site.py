@@ -101,6 +101,7 @@ CUTOFF_UTC = "11:00 UTC"
 
 NAV: tuple[tuple[str, str], ...] = (
     ("index.html", "Indices"),
+    ("intraday.html", "Intraday"),
     ("basis.html", "Basis"),
     ("term.html", "Term"),
     ("forward.html", "Forward"),

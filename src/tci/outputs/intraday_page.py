@@ -170,11 +170,8 @@ def render(ctx: Any, built: Built | None = None) -> str:
                      '<div class="gapnote">' + s._icon("warn", 14) + "<p>The intraday path "
                      "could not be built from the stored reads on this run. The index and "
                      "every other page are unaffected.</p></div>")
-    # Not in the primary nav (a ninth item wraps the masthead at desktop widths), so it
-    # marks Indices as current, the way a research note marks Research, and keeps its own
-    # canonical URL.
     return s._shell(ctx, title=f"Intraday — {s.BRAND}", description=DESCRIPTION,
-                    current="index.html", canonical="intraday.html", body=body)
+                    current="intraday.html", body=body)
 
 
 def _hhmm(t: datetime) -> str:

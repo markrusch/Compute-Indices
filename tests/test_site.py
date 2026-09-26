@@ -973,3 +973,17 @@ def test_no_entrance_animated_block_sits_inside_a_scroll_container(built):
         seen += 1
         assert not f.bad, f"{page.name} animates a block inside a scroller: {f.bad[:3]}"
     assert seen >= 10, f"the page sweep found only {seen} pages"
+
+
+def test_intraday_is_a_top_level_tab(built):
+    """The hourly line is reached from the menu on every page, not only from the footer
+    and a link under the headline chart, which on a phone nobody found."""
+    from tci.outputs.site import NAV
+
+    assert ("intraday.html", "Intraday") in NAV
+    for name in ("index.html", "data.html", "intraday.html"):
+        html = (built / name).read_text(encoding="utf-8")
+        nav = html.split('<nav class="nav"', 1)[1].split("</nav>", 1)[0]
+        assert 'href="intraday.html"' in nav, name
+    page = (built / "intraday.html").read_text(encoding="utf-8").split("</style>", 1)[1]
+    assert 'href="intraday.html" aria-current="page"' in page

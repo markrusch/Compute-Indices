@@ -177,7 +177,7 @@ a:hover { color: var(--link); text-decoration-color: var(--link-rule-hi); }
                    min-height: 60px; padding-block: var(--space-4); }
 .masthead__inner .brand { margin-inline-end: auto; }
 
-.nav { display: flex; align-items: center; gap: var(--space-7); flex-wrap: wrap; }
+.nav { display: flex; align-items: center; gap: var(--space-6); flex-wrap: wrap; }
 .nav a { font-family: var(--font-sans); font-size: var(--text-base);
          color: rgba(245, 245, 246, 0.75); text-decoration: none; white-space: nowrap;
          transition: color var(--dur-fast) var(--ease); }
@@ -1638,17 +1638,22 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
   .toc__list { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 }
 
-/* Eight top-level links (Basis and Term joined in September 2026) no longer fit at the
-   desktop gap between the mobile layer and a wide screen: the call to action wrapped
-   under the links at 1024px. The gap and then the type step down instead. */
+/* Nine top-level links (Basis and Term joined in September 2026, Intraday on the 26th)
+   plus Contact and the call to action do not fit at a 32px gap anywhere: the page is
+   capped at --content-max, so the masthead is no wider on a 1920px screen than on a
+   1280px one, and the call to action sat on a second row at every desktop width. The gap
+   and then the type step down instead. Checked in a browser at every width from 861 to
+   1920px on 2026-09-26: one row throughout. Re-check that way when a link is added. */
 @media (max-width: 1240px) { .nav { gap: var(--space-5); } }
-@media (max-width: 1080px) {
+@media (max-width: 1120px) {
   .nav { gap: var(--space-4); }
   .nav a { font-size: var(--text-sm); }
 }
-/* Just above the mobile layer the wordmark gives way to the links. Clipped rather than
-   display:none, so the home link keeps its accessible name. */
-@media (min-width: 861px) and (max-width: 960px) {
+@media (max-width: 1000px) { .nav { gap: var(--space-3); } }
+@media (max-width: 900px) { .nav { gap: var(--space-2); } }
+/* Below a wide screen the wordmark gives way to the links (to 960px until the ninth link
+   arrived). Clipped rather than display:none, so the home link keeps its accessible name. */
+@media (min-width: 861px) and (max-width: 1150px) {
   .masthead__inner .brand__name { position: absolute; inline-size: 1px; block-size: 1px;
     overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
