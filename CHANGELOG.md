@@ -26,8 +26,8 @@ All methodology-affecting changes require an entry here **before** the lock rege
 
 ## Intraday sweeps, and the index replayed over them — 2026-09-26 — no methodology change
 
-- **What.** A second workflow, `intraday.yml`, runs at 17 minutes past every hour and
-  reads each live source that is due: vast.ai, RunPod, Hyperstack and gpuhunt every hour,
+- **What.** A second workflow, `intraday.yml`, runs on the hour and reads each live source
+  that is due: vast.ai, RunPod, Hyperstack and gpuhunt every hour,
   the rate cards every six. The reads go to `data/intraday/YYYY-MM/`, append-only JSONL
   segments per UTC day, and `site/intraday.html` shows the index recomputed at every read
   beside the fixing as published. The cadences are in `config/intraday.yaml` and the conduct

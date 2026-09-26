@@ -668,8 +668,8 @@ def source_states(store: Store, conn: sqlite3.Connection | None, cfg: IntradayCo
                   now: datetime) -> dict[str, SourceState]:
     """Where each source stands: last asked, last answered, and how many misses since.
 
-    The fixing counts. Without it the 11:17 sweep would read vast.ai seven minutes after
-    the 11:00 run did, which is a second request for the same book.
+    The fixing counts. Without it the 12:00 sweep would read vast.ai minutes after a late
+    11:00 run did, which is a second request for the same book.
     """
     lookback = timedelta(hours=max(cfg.max_backoff_hours, 24) * 2)
     states: dict[str, SourceState] = {}

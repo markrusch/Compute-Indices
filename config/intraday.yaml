@@ -20,8 +20,8 @@ version: 1
 
 # The workflow fires hourly; a source is due when its last successful read (intraday sweep
 # or the daily fixing, whichever is newer) is at least `every_hours` old, less this slack.
-# Without the slack a runner that starts at :17 one hour and :09 the next would skip a
-# source whose read is 52 minutes old and leave a two-hour hole.
+# Without the slack a runner that GitHub starts at :12 one hour and :04 the next would skip
+# a source whose read is 52 minutes old and leave a two-hour hole.
 due_slack_minutes: 20
 
 # Guards that keep one bad source from costing the rest of the sweep.
@@ -102,9 +102,10 @@ series:
 # comparison against the 11:00 fixing. It is not a print, is stored nowhere as one, and
 # would enter the methodology only as a new version under GOVERNANCE.md §1.
 #
-# With hourly sweeps at :17 the default window holds three reads (08:17, 09:17, 10:17) and
-# closes before the fixing is collected, so the comparison is between two independent
-# measurements of the same morning rather than one measurement and itself.
+# With sweeps on the hour the default window holds three reads (08:00, 09:00, 10:00, each a
+# few minutes late in practice) and closes before the fixing is collected, so the comparison
+# is between two independent measurements of the same morning rather than one measurement
+# and itself.
 settlement:
   start: "08:00"
   end: "11:00"

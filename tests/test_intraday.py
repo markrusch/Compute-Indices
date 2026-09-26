@@ -467,7 +467,8 @@ def _guarded(sources: dict[str, tuple[float, float]] | None = None) -> intraday.
 
 def test_the_fixing_guard_holds_sources_until_the_fixing_has_asked_them(
         tmp_path: Path, conn: sqlite3.Connection) -> None:
-    """GitHub starts the 11:00 job late. An 11:17 sweep must not reach vast.ai before it."""
+    """GitHub starts the 11:00 job late. An hourly sweep at 11:17 must not reach vast.ai
+    before it does."""
     cfg = _guarded({"vast_ai": (1, 3), "runpod": (1, 3)})
     vast = FakeCollector("vast_ai", [[_obs("a", 2.0)]])
     runpod = FakeCollector("runpod", [[_obs("b", 2.0)]])

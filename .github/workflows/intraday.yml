@@ -5,12 +5,15 @@ name: intraday
 # read-only and never commits it, so nothing here can move a print. What is read when is
 # config/intraday.yaml; the conduct for it is in SOURCES.md.
 #
-# :17 rather than :00. Scheduled Actions at the top of the hour are the ones GitHub delays
-# or drops under load, and the daily job already owns 11:00.
+# On the hour, so the reads line up with the clock: 05:00, 06:00 and so on. GitHub starts
+# scheduled jobs late, most of all at the top of the hour, so a read's time is always the
+# time it was actually made, never the slot it was meant for. The 11:00 run fires beside
+# the daily job; config/intraday.yaml's fixing guard makes it wait for the fixing's reads
+# rather than compete with them.
 
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "0 * * * *"
   workflow_dispatch:
     inputs:
       force:

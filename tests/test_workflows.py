@@ -214,12 +214,22 @@ def test_the_intraday_job_commits_its_reads_and_nothing_of_the_fixing() -> None:
 
 
 def test_the_intraday_job_cannot_race_itself_or_sit_on_the_fixing() -> None:
+    """The hourly job fires on the hour, so one of its runs fires in the same minute as the
+    daily job. That run must fall inside the fixing guard, which makes it wait for the
+    fixing's reads instead of spending the rate limits the fixing needs."""
+    from tci import intraday
+
     wf = _load("intraday.yml")
     assert wf["concurrency"].get("cancel-in-progress") is False
     triggers = wf.get("on", wf.get(True))
-    for s in triggers["schedule"]:
-        minute = s["cron"].split()[0]
-        assert minute != "0", "the top of the hour is when scheduled runs are dropped"
+    hourly = [s["cron"].split() for s in triggers["schedule"]]
+    assert [c[0] for c in hourly] == ["0"], f"not on the hour: {hourly}"
+    daily = _load("daily.yml")
+    daily_cron = (daily.get("on", daily.get(True)))["schedule"][0]["cron"].split()
+    fixing = f"{int(daily_cron[1]):02d}:{int(daily_cron[0]):02d}"
+    guard = intraday.load_config().fixing_guard
+    assert guard is not None and guard[0] <= fixing < guard[1], (
+        f"the hourly run at {fixing} is outside the fixing guard {guard}")
 
 
 def test_a_hung_or_failed_sweep_still_publishes_and_commits() -> None:
