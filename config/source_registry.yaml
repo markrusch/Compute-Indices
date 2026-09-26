@@ -695,13 +695,27 @@ sources:
     status: watchlist
     tier: list
     homepage: https://www.leaf.cloud/
+    endpoint: "GET https://pricing.leaf.cloud"
+    auth: none
     blocks: [EU_EEA]
-    gpu_classes: []
+    gpu_classes: [H100]
     discovered: 2026-09-07
     discovered_via: "tier-3 GetDeploying European name harvest"
-    last_reviewed: 2026-09-07
-    reason: "Lead only. Dutch; no H100-class on-demand product verified."
-    recheck: "a public on-demand H100-class hourly rate"
+    last_reviewed: 2026-09-25
+    access_basis: >-
+      Public, unauthenticated JSON API (confirmed live 2026-09-25), named by Leafcloud's
+      own support reply as "the source of truth" for pricing. Single self-operated
+      datacentre (Amsterdam, ams-1) per their own site, so every row is deliverable in NL.
+    reason: >-
+      No longer a lead. GET https://pricing.leaf.cloud lists 57 instance flavors with no
+      key; one is eg1.h100x1.V24_96, a single H100 80GB. Their product page states 700W
+      TDP for it, which is the SXM5 figure (PCIe H100 is 350W) -- read as the reference
+      variant pending their confirmation. Two things unresolved before this could feed a
+      collector: the API returns bare numbers with no currency field (their site shows EUR
+      elsewhere, unconfirmed for this endpoint), and the API's price for that flavor
+      (4.1184) does not match the EUR 3.15/hour their own leaf.cloud/pricing comparison
+      table quotes for H100 -- asked which is the on-demand rate on 2026-09-25.
+    recheck: "Leafcloud's answer on currency and which H100 price (API vs. comparison table) is the on-demand rate"
 
   - id: exoscale
     name: Exoscale
