@@ -1,25 +1,25 @@
 {
- "generated_utc": "2026-09-26T05:14:57Z",
+ "generated_utc": "2026-09-26T06:23:39Z",
  "latest": {
-  "at_utc": "2026-09-26T05:14:57Z",
+  "at_utc": "2026-09-26T06:23:38Z",
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 0,
-   "civo": 1,
-   "coreweave": 1,
-   "crusoe": 1,
-   "digitalocean": 1,
-   "gpuhunt": 1,
-   "hyperstack": 1,
-   "lambda_pricing": 1,
-   "latitude": 1,
-   "ovh": 1,
-   "runpod": 1,
-   "scaleway": 1,
-   "seeweb": 1,
-   "static_yaml": 1,
-   "vast_ai": 1,
-   "voltagepark": 1
+   "azure_retail": 68,
+   "civo": 69,
+   "coreweave": 69,
+   "crusoe": 69,
+   "digitalocean": 69,
+   "gpuhunt": 0,
+   "hyperstack": 0,
+   "lambda_pricing": 69,
+   "latitude": 69,
+   "ovh": 69,
+   "runpod": 0,
+   "scaleway": 69,
+   "seeweb": 69,
+   "static_yaml": 0,
+   "vast_ai": 0,
+   "voltagepark": 69
   },
   "sources_missing": [],
   "values": {
@@ -67,7 +67,7 @@
    },
    "EU-CRI-H200": {
     "flags": "insufficient_sources",
-    "n_sources": 3,
+    "n_sources": 4,
     "value_eur": null,
     "value_usd": null
    }
@@ -183,12 +183,12 @@
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-09-26T05:13:50Z"
+   "last_ok_utc": "2026-09-26T06:23:32Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-09-26T05:13:55Z"
+   "last_ok_utc": "2026-09-26T06:23:32Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
@@ -208,7 +208,7 @@
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-09-26T05:13:49Z"
+   "last_ok_utc": "2026-09-26T06:23:32Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
@@ -223,12 +223,12 @@
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-09-26T05:13:49Z"
+   "last_ok_utc": "2026-09-26T06:23:31Z"
   },
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-09-26T05:13:55Z"
+   "last_ok_utc": "2026-09-26T06:23:38Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
