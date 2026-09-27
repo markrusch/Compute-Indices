@@ -83,7 +83,8 @@ def _variant_map(factors: Factors) -> dict[str, tuple[str, float]]:
 
 
 def unadmitted_providers(
-    rows: Iterable[RowLike], factors: Factors, countries: frozenset[str] | None = None
+    rows: Iterable[RowLike], factors: Factors, countries: frozenset[str] | None = None,
+    unplaced: frozenset[str] = frozenset(), block_id: str = "EU_EEA",
 ) -> dict[str, set[str]]:
     """Providers seen today in a class the panel does not admit them to: provider -> classes.
 
@@ -97,12 +98,13 @@ def unadmitted_providers(
         if entry is None:
             continue
         model_class = entry[0]
-        if factors.admits(row["provider"], row["source"], model_class):
+        if factors.admits(row["provider"], row["source"], model_class, block_id):
             continue
         if row["term"] != factors.reference_unit.term or row["tier"] not in ("executable", "list"):
             continue
         if row["country"] not in (countries if countries is not None else factors.eu_eea_countries):
-            continue
+            if not (row["country"] is None and row["provider"] in unplaced):
+                continue
         out.setdefault(row["provider"], set()).add(model_class)
     return out
 
@@ -112,6 +114,8 @@ def normalise_observations(
     factors: Factors,
     fx_eur_usd: float | None = None,
     countries: frozenset[str] | None = None,
+    unplaced: frozenset[str] = frozenset(),
+    block_id: str = "EU_EEA",
 ) -> list[NormalisedObs]:
     """Apply the unit definition to every offer. Order of checks mirrors METHODOLOGY.md §1.
 
@@ -122,6 +126,12 @@ def normalise_observations(
     `countries` is the region block being priced: the EU/EEA by default, which is the
     headline family's unit. Every other rule of the unit definition is the same in every
     block, which is what makes a spread between two blocks a like-for-like comparison.
+
+    `unplaced` names the providers whose rows with no country still count in this block
+    (`Factors.unplaced_in`, v0.10.0+: GLOBAL only). Such a row keeps an empty country.
+
+    `block_id` names the block `countries` belongs to, for a panel entry limited to some
+    blocks (v0.10.0+: CoreWeave, US and GLOBAL only).
     """
     reference = factors.reference_unit
     block = countries if countries is not None else factors.eu_eea_countries
@@ -137,7 +147,7 @@ def normalise_observations(
         # The explicit panel: a row enters only if its provider, the collector that
         # observed it, and its class are all named in the version's panel. Everything
         # else is stored and audited but cannot move a print.
-        if not factors.admits(row["provider"], row["source"], model_class):
+        if not factors.admits(row["provider"], row["source"], model_class, block_id):
             continue
 
         if row["term"] != reference.term:
@@ -147,7 +157,9 @@ def normalise_observations(
 
         country = row["country"]
         if country not in block:
-            continue
+            if country is not None or row["provider"] not in unplaced:
+                continue
+            country = ""  # sold somewhere, and the seller does not say where
 
         gpu_count = row["gpu_count"]
         if gpu_count is not None and gpu_count < factors.filters.min_gpu_count:

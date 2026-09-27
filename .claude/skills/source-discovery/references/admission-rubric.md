@@ -73,6 +73,13 @@ price with no location is unusable for the headline and unusable for every futur
 regional index too. This is where GPU.ai's index fails: a no-auth JSON API, free to cite,
 and no geographic breakdown at all.
 
+One exception, from v0.10.0 (notice 2026-N7): the Global series asks only that the hour
+is sold somewhere, so a seller's single worldwide price with no region can count there if
+the provider is named in `factors.yaml:unplaced`. It still counts nowhere else. Never name
+a provider that places some of its own rows (Hyperstack, from its stock feed): its unplaced
+row would count the same hour twice. Such a source passes gate 3 for Global only; record
+that in the row.
+
 "European capacity" in marketing copy is not a location. Map to a specific region string
 and then to a country, or the row does not count. If the country falls outside every
 block in `config/regions.yaml`, add the block rather than dropping the row.

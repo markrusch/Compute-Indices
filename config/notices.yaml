@@ -21,6 +21,67 @@
 # yet quantifiable and why.
 
 notices:
+  - id: 2026-N7
+    title: CoreWeave, Civo and Together AI join the US and Global series
+    announced: 2026-09-27
+    effective: 2026-10-05
+    version: 0.10.0
+    status: announced
+    summary: >-
+      Three H100 SXM sellers enter the panel for the US and Global series only. CoreWeave
+      is priced from its North America table in the US series and from both of its tables
+      in the Global series. Civo and Together AI publish one worldwide price with no
+      region, and from this version the Global block counts a country-less row from a
+      provider it names, and no other block does. No EU/EEA series changes.
+    effect_on_level: >-
+      Measured on the stored 24, 25 and 26 September observations under v0.9.0 and v0.10.0,
+      with Together's rows added at its 27 September page price ($3.99/GPU-hr, H100), because
+      it has not been collected before. Every EU/EEA series prints the same value under
+      both. The US series gains one provider on each day: on 26 September it prints $3.49/GPU-hr
+      either way, on six providers instead of five, and on 24 and 25 September it still gaps,
+      with four providers against a gate of five. The Global series prints $3.49 on 26
+      September either way (twelve providers instead of nine), $3.77 instead of $3.64 on
+      25 September (+3.67%, ten instead of seven) and $3.85 on 24 September either way (nine
+      instead of six). CoreWeave's $6.16/GPU-hr is the highest price in both series and
+      is clamped by the trim on every one of those days that prints.
+    body: |
+      **What is added.** CoreWeave's HGX H100 on-demand rate, read from its pricing page
+      ($49.24 per 8-GPU instance-hour on 26 September, $6.16/GPU-hr). Civo's 8 x H100 SXM
+      on-demand rate ($23.92 per instance-hour, $2.99/GPU-hr). Together AI's GPU Clusters
+      on-demand rate for HGX H100 ($3.99/GPU-hr), read by a new collector from the visible
+      table on its pricing page that states every price is per GPU per hour. All three are
+      neoclouds and enter the headline population of the series they are priced in. Only
+      the H100 class is admitted.
+
+      **Where each one counts.** CoreWeave publishes a North America table and a Europe
+      table. North America rows are placed in the US, as they have been stored since 12
+      September, and count in the US and Global series. The Europe table also covers the
+      United Kingdom and names no site, so its rows count in the Global series only and
+      never in an EU/EEA series. Civo and Together name no region on the page, in their
+      documentation or in their terms. Their rows count in the Global series only.
+
+      **Rows with no country.** Every block in the methodology is a list of countries,
+      and until this version a row with no country failed all of them. The Global block
+      asks only that the hour is sold somewhere, which one price a seller charges wherever
+      it runs the hardware satisfies. The block therefore also counts country-less rows
+      from providers named one by one in `config/factors.yaml` (`unplaced`). A provider
+      that places some of its rows itself, as Hyperstack does from its stock feed, is never
+      named there, because its unplaced row would count the same hour a second time.
+
+      **Node size.** Civo's rows are its 8-GPU instance. Together's page gives no GPU
+      count; its GPU Clusters documentation sells capacity in 8 x H100 steps, and rows are
+      recorded at 8 GPUs. Both clear the two-GPU floor.
+
+      **Screened and not added.** Denvr Dataworks ($2.45/GPU-hr, 8 x H100 SXM): its terms
+      forbid automated access to the website. Massed Compute (H100 SXM5, $25.12 per 8-GPU
+      hour): its terms render only with JavaScript and could not be read. Crusoe
+      ($3.90/GPU-hr): no node size is stated. Vultr ($23.92 per 8 x H100 bare-metal hour):
+      its public plan API lists no location where the plan can be deployed.
+
+      **What does not change.** The unit definition, the estimator, the trim, the weights,
+      the concentration cap, the publication gate and every EU/EEA series. Prints dated
+      before the effective date keep the version they record.
+
   - id: 2026-N6
     title: A Global H100 series, priced exactly like the EU and US series over every country
     announced: 2026-09-27

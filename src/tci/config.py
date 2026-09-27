@@ -128,6 +128,9 @@ class PanelEntry:
 
     segment: str
     sources: dict[str, frozenset[str]]
+    # v0.10.0: the region blocks this provider may be priced in. None, the default and the
+    # only value before 0.10.0, is every block.
+    blocks: frozenset[str] | None = None
 
 
 @dataclass(frozen=True)
@@ -172,6 +175,13 @@ class Factors:
     blocks: dict[str, frozenset[str]] = field(default_factory=dict)
     regional_series: dict[str, RegionalSeries] = field(default_factory=dict)
     basis_series: dict[str, BasisSeries] = field(default_factory=dict)
+    # v0.10.0: block -> providers whose rows with no country count in that block. Empty
+    # before it, so every earlier version prices exactly as it did.
+    unplaced: dict[str, frozenset[str]] = field(default_factory=dict)
+
+    def unplaced_in(self, block: str) -> frozenset[str]:
+        """Providers whose rows with no country count in `block` (v0.10.0+: GLOBAL only)."""
+        return self.unplaced.get(block, frozenset())
 
     def countries_of(self, block: str) -> frozenset[str]:
         if block == "EU_EEA":
@@ -200,12 +210,16 @@ class Factors:
             return self.panel[provider].segment
         return self.segments.get(provider, "neocloud")
 
-    def admits(self, provider: str, source: str, model_class: str) -> bool:
-        """Whether a row from (provider, source) may enter a print of `model_class`."""
+    def admits(self, provider: str, source: str, model_class: str,
+               block: str = "EU_EEA") -> bool:
+        """Whether a row from (provider, source) may enter a print of `model_class` priced
+        in region block `block`."""
         if self.panel is None:
             return True
         entry = self.panel.get(provider)
         if entry is None:
+            return False
+        if entry.blocks is not None and block not in entry.blocks:
             return False
         return model_class in entry.sources.get(source, frozenset())
 
@@ -288,6 +302,8 @@ def _parse_panel(raw: dict[str, Any] | None) -> dict[str, PanelEntry] | None:
                 source: frozenset(str(c) for c in classes)
                 for source, classes in entry["sources"].items()
             },
+            blocks=(frozenset(str(b) for b in entry["blocks"])
+                    if entry.get("blocks") is not None else None),
         )
         for provider, entry in raw.items()
     }
@@ -396,6 +412,10 @@ def load_factors(config_dir: Path | None = None, *, for_date: str | None = None)
         basis_series={
             name: BasisSeries(lead=str(d["lead"]), reference=str(d["reference"]))
             for name, d in (raw.get("basis_series") or {}).items()
+        },
+        unplaced={
+            block: frozenset(str(p) for p in providers)
+            for block, providers in (raw.get("unplaced") or {}).items()
         },
     )
 

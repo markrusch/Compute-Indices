@@ -3,6 +3,30 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## 0.10.0 — announced 2026-09-27, effective 2026-10-05 (notice 2026-N7)
+
+- **Three H100 sellers for the US and Global series.** CoreWeave ($6.16/GPU-hr, US and
+  Global), Civo ($2.99, Global) and Together AI ($3.99, Global). Together is a new
+  collector (`collectors/together.py`) reading the visible per-GPU on-demand table on its
+  pricing page. It also runs in the hourly sweep, every six hours like the other rate cards.
+- **Country-less rows in GLOBAL.** `unplaced` in factors.yaml names providers whose rows
+  with no country count in a block; only GLOBAL uses it, for Civo and Together. A panel
+  entry may now also carry `blocks`, the blocks it is priced in. CoreWeave's is US and
+  GLOBAL, because its Europe table covers the UK and names no site. With it admitted to
+  EU/EEA through the NO placement, the headline would have printed $3.85 instead of $3.77
+  on 25 September. `normalise`, `intake` and `reliability` all take the block, so the
+  audit ledger and the calculation still agree.
+- **Measured** on the stored 24–26 September observations with Together at its 27
+  September price: every EU/EEA series unchanged. US: $3.49 on 26 September either way,
+  six providers instead of five; still a gap on 24 and 25 September at four. Global: $3.49
+  (twelve providers, was nine), $3.77 on 25 September (was $3.64, +3.67%) and $3.85 (nine,
+  was six).
+- **Screened and not added.** Denvr, whose terms forbid automated access; Massed Compute,
+  whose terms could not be read without JavaScript; Crusoe, whose page states no node
+  size; Vultr, whose H100 plan lists no deployable location. Each has a registry row
+  saying what would change the answer.
+- 0.9.0 frozen under `config/methodology/0.9.0/`.
+
 ## 0.9.0 — announced 2026-09-27, effective 2026-10-04 (notice 2026-N6)
 
 - **A Global H100 series.** `EU-CRI-H100-GLOBAL`, published as TCI-CRI-H100-GLOBAL,

@@ -106,7 +106,8 @@ class Cell:
 
 
 def classify(
-    row: RowLike, factors: Factors, fx_eur_usd: float | None, block: frozenset[str]
+    row: RowLike, factors: Factors, fx_eur_usd: float | None, block: frozenset[str],
+    block_id: str = "EU_EEA",
 ) -> Verdict:
     """The first rule in `normalise_observations` that this row fails, or 'admitted'.
 
@@ -123,13 +124,14 @@ def classify(
         return verdict("not_a_reference_variant")
     model_class, factor = entry
 
-    if not factors.admits(provider, source, model_class):
+    if not factors.admits(provider, source, model_class, block_id):
         return verdict("not_in_panel", model_class)
     if row["term"] != factors.reference_unit.term:
         return verdict("term_not_reference", model_class)
     if row["tier"] not in ("executable", "list"):
         return verdict("tier_excluded", model_class)
-    if row["country"] not in block:
+    if row["country"] not in block and not (
+            row["country"] is None and provider in factors.unplaced_in(block_id)):
         return verdict("outside_block", model_class)
 
     gpu_count = row["gpu_count"]
@@ -171,12 +173,13 @@ def ledger(
     factors: Factors,
     fx_eur_usd: float | None = None,
     countries: frozenset[str] | None = None,
+    block_id: str = "EU_EEA",
 ) -> list[Cell]:
     """Aggregate one date's observations into the ledger's stored grain."""
     block = countries if countries is not None else factors.eu_eea_countries
     counts: Counter[tuple[str, str, str, str]] = Counter()
     for row in rows:
-        v = classify(row, factors, fx_eur_usd, block)
+        v = classify(row, factors, fx_eur_usd, block, block_id)
         counts[(v.source, v.provider, v.model_class, v.gate)] += 1
     return [
         Cell(source, provider, model_class, gate, n)
@@ -506,7 +509,7 @@ def compute(
         "SELECT fx_rate FROM daily_index WHERE date = ? AND fx_rate IS NOT NULL LIMIT 1",
         (date,),
     ).fetchone()
-    return ledger(rows, factors, fx["fx_rate"] if fx else None, countries), factors
+    return ledger(rows, factors, fx["fx_rate"] if fx else None, countries, block), factors
 
 
 def render(

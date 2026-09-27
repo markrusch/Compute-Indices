@@ -31,6 +31,11 @@ review_interval_days: 90   # a live or built row unreviewed for longer is flagge
                            # `python -m tci.run sources --due`
 
 scans:
+  - date: 2026-09-27
+    added: 1
+    notes: >-
+      Out-of-cycle, for the US and Global series. Three admitted from v0.10.0 (CoreWeave,
+      Civo, Together AI), one new collector (together). research/source-scans/2026-09-27.md
   - date: 2026-09-12
     added: 14
     notes: >-
@@ -413,12 +418,14 @@ sources:
     access_basis: "Public pricing page."
     discovered: 2026-09-11
     discovered_via: "Computable GPU Index recipe (vendored)"
-    last_reviewed: 2026-09-11
+    last_reviewed: 2026-09-27
     notes: >-
       The cleanest public term structure found: on-demand plus 6-, 12-, 24- and 36-month
       commitment prices per configuration. The page names no region, so rows carry no
-      country until deliverability is established; the within-seller discount ratios do
-      not need one.
+      country and reach no regional block. From v0.10.0 (2026-10-05, notice 2026-N7) its
+      8 x H100 SXM on-demand row ($2.99/GPU-hr on 26 September) counts in the Global
+      series, which admits country-less rows from the providers factors.yaml `unplaced`
+      names; this row becomes `live` on that date.
 
   - id: coreweave
     name: CoreWeave
@@ -429,16 +436,18 @@ sources:
     homepage: https://www.coreweave.com/pricing
     endpoint: "GET https://www.coreweave.com/pricing"
     auth: none
-    blocks: []
+    blocks: [US]
     gpu_classes: [H100, H200, B200, B300]
     access_basis: "Public pricing page."
     discovered: 2026-09-11
     discovered_via: "Computable GPU Index recipe (vendored)"
-    last_reviewed: 2026-09-11
+    last_reviewed: 2026-09-27
     notes: >-
-      Separate North America and Europe tables. "Europe" includes the UK, which is outside
-      the EEA, so rows carry no country: the page does not say which European site a price
-      is deliverable from.
+      Separate North America and Europe tables. Since 12 September the collector places
+      North America rows in US and Europe rows in NO, a stand-in: "Europe" includes the UK
+      and the page names no site. From v0.10.0 (2026-10-05, notice 2026-N7) the H100 row
+      ($6.16/GPU-hr) is priced in the US and Global series only; the panel entry's
+      `blocks` keeps the NO row out of every EU/EEA series. Becomes `live` on that date.
 
   - id: voltagepark
     name: Voltage Park
@@ -539,8 +548,12 @@ sources:
     access_basis: "Public pricing page."
     discovered: 2026-09-11
     discovered_via: "Computable GPU Index recipe (vendored)"
-    last_reviewed: 2026-09-11
-    notes: "Per-GPU rates, region not stated on the page."
+    last_reviewed: 2026-09-27
+    notes: >-
+      Per-GPU rates (HGX H100 $3.90/GPU-hr on 27 September), region not stated on the
+      page. Not admitted to Global in v0.10.0: the page states no node size, and the
+      collector records the per-GPU rate at one GPU, below the floor. Recheck: an instance
+      size of two GPUs or more stated beside the on-demand rate.
 
   - id: lambda_pricing
     name: Lambda pricing page
@@ -1012,20 +1025,28 @@ sources:
   - id: together_ai
     name: Together AI (GPU Clusters)
     kind: neocloud
-    status: watchlist
+    status: shadow
     tier: list
+    collector: together
     homepage: https://www.together.ai/pricing
+    endpoint: "GET https://www.together.ai/pricing (server-rendered tables)"
+    auth: none
     blocks: []
-    gpu_classes: [H100, H200, B200]
+    gpu_classes: [H100, H200, B200, B300]
+    access_basis: >-
+      Public pricing page; robots.txt allows every path to every crawler except
+      Google-Extended, and the terms of service (read 2026-09-27) say nothing on automated
+      access.
     discovered: 2026-09-12
     discovered_via: "computeindex.io coverage list"
-    last_reviewed: 2026-09-12
-    reason: >-
-      Real on-demand per-GPU-hour prices on the public pricing page (HGX H100 $3.99, HGX
-      H200 $5.99, HGX B200 $8.19), but fails gate 3 exactly like gpu_ai_index: no region or
-      country is named anywhere on the page for GPU Clusters. A price with no location
-      cannot enter EU_EEA or any shadow block.
-    recheck: "a per-region breakdown on the GPU Clusters pricing page"
+    last_reviewed: 2026-09-27
+    notes: >-
+      On-demand per-GPU-hour prices in the visible GPU Clusters table (HGX H100 $3.99, H200
+      $5.99, B200 $8.19, B300 $9.99 on 27 September). A hidden duplicate table is ignored.
+      No region is named anywhere, which failed gate 3 for every regional block and still
+      does. From v0.10.0 (2026-10-05, notice 2026-N7) the H100 row counts in the Global
+      series through factors.yaml `unplaced`; becomes `live` on that date. Node size 8,
+      from the documentation's 8 x H100 capacity steps.
 
   - id: vultr
     name: Vultr Cloud GPU
@@ -1043,10 +1064,11 @@ sources:
     reason: >-
       Clears gates 1, 4 and 5 cleanly -- a genuine public no-auth JSON API with
       `hourly_cost`, `gpu_count` and `locations` per plan, the same API the console reads.
-      Fails gate 2: the 15 GPU plans returned on 2026-09-12 are all NVIDIA_A16, A40 or
-      L40S, nothing H100-class, and all but the two cheapest A16 SKUs carry
-      `locations: []` (unset), which would also fail gate 3 for those rows.
-    recheck: "an H100-class vcg-* plan with a non-empty locations array"
+      On 2026-09-27 /v2/plans-metal carried vbm-112c-2048gb-8-h100-gpu, 8 x NVIDIA_H100 at
+      $23.92/hr ($2.99/GPU-hr), and a B200 plan at $68.00, both with `locations: []`: the
+      plans exist and cannot be deployed anywhere, so they fail gate 3 and there is nothing
+      to place even in Global.
+    recheck: "the H100 bare-metal plan (vbm-112c-2048gb-8-h100-gpu) with a non-empty locations array"
 
   - id: oblivus
     name: Oblivus
@@ -1077,12 +1099,14 @@ sources:
     gpu_classes: [H100, H200, A100]
     discovered: 2026-09-12
     discovered_via: "tier-4 independent sweep"
-    last_reviewed: 2026-09-12
+    last_reviewed: 2026-09-27
     reason: >-
-      Real on-demand per-GPU prices (H100 $2.73/hr, H200 NVL $3.62/hr, A100 $1.35/hr), but
-      no country or region is named anywhere on the pricing page or the homepage checked.
-      Same gate-3 shape as gpu_ai_index and together_ai.
-    recheck: "a locations or data-centers page naming a country per SKU"
+      Real on-demand prices at massedcompute.com/pricing on 2026-09-27, including H100 SXM5
+      at $2.89 for 1 GPU and $25.12 for 8 ($3.14/GPU-hr). No country per SKU, which the
+      Global series (v0.10.0) would accept through `unplaced`. Stopped at gate 4: the terms
+      at massedcompute.com/legal/terms-conditions/ render only with JavaScript and a plain
+      fetch returns the site chrome and no text, so the terms could not be read.
+    recheck: "terms of service readable without JavaScript, or a written statement that daily automated reading is permitted"
 
   - id: denvr
     name: Denvr Dataworks
@@ -1094,12 +1118,14 @@ sources:
     gpu_classes: [H100, A100]
     discovered: 2026-09-12
     discovered_via: "tier-4 independent sweep"
-    last_reviewed: 2026-09-12
+    last_reviewed: 2026-09-27
     reason: >-
-      Real on-demand per-GPU prices (H100 $2.45/GPU, A100 80GB $1.45/GPU, A100 40GB
-      $1.45/GPU); H200 and B200 shown as reserved-only. No country or region named on the
-      pricing page; /data-centers 404s. Same gate-3 shape as massed_compute.
-    recheck: "a locations page naming a country per SKU"
+      Real on-demand per-GPU prices (H100 SXM 8-GPU $2.45/GPU, A100 80GB $1.45/GPU);
+      the homepage says "data centers in Canada and the USA" without tying a SKU to either.
+      Fails gate 4: the terms at denvr.com/terms-of-service forbid "using any robot,
+      spider, or other automatic device, process, or means to access the Website for any
+      purpose, including monitoring or copying any of the material on the Website".
+    recheck: "written permission from Denvr for daily automated reading, or a change to that clause"
 
   - id: nscale
     name: Nscale

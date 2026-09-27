@@ -215,9 +215,16 @@ is a constituent change under GOVERNANCE.md §1.
             return f"every ISO 3166-1 country, {len(countries)} codes listed in factors.yaml"
         return ", ".join(countries)
 
+    def unplaced_desc(block: str) -> str:
+        names = sorted(f.unplaced_in(block))
+        if not names:
+            return ""
+        return ("; also rows with no country from " + ", ".join(names)
+                + ", which publish one price for every site")
+
     regional_rows = "".join(
         f"\n| `{name}` | the headline's unit, estimator, weights and gate, {rs.block}"
-        f" block ({block_desc(rs.block)}) |"
+        f" block ({block_desc(rs.block)}{unplaced_desc(rs.block)}) |"
         for name, rs in f.regional_series.items()
     ) + "".join(
         f"\n| `{name}` | `{bs.lead}` minus `{bs.reference}`, USD per GPU-hour; a gap on any"

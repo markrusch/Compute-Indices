@@ -31,6 +31,7 @@ from tci.collectors.runpod import RunPodCollector
 from tci.collectors.scaleway import ScalewayCollector
 from tci.collectors.seeweb import SeewebCollector
 from tci.collectors.static_yaml import StaticYamlCollector
+from tci.collectors.together import TogetherCollector
 from tci.collectors.vast_ai import VastAiCollector
 from tci.collectors.vast_reserved import VastReservedCollector
 from tci.index import compute_print
@@ -56,7 +57,7 @@ def collectors_for_daily() -> list[base.Collector]:
     # panel store rows that no print reads (see factors.yaml `panel`).
     return [
         VastAiCollector(), RunPodCollector(), GpuHuntCollector(), StaticYamlCollector(),
-        ScalewayCollector(), AzureRetailCollector(), SeewebCollector(),
+        ScalewayCollector(), AzureRetailCollector(), SeewebCollector(), TogetherCollector(),
         *computable_collectors(),
         # Last: its spaced requests start well after vast_ai's own book has been read.
         VastReservedCollector(),
@@ -131,9 +132,11 @@ def regional_print(
     series from the hourly reads by calling this, not a copy of it.
     """
     countries = factors.countries_of(rs.block)
+    unplaced = factors.unplaced_in(rs.block)
     fx_rate = fx[0] if fx else None
-    block_rows = normalise_observations(rows, factors, fx_eur_usd=fx_rate, countries=countries)
-    block_unadmitted = unadmitted_providers(rows, factors, countries)
+    block_rows = normalise_observations(rows, factors, fx_eur_usd=fx_rate, countries=countries,
+                                        unplaced=unplaced, block_id=rs.block)
+    block_unadmitted = unadmitted_providers(rows, factors, countries, unplaced, rs.block)
     return compute_print(
         utc_date, series,
         [o for o in block_rows if o.model_class == rs.model_class],
