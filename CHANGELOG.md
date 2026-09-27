@@ -3,6 +3,40 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Four output and storage defects — 2026-09-27 — no methodology change
+
+Every stored print recomputes unchanged and every published digest still matches. All
+34,132 stored observations belong to runs marked `ok`, and every series in the feed last
+printed on the headline's date, so none of these fixes moves a number already out.
+
+- **The newsletter named a version that was not live.** `post.py` loaded the head of the
+  succession, so `site/substack_post.md` read "Methodology v0.8.0" on 27 September with
+  0.5.0 in force and 0.10.0 at the head; the gate size it quoted beside a gap came from
+  the same place. It now loads the version live on the print's date. The chart footers
+  had the same fault and now carry the version live today, as the site does, and the
+  constituents card reads the sovereign list in force on the print's date.
+- **`latest.json` read `latest_print`.** Each series' newest row whatever its date, so a
+  series that stopped printing would have kept its last value in the public feed, which
+  is how EU-CRI-H100-CLOUD stayed on the ticker. Only the hand-kept `ALL_SERIES` list
+  prevented a repeat. The feed now asks `current_print` for the session's row, as the
+  HTML has since that incident; a series with no row that session is left out, and one
+  that gapped still appears with a null value and its flags.
+- **Prices and the run's `ok` status were two commits.** The offer book was stored in
+  between. A process killed after the first commit left observations under a run marked
+  `running`; `_observations_for_date` does not read status, so they would have entered
+  the print, and the next run would have collected the source again and stored every row
+  twice. Both now commit in one transaction; the offer book and term quotes follow and
+  add their outcome to the run's notes.
+- **Migrations were not atomic.** `executescript` commits before it runs and then runs
+  each statement in autocommit, so the `with conn:` around it did nothing. A migration
+  that failed partway kept its first statements and had no `schema_migrations` row. 0003
+  and 0004 rebuild `observations` by drop and recreate, and a failure between the two
+  would have left it without its append-only triggers. Each migration now runs inside an
+  explicit transaction, is rolled back on any error and passes `foreign_key_check`
+  before it commits. Foreign keys are switched off around that transaction rather than
+  inside it, because SQLite ignores the pragma within one. The schema built from empty is
+  identical to the one the old runner built.
+
 ## 0.10.0 — announced 2026-09-27, effective 2026-10-05 (notice 2026-N7)
 
 - **Three H100 sellers for the US and Global series.** CoreWeave ($6.16/GPU-hr, US and

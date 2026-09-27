@@ -62,11 +62,45 @@ def migrate(conn: sqlite3.Connection) -> list[str]:
     for number, name, sql in _migration_files():
         if name in done:
             continue
-        with conn:
-            conn.executescript(sql)
-            conn.execute(
-                "INSERT INTO schema_migrations (id, name, applied_utc) VALUES (?, ?, ?)",
-                (number, name, utc_now_iso()),
-            )
+        _apply_migration(conn, number, name, sql)
         applied.append(name)
     return applied
+
+
+def _apply_migration(conn: sqlite3.Connection, number: int, name: str, sql: str) -> None:
+    """Apply one migration and record it, all or nothing.
+
+    This used to run `executescript` inside `with conn:`, which looks transactional and
+    is not: `executescript` commits whatever is pending and then runs each statement in
+    autocommit. A migration that failed halfway kept the statements before the failure
+    and had no `schema_migrations` row. 0003 and 0004 rebuild `observations` by drop and
+    recreate, so a failure between the drop of the old triggers and the creation of the
+    new ones would have left the table without its append-only guard.
+
+    The script now runs inside an explicit BEGIN and is rolled back on any error.
+    Foreign keys are switched off around the transaction rather than inside it, because
+    SQLite ignores `PRAGMA foreign_keys` within a transaction, which makes the pragmas
+    in 0003 and 0004 no-ops here; their table rebuilds need it off. `foreign_key_check`
+    before COMMIT is what SQLite's own table-rebuild procedure uses to stop a migration
+    committing a broken reference.
+    """
+    fk_on = conn.execute("PRAGMA foreign_keys").fetchone()[0]
+    conn.commit()
+    conn.execute("PRAGMA foreign_keys = OFF")
+    try:
+        conn.executescript("BEGIN;\n" + sql)
+        broken = conn.execute("PRAGMA foreign_key_check").fetchall()
+        if broken:
+            raise sqlite3.IntegrityError(
+                f"{name}: {len(broken)} foreign key violation(s), first in {broken[0][0]}"
+            )
+        conn.execute(
+            "INSERT INTO schema_migrations (id, name, applied_utc) VALUES (?, ?, ?)",
+            (number, name, utc_now_iso()),
+        )
+        conn.commit()
+    except BaseException:
+        conn.rollback()
+        raise
+    finally:
+        conn.execute(f"PRAGMA foreign_keys = {'ON' if fk_on else 'OFF'}")

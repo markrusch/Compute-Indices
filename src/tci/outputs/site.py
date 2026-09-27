@@ -1684,7 +1684,9 @@ def _constituents_card(ctx: SiteContext) -> str:
     head = ctx.head
     assert head is not None
     links = provider_links()
-    sovereign = load_sovereign()
+    # The sovereign list in force on the print's date, not the head's, which may belong
+    # to a version that is announced and not yet live.
+    sovereign = load_sovereign(for_date=ctx.date)
     max_w = max((r["weight"] for r in rows if r["included"]), default=1.0) or 1.0
     body = []
     for c in rows:

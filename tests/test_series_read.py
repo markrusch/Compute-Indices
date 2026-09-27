@@ -172,3 +172,40 @@ def test_excluded_constituents_are_not_a_jump_baseline(withdrawn):
     assert "dropped" not in series_read.previous_included_prices(
         conn, "EU-CRI-H100", "2026-08-16"
     )
+
+
+def test_latest_json_leaves_out_a_series_that_did_not_print_this_session(conn):
+    """The feed read `latest_print`, so a retired series showed its last value forever.
+
+    Only the hand-kept ALL_SERIES list stood between the feed and a repeat of the
+    EU-CRI-H100-CLOUD ticker. A series gapped today still belongs: it has a row.
+    """
+    insert_run(conn, "r1", "2026-08-16")
+    _print(conn, "2026-08-16", "EU-CRI-H100", 1, 3.40)
+    _print(conn, "2026-08-16", "EU-CRI-A100", 1, None, flags="insufficient_sources")
+    _print(conn, "2026-08-10", "EU-CRI-H200", 1, 4.10)  # stopped printing after 08-10
+
+    snap = webdata._series_snapshot(conn, "2026-08-16")
+
+    assert "EU-CRI-H200" not in snap
+    assert snap["EU-CRI-H100"]["value_usd"] == 3.40
+    assert snap["EU-CRI-A100"]["value_usd"] is None
+    assert "insufficient_sources" in snap["EU-CRI-A100"]["flags"]
+
+
+def test_the_post_names_the_version_its_print_was_computed_under(conn, tmp_path, monkeypatch):
+    """Loading the head stamped v0.8.0 on a post whose print ran under 0.5.0."""
+    from tci.config import load_factors
+
+    date = "2026-09-26"
+    live = load_factors(for_date=date).methodology_version
+    assert load_factors().methodology_version != live, "the head has to differ for this test"
+
+    insert_run(conn, "r1", date)
+    _print(conn, date, "EU-CRI-H100", 1, 3.40)
+    monkeypatch.setattr(post, "POST_PATH", tmp_path / "post.md")
+
+    text = post.generate_post(conn).read_text(encoding="utf-8")
+
+    assert f"Methodology v{live} " in text
+    assert f"v{load_factors().methodology_version} " not in text

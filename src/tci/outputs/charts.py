@@ -24,6 +24,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
 from tci.config import load_factors
+from tci.db import utc_now_iso
 
 log = logging.getLogger("tci.outputs.charts")
 
@@ -82,7 +83,9 @@ def _figure(theme: Theme, **kwargs: Any) -> tuple[plt.Figure, Any]:
 
 
 def _footer(fig: plt.Figure, theme: Theme) -> None:
-    version = load_factors().methodology_version
+    # The version live today, as on the site. The head of the succession can be one that
+    # is announced and not yet in effect, and every chart footer carried it.
+    version = load_factors(for_date=utc_now_iso()[:10]).methodology_version
     fig.text(
         0.01, 0.01, f"EU-CRI — methodology v{version}",
         fontsize=8, color=theme.ink_muted, ha="left", va="bottom",

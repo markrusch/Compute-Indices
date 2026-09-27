@@ -54,7 +54,7 @@ def run_collector(
     """Run one collector fail-soft; returns the resulting run status.
 
     Skips (idempotency) if an 'ok' run already exists for (source, utc_date).
-    Observations are inserted in the same transaction as the run row update.
+    Observations are inserted in the same transaction that marks the run 'ok'.
     """
     if has_ok_run(conn, collector.name, utc_date):
         log.info("%s: already collected for %s, skipping", collector.name, utc_date)
@@ -80,8 +80,22 @@ def run_collector(
     # A source that cannot be collected, parsed OR stored is a source that did not report
     # today. That is a gap, the index already knows how to publish gaps, and it is not a
     # reason to stop publishing the sources that did report.
+    #
+    # The prices and the 'ok' status commit together. They used to be two transactions
+    # with the offer book stored in between, so a process killed after the first left
+    # observations under a run still marked 'running'. `_observations_for_date` does not
+    # look at status, so those rows would enter the print, and `has_ok_run` would be
+    # false, so the next run would collect the source again and store every row twice.
     try:
         observations = collector.collect(session or make_session())
+        notes = f"{len(observations)} observations"
+        # A collector that fetched only part of its surface says so (see azure_retail).
+        # The run is still ok: partial prices beat none, which is how the fixing has
+        # always treated a skipped region. But it is on the record now, not only in a
+        # CI log.
+        incomplete: list[str] = getattr(collector, "incomplete", None) or []
+        if incomplete:
+            notes += f"; incomplete: {', '.join(incomplete)}"[:300]
         with conn:
             conn.executemany(
                 "INSERT INTO observations (run_id, ts_utc, source, provider, gpu_model,"
@@ -96,6 +110,10 @@ def run_collector(
                     for o in observations
                 ],
             )
+            conn.execute(
+                "UPDATE runs SET status = 'ok', finished_utc = ?, notes = ? WHERE run_id = ?",
+                (utc_now_iso(), notes, run_id),
+            )
     except Exception as exc:
         log.exception("%s: run failed (fail-soft, continuing)", collector.name)
         with conn:
@@ -108,25 +126,22 @@ def run_collector(
             )
         return "failed"
 
-    notes = f"{len(observations)} observations"
-    # A collector that fetched only part of its surface says so (see azure_retail). The
-    # run is still ok: partial prices beat none, which is how the fixing has always
-    # treated a skipped region. But it is on the record now, not only in a CI log.
-    incomplete: list[str] = getattr(collector, "incomplete", None) or []
-    if incomplete:
-        notes += f"; incomplete: {', '.join(incomplete)}"[:300]
+    # The offer book and term quotes are research data that no print reads, stored after
+    # the prices and fail-soft on their own. A process killed here loses the book and
+    # keeps the day's prices, which is the right way round.
+    extra: list[str] = []
     book: list[MarketOffer] = getattr(collector, "offer_book", None) or []
     if book:
-        notes += "; " + _store_offer_book(conn, collector.name, run_id, book)
+        extra.append(_store_offer_book(conn, collector.name, run_id, book))
     quotes: list[TermQuote] = getattr(collector, "term_quotes", None) or []
     if quotes:
-        notes += "; " + _store_term_quotes(conn, collector.name, run_id, quotes)
-
-    with conn:
-        conn.execute(
-            "UPDATE runs SET status = 'ok', finished_utc = ?, notes = ? WHERE run_id = ?",
-            (utc_now_iso(), notes, run_id),
-        )
+        extra.append(_store_term_quotes(conn, collector.name, run_id, quotes))
+    if extra:
+        with conn:
+            conn.execute(
+                "UPDATE runs SET notes = ? WHERE run_id = ?",
+                ("; ".join([notes, *extra]), run_id),
+            )
     log.info("%s: %d observations", collector.name, len(observations))
     return "ok"
 

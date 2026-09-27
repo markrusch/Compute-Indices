@@ -95,10 +95,20 @@ def sources_panel() -> list[dict]:
     ]
 
 
-def _series_snapshot(conn: sqlite3.Connection) -> dict:
+def _series_snapshot(conn: sqlite3.Connection, date: str | None) -> dict:
+    """Every series' print for the session DATE; a series with no row that day is left out.
+
+    This read `latest_print`, each series' newest row whatever its date, so the only thing
+    keeping a retired series' final value out of the feed was remembering to delete it
+    from ALL_SERIES. The HTML site asks `current_print` for the session's row instead;
+    the feed now does the same. A series that gapped today still has a row and still
+    appears, with a null value and its flags.
+    """
     out: dict = {}
+    if date is None:
+        return out
     for series in ALL_SERIES:
-        row = _latest_print(conn, series)
+        row = series_read.current_print(conn, series, date)
         if row is None:
             continue
         pd = print_digest(conn, row["date"], series)
@@ -734,7 +744,7 @@ def generate(conn: sqlite3.Connection) -> Path:
         "methodology_version": factors.methodology_version,
         "disclaimer": DISCLAIMER,
         "date": head["date"] if head else None,
-        "series": _series_snapshot(conn),
+        "series": _series_snapshot(conn, head["date"] if head else None),
         "constituents": {},
         "weight_review": None,
         "sources": sources_panel(),

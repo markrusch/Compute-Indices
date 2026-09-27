@@ -189,3 +189,27 @@ def test_a_failed_collector_stores_nothing_at_all(conn: sqlite3.Connection) -> N
         "SELECT COUNT(*) c FROM observations WHERE source = 'mixed'"
     ).fetchone()["c"]
     assert n == 0, "a rejected batch left rows behind"
+
+
+def test_prices_and_the_ok_status_commit_together(conn: sqlite3.Connection) -> None:
+    """No observation may ever sit under a run that is not 'ok'.
+
+    `_observations_for_date` takes every row whose run is dated that day without looking
+    at status. When the prices and the status were two commits, a process killed between
+    them left rows under a 'running' run: they entered the print, and the next run
+    collected the source again. A trigger that refuses the 'ok' update stands in for the
+    kill here; the prices must go with it.
+    """
+    conn.executescript(
+        "CREATE TRIGGER refuse_ok BEFORE UPDATE OF status ON runs"
+        " WHEN NEW.status = 'ok' BEGIN SELECT RAISE(ABORT, 'killed'); END;"
+    )
+    status = base.run_collector(conn, _Static("s", [_obs(), _obs()]), "2026-09-11")
+
+    assert status == "failed"
+    assert conn.execute("SELECT COUNT(*) FROM observations").fetchone()[0] == 0
+    stranded = conn.execute(
+        "SELECT COUNT(*) FROM observations o JOIN runs r ON o.run_id = r.run_id"
+        " WHERE r.status != 'ok'"
+    ).fetchone()[0]
+    assert stranded == 0

@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import sqlite3
+from pathlib import Path
 
 import pytest
 
@@ -50,3 +51,41 @@ def test_daily_index_reject_update_and_delete(conn: sqlite3.Connection) -> None:
 
 def test_migrations_are_idempotent(conn: sqlite3.Connection) -> None:
     assert db.migrate(conn) == []  # conftest already migrated; second pass is a no-op
+
+
+def test_a_failed_migration_leaves_nothing_behind(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`executescript` inside `with conn:` committed every statement before the failure.
+
+    This one creates a table, drops the observations update guard, then fails. None of
+    it may survive: no table, the guard still in place, and no schema_migrations row, so
+    the next run tries the migration again from the start.
+    """
+    c = db.connect(tmp_path / "m.db")
+    shipped = db._migration_files()
+    bad = (
+        "CREATE TABLE half_applied (x INTEGER);\n"
+        "DROP TRIGGER obs_no_update;\n"
+        "SELECT no_such_column FROM half_applied;\n"
+    )
+    monkeypatch.setattr(db, "_migration_files", lambda: [*shipped, (99, "0099_bad.sql", bad)])
+
+    with pytest.raises(sqlite3.OperationalError):
+        db.migrate(c)
+
+    names = {r[0] for r in c.execute("SELECT name FROM sqlite_master")}
+    assert "half_applied" not in names
+    assert "obs_no_update" in names
+    assert c.execute("SELECT COUNT(*) FROM schema_migrations WHERE id = 99").fetchone()[0] == 0
+    # The shipped migrations before it committed one by one and stay applied.
+    assert c.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0] == len(shipped)
+    assert c.execute("PRAGMA foreign_keys").fetchone()[0] == 1
+
+
+def test_migrating_from_empty_restores_foreign_keys(tmp_path: Path) -> None:
+    """0003 and 0004 need foreign keys off for their table rebuilds; they must come back on."""
+    c = db.connect(tmp_path / "fresh.db")
+    assert db.migrate(c)
+    assert c.execute("PRAGMA foreign_keys").fetchone()[0] == 1
+    assert not c.in_transaction

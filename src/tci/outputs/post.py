@@ -45,7 +45,6 @@ def _constituent_lines(conn: sqlite3.Connection, date: str) -> list[str]:
 
 
 def generate_post(conn: sqlite3.Connection) -> Path:
-    factors = load_factors()
     head = _latest_print(conn, "EU-CRI-H100")
     POST_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -54,6 +53,10 @@ def generate_post(conn: sqlite3.Connection) -> Path:
         return POST_PATH
 
     date = head["date"]
+    # The version this print was computed under. Loading the head instead stamped the
+    # post "Methodology v0.8.0" on 2026-09-27, when 0.5.0 was live and 0.8.0 was only
+    # announced, and quoted that version's provider gate beside a gap it did not cause.
+    factors = load_factors(for_date=date)
     lines: list[str] = [f"# EU-CRI weekly — {date}", ""]
 
     if head["value_usd"] is None:
