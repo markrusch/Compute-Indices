@@ -2,6 +2,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-13T11:10:15Z,fixing,EU-CRI-H100,3.25,2.803658,6,,seeweb together
 2026-09-13T11:10:15Z,fixing,EU-CRI-H100-US,3.49,3.010697,5,indicative,seeweb together
 2026-09-13T11:10:15Z,fixing,EU-CRI-H100-GLOBAL,3.49,3.010697,8,indicative,seeweb together
+2026-09-13T11:10:15Z,fixing,EU-CRI-H100-SPOT,,,1,"insufficient_sources,indicative",seeweb together
+2026-09-13T11:10:15Z,fixing,EU-CRI-H100-SPOT-US,,,1,"insufficient_sources,indicative",seeweb together
+2026-09-13T11:10:15Z,fixing,EU-CRI-H100-SPOT-GLOBAL,,,2,"insufficient_sources,indicative",seeweb together
 2026-09-13T11:10:15Z,fixing,EU-CRI-H100-MKT,,,2,insufficient_sources,seeweb together
 2026-09-13T11:10:15Z,fixing,EU-CRI-H100-NC,,,4,insufficient_sources,seeweb together
 2026-09-13T11:10:15Z,fixing,EU-CRI-H100-HS,,,3,insufficient_sources,seeweb together
@@ -12,6 +15,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-14T11:12:23Z,fixing,EU-CRI-H100,3.25,2.813609,6,,seeweb together
 2026-09-14T11:12:23Z,fixing,EU-CRI-H100-US,3.49,3.021383,5,indicative,seeweb together
 2026-09-14T11:12:23Z,fixing,EU-CRI-H100-GLOBAL,3.49,3.021383,8,indicative,seeweb together
+2026-09-14T11:12:23Z,fixing,EU-CRI-H100-SPOT,,,1,"insufficient_sources,indicative",seeweb together
+2026-09-14T11:12:23Z,fixing,EU-CRI-H100-SPOT-US,,,1,"insufficient_sources,indicative",seeweb together
+2026-09-14T11:12:23Z,fixing,EU-CRI-H100-SPOT-GLOBAL,,,2,"insufficient_sources,indicative",seeweb together
 2026-09-14T11:12:23Z,fixing,EU-CRI-H100-MKT,,,2,insufficient_sources,seeweb together
 2026-09-14T11:12:23Z,fixing,EU-CRI-H100-NC,,,4,insufficient_sources,seeweb together
 2026-09-14T11:12:23Z,fixing,EU-CRI-H100-HS,,,3,insufficient_sources,seeweb together
@@ -22,6 +28,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-15T17:45:29Z,fixing,EU-CRI-H100,,,1,insufficient_sources,gpuhunt hyperstack runpod static_yaml together vast_ai
 2026-09-15T17:45:29Z,fixing,EU-CRI-H100-US,,,2,"insufficient_sources,indicative",gpuhunt hyperstack runpod static_yaml together vast_ai
 2026-09-15T17:45:29Z,fixing,EU-CRI-H100-GLOBAL,,,3,"insufficient_sources,indicative",gpuhunt hyperstack runpod static_yaml together vast_ai
+2026-09-15T17:45:29Z,fixing,EU-CRI-H100-SPOT,,,1,"insufficient_sources,indicative",gpuhunt hyperstack runpod static_yaml together vast_ai
+2026-09-15T17:45:29Z,fixing,EU-CRI-H100-SPOT-US,,,1,"insufficient_sources,indicative",gpuhunt hyperstack runpod static_yaml together vast_ai
+2026-09-15T17:45:29Z,fixing,EU-CRI-H100-SPOT-GLOBAL,,,2,"insufficient_sources,indicative",gpuhunt hyperstack runpod static_yaml together vast_ai
 2026-09-15T17:45:29Z,fixing,EU-CRI-H100-MKT,,,0,insufficient_sources,gpuhunt hyperstack runpod static_yaml together vast_ai
 2026-09-15T17:45:29Z,fixing,EU-CRI-H100-NC,,,1,insufficient_sources,gpuhunt hyperstack runpod static_yaml together vast_ai
 2026-09-15T17:45:29Z,fixing,EU-CRI-H100-HS,,,1,insufficient_sources,gpuhunt hyperstack runpod static_yaml together vast_ai
@@ -32,6 +41,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-17T06:29:03Z,fixing,EU-CRI-H100,3.49,3.039805,6,,together voltagepark
 2026-09-17T06:29:03Z,fixing,EU-CRI-H100-US,,,3,"insufficient_sources,indicative",together voltagepark
 2026-09-17T06:29:03Z,fixing,EU-CRI-H100-GLOBAL,3.49,3.039805,7,indicative,together voltagepark
+2026-09-17T06:29:03Z,fixing,EU-CRI-H100-SPOT,2.15,1.872659,5,"no_executable_input,indicative",together voltagepark
+2026-09-17T06:29:03Z,fixing,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together voltagepark
+2026-09-17T06:29:03Z,fixing,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.124205,6,"no_executable_input,indicative",together voltagepark
 2026-09-17T06:29:03Z,fixing,EU-CRI-H100-MKT,,,2,insufficient_sources,together voltagepark
 2026-09-17T06:29:03Z,fixing,EU-CRI-H100-NC,,,4,insufficient_sources,together voltagepark
 2026-09-17T06:29:03Z,fixing,EU-CRI-H100-HS,,,3,insufficient_sources,together voltagepark
@@ -42,6 +54,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-18T11:12:46Z,fixing,EU-CRI-H100,3.28,2.862129,6,,together voltagepark
 2026-09-18T11:12:46Z,fixing,EU-CRI-H100-US,,,3,"insufficient_sources,indicative",together voltagepark
 2026-09-18T11:12:46Z,fixing,EU-CRI-H100-GLOBAL,3.49,3.045375,7,indicative,together voltagepark
+2026-09-18T11:12:46Z,fixing,EU-CRI-H100-SPOT,2.15,1.876091,5,"no_executable_input,indicative",together voltagepark
+2026-09-18T11:12:46Z,fixing,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together voltagepark
+2026-09-18T11:12:46Z,fixing,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.128098,6,"no_executable_input,indicative",together voltagepark
 2026-09-18T11:12:46Z,fixing,EU-CRI-H100-MKT,,,2,insufficient_sources,together voltagepark
 2026-09-18T11:12:46Z,fixing,EU-CRI-H100-NC,,,4,insufficient_sources,together voltagepark
 2026-09-18T11:12:46Z,fixing,EU-CRI-H100-HS,,,3,insufficient_sources,together voltagepark
@@ -52,6 +67,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-19T11:10:13Z,fixing,EU-CRI-H100,3.49,3.045375,6,,together
 2026-09-19T11:10:13Z,fixing,EU-CRI-H100-US,,,4,"insufficient_sources,indicative",together
 2026-09-19T11:10:13Z,fixing,EU-CRI-H100-GLOBAL,3.589022,3.131782,8,indicative,together
+2026-09-19T11:10:13Z,fixing,EU-CRI-H100-SPOT,2.15,1.876091,5,"no_executable_input,indicative",together
+2026-09-19T11:10:13Z,fixing,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-19T11:10:13Z,fixing,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.128098,6,"no_executable_input,indicative",together
 2026-09-19T11:10:13Z,fixing,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-19T11:10:13Z,fixing,EU-CRI-H100-NC,,,4,insufficient_sources,together
 2026-09-19T11:10:13Z,fixing,EU-CRI-H100-HS,,,3,insufficient_sources,together
@@ -62,6 +80,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-20T11:11:08Z,fixing,EU-CRI-H100,3.28,2.862129,6,,together
 2026-09-20T11:11:08Z,fixing,EU-CRI-H100-US,3.49,3.045375,5,indicative,together
 2026-09-20T11:11:08Z,fixing,EU-CRI-H100-GLOBAL,3.49,3.045375,8,indicative,together
+2026-09-20T11:11:08Z,fixing,EU-CRI-H100-SPOT,2.15,1.876091,5,"no_executable_input,indicative",together
+2026-09-20T11:11:08Z,fixing,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-20T11:11:08Z,fixing,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.128098,6,"no_executable_input,indicative",together
 2026-09-20T11:11:08Z,fixing,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-20T11:11:08Z,fixing,EU-CRI-H100-NC,,,4,insufficient_sources,together
 2026-09-20T11:11:08Z,fixing,EU-CRI-H100-HS,,,3,insufficient_sources,together
@@ -72,6 +93,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-21T11:12:04Z,fixing,EU-CRI-H100,3.49,3.037424,5,,together
 2026-09-21T11:12:04Z,fixing,EU-CRI-H100-US,,,4,"insufficient_sources,indicative",together
 2026-09-21T11:12:04Z,fixing,EU-CRI-H100-GLOBAL,3.66847,3.19275,7,indicative,together
+2026-09-21T11:12:04Z,fixing,EU-CRI-H100-SPOT,2.15,1.871192,5,"no_executable_input,indicative",together
+2026-09-21T11:12:04Z,fixing,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-21T11:12:04Z,fixing,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.122541,6,"no_executable_input,indicative",together
 2026-09-21T11:12:04Z,fixing,EU-CRI-H100-MKT,,,1,insufficient_sources,together
 2026-09-21T11:12:04Z,fixing,EU-CRI-H100-NC,,,4,insufficient_sources,together
 2026-09-21T11:12:04Z,fixing,EU-CRI-H100-HS,,,3,insufficient_sources,together
@@ -82,6 +106,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-22T11:12:27Z,fixing,EU-CRI-H100,3.49,3.037424,8,,latitude together
 2026-09-22T11:12:27Z,fixing,EU-CRI-H100-US,,,4,"insufficient_sources,indicative",latitude together
 2026-09-22T11:12:27Z,fixing,EU-CRI-H100-GLOBAL,3.49,3.037424,8,indicative,latitude together
+2026-09-22T11:12:27Z,fixing,EU-CRI-H100-SPOT,2.15,1.871192,5,"no_executable_input,indicative",latitude together
+2026-09-22T11:12:27Z,fixing,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",latitude together
+2026-09-22T11:12:27Z,fixing,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.122541,6,"no_executable_input,indicative",latitude together
 2026-09-22T11:12:27Z,fixing,EU-CRI-H100-MKT,,,2,insufficient_sources,latitude together
 2026-09-22T11:12:27Z,fixing,EU-CRI-H100-NC,3.803075,3.3099,6,no_executable_input,latitude together
 2026-09-22T11:12:27Z,fixing,EU-CRI-H100-HS,,,4,insufficient_sources,latitude together
@@ -92,6 +119,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-23T11:12:34Z,fixing,EU-CRI-H100,3.49,3.044578,8,,latitude together
 2026-09-23T11:12:34Z,fixing,EU-CRI-H100-US,3.49,3.044578,5,indicative,latitude together
 2026-09-23T11:12:34Z,fixing,EU-CRI-H100-GLOBAL,3.49,3.044578,8,indicative,latitude together
+2026-09-23T11:12:34Z,fixing,EU-CRI-H100-SPOT,2.15,1.8756,5,"no_executable_input,indicative",latitude together
+2026-09-23T11:12:34Z,fixing,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",latitude together
+2026-09-23T11:12:34Z,fixing,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.127541,6,"no_executable_input,indicative",latitude together
 2026-09-23T11:12:34Z,fixing,EU-CRI-H100-MKT,,,2,insufficient_sources,latitude together
 2026-09-23T11:12:34Z,fixing,EU-CRI-H100-NC,3.794138,3.3099,6,no_executable_input,latitude together
 2026-09-23T11:12:34Z,fixing,EU-CRI-H100-HS,,,4,insufficient_sources,latitude together
@@ -102,6 +132,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-24T11:11:56Z,fixing,EU-CRI-H100,3.776927,3.3099,6,no_executable_input,latitude together
 2026-09-24T11:11:56Z,fixing,EU-CRI-H100-US,,,3,"insufficient_sources,indicative",latitude together
 2026-09-24T11:11:56Z,fixing,EU-CRI-H100-GLOBAL,3.85,3.373937,6,"no_executable_input,indicative",latitude together
+2026-09-24T11:11:56Z,fixing,EU-CRI-H100-SPOT,2.15,1.884147,5,"no_executable_input,indicative",latitude together
+2026-09-24T11:11:56Z,fixing,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",latitude together
+2026-09-24T11:11:56Z,fixing,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.137236,6,"no_executable_input,indicative",latitude together
 2026-09-24T11:11:56Z,fixing,EU-CRI-H100-MKT,,,0,insufficient_sources,latitude together
 2026-09-24T11:11:56Z,fixing,EU-CRI-H100-NC,3.776927,3.3099,6,no_executable_input,latitude together
 2026-09-24T11:11:56Z,fixing,EU-CRI-H100-HS,,,4,insufficient_sources,latitude together
@@ -112,6 +145,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-25T11:12:15Z,fixing,EU-CRI-H100,3.762363,3.3099,6,no_executable_input,together
 2026-09-25T11:12:15Z,fixing,EU-CRI-H100-US,,,3,"insufficient_sources,indicative",together
 2026-09-25T11:12:15Z,fixing,EU-CRI-H100-GLOBAL,3.629199,3.19275,7,"no_executable_input,indicative",together
+2026-09-25T11:12:15Z,fixing,EU-CRI-H100-SPOT,2.15,1.89144,5,"no_executable_input,indicative",together
+2026-09-25T11:12:15Z,fixing,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-25T11:12:15Z,fixing,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.145509,6,"no_executable_input,indicative",together
 2026-09-25T11:12:15Z,fixing,EU-CRI-H100-MKT,,,0,insufficient_sources,together
 2026-09-25T11:12:15Z,fixing,EU-CRI-H100-NC,3.762363,3.3099,6,no_executable_input,together
 2026-09-25T11:12:15Z,fixing,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -122,6 +158,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T05:14:57Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T05:14:57Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T05:14:57Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T05:14:57Z,intraday,EU-CRI-H100-SPOT,,,4,"insufficient_sources,indicative",together
+2026-09-26T05:14:57Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T05:14:57Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.375412,2.083147,5,"no_executable_input,indicative",together
 2026-09-26T05:14:57Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T05:14:57Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T05:14:57Z,intraday,EU-CRI-H100-HS,,,3,insufficient_sources,together
@@ -132,6 +171,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T06:23:38Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T06:23:38Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T06:23:38Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T06:23:38Z,intraday,EU-CRI-H100-SPOT,,,4,"insufficient_sources,indicative",together
+2026-09-26T06:23:38Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T06:23:38Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.375412,2.083147,5,"no_executable_input,indicative",together
 2026-09-26T06:23:38Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T06:23:38Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T06:23:38Z,intraday,EU-CRI-H100-HS,,,3,insufficient_sources,together
@@ -142,6 +184,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T07:14:35Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T07:14:35Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T07:14:35Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T07:14:35Z,intraday,EU-CRI-H100-SPOT,,,4,"insufficient_sources,indicative",together
+2026-09-26T07:14:35Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T07:14:35Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.421088,2.123202,5,"no_executable_input,indicative",together
 2026-09-26T07:14:35Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T07:14:35Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T07:14:35Z,intraday,EU-CRI-H100-HS,,,3,insufficient_sources,together
@@ -152,6 +197,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T08:18:59Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T08:18:59Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T08:18:59Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T08:18:59Z,intraday,EU-CRI-H100-SPOT,,,4,"insufficient_sources,indicative",together
+2026-09-26T08:18:59Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T08:18:59Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.421088,2.123202,5,"no_executable_input,indicative",together
 2026-09-26T08:18:59Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T08:18:59Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T08:18:59Z,intraday,EU-CRI-H100-HS,,,3,insufficient_sources,together
@@ -162,6 +210,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T09:14:37Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T09:14:37Z,intraday,EU-CRI-H100-US,,,4,"insufficient_sources,indicative",together
 2026-09-26T09:14:37Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T09:14:37Z,intraday,EU-CRI-H100-SPOT,,,4,"insufficient_sources,indicative",together
+2026-09-26T09:14:37Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T09:14:37Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.421088,2.123202,5,"no_executable_input,indicative",together
 2026-09-26T09:14:37Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T09:14:37Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T09:14:37Z,intraday,EU-CRI-H100-HS,,,3,insufficient_sources,together
@@ -172,6 +223,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T10:13:08Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T10:13:08Z,intraday,EU-CRI-H100-US,,,4,"insufficient_sources,indicative",together
 2026-09-26T10:13:08Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T10:13:08Z,intraday,EU-CRI-H100-SPOT,,,4,"insufficient_sources,indicative",together
+2026-09-26T10:13:08Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T10:13:08Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.421088,2.123202,5,"no_executable_input,indicative",together
 2026-09-26T10:13:08Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T10:13:08Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T10:13:08Z,intraday,EU-CRI-H100-HS,,,3,insufficient_sources,together
@@ -182,6 +236,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T11:17:42Z,fixing,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T11:17:42Z,fixing,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T11:17:42Z,fixing,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T11:17:42Z,fixing,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T11:17:42Z,fixing,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T11:17:42Z,fixing,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.138735,6,"no_executable_input,indicative",together
 2026-09-26T11:17:42Z,fixing,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T11:17:42Z,fixing,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T11:17:42Z,fixing,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -192,6 +249,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T12:19:47Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T12:19:47Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T12:19:47Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T12:19:47Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T12:19:47Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T12:19:47Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.138735,6,"no_executable_input,indicative",together
 2026-09-26T12:19:47Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T12:19:47Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T12:19:47Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -202,6 +262,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T13:12:10Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T13:12:10Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T13:12:10Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T13:12:10Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T13:12:10Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T13:12:10Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.138735,6,"no_executable_input,indicative",together
 2026-09-26T13:12:10Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T13:12:10Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T13:12:10Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -212,6 +275,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T14:13:18Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T14:13:18Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T14:13:18Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T14:13:18Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T14:13:18Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T14:13:18Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.138735,6,"no_executable_input,indicative",together
 2026-09-26T14:13:18Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T14:13:18Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T14:13:18Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -222,6 +288,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T15:13:01Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T15:13:01Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T15:13:01Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T15:13:01Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T15:13:01Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T15:13:01Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.455437,2.153326,6,"no_executable_input,indicative",together
 2026-09-26T15:13:01Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T15:13:01Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T15:13:01Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -232,6 +301,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T16:15:16Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T16:15:16Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T16:15:16Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T16:15:16Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T16:15:16Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T16:15:16Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.455437,2.153326,6,"no_executable_input,indicative",together
 2026-09-26T16:15:16Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T16:15:16Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T16:15:16Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -242,6 +314,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T17:12:11Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T17:12:11Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T17:12:11Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T17:12:11Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T17:12:11Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T17:12:11Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.455437,2.153326,6,"no_executable_input,indicative",together
 2026-09-26T17:12:11Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T17:12:11Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T17:12:11Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -252,6 +327,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T18:16:53Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T18:16:53Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T18:16:53Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T18:16:53Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T18:16:53Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T18:16:53Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.455437,2.153326,6,"no_executable_input,indicative",together
 2026-09-26T18:16:53Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T18:16:53Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T18:16:53Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -262,6 +340,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T19:11:18Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T19:11:18Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T19:11:18Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T19:11:18Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T19:11:18Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T19:11:18Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.455437,2.153326,6,"no_executable_input,indicative",together
 2026-09-26T19:11:18Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T19:11:18Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T19:11:18Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -272,6 +353,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T20:13:19Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T20:13:19Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T20:13:19Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T20:13:19Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T20:13:19Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T20:13:19Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.455437,2.153326,6,"no_executable_input,indicative",together
 2026-09-26T20:13:19Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T20:13:19Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T20:13:19Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -282,6 +366,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T21:12:26Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T21:12:26Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T21:12:26Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T21:12:26Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T21:12:26Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T21:12:26Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.455437,2.153326,6,"no_executable_input,indicative",together
 2026-09-26T21:12:26Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T21:12:26Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T21:12:26Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -292,6 +379,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T22:13:27Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T22:13:27Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T22:13:27Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T22:13:27Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T22:13:27Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T22:13:27Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.455437,2.153326,6,"no_executable_input,indicative",together
 2026-09-26T22:13:27Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T22:13:27Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T22:13:27Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -302,6 +392,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-26T23:12:54Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-26T23:12:54Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-26T23:12:54Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-26T23:12:54Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-26T23:12:54Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-26T23:12:54Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.455437,2.153326,6,"no_executable_input,indicative",together
 2026-09-26T23:12:54Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-26T23:12:54Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-26T23:12:54Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -312,6 +405,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-27T00:46:01Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-27T00:46:01Z,intraday,EU-CRI-H100-US,,,4,"insufficient_sources,indicative",together
 2026-09-27T00:46:01Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-27T00:46:01Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-27T00:46:01Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-27T00:46:01Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4638,2.160659,6,"no_executable_input,indicative",together
 2026-09-27T00:46:01Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-27T00:46:01Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-27T00:46:01Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -322,6 +418,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-27T01:32:17Z,intraday,EU-CRI-H100,3.49,3.060598,8,,together
 2026-09-27T01:32:17Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,together
 2026-09-27T01:32:17Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,together
+2026-09-27T01:32:17Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",together
+2026-09-27T01:32:17Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",together
+2026-09-27T01:32:17Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4638,2.160659,6,"no_executable_input,indicative",together
 2026-09-27T01:32:17Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,together
 2026-09-27T01:32:17Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,together
 2026-09-27T01:32:17Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,together
@@ -332,6 +431,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-27T02:24:18Z,intraday,EU-CRI-H100,3.49,3.060598,8,,
 2026-09-27T02:24:18Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,
 2026-09-27T02:24:18Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,
+2026-09-27T02:24:18Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",
+2026-09-27T02:24:18Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",
+2026-09-27T02:24:18Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4638,2.160659,6,"no_executable_input,indicative",
 2026-09-27T02:24:18Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,
 2026-09-27T02:24:18Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,
 2026-09-27T02:24:18Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,
@@ -342,6 +444,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-27T03:19:00Z,intraday,EU-CRI-H100,3.49,3.060598,8,,
 2026-09-27T03:19:00Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,
 2026-09-27T03:19:00Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,
+2026-09-27T03:19:00Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",
+2026-09-27T03:19:00Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",
+2026-09-27T03:19:00Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4638,2.160659,6,"no_executable_input,indicative",
 2026-09-27T03:19:00Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,
 2026-09-27T03:19:00Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,
 2026-09-27T03:19:00Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,
@@ -352,6 +457,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-27T04:17:20Z,intraday,EU-CRI-H100,3.49,3.060598,8,,
 2026-09-27T04:17:20Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,
 2026-09-27T04:17:20Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,
+2026-09-27T04:17:20Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",
+2026-09-27T04:17:20Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",
+2026-09-27T04:17:20Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4638,2.160659,6,"no_executable_input,indicative",
 2026-09-27T04:17:20Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,
 2026-09-27T04:17:20Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,
 2026-09-27T04:17:20Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,
@@ -362,6 +470,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-27T05:14:27Z,intraday,EU-CRI-H100,3.49,3.060598,8,,
 2026-09-27T05:14:27Z,intraday,EU-CRI-H100-US,3.49,3.060598,5,indicative,
 2026-09-27T05:14:27Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,
+2026-09-27T05:14:27Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",
+2026-09-27T05:14:27Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",
+2026-09-27T05:14:27Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4638,2.160659,6,"no_executable_input,indicative",
 2026-09-27T05:14:27Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,
 2026-09-27T05:14:27Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,
 2026-09-27T05:14:27Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,
@@ -372,6 +483,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-27T06:24:55Z,intraday,EU-CRI-H100,3.49,3.060598,8,,
 2026-09-27T06:24:55Z,intraday,EU-CRI-H100-US,,,4,"insufficient_sources,indicative",
 2026-09-27T06:24:55Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,
+2026-09-27T06:24:55Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",
+2026-09-27T06:24:55Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",
+2026-09-27T06:24:55Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4638,2.160659,6,"no_executable_input,indicative",
 2026-09-27T06:24:55Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,
 2026-09-27T06:24:55Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,
 2026-09-27T06:24:55Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,
@@ -382,6 +496,9 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-27T07:16:16Z,intraday,EU-CRI-H100,3.49,3.060598,8,,
 2026-09-27T07:16:16Z,intraday,EU-CRI-H100-US,,,4,"insufficient_sources,indicative",
 2026-09-27T07:16:16Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,
+2026-09-27T07:16:16Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",
+2026-09-27T07:16:16Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",
+2026-09-27T07:16:16Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4638,2.160659,6,"no_executable_input,indicative",
 2026-09-27T07:16:16Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,
 2026-09-27T07:16:16Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,
 2026-09-27T07:16:16Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,
@@ -389,3 +506,16 @@ at_utc,origin,series,value_usd,value_eur,n_sources,flags,sources_missing
 2026-09-27T07:16:16Z,intraday,EU-CRI-B200,,,2,insufficient_sources,
 2026-09-27T07:16:16Z,intraday,EU-CRI-A100,,,3,insufficient_sources,
 2026-09-27T07:16:16Z,intraday,EU-CRI-H100-PCIE,,,2,insufficient_sources,
+2026-09-27T08:18:57Z,intraday,EU-CRI-H100,3.49,3.060598,8,,
+2026-09-27T08:18:57Z,intraday,EU-CRI-H100-US,,,4,"insufficient_sources,indicative",
+2026-09-27T08:18:57Z,intraday,EU-CRI-H100-GLOBAL,3.49,3.060598,9,indicative,
+2026-09-27T08:18:57Z,intraday,EU-CRI-H100-SPOT,2.15,1.885469,5,"no_executable_input,indicative",
+2026-09-27T08:18:57Z,intraday,EU-CRI-H100-SPOT-US,,,3,"insufficient_sources,indicative",
+2026-09-27T08:18:57Z,intraday,EU-CRI-H100-SPOT-GLOBAL,2.4388,2.138735,7,"no_executable_input,indicative",
+2026-09-27T08:18:57Z,intraday,EU-CRI-H100-MKT,,,2,insufficient_sources,
+2026-09-27T08:18:57Z,intraday,EU-CRI-H100-NC,3.774279,3.3099,6,no_executable_input,
+2026-09-27T08:18:57Z,intraday,EU-CRI-H100-HS,,,4,insufficient_sources,
+2026-09-27T08:18:57Z,intraday,EU-CRI-H200,,,3,insufficient_sources,
+2026-09-27T08:18:57Z,intraday,EU-CRI-B200,,,2,insufficient_sources,
+2026-09-27T08:18:57Z,intraday,EU-CRI-A100,,,3,insufficient_sources,
+2026-09-27T08:18:57Z,intraday,EU-CRI-H100-PCIE,,,2,insufficient_sources,
