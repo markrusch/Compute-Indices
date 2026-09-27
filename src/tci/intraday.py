@@ -1043,7 +1043,7 @@ class _Calc:
 
         Under the version live on the date when it defines the series. Otherwise under the
         first later version in the succession that does, flagged indicative: the US series
-        before 1 October (v0.6.0), GLOBAL before 23 October (v0.9.0). That is how the page
+        before 1 October (v0.6.0), GLOBAL before 4 October (v0.9.0). That is how the page
         can show a series its notice has announced without anything pretending to be a
         print. None if no version defines it.
         """

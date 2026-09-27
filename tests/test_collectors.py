@@ -119,7 +119,7 @@ def test_vast_identity_pin_drops_mislabelled_offers() -> None:
 
 # Pinned: what the collector emits depends on the version in effect on the day.
 _UNDER_V060 = date(2026, 9, 24)
-_UNDER_V070 = date(2026, 10, 8)
+_UNDER_V070 = date(2026, 10, 2)
 
 
 def test_static_yaml_emits_only_priced_entries() -> None:
@@ -152,7 +152,7 @@ def test_static_yaml_skips_a_priced_file_the_panel_no_longer_reads() -> None:
 
 
 def test_static_yaml_stops_by_itself_when_v070_takes_effect() -> None:
-    """v0.7.0 admits static_yaml for nobody, so on 8 October the collector goes quiet
+    """v0.7.0 admits static_yaml for nobody, so on 2 October the collector goes quiet
     with no one having to switch it off."""
     collector = StaticYamlCollector(today=_UNDER_V070)
     assert collector.admitted(_UNDER_V070) == set()

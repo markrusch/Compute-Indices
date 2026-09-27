@@ -27,7 +27,7 @@ REGIONAL = ("EU-CRI-H100", "EU-CRI-H100-US", "EU-CRI-H100-GLOBAL")
 
 
 def test_global_block_is_every_country_the_other_blocks_name() -> None:
-    f = load_factors(for_date="2026-10-23")
+    f = load_factors(for_date="2026-10-04")
     world = f.countries_of("GLOBAL")
     assert all(re.fullmatch(r"[A-Z]{2}", c) for c in world)
     assert len(world) == len(set(world)) >= 240
@@ -37,7 +37,7 @@ def test_global_block_is_every_country_the_other_blocks_name() -> None:
 
 def test_every_country_ever_observed_is_in_the_global_block() -> None:
     """A country missing from the list would silently drop its offers from GLOBAL."""
-    world = set(load_factors(for_date="2026-10-23").countries_of("GLOBAL"))
+    world = set(load_factors(for_date="2026-10-04").countries_of("GLOBAL"))
     conn = db.connect_readonly(REPO_ROOT / "data" / "eucri.db")
     seen = {r[0] for r in conn.execute(
         "SELECT DISTINCT country FROM observations WHERE country IS NOT NULL AND country != ''")}
@@ -47,7 +47,7 @@ def test_every_country_ever_observed_is_in_the_global_block() -> None:
 
 @pytest.mark.parametrize(("day", "us", "world"), [
     ("2026-09-30", False, False), ("2026-10-01", True, False),
-    ("2026-10-22", True, False), ("2026-10-23", True, True),
+    ("2026-10-03", True, False), ("2026-10-04", True, True),
 ])
 def test_each_regional_series_starts_on_its_notice_date(day: str, us: bool, world: bool) -> None:
     rs = load_factors(for_date=day).regional_series
@@ -83,7 +83,7 @@ def _row(conn: sqlite3.Connection, day: str, series: str) -> sqlite3.Row | None:
 
 def test_global_prints_over_both_blocks_from_its_effective_date(
         conn: sqlite3.Connection) -> None:
-    day = "2026-10-23"
+    day = "2026-10-04"
     _seed(conn, day)
     compute_all_series(conn, day)
     row = _row(conn, day, "EU-CRI-H100-GLOBAL")
@@ -97,7 +97,7 @@ def test_global_prints_over_both_blocks_from_its_effective_date(
 
 
 def test_no_global_print_before_its_version(conn: sqlite3.Connection) -> None:
-    day = "2026-10-22"
+    day = "2026-10-03"
     _seed(conn, day)
     compute_all_series(conn, day)
     assert _row(conn, day, "EU-CRI-H100-GLOBAL") is None
@@ -106,7 +106,7 @@ def test_no_global_print_before_its_version(conn: sqlite3.Connection) -> None:
 
 def test_a_regional_series_that_raises_is_stored_as_a_gap_and_costs_nothing_else(
         conn: sqlite3.Connection, monkeypatch: pytest.MonkeyPatch) -> None:
-    day = "2026-10-23"
+    day = "2026-10-04"
     _seed(conn, day)
     real = commands.regional_print
 
@@ -218,7 +218,7 @@ def test_series_start_names_the_version_and_notice() -> None:
     from tci.outputs import site
 
     assert site.series_start("EU-CRI-H100-US") == ("2026-10-01", "0.6.0", "2026-N3")
-    assert site.series_start("EU-CRI-H100-GLOBAL") == ("2026-10-23", "0.9.0", "2026-N6")
+    assert site.series_start("EU-CRI-H100-GLOBAL") == ("2026-10-04", "0.9.0", "2026-N6")
     assert site.series_start("EU-CRI-H100") is None
 
 

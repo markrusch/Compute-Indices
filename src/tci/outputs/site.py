@@ -158,7 +158,7 @@ SERIES_LABEL: dict[str, str] = {
 
 # The three regional views of the headline, in tab order: (key, tab label, long label,
 # stored series). US prints from 1 October 2026 (v0.6.0, notice 2026-N3), Global from
-# 23 October 2026 (v0.9.0, notice 2026-N6). The stored keys keep the EU-CRI prefix; only
+# 4 October 2026 (v0.9.0, notice 2026-N6). The stored keys keep the EU-CRI prefix; only
 # display_series() turns them into published codes.
 REGIONS: tuple[tuple[str, str, str, str], ...] = (
     ("eu", "EU", "EU/EEA", HEADLINE),

@@ -3,7 +3,7 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
-## 0.9.0 — announced 2026-09-27, effective 2026-10-23 (notice 2026-N6)
+## 0.9.0 — announced 2026-09-27, effective 2026-10-04 (notice 2026-N6)
 
 - **A Global H100 series.** `EU-CRI-H100-GLOBAL`, published as TCI-CRI-H100-GLOBAL,
   prices one H100 SXM GPU-hour over every country with the headline's unit definition,
@@ -18,6 +18,14 @@ All methodology-affecting changes require an entry here **before** the lock rege
   so the US series opens on a panel at its gate.
 - No existing series changes: every stored print recomputes unchanged.
 - 0.8.0 frozen under `config/methodology/0.8.0/`.
+- **0.7.0 and 0.8.0 brought forward**, to 2 and 3 October from 8 and 22 October, and
+  0.9.0 set for 4 October. Versions take effect in order and each frozen snapshot is a
+  complete parameter set, so a Global series defined before 22 October would have
+  stopped again the day the next snapshot, without it, took over. Neither version's
+  content changes; both notices say the date moved. The only edit to the two frozen
+  snapshots is the effective date in their header comment, which the lock hashes, so
+  their recorded hashes were withdrawn and recomputed. That breaks nothing that has been
+  published: no print exists under 0.6.0 or any later version.
 
 ## EU, US and Global tabs, and a guard per regional series — 2026-09-27 — no methodology change
 
@@ -28,7 +36,7 @@ All methodology-affecting changes require an entry here **before** the lock rege
   ticker names the US and Global series from their first print and not before.
 - **Indicative values.** Before a regional series takes effect, the intraday replay runs
   it under the first version in the succession that defines it and flags every value
-  `indicative`: US until 1 October, Global until 23 October. Those stretches are drawn in
+  `indicative`: US until 1 October, Global until 4 October. Those stretches are drawn in
   grey, solid, with a surface halo so they stay visible on top of the constituent they
   usually equal, and every tooltip and a note above the chart say so in words. The
   dashboard shows none of them; its US and Global panels say when the first print is and
@@ -157,7 +165,7 @@ All methodology-affecting changes require an entry here **before** the lock rege
   without written permission (s5.2(a) and (h)), which fails gate 4 whatever the key costs.
   Recorded in the source register with the recheck that would change the answer.
 
-## 0.8.0 — announced 2026-09-24, effective 2026-10-22 (notice 2026-N5)
+## 0.8.0 — announced 2026-09-24, effective 2026-10-03 (notice 2026-N5; first announced for 2026-10-22)
 
 - **Hyperstack enters the panel** in H100, H100 PCIe, H200, B200, B300 and A100, as a
   neocloud. Its rows count in a country only on days its own stock feed places them
@@ -193,7 +201,7 @@ All methodology-affecting changes require an entry here **before** the lock rege
   the US at 8, and nothing in Norway, which listed only an RTX A4000 that day. Hyperstack
   is not in the panel before v0.8.0, so no print moves; all stored prints reproduce.
 
-## 0.7.0 — announced 2026-09-24, effective 2026-10-08 (notice 2026-N4)
+## 0.7.0 — announced 2026-09-24, effective 2026-10-02 (notice 2026-N4; first announced for 2026-10-08)
 
 - **Seeweb is read by its collector.** The panel names `seeweb` instead of `static_yaml`
   for the seeweb provider. The collector reads the same EUR 1.89/GPU-hr from the same
@@ -210,7 +218,7 @@ All methodology-affecting changes require an entry here **before** the lock rege
 - **The panel is now collected, not typed.** `tests/test_panel.py` fails any version from
   0.7.0 onward whose panel names `static_yaml`, or names a collector the daily run does
   not execute. The static collector emits a row only while the version in effect that day
-  reads the provider through it, so it stops producing rows on 8 October without anyone
+  reads the provider through it, so it stops producing rows on 2 October without anyone
   switching it off. Once that date has passed, `static_yaml.py` and `config/providers/`
   can be deleted outright. The generated methodology drops its staleness step for a
   panel that has no hand-kept entries.

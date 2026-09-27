@@ -133,7 +133,7 @@ sources:
       4 providers, 1 priced (seeweb). Warned at 45d, excluded at 90d. On 2026-09-24 the
       datacrunch, nebius, ovhcloud and scaleway entries were retired: each is read by a
       live collector, and datacrunch and nebius had left the panel under v0.5.0. hetzner,
-      genesis_cloud and leaseweb never had a price. From v0.7.0 (2026-10-08, notice
+      genesis_cloud and leaseweb never had a price. From v0.7.0 (2026-10-02, notice
       2026-N4) no panel entry reads this source, the collector stops on that date, and
       the directory can be deleted.
 
@@ -161,7 +161,7 @@ sources:
       committed rate (EUR 1.89/1.80/1.70/1.61 per GPU-hr on 2026-09-15) in one GET,
       stored under source="seeweb". Until 2026-09-24 every row carried gpu_count 1, the
       selector's default, which fails the 2-GPU node-size floor; it now records the
-      largest size on the card's own selector (8). v0.7.0 (effective 2026-10-08, notice
+      largest size on the card's own selector (8). v0.7.0 (effective 2026-10-02, notice
       2026-N4) moves the seeweb panel entry onto this collector and off static_yaml, at
       which point this row becomes `live`.
 
@@ -523,7 +523,7 @@ sources:
       on days the public stock feed shows a deployable machine of that flavour there, at
       the largest deployable size, and the feed's flavour names resolve the plain
       "NVIDIA H100"/"NVIDIA A100" labels to PCIe. Enters the panel under v0.8.0
-      (2026-10-22, notice 2026-N5), when this row becomes `live`.
+      (2026-10-03, notice 2026-N5), when this row becomes `live`.
 
   - id: crusoe
     name: Crusoe

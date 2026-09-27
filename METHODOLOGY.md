@@ -231,7 +231,7 @@ this document, and the lock refuses any change to a frozen snapshot.
 # EU-CRI methodology parameters. Every number that affects a published print lives here.
 # Changing anything in this file (or sovereign.yaml, index.py, normalise.py, weights.py)
 # requires a methodology_version bump + CHANGELOG entry - enforced by CI (see GOVERNANCE.md).
-methodology_version: "0.9.0"       # effective 2026-10-23 (notice 2026-N6). See
+methodology_version: "0.9.0"       # effective 2026-10-04 (notice 2026-N6). See
                                     # config/methodology/succession.yaml for every version
                                     # and the date it takes effect.
 
@@ -494,9 +494,9 @@ date (`config/methodology/succession.yaml`).
 | 0.4.0 | 2026-09-15 | 2026-N1 |
 | 0.5.0 | 2026-09-22 | 2026-N2 |
 | 0.6.0 | 2026-10-01 | 2026-N3 |
-| 0.7.0 | 2026-10-08 | 2026-N4 |
-| 0.8.0 | 2026-10-22 | 2026-N5 |
-| 0.9.0 | 2026-10-23 | 2026-N6 |
+| 0.7.0 | 2026-10-02 | 2026-N4 |
+| 0.8.0 | 2026-10-03 | 2026-N5 |
+| 0.9.0 | 2026-10-04 | 2026-N6 |
 
 ---
 

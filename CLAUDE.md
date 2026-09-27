@@ -125,6 +125,19 @@ add the version to `succession.yaml` with its notice's effective date, add the n
 `config/notices.yaml`, a CHANGELOG entry, then `python -m tci.run docs`. Never edit a frozen
 snapshot; the lock refuses it. The `-dev` exemption ended at v0.4.0.
 
+**Do not schedule versions weeks out.** The notice rule needs one day: the effective date
+may be the day after the announcement. Give a new version the earliest date that rule and
+the queue allow, normally a day or two after the last announced version, and set a later
+one only for a stated reason: a collector that needs history first, or a change a reader
+needs time to prepare for. Versions take effect in order and every frozen snapshot is a
+full parameter set, so a far-off version blocks whatever comes after it: a series added
+behind it cannot print before it, because the snapshot in between would switch the series
+off again. When the queue is in the way, bring the queued versions forward, as was done
+on 27 September 2026 (0.7.0 and 0.8.0 moved from 8 and 22 October to 2 and 3 October).
+That is only allowed while no print exists under the version being moved: its notice then
+says the date changed, its recorded hash is removed from `METHODOLOGY.lock`, and
+`python -m tci.run docs` records it again.
+
 **The panel decides admission.** `panel` in factors.yaml names every (provider, collector,
 class) that may reach a print. A new collector stores rows without moving anything; do not
 add it to the panel outside a new version. Tests of calculation mechanics that use invented

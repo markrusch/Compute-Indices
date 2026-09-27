@@ -18,7 +18,7 @@ ONLY WHAT THE PANEL STILL READS. An entry is emitted only while the methodology 
 in effect on the collection date admits `static_yaml` for that provider. Until 24
 September 2026 every priced file was collected whether or not any version could use it,
 so datacrunch and nebius kept producing hand-maintained rows for days after v0.5.0 had
-replaced both with catalogue feeds. v0.7.0 (effective 2026-10-08, notice 2026-N4) admits
+replaced both with catalogue feeds. v0.7.0 (effective 2026-10-02, notice 2026-N4) admits
 static_yaml for no provider, and from that date this collector emits nothing without
 anyone having to remember to switch it off. config/providers/ can then be deleted.
 """

@@ -24,7 +24,7 @@ notices:
   - id: 2026-N6
     title: A Global H100 series, priced exactly like the EU and US series over every country
     announced: 2026-09-27
-    effective: 2026-10-23
+    effective: 2026-10-04
     version: 0.9.0
     status: announced
     summary: >-
@@ -41,7 +41,7 @@ notices:
       24 September from six. On those days it equals or sits close to the EU/EEA headline
       because the panel is still mostly European: on all three days Voltage Park is the
       only provider it adds to the EU/EEA set. Hyperstack's Canadian and US rows can add
-      another from 22 October on days its stock feed places them.
+      another from 3 October on days its stock feed places them.
     body: |
       **What is added.** A `GLOBAL` block in `config/factors.yaml` holding every ISO 3166-1
       alpha-2 code, 249 in all, copied from the IANA time zone database's `iso3166.tab`,
@@ -56,7 +56,7 @@ notices:
       **Before the effective date.** The intraday page shows this series, and the US
       series before 1 October, computed from the hourly reads under the version that
       introduces it, and labels those values indicative. None of them is a print, none is
-      stored as one, and the first published value is the 23 October fixing.
+      stored as one, and the first published value is the 4 October fixing.
 
       **What does not change.** The unit definition, the estimator, the trim, the weights,
       the concentration cap, the publication gate and the panel. Prints dated before the
@@ -66,7 +66,7 @@ notices:
     title: Hyperstack enters, priced in a country only on days its own stock feed shows a
       node there
     announced: 2026-09-24
-    effective: 2026-10-22
+    effective: 2026-10-03
     version: 0.8.0
     status: announced
     summary: >-
@@ -88,6 +88,11 @@ notices:
       median on a thin panel; it is stated here so that a move of that size on the first
       day of stock is not read as a market move.
     body: |
+      **Effective date brought forward.** Announced on 24 September for 22 October. On 27
+      September the date moved to 3 October, unchanged in content, so that the Global series
+      (notice 2026-N6) can follow within days rather than weeks. No print has been
+      computed under this version or any later one.
+
       **What is added.** Hyperstack's on-demand price list names no region. It also
       publishes a stock feed per datacentre (NORWAY-1, CANADA-1, US-1), listing for each
       GPU flavour how many virtual machines of each size can be deployed now. The
@@ -111,7 +116,7 @@ notices:
   - id: 2026-N4
     title: Every constituent price read by a collector, none typed in by hand
     announced: 2026-09-24
-    effective: 2026-10-08
+    effective: 2026-10-02
     version: 0.7.0
     status: announced
     summary: >-
@@ -129,6 +134,11 @@ notices:
       carried the last price looked up; if that leaves fewer than five providers, the
       print gaps with the reason.
     body: |
+      **Effective date brought forward.** Announced on 24 September for 8 October. On 27
+      September the date moved to 2 October, unchanged in content, so that the Global series
+      (notice 2026-N6) can follow within days rather than weeks. No print has been
+      computed under this version or any later one.
+
       **Seeweb.** Until this version Seeweb's on-demand H100 price, EUR 1.89 per GPU-hour,
       entered the index from `config/providers/seeweb.yaml`, last checked by hand on 13
       September. A collector has read the same page since 15 September and stores its
