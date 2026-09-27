@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-09-26T11:18:11Z",
+  "generated_at": "2026-09-27T11:11:14Z",
   "tci_version": "0.1.0",
   "methodology_version": "0.5.0",
   "disclaimer": "TCI is a research publication. It is not investment advice and is not administered as a benchmark under EU Regulation 2016/1011; it may not be used as a reference price in financial instruments.",
-  "date": "2026-09-26",
+  "date": "2026-09-27",
   "series": {
     "EU-CRI-H100": {
-      "date": "2026-09-26",
+      "date": "2026-09-27",
       "revision": 1,
-      "digest": "sha256:d1d4735c41eed3a30f61d4e51a3f972cc421d16adc61ebe20deddd8055c5ef2b",
+      "digest": "sha256:b8adfca867413d3df37b94fefdc04d906f5082a3c6e0d5036e3eca72b932e675",
       "value_usd": 3.49,
       "value_eur": 3.060598,
       "fx_rate": 1.1403,
@@ -16,31 +16,31 @@
       "n_sources": 8,
       "n_executable": 3,
       "flags": "",
-      "wow_pct": 0.0,
-      "mom_pct": 6.079,
-      "prev_date": "2026-09-25",
-      "prev_value_usd": 3.762363
+      "wow_pct": 6.4024,
+      "mom_pct": 7.3846,
+      "prev_date": "2026-09-26",
+      "prev_value_usd": 3.49
     },
     "EU-CRI-H100-7D": {
-      "date": "2026-09-26",
+      "date": "2026-09-27",
       "revision": 1,
-      "digest": "sha256:8bb07c74013402ad806e9a82c339abbe7eef5c4dda6a0809293f998de21bb4a1",
-      "value_usd": 3.539899,
-      "value_eur": 3.104358,
+      "digest": "sha256:d879e7e5cd1ae1307a05d5e42d36553b4e4de684d87e766699e7acd8e496cadc",
+      "value_usd": 3.569899,
+      "value_eur": 3.130666,
       "fx_rate": 1.1403,
       "fx_date": "2026-09-25",
       "n_sources": 7,
       "n_executable": 0,
       "flags": "",
-      "wow_pct": 6.1439,
-      "mom_pct": 7.5957,
-      "prev_date": "2026-09-25",
+      "wow_pct": 6.8832,
+      "mom_pct": 8.7279,
+      "prev_date": "2026-09-26",
       "prev_value_usd": 3.539899
     },
     "EU-CRI-H100-SOV": {
-      "date": "2026-09-26",
+      "date": "2026-09-27",
       "revision": 1,
-      "digest": "sha256:f70b99479658015b278e159eebaded264eab3aa68a6352173068f671a28d87ff",
+      "digest": "sha256:e4d59c5d7c937a6d339a0c67433002b2bcc77093a29071c3106d21822f06d166",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -50,9 +50,9 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-H100-MKT": {
-      "date": "2026-09-26",
+      "date": "2026-09-27",
       "revision": 1,
-      "digest": "sha256:2f7238f123447583fb1f79887b9a787550a7b62025feae0f3aea74119cab69c1",
+      "digest": "sha256:d9065b5dfa7f68c2ca8a05535a00df6270db84a64f445674885b7de60def9b69",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -62,9 +62,9 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-H100-NC": {
-      "date": "2026-09-26",
+      "date": "2026-09-27",
       "revision": 1,
-      "digest": "sha256:462d3c5a18e0850e86989daf593c3aa7e2d89ddbce48c12afa60b9cdf6e8c5e0",
+      "digest": "sha256:e15656f1f9c3a1fe5f5b0c564a30648f02b6b4623cf6f0f7d2758999cc527023",
       "value_usd": 3.774279,
       "value_eur": 3.3099,
       "fx_rate": 1.1403,
@@ -74,13 +74,13 @@
       "flags": "no_executable_input",
       "wow_pct": null,
       "mom_pct": null,
-      "prev_date": "2026-09-25",
-      "prev_value_usd": 3.762363
+      "prev_date": "2026-09-26",
+      "prev_value_usd": 3.774279
     },
     "EU-CRI-H100-HS": {
-      "date": "2026-09-26",
+      "date": "2026-09-27",
       "revision": 1,
-      "digest": "sha256:5742a9d982f61934b1552ca28d9420fa2cf6f0f7b755ade5573572a9f3f9f92e",
+      "digest": "sha256:ac5bc5277ba6e005aac42c81889b698982c1e9c2f317c44885b85beb247b5ad0",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -90,33 +90,33 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-H100-PCIE": {
-      "date": "2026-09-26",
+      "date": "2026-09-27",
       "revision": 1,
-      "digest": "sha256:80e0d36d774ba8e50324c1b3c71d2d16f636fc88b689a445ca493abc98826efd",
+      "digest": "sha256:85c7a2d126b8434321b6fc73832ed2c231c3a82d1b95a730cf35e979bce78854",
+      "value_usd": null,
+      "value_eur": null,
+      "fx_rate": 1.1403,
+      "fx_date": "2026-09-25",
+      "n_sources": 2,
+      "n_executable": 0,
+      "flags": "insufficient_sources"
+    },
+    "EU-CRI-H200": {
+      "date": "2026-09-27",
+      "revision": 1,
+      "digest": "sha256:d84f5621fb9cf2dad2c4d42b9e5f83ef687ac638ef2a3da1db2738e7620ad309",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
       "fx_date": "2026-09-25",
       "n_sources": 3,
-      "n_executable": 1,
-      "flags": "insufficient_sources"
-    },
-    "EU-CRI-H200": {
-      "date": "2026-09-26",
-      "revision": 1,
-      "digest": "sha256:03a7bfcc80c1913306b00b3b4dd5251eb3f37c1902a2c48b6b476e1ccb630427",
-      "value_usd": null,
-      "value_eur": null,
-      "fx_rate": 1.1403,
-      "fx_date": "2026-09-25",
-      "n_sources": 4,
-      "n_executable": 1,
+      "n_executable": 0,
       "flags": "insufficient_sources"
     },
     "EU-CRI-B200": {
-      "date": "2026-09-26",
+      "date": "2026-09-27",
       "revision": 1,
-      "digest": "sha256:45450773d6749baf5a0fd90e0a67b58aa0c031d94903d90cbf75def412022a61",
+      "digest": "sha256:30e47b16808ad9bcf2d90e841dd351f186ad656471af3e37513ca220c3acdeff",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -126,9 +126,9 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-B300": {
-      "date": "2026-09-26",
+      "date": "2026-09-27",
       "revision": 1,
-      "digest": "sha256:f60b50c144bb781cb3527c015ae534c78463292fda3e8bc21eb5334fbce453d7",
+      "digest": "sha256:4c42b35c142e103a6fc6bf5bca86f5d8818442251001691ac3989587a994ae47",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -138,9 +138,9 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-A100": {
-      "date": "2026-09-26",
+      "date": "2026-09-27",
       "revision": 1,
-      "digest": "sha256:6acde97a395b7043e40194f3691b4bca9998cfc6d4c81715495913647c368c23",
+      "digest": "sha256:22c1ecf7ff374cf3b090aa43aba9864868515dce08fe4c7ad5ee93fa2057d62a",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -150,9 +150,9 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-COMPUTE": {
-      "date": "2026-09-26",
+      "date": "2026-09-27",
       "revision": 1,
-      "digest": "sha256:40a280f2b4da9c1ee042e17e79bb95f1e63ebd66d97f1366f1a1a6ce288db20f",
+      "digest": "sha256:8dc4cb7f336552ed93410a7b26276f6add253c5098f971014f4e94798f8c49bd",
       "value_usd": 107.384615,
       "value_eur": null,
       "fx_rate": null,
@@ -160,10 +160,10 @@
       "n_sources": 1,
       "n_executable": 0,
       "flags": "",
-      "wow_pct": 0.0,
-      "mom_pct": 6.079,
-      "prev_date": "2026-09-25",
-      "prev_value_usd": 115.765015
+      "wow_pct": 6.4024,
+      "mom_pct": 7.3846,
+      "prev_date": "2026-09-26",
+      "prev_value_usd": 107.384615
     }
   },
   "constituents": {
@@ -193,18 +193,6 @@
         "note": "Public marketplace search API; datacenter-verified hosts only."
       },
       {
-        "provider": "verda",
-        "source": "gpuhunt",
-        "tier": "list",
-        "price_usd": 3.485,
-        "weight": 10.0,
-        "included": true,
-        "exclusion_reason": null,
-        "flags": "",
-        "url": "https://verda.com/pricing",
-        "note": "Formerly DataCrunch. H100 SXM5 on-demand list price, Finland and Iceland, via the gpuhunt catalog."
-      },
-      {
         "provider": "runpod",
         "source": "runpod",
         "tier": "executable",
@@ -215,6 +203,18 @@
         "flags": "",
         "url": "https://www.runpod.io/console/gpu-cloud",
         "note": "Secure Cloud pricing via RunPod's public GraphQL API."
+      },
+      {
+        "provider": "verda",
+        "source": "gpuhunt",
+        "tier": "list",
+        "price_usd": 3.52,
+        "weight": 10.0,
+        "included": true,
+        "exclusion_reason": null,
+        "flags": "",
+        "url": "https://verda.com/pricing",
+        "note": "Formerly DataCrunch. H100 SXM5 on-demand list price, Finland and Iceland, via the gpuhunt catalog."
       },
       {
         "provider": "scaleway",
@@ -399,18 +399,6 @@
         "note": "Formerly DataCrunch. H100 SXM5 on-demand list price, Finland and Iceland, via the gpuhunt catalog."
       },
       {
-        "provider": "vast.ai",
-        "source": "vast_ai",
-        "tier": "executable",
-        "price_usd": 4.869791666666666,
-        "weight": 0.0,
-        "included": false,
-        "exclusion_reason": "insufficient_sources",
-        "flags": "",
-        "url": "https://cloud.vast.ai/",
-        "note": "Public marketplace search API; datacenter-verified hosts only."
-      },
-      {
         "provider": "ovhcloud",
         "source": "ovh",
         "tier": "list",
@@ -514,7 +502,7 @@
         "provider": "verda",
         "source": "gpuhunt",
         "tier": "list",
-        "price_usd": 8.285,
+        "price_usd": 8.3675,
         "weight": 0.0,
         "included": false,
         "exclusion_reason": "insufficient_sources",
@@ -600,7 +588,7 @@
         "provider": "verda",
         "source": "gpuhunt",
         "tier": "list",
-        "price_usd": 1.77875,
+        "price_usd": 1.797,
         "weight": 0.0,
         "included": false,
         "exclusion_reason": "insufficient_sources",
@@ -633,18 +621,6 @@
         "flags": "",
         "url": "https://learn.microsoft.com/en-us/azure/virtual-machines/nd-h100-v5-series",
         "note": "ND H100 v5-series on-demand list price, EU regions, via the gpuhunt catalog."
-      },
-      {
-        "provider": "vast.ai",
-        "source": "vast_ai",
-        "tier": "executable",
-        "price_usd": 2.5879407407407404,
-        "weight": 0.0,
-        "included": false,
-        "exclusion_reason": "insufficient_sources",
-        "flags": "",
-        "url": "https://cloud.vast.ai/",
-        "note": "Public marketplace search API; datacenter-verified hosts only."
       },
       {
         "provider": "ovhcloud",
