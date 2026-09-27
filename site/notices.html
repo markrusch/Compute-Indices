@@ -2272,6 +2272,54 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
    path itself is broken into segments so no stroke crosses a missing print. */
 .ch-gapmark { fill: none; stroke: var(--chart-deemph); stroke-width: 1; }
 
+/* ---- CONSTITUENT LINES (intraday.html, CSS-only) ------------------------ */
+/* Each constituent behind the index in its categorical colour, thinner and quieter than
+   the index line, which stays the one 2px greyscale stroke on the chart. Every chart is
+   rendered twice, with and without them, because the axis has to widen to hold them:
+   switching them off gives back the scale drawn for the index alone. The switch swaps
+   the two with :has(); a browser without it shows the lines and the switch is inert. */
+.ch-con { fill: none; stroke-width: 1.25; stroke-linejoin: round; stroke-linecap: round;
+          opacity: 0.7; }
+.cons-off { display: none; }
+main:has(#cons-toggle:not(:checked)) .cons-on { display: none; }
+main:has(#cons-toggle:not(:checked)) .cons-off { display: block; }
+.cons-switch { display: inline-flex; align-items: center; gap: var(--space-3);
+               cursor: pointer; color: var(--ink-2); }
+.cons-switch input { inline-size: 16px; block-size: 16px; margin: 0;
+                     accent-color: var(--ink-2); cursor: pointer; }
+.cons-switch input:focus-visible { outline: var(--focus-width) solid var(--focus-ring);
+                                   outline-offset: 2px; }
+.cons-legend { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid;
+               grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+               gap: var(--space-2) var(--space-6); font-size: var(--text-sm); }
+.cons-legend__i { display: grid; grid-template-columns: 18px 1fr; align-items: center;
+                  column-gap: var(--space-3); color: var(--ink-2); }
+.cons-legend__d { grid-column: 2; color: var(--ink-3); font-size: var(--text-xs); }
+
+/* ---- REGION TABS (intraday.html, index.html; CSS-only) ------------------ */
+/* EU / US / Global. Every region's panel is in the markup and the .seg radios pick one
+   with :has(). The hiding sits inside @supports, so a browser without :has() shows all
+   three panels one after another, labelled, instead of hiding every one of them. */
+.rtabs { margin: 0 0 var(--space-5); }
+.seg--region label { font-size: var(--text-xs); padding: 6px var(--space-5); }
+.rpanel + .rpanel { margin-top: var(--space-6); }
+.rpanel__h { margin: var(--space-5) 0 var(--space-2); font-size: var(--text-sm);
+             font-weight: var(--weight-semibold); color: var(--ink-2); }
+.rpanel .gapnote { margin: var(--space-3) 0; }
+@supports selector(:has(a)) {
+  .rpanel { display: none; }
+  .rpanel + .rpanel { margin-top: 0; }
+  main:has(#region-eu:checked) .rpanel--eu,
+  main:has(#region-us:checked) .rpanel--us,
+  main:has(#region-global:checked) .rpanel--global { display: block; }
+}
+/* Before a regional series takes effect its replayed values are indicative: the same
+   solid stroke in the de-emphasis grey, never dashed (DESIGN.md §3), and named in words
+   in the legend, the tooltip and the note above the chart. */
+.ch-line--ind { stroke: var(--ink-3); }
+.ch-halo { fill: none; stroke: var(--chart-ring); stroke-width: 6; stroke-linejoin: round;
+           stroke-linecap: round; }
+
 /* ---- CURRENCY TOGGLE (CSS-only) ----------------------------------------- */
 /* Both figures are in the markup, so the value is present with scripting off.
    USD is the default render; :has() swaps which one is visible. A browser
@@ -2503,7 +2551,7 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="masthead">
-<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-26T11:29:45Z">AS OF 2026-09-26 11:29:45 UTC</div></div>
+<div class="tickerbar"><div class="tickerbar__marquee" role="region" aria-label="TCI series, last published values"><div class="tickerbar__track"><div class="tickerbar__run"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div><div class="tickerbar__run" aria-hidden="true"><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100</span><span class="tickerbar__val num">$3.49</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;7D</span><span class="tickerbar__val num">$3.54</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;H100&#8209;MKT</span><span class="tickerbar__gap">&#8212;&#8194;GAP</span></span><span class="tickerbar__item"><span class="tickerbar__dot" aria-hidden="true"></span><span class="tickerbar__sym">TCI&#8209;CRI&#8209;COMPUTE</span><span class="tickerbar__val num">107.4</span></span></div></div></div><div class="tickerbar__stamp num" id="asof" aria-live="polite" data-generated="2026-09-27T02:05:47Z">AS OF 2026-09-27 02:05:47 UTC</div></div>
   <div class="masthead__bar">
     <div class="wrap masthead__inner">
       <a class="brand" href="index.html"><span class="brand__mark" style="--brand-h:24px" aria-hidden="true"><span class="brand__tc">TC</span><span class="brand__i"><span class="brand__dot"></span><span class="brand__bar"></span></span></span><span class="brand__name">The Compute Indices</span></a>
@@ -2529,18 +2577,63 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
     version they were computed under, so a transition is auditable after the fact rather
     than only announced before it.</p>
   </section>
-  <section class="section"><div class="stack"><article class="card" id="2026-N5">
+  <section class="section"><div class="stack"><article class="card" id="2026-N7">
+  <div class="card__head"><div>
+    <h2 class="card__title">CoreWeave, Civo and Together AI join the US and Global series</h2>
+    <p class="card__sub">Notice 2026-N7 &#183; announced
+      27 Sep 2026 &#183; methodology v0.10.0</p>
+  </div>
+  <span class="card__meta"><span class="chip chip--warning">
+    <span>Takes effect 5 Oct 2026</span></span></span>
+  </div>
+  <div class="card__body">
+    <p class="dek">Three H100 SXM sellers enter the panel for the US and Global series only. CoreWeave is priced from its North America table in the US series and from both of its tables in the Global series. Civo and Together AI publish one worldwide price with no region, and from this version the Global block counts a country-less row from a provider it names, and no other block does. No EU/EEA series changes.</p>
+    <div class="md"><p><strong>What is added.</strong> CoreWeave&#x27;s HGX H100 on-demand rate, read from its pricing page ($49.24 per 8-GPU instance-hour on 26 September, $6.16/GPU-hr). Civo&#x27;s 8 x H100 SXM on-demand rate ($23.92 per instance-hour, $2.99/GPU-hr). Together AI&#x27;s GPU Clusters on-demand rate for HGX H100 ($3.99/GPU-hr), read by a new collector from the visible table on its pricing page that states every price is per GPU per hour. All three are neoclouds and enter the headline population of the series they are priced in. Only the H100 class is admitted.</p>
+<p><strong>Where each one counts.</strong> CoreWeave publishes a North America table and a Europe table. North America rows are placed in the US, as they have been stored since 12 September, and count in the US and Global series. The Europe table also covers the United Kingdom and names no site, so its rows count in the Global series only and never in an EU/EEA series. Civo and Together name no region on the page, in their documentation or in their terms. Their rows count in the Global series only.</p>
+<p><strong>Rows with no country.</strong> Every block in the methodology is a list of countries, and until this version a row with no country failed all of them. The Global block asks only that the hour is sold somewhere, which one price a seller charges wherever it runs the hardware satisfies. The block therefore also counts country-less rows from providers named one by one in <code class="inline">config/factors.yaml</code> (<code class="inline">unplaced</code>). A provider that places some of its rows itself, as Hyperstack does from its stock feed, is never named there, because its unplaced row would count the same hour a second time.</p>
+<p><strong>Node size.</strong> Civo&#x27;s rows are its 8-GPU instance. Together&#x27;s page gives no GPU count; its GPU Clusters documentation sells capacity in 8 x H100 steps, and rows are recorded at 8 GPUs. Both clear the two-GPU floor.</p>
+<p><strong>Screened and not added.</strong> Denvr Dataworks ($2.45/GPU-hr, 8 x H100 SXM): its terms forbid automated access to the website. Massed Compute (H100 SXM5, $25.12 per 8-GPU hour): its terms render only with JavaScript and could not be read. Crusoe ($3.90/GPU-hr): no node size is stated. Vultr ($23.92 per 8 x H100 bare-metal hour): its public plan API lists no location where the plan can be deployed.</p>
+<p><strong>What does not change.</strong> The unit definition, the estimator, the trim, the weights, the concentration cap, the publication gate and every EU/EEA series. Prints dated before the effective date keep the version they record.</p></div>
+    <div class="fnstrip" style="margin-top:var(--space-6)">
+      <h4 class="fnstrip__h">Expected effect on the level</h4>
+      <p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+        line-height:var(--leading-prose)">Measured on the stored 24, 25 and 26 September observations under v0.9.0 and v0.10.0, with Together&#x27;s rows added at its 27 September page price ($3.99/GPU-hr, H100), because it has not been collected before. Every EU/EEA series prints the same value under both. The US series gains one provider on each day: on 26 September it prints $3.49/GPU-hr either way, on six providers instead of five, and on 24 and 25 September it still gaps, with four providers against a gate of five. The Global series prints $3.49 on 26 September either way (twelve providers instead of nine), $3.77 instead of $3.64 on 25 September (+3.67%, ten instead of seven) and $3.85 on 24 September either way (nine instead of six). CoreWeave&#x27;s $6.16/GPU-hr is the highest price in both series and is clamped by the trim on every one of those days that prints.</p>
+    </div>
+  </div>
+</article><article class="card" id="2026-N6">
+  <div class="card__head"><div>
+    <h2 class="card__title">A Global H100 series, priced exactly like the EU and US series over every country</h2>
+    <p class="card__sub">Notice 2026-N6 &#183; announced
+      27 Sep 2026 &#183; methodology v0.9.0</p>
+  </div>
+  <span class="card__meta"><span class="chip chip--warning">
+    <span>Takes effect 4 Oct 2026</span></span></span>
+  </div>
+  <div class="card__body">
+    <p class="dek">EU-CRI-H100-GLOBAL (published as TCI-CRI-H100-GLOBAL) prices one H100 SXM GPU-hour wherever the panel sells it: the headline&#x27;s unit definition, estimator, trim, weights and publication gate, drawn from every country instead of one region. It sits beside the EU/EEA headline and the US series (from 1 October, notice 2026-N3) as the third of the EU, US and Global views.</p>
+    <div class="md"><p><strong>What is added.</strong> A <code class="inline">GLOBAL</code> block in <code class="inline">config/factors.yaml</code> holding every ISO 3166-1 alpha-2 code, 249 in all, copied from the IANA time zone database&#x27;s <code class="inline">iso3166.tab</code>, and one regional series over it, <code class="inline">EU-CRI-H100-GLOBAL</code>, defined exactly as the US series is: class H100, the headline&#x27;s population (marketplace and neocloud). A row with no country is not placed in this block any more than in the others.</p>
+<p><strong>Why a list and not &quot;any country&quot;.</strong> Every block in the methodology is a list of codes that a reader can check a row against. A wildcard would move the meaning of the block out of the locked parameters and into code.</p>
+<p><strong>Before the effective date.</strong> The intraday page shows this series, and the US series before 1 October, computed from the hourly reads under the version that introduces it, and labels those values indicative. None of them is a print, none is stored as one, and the first published value is the 4 October fixing.</p>
+<p><strong>What does not change.</strong> The unit definition, the estimator, the trim, the weights, the concentration cap, the publication gate and the panel. Prints dated before the effective date keep the version they record.</p></div>
+    <div class="fnstrip" style="margin-top:var(--space-6)">
+      <h4 class="fnstrip__h">Expected effect on the level</h4>
+      <p style="margin:0;font-size:var(--text-xs);color:var(--ink-2);
+        line-height:var(--leading-prose)">None on any existing series: this version adds a series and changes nothing that prices the others, and every stored print recomputes unchanged under it. For the new series, measured on stored observations with this version&#x27;s parameters: $3.49/GPU-hr on 26 September from nine providers, $3.63 on 25 September from seven and $3.85 on 24 September from six. On those days it equals or sits close to the EU/EEA headline because the panel is still mostly European: on all three days Voltage Park is the only provider it adds to the EU/EEA set. Hyperstack&#x27;s Canadian and US rows can add another from 3 October on days its stock feed places them.</p>
+    </div>
+  </div>
+</article><article class="card" id="2026-N5">
   <div class="card__head"><div>
     <h2 class="card__title">Hyperstack enters, priced in a country only on days its own stock feed shows a node there</h2>
     <p class="card__sub">Notice 2026-N5 &#183; announced
       24 Sep 2026 &#183; methodology v0.8.0</p>
   </div>
   <span class="card__meta"><span class="chip chip--warning">
-    <span>Takes effect 22 Oct 2026</span></span></span>
+    <span>Takes effect 3 Oct 2026</span></span></span>
   </div>
   <div class="card__body">
     <p class="dek">Hyperstack joins the panel in the H100, H100 PCIe, H200, B200, B300 and A100 classes. It publishes one price for every region, so a row counts in a country only on a day Hyperstack&#x27;s public stock feed shows that GPU deployable in its Norway, Canada or United States datacentre, at the largest node deployable there. RunPod&#x27;s US rows already follow this rule.</p>
-    <div class="md"><p><strong>What is added.</strong> Hyperstack&#x27;s on-demand price list names no region. It also publishes a stock feed per datacentre (NORWAY-1, CANADA-1, US-1), listing for each GPU flavour how many virtual machines of each size can be deployed now. The collector already reads both. From this version it records, beside the unplaced row, one row per datacentre where the feed shows at least one deployable machine of that flavour, with that country and the largest deployable size as the node. A flavour listed at zero, or not listed, places nothing. Only Norway is in the EU/EEA.</p>
+    <div class="md"><p><strong>Effective date brought forward.</strong> Announced on 24 September for 22 October. On 27 September the date moved to 3 October, unchanged in content, so that the Global series (notice 2026-N6) can follow within days rather than weeks. No print has been computed under this version or any later one.</p>
+<p><strong>What is added.</strong> Hyperstack&#x27;s on-demand price list names no region. It also publishes a stock feed per datacentre (NORWAY-1, CANADA-1, US-1), listing for each GPU flavour how many virtual machines of each size can be deployed now. The collector already reads both. From this version it records, beside the unplaced row, one row per datacentre where the feed shows at least one deployable machine of that flavour, with that country and the largest deployable size as the node. A flavour listed at zero, or not listed, places nothing. Only Norway is in the EU/EEA.</p>
 <p><strong>Form factor.</strong> The feed names Hyperstack&#x27;s three H100 flavours H100-80G-PCIe, H100-80G-PCIe-NVLink and H100-80G-SXM5, which match the price list&#x27;s &quot;NVIDIA H100&quot;, &quot;NVIDIA H100 NVLink&quot; and &quot;NVIDIA H100 SXM&quot; one for one. The plain &quot;NVIDIA H100&quot; is therefore priced in the H100 PCIe class and never as the SXM reference unit. The NVLink-bridged cards enter no class. A100 follows the same pattern.</p>
 <p><strong>Segment.</strong> Neocloud. Hyperstack is not added to the sovereign list.</p>
 <p><strong>What does not change.</strong> The unit definition, the estimator, the trim, the weights, the concentration cap and the publication gate. No row collected before the effective date is admitted. Prints dated before it keep the version they record.</p></div>
@@ -2557,11 +2650,12 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
       24 Sep 2026 &#183; methodology v0.7.0</p>
   </div>
   <span class="card__meta"><span class="chip chip--warning">
-    <span>Takes effect 8 Oct 2026</span></span></span>
+    <span>Takes effect 2 Oct 2026</span></span></span>
   </div>
   <div class="card__body">
     <p class="dek">Seeweb&#x27;s price is read each day from its own pricing page instead of from a file that is edited by hand. Three panel lines that never had a price (Hetzner, Genesis Cloud, Leaseweb) are removed. From this version no constituent is priced from a manually maintained entry.</p>
-    <div class="md"><p><strong>Seeweb.</strong> Until this version Seeweb&#x27;s on-demand H100 price, EUR 1.89 per GPU-hour, entered the index from <code class="inline">config/providers/seeweb.yaml</code>, last checked by hand on 13 September. A collector has read the same page since 15 September and stores its rows under its own name. It now records the size of the 8-GPU node Seeweb&#x27;s own configurator offers. Seeweb prices every node size at the same rate per GPU, and the 8-GPU node is the size the hand-kept entry used. From the effective date the panel reads Seeweb through that collector and not through the file.</p>
+    <div class="md"><p><strong>Effective date brought forward.</strong> Announced on 24 September for 8 October. On 27 September the date moved to 2 October, unchanged in content, so that the Global series (notice 2026-N6) can follow within days rather than weeks. No print has been computed under this version or any later one.</p>
+<p><strong>Seeweb.</strong> Until this version Seeweb&#x27;s on-demand H100 price, EUR 1.89 per GPU-hour, entered the index from <code class="inline">config/providers/seeweb.yaml</code>, last checked by hand on 13 September. A collector has read the same page since 15 September and stores its rows under its own name. It now records the size of the 8-GPU node Seeweb&#x27;s own configurator offers. Seeweb prices every node size at the same rate per GPU, and the 8-GPU node is the size the hand-kept entry used. From the effective date the panel reads Seeweb through that collector and not through the file.</p>
 <p><strong>Removed.</strong> Hetzner, Genesis Cloud and Leaseweb were admitted through hand-kept files that never held a price, because none of them published a verifiable hourly H100 rate when last checked. They leave the panel. None of them has ever contributed to a print. Any of them can return through a collector that reads a public price, under a later version and its own notice.</p>
 <p><strong>What does not change.</strong> The unit definition, the estimator, the trim, the weights, the concentration cap and the publication gate. Prints dated before the effective date keep the version they record.</p></div>
     <div class="fnstrip" style="margin-top:var(--space-6)">
@@ -2701,8 +2795,8 @@ figure.fig figcaption b { color: var(--ink-2); font-weight: var(--weight-semibol
       used as the identity of this benchmark family and its published values; a fork is
       welcome and must carry its own name.</p>
       <p class="disclaimer__meta num">TCI-CRI&#8209;M v0.5.0
-      &#183; methodology hash sha256:b7b93caf5214&#8230; &#183; generated
-      2026-09-26T11:29:45Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
+      &#183; methodology hash sha256:642132604094&#8230; &#183; generated
+      2026-09-27T02:05:47Z &#183; administrator Mark Rusch &#183; USD primary, EUR companion
       at the ECB reference rate dated on or before the print date.</p>
     </div>
   </div>
