@@ -244,7 +244,10 @@ def compute_print(
             Constituent(
                 provider=provider,
                 source=offers[0].source,
-                tier="executable" if any(o.tier == "executable" for o in offers) else "list",
+                # The tier the provider was priced from. On-demand prints only ever see
+                # `executable` and `list`; a spot print (v0.11.0) records `spot`.
+                tier=("executable" if any(o.tier == "executable" for o in offers)
+                      else offers[0].tier),
                 price_usd=round(rep, 6),
                 weight=round(provider_share[provider], 6),
                 included=True,

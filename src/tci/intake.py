@@ -108,6 +108,7 @@ class Cell:
 def classify(
     row: RowLike, factors: Factors, fx_eur_usd: float | None, block: frozenset[str],
     block_id: str = "EU_EEA",
+    tiers: frozenset[str] = frozenset({"executable", "list"}),
 ) -> Verdict:
     """The first rule in `normalise_observations` that this row fails, or 'admitted'.
 
@@ -128,7 +129,7 @@ def classify(
         return verdict("not_in_panel", model_class)
     if row["term"] != factors.reference_unit.term:
         return verdict("term_not_reference", model_class)
-    if row["tier"] not in ("executable", "list"):
+    if row["tier"] not in tiers:
         return verdict("tier_excluded", model_class)
     if row["country"] not in block and not (
             row["country"] is None and provider in factors.unplaced_in(block_id)):

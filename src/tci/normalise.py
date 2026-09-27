@@ -82,9 +82,15 @@ def _variant_map(factors: Factors) -> dict[str, tuple[str, float]]:
     }
 
 
+# The stored tiers that are on-demand prices: a rate card (`list`) and a quote someone can
+# take (`executable`). Every series reads these unless its version names other tiers.
+ON_DEMAND_TIERS: frozenset[str] = frozenset({"executable", "list"})
+
+
 def unadmitted_providers(
     rows: Iterable[RowLike], factors: Factors, countries: frozenset[str] | None = None,
     unplaced: frozenset[str] = frozenset(), block_id: str = "EU_EEA",
+    tiers: frozenset[str] = ON_DEMAND_TIERS,
 ) -> dict[str, set[str]]:
     """Providers seen today in a class the panel does not admit them to: provider -> classes.
 
@@ -100,7 +106,7 @@ def unadmitted_providers(
         model_class = entry[0]
         if factors.admits(row["provider"], row["source"], model_class, block_id):
             continue
-        if row["term"] != factors.reference_unit.term or row["tier"] not in ("executable", "list"):
+        if row["term"] != factors.reference_unit.term or row["tier"] not in tiers:
             continue
         if row["country"] not in (countries if countries is not None else factors.eu_eea_countries):
             if not (row["country"] is None and row["provider"] in unplaced):
@@ -116,6 +122,7 @@ def normalise_observations(
     countries: frozenset[str] | None = None,
     unplaced: frozenset[str] = frozenset(),
     block_id: str = "EU_EEA",
+    tiers: frozenset[str] = ON_DEMAND_TIERS,
 ) -> list[NormalisedObs]:
     """Apply the unit definition to every offer. Order of checks mirrors METHODOLOGY.md §1.
 
@@ -132,6 +139,9 @@ def normalise_observations(
 
     `block_id` names the block `countries` belongs to, for a panel entry limited to some
     blocks (v0.10.0+: CoreWeave, US and GLOBAL only).
+
+    `tiers` are the stored tiers the series reads: the on-demand prices by default, `spot`
+    for a spot series (v0.11.0+).
     """
     reference = factors.reference_unit
     block = countries if countries is not None else factors.eu_eea_countries
@@ -152,7 +162,7 @@ def normalise_observations(
 
         if row["term"] != reference.term:
             continue
-        if row["tier"] not in ("executable", "list"):
+        if row["tier"] not in tiers:
             continue
 
         country = row["country"]

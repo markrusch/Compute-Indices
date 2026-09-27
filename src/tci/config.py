@@ -140,6 +140,9 @@ class RegionalSeries:
     block: str
     model_class: str
     population: str  # a series_populations role, e.g. 'headline'
+    # The stored tiers the series reads. The on-demand prices, `list` and `executable`,
+    # unless a version says otherwise (v0.11.0: `spot` for the spot series).
+    tiers: frozenset[str] = frozenset({"executable", "list"})
 
 
 @dataclass(frozen=True)
@@ -406,6 +409,7 @@ def load_factors(config_dir: Path | None = None, *, for_date: str | None = None)
             name: RegionalSeries(
                 block=str(d["block"]), model_class=str(d["class"]),
                 population=str(d["population"]),
+                **({"tiers": frozenset(str(t) for t in d["tiers"])} if d.get("tiers") else {}),
             )
             for name, d in (raw.get("regional_series") or {}).items()
         },

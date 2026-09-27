@@ -21,6 +21,57 @@
 # yet quantifiable and why.
 
 notices:
+  - id: 2026-N8
+    title: Spot H100 series for the EU, US and Global, and the on-demand to spot spread
+    announced: 2026-09-27
+    effective: 2026-10-06
+    version: 0.11.0
+    status: announced
+    summary: >-
+      Three spot series, EU-CRI-H100-SPOT, EU-CRI-H100-SPOT-US and EU-CRI-H100-SPOT-GLOBAL
+      (published as TCI-CRI-H100-SPOT, -SPOT-US and -SPOT-GLOBAL), price one H100 SXM
+      GPU-hour of interruptible capacity with the headline's unit, estimator, trim, weights
+      and gate. Three spread series publish on-demand minus spot in each region. No
+      existing series changes.
+    effect_on_level: >-
+      None on any existing series; every stored print recomputes unchanged. Measured on
+      the stored 24, 25 and 26 September observations under v0.11.0: the EU spot series
+      prints $2.15/GPU-hr on all three days (five providers), $1.70, $1.62 and $1.34 below
+      the EU on-demand series (44.2%, 43.0% and 38.4% below it). The Global spot series
+      prints $2.38, $2.38 and $2.43 (seven providers). The US spot series gaps on all three
+      days with three providers against a gate of five.
+    body: |
+      **What is priced.** A spot row is a price the seller itself publishes for capacity it
+      may reclaim: AWS and Google Cloud spot through the gpuhunt catalogues, Azure Spot,
+      CoreWeave, Nebius and Verda spot, and from 27 September Together AI's preemptible
+      rate. The collectors have stored these rows as tier `spot` since 11 September (Azure),
+      12 September (CoreWeave) and 17 September (the gpuhunt catalogues); the on-demand
+      series never read them and still do not.
+
+      **What is not.** Two stored tiers stay out. Azure's `interruptible` rows are its
+      Low Priority meter, a retired product. vast.ai's are `min_bid`, the lowest bid a host
+      will accept, which is a floor nobody has necessarily paid. RunPod's API publishes a
+      spot price equal to its on-demand price and is not collected as spot.
+
+      **Population.** Every segment: marketplace, neocloud and hyperscaler. The on-demand
+      headline leaves the hyperscalers out; the spot market is mostly theirs, and without
+      them each region would have two sellers. The spot page shows each constituent under
+      its segment, so the categories stay visible.
+
+      **The spread.** EU-CRI-H100-SPOTSPREAD, -SPOTSPREAD-US and -SPOTSPREAD-GLOBAL are the
+      region's on-demand series minus its spot series, in USD per GPU-hour, published only
+      on a day both legs publish. The two legs draw on different populations by design,
+      so the spread is what a buyer saves by moving from the on-demand market to the spot
+      market, not one seller's discount. The spot page also shows each seller's own
+      discount where it publishes both prices in the same region.
+
+      **Where each seller counts.** The same blocks as on-demand: CoreWeave in US and
+      Global only, Together in Global only through `unplaced`.
+
+      **What does not change.** The unit definition, the estimator, the trim, the weights,
+      the concentration cap, the publication gate and every existing series. Prints dated
+      before the effective date keep the version they record.
+
   - id: 2026-N7
     title: CoreWeave, Civo and Together AI join the US and Global series
     announced: 2026-09-27

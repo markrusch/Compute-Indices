@@ -164,9 +164,18 @@ def build_and_write(conn: sqlite3.Connection) -> list[Path]:
 
     built = build(conn)
     written = write_data(built)
+    ctx = site.build_context(conn)
     page = site.SITE_DIR / "intraday.html"
-    page.write_text(render(site.build_context(conn), built), encoding="utf-8", newline="\n")
-    return [*written, page]
+    page.write_text(render(ctx, built), encoding="utf-8", newline="\n")
+    written.append(page)
+    # The spot page draws its hourly line from this same replay, so it is rebuilt here too.
+    # Guarded on its own: a spot failure keeps the previous spot page and costs nothing else.
+    spot_html = site._spot(ctx, built)
+    if spot_html:
+        spot = site.SITE_DIR / "spot.html"
+        spot.write_text(spot_html, encoding="utf-8", newline="\n")
+        written.append(spot)
+    return written
 
 
 # --- rendering ---------------------------------------------------------------------------
@@ -611,7 +620,11 @@ def _body(s: Any, built: Built) -> str:
         "index at that read.",
         '<div class="rtabs">' + s.region_tabs() + "</div>" + "".join(panels))
 
-    regional = {series for _k, _l, _g, series in s.REGIONS}
+    # The spot series have their own page (spot.html), built from the same replay.
+    from tci.spot import REGIONS as SPOT_REGIONS
+
+    regional = ({series for _k, _l, _g, series in s.REGIONS}
+                | {r.spot for r in SPOT_REGIONS} | {r.spread for r in SPOT_REGIONS})
     others = []
     for series in cfg.series:
         if series in regional:

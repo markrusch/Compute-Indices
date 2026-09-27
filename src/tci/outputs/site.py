@@ -33,11 +33,12 @@ import logging
 import re
 import sqlite3
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from datetime import date as date_type
-from datetime import datetime, timedelta
 from html import escape
 from math import ceil, floor
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -102,6 +103,7 @@ CUTOFF_UTC = "11:00 UTC"
 NAV: tuple[tuple[str, str], ...] = (
     ("index.html", "Indices"),
     ("intraday.html", "Intraday"),
+    ("spot.html", "Spot"),
     ("basis.html", "Basis"),
     ("term.html", "Term"),
     ("forward.html", "Forward"),
@@ -154,6 +156,12 @@ SERIES_LABEL: dict[str, str] = {
     COMPOSITE: "Chain-linked class composite (level, not $/hr)",
     "EU-CRI-H100-US": "H100 SXM 80GB, on-demand, United States",
     "EU-CRI-H100-GLOBAL": "H100 SXM 80GB, on-demand, every country",
+    "EU-CRI-H100-SPOT": "H100 SXM 80GB, spot, EU/EEA",
+    "EU-CRI-H100-SPOT-US": "H100 SXM 80GB, spot, United States",
+    "EU-CRI-H100-SPOT-GLOBAL": "H100 SXM 80GB, spot, every country",
+    "EU-CRI-H100-SPOTSPREAD": "EU/EEA on-demand minus spot, USD per GPU-hour",
+    "EU-CRI-H100-SPOTSPREAD-US": "US on-demand minus spot, USD per GPU-hour",
+    "EU-CRI-H100-SPOTSPREAD-GLOBAL": "Global on-demand minus spot, USD per GPU-hour",
 }
 
 # The three regional views of the headline, in tab order: (key, tab label, long label,
@@ -209,7 +217,7 @@ FLAG_TEXT: dict[str, str] = {
     "no_linkable_series": "no class linked on both endpoints",
     "computation_failed": "could not be computed this session",
     "indicative": "indicative, before the series' first print",
-    "no_executable_input": "list prices only, no executable quote",
+    "no_executable_input": "published rates only, no executable quote",
     "bootstrap_weights": "bootstrap weighting",
     "correction": "revised",
     "base": "base value",
@@ -816,6 +824,7 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <h4>Product</h4>
         <a href="{prefix}index.html">Indices</a>
         <a href="{prefix}intraday.html">Intraday</a>
+        <a href="{prefix}spot.html">Spot</a>
         <a href="{prefix}methodology.html">Methodology v{_e(ctx.version)}</a>
         <a href="{prefix}governance.html">Governance</a>
         <a href="{prefix}notices.html">Methodology notices</a>
@@ -3867,7 +3876,37 @@ def _forward(ctx: SiteContext) -> str:
     return forward_page.render(ctx)
 
 
-def _intraday(ctx: SiteContext) -> str:
+def _intraday_built(ctx: SiteContext) -> Any:
+    """The intraday replay, built once for the intraday and spot pages. None on failure:
+    both pages then build without it (the intraday page tries again and says so)."""
+    try:
+        from tci.outputs import intraday_page
+
+        return intraday_page.build(ctx.conn)
+    except Exception:  # noqa: BLE001
+        log.exception("site: intraday replay not built")
+        return None
+
+
+def _spot(ctx: SiteContext, built: Any = None) -> str:
+    # Research beside the index, like intraday.html: a failure keeps the previous page and
+    # costs nothing else. The data files are written here, with the page, so the two
+    # always describe the same run.
+    try:
+        from tci.outputs import spot_page
+
+        views = spot_page.build(ctx.conn, built)
+        try:
+            spot_page.write_data(views, built.now if built is not None else datetime.now(UTC))
+        except Exception:  # noqa: BLE001
+            log.exception("site: spot data files not written")
+        return spot_page.render(ctx, views, built)
+    except Exception:  # noqa: BLE001
+        log.exception("site: spot page not rendered; the previous one is kept")
+        return ""
+
+
+def _intraday(ctx: SiteContext, built: Any = None) -> str:
     # Research beside the index, like forward.html: its own module, its own failure page.
     # The render already turns any failure of its own into a page that says so. This guard
     # is for a failure it cannot catch - the module failing to import, or the shell itself
@@ -3876,7 +3915,7 @@ def _intraday(ctx: SiteContext) -> str:
     try:
         from tci.outputs import intraday_page
 
-        return intraday_page.render(ctx)
+        return intraday_page.render(ctx, built)
     except Exception:  # noqa: BLE001
         log.exception("site: intraday page not rendered; the previous one is kept")
         return ""
@@ -4410,13 +4449,15 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
     """Render every page into site/. Returns the paths written, newest content first."""
     ctx = build_context(conn)
     notes = _discover_notes()
+    built = _intraday_built(ctx)
 
     pages: list[tuple[Path, str]] = [
         (SITE_DIR / "index.html", _dashboard(ctx, notes)),
         (SITE_DIR / "basis.html", _basis(ctx)),
         (SITE_DIR / "term.html", _term(ctx)),
         (SITE_DIR / "forward.html", _forward(ctx)),
-        (SITE_DIR / "intraday.html", _intraday(ctx)),
+        (SITE_DIR / "intraday.html", _intraday(ctx, built)),
+        (SITE_DIR / "spot.html", _spot(ctx, built)),
         (SITE_DIR / "methodology.html", _methodology(ctx)),
         (SITE_DIR / "data.html", _data(ctx)),
         (SITE_DIR / "governance.html", _governance(ctx)),

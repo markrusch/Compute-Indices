@@ -7,9 +7,11 @@ on-demand tables for GPU Clusters. The first sits inside a `<div class="hide">` 
 not shown to a reader, so it is not read here: a price a visitor cannot see is not a
 public price. The visible one is headed "On-demand hourly rates and reserved capacity"
 and states "All prices are per GPU per hour"; its columns are Preemptible Compute,
-ON-Demand and four Reserved tenors. Only the ON-Demand column is stored. On 27 September
-2026 it read HGX H100 $3.99, HGX H200 $5.99, HGX B200 $8.19 per GPU-hour. Both tables
-agreed on every figure that day.
+ON-Demand and four Reserved tenors. The ON-Demand column is stored as tier `list`, and
+from 27 September the Preemptible Compute column as tier `spot`, which the spot series
+read from v0.11.0 (notice 2026-N8). On 27 September the table read HGX H100 $3.99
+on-demand and $1.99 preemptible, H200 $5.99 and $2.99, B200 $8.19 and $4.09 per GPU-hour.
+Both tables agreed on every on-demand figure that day.
 
 The column is found by its header text rather than by position, and the table by its
 heading, so a reordered page is read correctly and a reshaped one raises. A collector
@@ -53,6 +55,7 @@ NODE_GPUS = 8
 TABLE_HEADING = "On-demand hourly rates and reserved capacity"
 PER_GPU_STATEMENT = "All prices are per GPU per hour"
 ON_DEMAND_HEADER = "on-demand"
+PREEMPTIBLE_HEADER = "preemptible compute"
 
 # The page's hardware label -> TCI variant. Only HGX boards; the NVL72 racks are a
 # different product and carry no hourly price.
@@ -83,8 +86,8 @@ def _table(page: str) -> str:
     return table.group(0)
 
 
-def _on_demand_column(header_row: str) -> int:
-    """Index of the ON-Demand column among the data cells of a body row.
+def _column(header_row: str, header: str) -> int:
+    """Index of the column headed `header` among the data cells of a body row.
 
     The first header row spans the hardware column over two rows and the Reserved group
     over four, so the data index of each header is the running sum of colspans.
@@ -92,19 +95,20 @@ def _on_demand_column(header_row: str) -> int:
     col = 0
     for _kind, attrs, inner in _CELL_RE.findall(header_row):
         span = re.search(r'colspan="(\d+)"', attrs)
-        if _text(inner).lower() == ON_DEMAND_HEADER:
+        if _text(inner).lower() == header:
             return col
         col += int(span.group(1)) if span else 1
-    raise RuntimeError("together: no ON-Demand column in the table header — page shape changed")
+    raise RuntimeError(f"together: no {header!r} column in the table header — page shape changed")
 
 
-def parse(page: str) -> list[tuple[str, str, float]]:
-    """(label, variant, on-demand USD per GPU-hour) for every HGX row with a price."""
+def parse(page: str, header: str = ON_DEMAND_HEADER) -> list[tuple[str, str, float]]:
+    """(label, variant, USD per GPU-hour) for every HGX row with a price in the column
+    headed `header`: on-demand by default, or the preemptible column."""
     table = _table(page)
     rows = _ROW_RE.findall(table)
     if not rows:
         raise RuntimeError("together: the on-demand table has no rows")
-    col = _on_demand_column(rows[0])
+    col = _column(rows[0], header)
     out = []
     for row in rows[1:]:
         cells = [_text(inner) for kind, _a, inner in _CELL_RE.findall(row) if kind == "d"]
@@ -114,7 +118,7 @@ def parse(page: str) -> list[tuple[str, str, float]]:
         price = _PRICE_RE.match(cells[col])
         if label in VARIANTS and price:
             out.append((label, VARIANTS[label], float(price.group(1))))
-    if not any(v == "H100_SXM" for _l, v, _p in out):
+    if header == ON_DEMAND_HEADER and not any(v == "H100_SXM" for _l, v, _p in out):
         raise RuntimeError("together: no HGX H100 on-demand price in the table")
     return out
 
@@ -129,16 +133,26 @@ class TogetherCollector:
 
     def observations(self, page: str) -> list[Observation]:
         ts = utc_now_iso()
+        on_demand = parse(page)
+        # The preemptible column is read second and on its own: a page that drops it costs
+        # the spot rows, never the on-demand ones.
+        try:
+            preemptible = parse(page, PREEMPTIBLE_HEADER)
+        except RuntimeError:
+            log.warning("together: no preemptible column today; on-demand rows only")
+            preemptible = []
         out = [
             Observation(
                 ts_utc=ts, source=self.name, provider=PROVIDER, gpu_model=variant,
                 gpu_count=NODE_GPUS, price_usd_per_gpu_hr=price, region="unspecified",
-                country=None, interconnect=None, tier="list", term="on_demand",
-                raw_json=json.dumps({"url": URL, "label": label, "column": "ON-Demand",
+                country=None, interconnect=None, tier=tier, term="on_demand",
+                raw_json=json.dumps({"url": URL, "label": label, "column": column,
                                      "unit": "usd_per_gpu_hr", "node_gpus_basis":
                                      "docs.together.ai gpu-clusters-overview, 8xH100 steps"}),
             )
-            for label, variant, price in parse(page)
+            for rows, tier, column in ((on_demand, "list", "ON-Demand"),
+                                       (preemptible, "spot", "Preemptible Compute"))
+            for label, variant, price in rows
         ]
         log.info("together: %d on-demand rows (%s)", len(out),
                  ", ".join(f"{o.gpu_model} ${o.price_usd_per_gpu_hr:.2f}" for o in out))

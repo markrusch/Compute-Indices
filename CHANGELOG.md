@@ -37,6 +37,26 @@ printed on the headline's date, so none of these fixes moves a number already ou
   inside it, because SQLite ignores the pragma within one. The schema built from empty is
   identical to the one the old runner built.
 
+## 0.11.0 — announced 2026-09-27, effective 2026-10-06 (notice 2026-N8)
+
+- **Spot series.** EU-CRI-H100-SPOT, -SPOT-US and -SPOT-GLOBAL, the headline's
+  calculation over rows stored as tier `spot`: AWS, Google Cloud, Azure Spot, CoreWeave,
+  Nebius, Verda, and Together's preemptible rate, which its collector now stores as well.
+  Population every segment, because the spot market is mostly the hyperscalers'. Azure's
+  Low Priority rows and vast.ai's `min_bid` stay out.
+- **Spread series.** EU-CRI-H100-SPOTSPREAD, -SPOTSPREAD-US and -SPOTSPREAD-GLOBAL, on-demand
+  minus spot per region, through the existing basis mechanism.
+- **Mechanism.** A regional series may name the stored `tiers` it reads; the default is
+  still `list` and `executable`. `normalise`, `intake`, `reliability` and `regional_print`
+  take it. A constituent's recorded tier is now the tier it was priced from rather than
+  always `list` when not executable; every existing print records the same tiers as
+  before, and all reproduce.
+- **Measured** on the stored 24–26 September observations: EU spot $2.15/GPU-hr each day
+  (five providers), 44.2%, 43.0% and 38.4% below EU on-demand; Global spot $2.38, $2.38,
+  $2.43 (seven); US spot a gap (three). The EU value sits on Nebius's fixed rate on all
+  three days, so its day-to-day volatility is near zero until more sellers move.
+- 0.10.0 frozen under `config/methodology/0.10.0/`.
+
 ## 0.10.0 — announced 2026-09-27, effective 2026-10-05 (notice 2026-N7)
 
 - **Three H100 sellers for the US and Global series.** CoreWeave ($6.16/GPU-hr, US and

@@ -136,6 +136,7 @@ def _day(conn: sqlite3.Connection, series: str, date: str, factors: Factors) -> 
         rows, factors, fx_eur_usd=fx["fx_rate"] if fx else None, countries=countries,
         unplaced=factors.unplaced_in(rs.block) if rs else frozenset(),
         block_id=rs.block if rs else "EU_EEA",
+        **({"tiers": rs.tiers} if rs else {}),
     )
     kept, _ = provider_offers(
         [o for o in normalised if o.model_class == model_class], factors, date, population

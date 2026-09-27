@@ -47,6 +47,9 @@ ALL_SERIES = [
     "EU-CRI-H100-US", "EU-CRI-H100-BASIS-US",
     # v0.9.0: the same H100 series over every country.
     "EU-CRI-H100-GLOBAL",
+    # v0.11.0: spot per region, and on-demand minus spot.
+    "EU-CRI-H100-SPOT", "EU-CRI-H100-SPOT-US", "EU-CRI-H100-SPOT-GLOBAL",
+    "EU-CRI-H100-SPOTSPREAD", "EU-CRI-H100-SPOTSPREAD-US", "EU-CRI-H100-SPOTSPREAD-GLOBAL",
 ]
 
 

@@ -222,9 +222,19 @@ is a constituent change under GOVERNANCE.md §1.
         return ("; also rows with no country from " + ", ".join(names)
                 + ", which publish one price for every site")
 
+    def tier_desc(tiers: frozenset[str]) -> str:
+        if tiers == frozenset({"executable", "list"}):
+            return ""
+        return (f", read from `{'`, `'.join(sorted(tiers))}` rows (population:"
+                " every segment)")
+
+    def block_name(block: str) -> str:
+        return "EU/EEA" if block == "EU_EEA" else block
+
     regional_rows = "".join(
-        f"\n| `{name}` | the headline's unit, estimator, weights and gate, {rs.block}"
-        f" block ({block_desc(rs.block)}{unplaced_desc(rs.block)}) |"
+        f"\n| `{name}` | the headline's unit, estimator, weights and gate, "
+        f"{block_name(rs.block)} block ({block_desc(rs.block)}{unplaced_desc(rs.block)})"
+        f"{tier_desc(rs.tiers)} |"
         for name, rs in f.regional_series.items()
     ) + "".join(
         f"\n| `{name}` | `{bs.lead}` minus `{bs.reference}`, USD per GPU-hour; a gap on any"

@@ -96,6 +96,11 @@ series:
   - EU-CRI-H100
   - EU-CRI-H100-US
   - EU-CRI-H100-GLOBAL
+  # v0.11.0 (notice 2026-N8): the spot series, shown on spot.html rather than here. Before
+  # 6 October they are replayed under 0.11.0 and labelled indicative, like US and Global.
+  - EU-CRI-H100-SPOT
+  - EU-CRI-H100-SPOT-US
+  - EU-CRI-H100-SPOT-GLOBAL
   - EU-CRI-H100-MKT
   - EU-CRI-H100-NC
   - EU-CRI-H100-HS

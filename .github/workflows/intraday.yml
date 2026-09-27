@@ -1,7 +1,8 @@
 name: intraday
 
 # Hourly reads beside the 11:00 fixing. Research only: this job appends to data/intraday/
-# and rewrites site/intraday.html and site/data/intraday/. It opens data/eucri.db
+# and rewrites site/intraday.html, site/spot.html (whose hourly line is the same replay),
+# site/data/intraday/ and site/data/spot/. It opens data/eucri.db
 # read-only and never commits it, so nothing here can move a print. What is read when is
 # config/intraday.yaml; the conduct for it is in SOURCES.md.
 #
@@ -91,7 +92,7 @@ jobs:
           git config user.email "rusch.mh@gmail.com"
           SAVE="$RUNNER_TEMP/intraday-store"
           for attempt in 1 2 3; do
-            git add data/intraday site/intraday.html site/data/intraday
+            git add data/intraday site/intraday.html site/data/intraday site/spot.html site/data/spot
             if git diff --cached --quiet; then
               echo "nothing to commit"
               break

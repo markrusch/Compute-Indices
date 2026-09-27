@@ -59,11 +59,18 @@ def test_together_raises_rather_than_guess_when_the_page_changes(breakage: str) 
 
 def test_together_rows_carry_no_country_and_an_eight_gpu_node() -> None:
     obs = TogetherCollector().observations(FIXTURE.read_text(encoding="utf-8"))
-    h100 = [o for o in obs if o.gpu_model == "H100_SXM"]
-    assert len(h100) == 1
-    o = h100[0]
-    assert (o.provider, o.source, o.country, o.gpu_count, o.tier, o.term) == (
-        "together", "together", None, 8, "list", "on_demand")
+    h100 = {o.tier: o for o in obs if o.gpu_model == "H100_SXM"}
+    assert set(h100) == {"list", "spot"}  # on-demand, and preemptible from v0.11.0
+    for tier, price in (("list", 3.99), ("spot", 1.99)):
+        o = h100[tier]
+        assert (o.provider, o.source, o.country, o.gpu_count, o.term, o.price_usd_per_gpu_hr) == (
+            "together", "together", None, 8, "on_demand", price)
+
+
+def test_together_still_reads_on_demand_when_the_preemptible_column_goes() -> None:
+    page = FIXTURE.read_text(encoding="utf-8").replace(">Preemptible Compute<", ">Other<", 1)
+    obs = TogetherCollector().observations(page)
+    assert {o.tier for o in obs} == {"list"}
 
 
 # --- the unplaced rule --------------------------------------------------------------------

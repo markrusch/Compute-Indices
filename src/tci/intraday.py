@@ -1020,6 +1020,8 @@ class _Calc:
         self.conn = conn
         self._by_date: dict[str, tuple[Any, frozenset[str], tuple[float, str] | None]] = {}
         self._regional: dict[tuple[str, str], tuple[Any, Any, bool] | None] = {}
+        self._versions: list[Any] | None = None
+        self._later: dict[str, Any] = {}
 
     def inputs(self, date: str) -> tuple[Any, frozenset[str], tuple[float, str] | None]:
         if date not in self._by_date:
@@ -1038,6 +1040,18 @@ class _Calc:
             self._by_date[date] = (factors, sovereign, fx)
         return self._by_date[date]
 
+    def _succession(self) -> list[Any]:
+        if self._versions is None:
+            self._versions = list(config.load_succession())
+        return self._versions
+
+    def _factors_on(self, effective: str) -> Any:
+        # One parse per version per replay. Without it a replay over a month of days and
+        # six series parsed factors.yaml 466 times and spent 34 of its 36 seconds in YAML.
+        if effective not in self._later:
+            self._later[effective] = config.load_factors(for_date=effective)
+        return self._later[effective]
+
     def regional(self, series: str, date: str) -> tuple[Any, Any, bool] | None:
         """(factors, regional definition, indicative) for a regional series on `date`.
 
@@ -1054,11 +1068,11 @@ class _Calc:
             if series in live.regional_series:
                 found = (live, live.regional_series[series], False)
             else:
-                for entry in config.load_succession():
+                for entry in self._succession():
                     effective = str(entry.effective_from)
                     if effective <= date:
                         continue
-                    later = config.load_factors(for_date=effective)
+                    later = self._factors_on(effective)
                     if series in later.regional_series:
                         found = (later, later.regional_series[series], True)
                         break

@@ -135,8 +135,9 @@ def regional_print(
     unplaced = factors.unplaced_in(rs.block)
     fx_rate = fx[0] if fx else None
     block_rows = normalise_observations(rows, factors, fx_eur_usd=fx_rate, countries=countries,
-                                        unplaced=unplaced, block_id=rs.block)
-    block_unadmitted = unadmitted_providers(rows, factors, countries, unplaced, rs.block)
+                                        unplaced=unplaced, block_id=rs.block, tiers=rs.tiers)
+    block_unadmitted = unadmitted_providers(rows, factors, countries, unplaced, rs.block,
+                                            rs.tiers)
     return compute_print(
         utc_date, series,
         [o for o in block_rows if o.model_class == rs.model_class],
