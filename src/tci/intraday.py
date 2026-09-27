@@ -1019,6 +1019,7 @@ class _Calc:
     def __init__(self, conn: sqlite3.Connection | None) -> None:
         self.conn = conn
         self._by_date: dict[str, tuple[Any, frozenset[str], tuple[float, str] | None]] = {}
+        self._regional: dict[tuple[str, str], tuple[Any, Any, bool] | None] = {}
 
     def inputs(self, date: str) -> tuple[Any, frozenset[str], tuple[float, str] | None]:
         if date not in self._by_date:
@@ -1037,10 +1038,37 @@ class _Calc:
             self._by_date[date] = (factors, sovereign, fx)
         return self._by_date[date]
 
+    def regional(self, series: str, date: str) -> tuple[Any, Any, bool] | None:
+        """(factors, regional definition, indicative) for a regional series on `date`.
+
+        Under the version live on the date when it defines the series. Otherwise under the
+        first later version in the succession that does, flagged indicative: the US series
+        before 1 October (v0.6.0), GLOBAL before 23 October (v0.9.0). That is how the page
+        can show a series its notice has announced without anything pretending to be a
+        print. None if no version defines it.
+        """
+        key = (series, date)
+        if key not in self._regional:
+            live = self.inputs(date)[0]
+            found: tuple[Any, Any, bool] | None = None
+            if series in live.regional_series:
+                found = (live, live.regional_series[series], False)
+            else:
+                for entry in config.load_succession():
+                    effective = str(entry.effective_from)
+                    if effective <= date:
+                        continue
+                    later = config.load_factors(for_date=effective)
+                    if series in later.regional_series:
+                        found = (later, later.regional_series[series], True)
+                        break
+            self._regional[key] = found
+        return self._regional[key]
+
 
 def compute_snapshot(state: dict[str, Read], t: datetime, origin: str,
                      cfg: IntradayConfig, calc: _Calc) -> Snapshot:
-    from tci.commands import print_definitions
+    from tci.commands import print_definitions, regional_print
     from tci.index import compute_print
     from tci.normalise import normalise_observations
 
@@ -1052,15 +1080,24 @@ def compute_snapshot(state: dict[str, Read], t: datetime, origin: str,
     values: dict[str, tuple[float | None, float | None, int, str]] = {}
     constituents: dict[str, tuple[tuple[str, float, float], ...]] = {}
     for series in cfg.series:
-        if series not in definitions:
-            # The fixing does not compute a class series on a day with no offer in the
-            # class; the reconstruction says the same thing, in words.
-            values[series] = (None, None, 0, "no_offers_in_class")
+        # One guard per series: a regional series that cannot be computed costs its own
+        # point, never the EU values beside it.
+        try:
+            p, indicative = _price_one(series, date, rows, normalised, definitions, factors,
+                                       fx, calc, compute_print, regional_print)
+        except Exception as exc:  # noqa: BLE001
+            log.exception("intraday: %s at %s could not be computed", series, _iso(t))
+            values[series] = (None, None, 0, f"not_computed: {type(exc).__name__}")
             continue
-        _cls, population, predicate = definitions[series]
-        p = compute_print(date, series, [o for o in normalised if predicate(o)], factors,
-                          fx, population=population)
-        values[series] = (p.value_usd, p.value_eur, p.n_sources, p.flags)
+        if p is None:
+            # The fixing does not compute a class series on a day with no offer in the
+            # class, and no version defines an unknown series; said in words either way.
+            reason = ("no_offers_in_class" if series in _block_default_series()
+                      else "not_defined")
+            values[series] = (None, None, 0, reason)
+            continue
+        flags = ",".join(x for x in (p.flags, "indicative" if indicative else "") if x)
+        values[series] = (p.value_usd, p.value_eur, p.n_sources, flags)
         if p.value_usd is not None:
             constituents[series] = tuple(
                 (c.provider, c.price_usd, c.weight) for c in p.constituents if c.included)
@@ -1069,6 +1106,29 @@ def compute_snapshot(state: dict[str, Read], t: datetime, origin: str,
         ages={s: int((t - r.at).total_seconds() // 60) for s, r in sorted(state.items())},
         missing=tuple(sorted(set(cfg.sources) - set(state))),
     )
+
+
+def _block_default_series() -> frozenset[str]:
+    """The EU/EEA family the fixing always defines, for the wording of a gap only."""
+    from tci.commands import HEADLINE, SERIES_BY_CLASS
+
+    return frozenset({HEADLINE, *SERIES_BY_CLASS.values(), "EU-CRI-H100-MKT",
+                      "EU-CRI-H100-NC", "EU-CRI-H100-HS", "EU-CRI-H100-SOV"})
+
+
+def _price_one(series: str, date: str, rows: list[dict[str, Any]], normalised: Any,
+               definitions: dict[str, Any], factors: Any, fx: tuple[float, str] | None,
+               calc: _Calc, compute_print: Any, regional_print: Any) -> tuple[Any, bool]:
+    """(print or None, indicative) for one series at one read."""
+    if series in definitions:
+        _cls, population, predicate = definitions[series]
+        return (compute_print(date, series, [o for o in normalised if predicate(o)],
+                              factors, fx, population=population), False)
+    found = calc.regional(series, date)
+    if found is None:
+        return None, False
+    rfactors, rs, indicative = found
+    return regional_print(rows, rfactors, fx, date, series, rs), indicative
 
 
 def path(store: Store, conn: sqlite3.Connection | None, cfg: IntradayConfig,

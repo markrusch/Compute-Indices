@@ -45,6 +45,8 @@ ALL_SERIES = [
     "EU-CRI-H200", "EU-CRI-B200", "EU-CRI-B300", "EU-CRI-A100", COMPOSITE,
     # v0.6.0: the US reference leg and the EU-US basis (value = EU minus US, $/GPU-hr).
     "EU-CRI-H100-US", "EU-CRI-H100-BASIS-US",
+    # v0.9.0: the same H100 series over every country.
+    "EU-CRI-H100-GLOBAL",
 ]
 
 

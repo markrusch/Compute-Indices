@@ -1601,6 +1601,30 @@ main:has(#cons-toggle:not(:checked)) .cons-off { display: block; }
                   column-gap: var(--space-3); color: var(--ink-2); }
 .cons-legend__d { grid-column: 2; color: var(--ink-3); font-size: var(--text-xs); }
 
+/* ---- REGION TABS (intraday.html, index.html; CSS-only) ------------------ */
+/* EU / US / Global. Every region's panel is in the markup and the .seg radios pick one
+   with :has(). The hiding sits inside @supports, so a browser without :has() shows all
+   three panels one after another, labelled, instead of hiding every one of them. */
+.rtabs { margin: 0 0 var(--space-5); }
+.seg--region label { font-size: var(--text-xs); padding: 6px var(--space-5); }
+.rpanel + .rpanel { margin-top: var(--space-6); }
+.rpanel__h { margin: var(--space-5) 0 var(--space-2); font-size: var(--text-sm);
+             font-weight: var(--weight-semibold); color: var(--ink-2); }
+.rpanel .gapnote { margin: var(--space-3) 0; }
+@supports selector(:has(a)) {
+  .rpanel { display: none; }
+  .rpanel + .rpanel { margin-top: 0; }
+  main:has(#region-eu:checked) .rpanel--eu,
+  main:has(#region-us:checked) .rpanel--us,
+  main:has(#region-global:checked) .rpanel--global { display: block; }
+}
+/* Before a regional series takes effect its replayed values are indicative: the same
+   solid stroke in the de-emphasis grey, never dashed (DESIGN.md §3), and named in words
+   in the legend, the tooltip and the note above the chart. */
+.ch-line--ind { stroke: var(--ink-3); }
+.ch-halo { fill: none; stroke: var(--chart-ring); stroke-width: 6; stroke-linejoin: round;
+           stroke-linecap: round; }
+
 /* ---- CURRENCY TOGGLE (CSS-only) ----------------------------------------- */
 /* Both figures are in the markup, so the value is present with scripting off.
    USD is the default render; :has() swaps which one is visible. A browser

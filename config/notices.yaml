@@ -21,6 +21,47 @@
 # yet quantifiable and why.
 
 notices:
+  - id: 2026-N6
+    title: A Global H100 series, priced exactly like the EU and US series over every country
+    announced: 2026-09-27
+    effective: 2026-10-23
+    version: 0.9.0
+    status: announced
+    summary: >-
+      EU-CRI-H100-GLOBAL (published as TCI-CRI-H100-GLOBAL) prices one H100 SXM GPU-hour
+      wherever the panel sells it: the headline's unit definition, estimator, trim, weights
+      and publication gate, drawn from every country instead of one region. It sits beside
+      the EU/EEA headline and the US series (from 1 October, notice 2026-N3) as the third
+      of the EU, US and Global views.
+    effect_on_level: >-
+      None on any existing series: this version adds a series and changes nothing that
+      prices the others, and every stored print recomputes unchanged under it. For the new
+      series, measured on stored observations with this version's parameters: $3.49/GPU-hr
+      on 26 September from nine providers, $3.63 on 25 September from seven and $3.85 on
+      24 September from six. On those days it equals or sits close to the EU/EEA headline
+      because the panel is still mostly European: on all three days Voltage Park is the
+      only provider it adds to the EU/EEA set. Hyperstack's Canadian and US rows can add
+      another from 22 October on days its stock feed places them.
+    body: |
+      **What is added.** A `GLOBAL` block in `config/factors.yaml` holding every ISO 3166-1
+      alpha-2 code, 249 in all, copied from the IANA time zone database's `iso3166.tab`,
+      and one regional series over it, `EU-CRI-H100-GLOBAL`, defined exactly as the US
+      series is: class H100, the headline's population (marketplace and neocloud). A row
+      with no country is not placed in this block any more than in the others.
+
+      **Why a list and not "any country".** Every block in the methodology is a list of
+      codes that a reader can check a row against. A wildcard would move the meaning of
+      the block out of the locked parameters and into code.
+
+      **Before the effective date.** The intraday page shows this series, and the US
+      series before 1 October, computed from the hourly reads under the version that
+      introduces it, and labels those values indicative. None of them is a print, none is
+      stored as one, and the first published value is the 23 October fixing.
+
+      **What does not change.** The unit definition, the estimator, the trim, the weights,
+      the concentration cap, the publication gate and the panel. Prints dated before the
+      effective date keep the version they record.
+
   - id: 2026-N5
     title: Hyperstack enters, priced in a country only on days its own stock feed shows a
       node there

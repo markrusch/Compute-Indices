@@ -591,6 +591,7 @@ def test_replaying_the_fixing_reproduces_the_published_prints(tmp_path: Path) ->
     snaps = intraday.path(intraday.Store(tmp_path), conn, cfg, end - timedelta(days=21), end)
     fixings = [s for s in snaps if s.origin == "fixing"]
     compared = 0
+    in_effect: set[str] = set()
     for s in fixings:
         day = s.at.strftime("%Y-%m-%d")
         spread = conn.execute(
@@ -601,10 +602,17 @@ def test_replaying_the_fixing_reproduces_the_published_prints(tmp_path: Path) ->
                 intraday.parse_iso(spread[1]) - intraday.parse_iso(spread[0])
                 > timedelta(hours=3)):
             continue
-        for series, (usd, _eur, _n, _flags) in s.values.items():
+        for series, (usd, _eur, _n, flags) in s.values.items():
+            if "indicative" in flags:
+                # A series not yet in effect on the day: replayed under the version that
+                # will define it, and there must be no published print to compare with.
+                assert series_read.head_value(conn, series, day) is None, (day, series)
+                continue
             assert usd == series_read.head_value(conn, series, day), (day, series)
             compared += 1
-    assert compared >= 5 * len(cfg.series), f"too few fixings compared ({compared})"
+            in_effect.add(series)
+    assert "EU-CRI-H100" in in_effect
+    assert compared >= 5 * len(in_effect), f"too few fixings compared ({compared})"
 
 
 # --- settlement ---------------------------------------------------------------------------

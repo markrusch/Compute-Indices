@@ -206,9 +206,18 @@ is a constituent change under GOVERNANCE.md §1.
         " ECB publication picks up the same-day rate. The rate a print used is recorded"
         " with it and is what `reproduce` converts at"
     )
+    def block_desc(block: str) -> str:
+        # A block of a few countries is listed; the GLOBAL block (every ISO 3166-1 code)
+        # would put 249 codes in one table cell, so it is described and counted instead.
+        # The full list is in config/factors.yaml, which the lock covers.
+        countries = sorted(f.countries_of(block))
+        if len(countries) > 40:
+            return f"every ISO 3166-1 country, {len(countries)} codes listed in factors.yaml"
+        return ", ".join(countries)
+
     regional_rows = "".join(
         f"\n| `{name}` | the headline's unit, estimator, weights and gate, {rs.block}"
-        f" block ({', '.join(sorted(f.countries_of(rs.block)))}) |"
+        f" block ({block_desc(rs.block)}) |"
         for name, rs in f.regional_series.items()
     ) + "".join(
         f"\n| `{name}` | `{bs.lead}` minus `{bs.reference}`, USD per GPU-hour; a gap on any"

@@ -32,8 +32,9 @@ CHART_DAYS = 7
 MAX_JOIN_HOURS = 2.5  # two points further apart than this are not joined by a line
 
 DESCRIPTION = (
-    "The TCI EU H100 index recomputed at every hourly read of its sources, beside the "
-    "published 11:00 UTC fixing, with a settlement-window average for comparison."
+    "The TCI H100 index for the EU, the US and every country, recomputed at every hourly "
+    "read of its sources, beside the published 11:00 UTC fixing, with a settlement-window "
+    "average for comparison."
 )
 
 
@@ -184,7 +185,8 @@ def render(ctx: Any, built: Built | None = None) -> str:
                      "could not be built from the stored reads on this run. The index and "
                      "every other page are unaffected.</p></div>")
     return s._shell(ctx, title=f"Intraday — {s.BRAND}", description=DESCRIPTION,
-                    current="intraday.html", body=body, extra_js=CONS_JS)
+                    current="intraday.html", body=body,
+                    extra_js=CONS_JS + "\n" + s.REGION_JS)
 
 
 def _hhmm(t: datetime) -> str:
@@ -220,7 +222,8 @@ def _segments(pts: list[tuple[datetime, float | None]], x: Any, y: Any
 
 def _time_chart(s: Any, pts: list[tuple[datetime, float | None]],
                 fixings: list[tuple[datetime, float]], start: datetime, end: datetime,
-                *, symbol: str, focusable: bool, cons: Cons | None = None) -> str:
+                *, symbol: str, focusable: bool, cons: Cons | None = None,
+                indicative: frozenset[datetime] = frozenset()) -> str:
     """Values against real time. Straight segments, broken at a gap or a missed sweep.
 
     Straight rather than smoothed: between two hourly reads nothing was observed, and a
@@ -231,6 +234,11 @@ def _time_chart(s: Any, pts: list[tuple[datetime, float | None]],
     wherever it was not in the index. The axis widens to hold them, which is why the page
     renders every chart twice and the constituent switch picks one, rather than laying the
     lines over a scale drawn for the index alone.
+
+    `indicative` holds the reads at which the series was not yet in effect. Those stretches
+    are drawn in the de-emphasis grey rather than the index stroke, never dashed (a dashed
+    line reads as a projection, DESIGN.md §3), and each one's tooltip says so in words.
+    The two kinds are separate paths, so no single stroke runs from one into the other.
     """
     cons = cons or []
     vals = ([v for _, v in pts if v is not None] + [v for _, v in fixings]
@@ -257,7 +265,10 @@ def _time_chart(s: Any, pts: list[tuple[datetime, float | None]],
         ticks.append(f'<text class="ch-tick" x="826" y="{gy + 4}">${t:,.2f}</text>')
         t += step
 
-    segments = _segments(pts, x, y)
+    official = [(at, None if at in indicative else v) for at, v in pts]
+    early = [(at, v if at in indicative else None) for at, v in pts]
+    segments = _segments(official, x, y)
+    ind_segments = _segments(early, x, y) if indicative else []
     behind = []
     for provider, colour, cpts in cons:
         for seg in _segments(cpts, x, y):
@@ -271,10 +282,19 @@ def _time_chart(s: Any, pts: list[tuple[datetime, float | None]],
     paths = "".join(behind) + "".join(
         f'<path class="ch-line" pathLength="1" d="M{" L".join(f"{a} {b}" for a, b in seg)}"/>'
         for seg in segments if len(seg) > 1
+    ) + "".join(
+        # The halo cuts the grey line out of the constituent it usually sits on: the index
+        # is the median, so it is one constituent's price at most reads.
+        f'<path class="ch-halo" d="{d}"/><path class="ch-line ch-line--ind" d="{d}"/>'
+        for seg in ind_segments if len(seg) > 1
+        for d in ["M" + " L".join(f"{a} {b}" for a, b in seg)]
     )
     lone = "".join(
         f'<circle cx="{seg[0][0]}" cy="{seg[0][1]}" r="2.6" fill="var(--chart-line)"/>'
         for seg in segments if len(seg) == 1
+    ) + "".join(
+        f'<circle cx="{seg[0][0]}" cy="{seg[0][1]}" r="2.6" fill="var(--ink-3)"/>'
+        for seg in ind_segments if len(seg) == 1
     )
     gapmarks = "".join(
         f'<line class="ch-gapmark" x1="{x(at)}" y1="{s.PB - 4}" x2="{x(at)}" y2="{s.PB + 4}"/>'
@@ -315,23 +335,27 @@ def _time_chart(s: Any, pts: list[tuple[datetime, float | None]],
     tab = ' tabindex="0"' if focusable else ""
     for at, v in published:
         px, py = x(at), y(v)
-        tx = px - 164 if px > s.PR - 190 else px + 12
+        label = _when(s, at) + (" · indicative" if at in indicative else "")
+        box = 190 if at in indicative else 152
+        tx = px - box - 12 if px > s.PR - box - 38 else px + 12
         ty = max(s.PT, min(py - 24, s.PB - 50))
         hits.append(
-            f'<g class="hp"{tab} role="img" aria-label="{s._e(_when(s, at))}: ${v:,.2f}">'
+            f'<g class="hp"{tab} role="img" aria-label="{s._e(label)}: ${v:,.2f}">'
             f'<line class="hp-cross" x1="{px}" y1="{s.PT}" x2="{px}" y2="{s.PB}"/>'
             f'<circle class="hp-dot" cx="{px}" cy="{py}" r="4.5"/>'
             f'<g class="hp-tip" transform="translate({round(tx, 1)} {round(ty, 1)})">'
-            f'<rect class="hp-box" width="152" height="46" rx="3"/>'
+            f'<rect class="hp-box" width="{box}" height="46" rx="3"/>'
             f'<line class="hp-key" x1="11" y1="18" x2="25" y2="18"/>'
             f'<text class="hp-val" x="31" y="22">${v:,.2f}</text>'
-            f'<text class="hp-lab" x="11" y="37">{s._e(_when(s, at))}</text></g>'
+            f'<text class="hp-lab" x="11" y="37">{s._e(label)}</text></g>'
             f'<rect class="hp-hit" x="{round(px - hw / 2, 1)}" y="{s.PT}"'
             f' width="{round(hw, 1)}" height="{s.PB - s.PT}"/></g>'
         )
     n_gap = sum(1 for _, v in pts if v is None)
+    n_ind = sum(1 for at, v in published if at in indicative)
     summary = (f"{symbol}, {len(pts)} reads from {_when(s, start)} to {_when(s, end)}: "
-               f"{len(published)} with a value, {n_gap} gapped, {len(fixings)} fixings marked.")
+               f"{len(published)} with a value, {n_gap} gapped, {len(fixings)} fixings marked"
+               + (f", {n_ind} indicative, before the series takes effect." if n_ind else "."))
     return (
         '<div class="scroll-x scroll-x--recent"><svg class="chart" viewBox="0 0 880 300"'
         f' role="group" aria-label="{s._e(summary)}">'
@@ -446,13 +470,16 @@ def _cons_table(s: Any, built: Built, series: str, since: datetime,
 
 
 
-def _legend() -> str:
+def _legend(indicative: bool = False) -> str:
     line = ('<svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4"'
             ' stroke="var(--chart-line)" stroke-width="2" stroke-linecap="round"/></svg>')
+    grey = ('<svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4"'
+            ' stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round"/></svg>')
     square = ('<svg width="12" height="12" aria-hidden="true"><rect x="2" y="2" width="8"'
               ' height="8" fill="var(--chart-line)"/></svg>')
+    ind = f" &#183; {grey} Indicative, before the series takes effect" if indicative else ""
     return (f'<p class="ledger__d" style="margin-top:var(--space-3)">{line} Recomputed at each '
-            f"read &#183; {square} 11:00 UTC fixing as published</p>")
+            f"read{ind} &#183; {square} 11:00 UTC fixing as published</p>")
 
 
 def _series_points(built: Built, series: str, start: datetime
@@ -501,6 +528,55 @@ def _page(s: Any, status: str, inner: str, links: bool = False) -> str:
 </main>"""
 
 
+def _indicative(built: Built, series: str) -> frozenset[datetime]:
+    return frozenset(sn.at for sn in built.snapshots
+                     if series in sn.values and "indicative" in sn.values[series][3])
+
+
+def _start_note(s: Any, series: str, indicative: frozenset[datetime]) -> str:
+    """Says in words, above the charts, that a series has no print yet and from when."""
+    if not indicative:
+        return ""
+    start = s.series_start(series)
+    when = (f" It takes effect on {s._e(s._human_date(start[0]))} under methodology "
+            f"v{s._e(start[1])} (notice {s._e(start[2])}); from that date it is fixed at "
+            "11:00 UTC like the EU series." if start else "")
+    return ('<div class="gapnote">' + s._icon("warn", 14) + f"<p><strong>Indicative."
+            f"</strong> {s._e(s.display_series(series))} has no published print yet.{when} "
+            "Until then the values here are that version's calculation run early, drawn in "
+            "grey and marked in every tooltip. They are never stored as prints.</p></div>")
+
+
+def _region_panel(s: Any, built: Built, key: str, long: str, series: str) -> str:
+    now = built.now
+    day_start = now - timedelta(hours=24)
+    week_start = now - timedelta(days=CHART_DAYS)
+    sym = s.display_series(series)
+    fix = built.fixings.get(series, [])
+    ind = _indicative(built, series)
+    palette = _palette(built, series, week_start)
+
+    def pair(since: datetime, focusable: bool) -> str:
+        pts = _series_points(built, series, since)
+        return _pair(
+            _time_chart(s, pts, fix, since, now, symbol=sym, focusable=focusable,
+                        cons=_cons(built, series, since, palette), indicative=ind),
+            _time_chart(s, pts, fix, since, now, symbol=sym, focusable=focusable,
+                        indicative=ind))
+
+    legend = _cons_legend(s, _cons(built, series, week_start, palette), day_start)
+    return (
+        f'<div class="rpanel rpanel--{key}"><div class="card"><div class="card__body">'
+        f'<h3 class="section__h">{s._e(sym)} <span class="u">&#183; {s._e(long)}</span></h3>'
+        + _start_note(s, series, ind)
+        + '<h4 class="rpanel__h">Last 24 hours</h4>' + pair(day_start, True)
+        + f'<h4 class="rpanel__h">Last {CHART_DAYS} days</h4>' + pair(week_start, False)
+        + _legend(bool(ind)) + f'<div class="cons-on">{legend}</div>'
+        + _table_view(s, built, series, day_start)
+        + _cons_table(s, built, series, day_start, palette) + "</div></div></div>"
+    )
+
+
 def _body(s: Any, built: Built) -> str:
     cfg = built.cfg
     if not built.snapshots:
@@ -508,46 +584,38 @@ def _body(s: Any, built: Built) -> str:
                      '<div class="gapnote">' + s._icon("warn", 14) + "<p>No intraday read "
                      "has been stored yet. The first hourly sweep will start the record.</p>"
                      "</div>")
-    head = cfg.series[0]
-    sym = s.display_series(head)
     latest = built.snapshots[-1]
     status = (f'<span class="chip"><span>Latest read {s._e(_when(s, latest.at))}</span></span>'
               f'<span class="u">{len(built.snapshots)} reads in {WINDOW_DAYS} days</span>')
-
     now = built.now
     day_start = now - timedelta(hours=24)
     week_start = now - timedelta(days=CHART_DAYS)
-    fix = built.fixings.get(head, [])
-    palette = _palette(built, head, week_start)
-    day_pts = _series_points(built, head, day_start)
-    week_pts = _series_points(built, head, week_start)
 
-    def pair(pts: list[tuple[datetime, float | None]], since: datetime,
-             focusable: bool) -> str:
-        return _pair(
-            _time_chart(s, pts, fix, since, now, symbol=sym, focusable=focusable,
-                        cons=_cons(built, head, since, palette)),
-            _time_chart(s, pts, fix, since, now, symbol=sym, focusable=focusable))
+    # One panel per region, each built on its own so a failure in one (a series the config
+    # names but no version defines, say) costs that panel and not the page.
+    panels = []
+    for key, label, long, series in s.REGIONS:
+        try:
+            panels.append(_region_panel(s, built, key, long, series))
+        except Exception:  # noqa: BLE001
+            log.exception("intraday page: %s panel not built", series)
+            panels.append(f'<div class="rpanel rpanel--{key}"><div class="gapnote">'
+                          + s._icon("warn", 14) + f"<p>The {s._e(label)} panel could not be "
+                          "built on this run. The other regions are unaffected.</p></div></div>")
+    main = _section(
+        "s-path", "The H100 index through the day, by region",
+        "USD per GPU-hour, times in UTC. EU is the EU/EEA headline; US and Global are the "
+        "same calculation over US offers and over every country. A break in a line is a read "
+        "that gapped, a sweep that did not run, or for a constituent a read it was not part "
+        "of; nothing is drawn across it. Each constituent is drawn at its own price in the "
+        "index at that read.",
+        '<div class="rtabs">' + s.region_tabs() + "</div>" + "".join(panels))
 
-    legend = _cons_legend(s, _cons(built, head, week_start, palette), day_start)
-    charts = (
-        '<div class="card"><div class="card__body">'
-        '<h3 class="section__h">Last 24 hours</h3>'
-        + pair(day_pts, day_start, True)
-        + f'<h3 class="section__h" style="margin-top:var(--space-5)">Last {CHART_DAYS} days</h3>'
-        + pair(week_pts, week_start, False)
-        + _legend() + f'<div class="cons-on">{legend}</div>'
-        + _table_view(s, built, head, day_start)
-        + _cons_table(s, built, head, day_start, palette) + "</div></div>"
-    )
-    main = _section("s-path", f"{s._e(sym)} through the day",
-                    "USD per GPU-hour, times in UTC. A break in a line is a read that gapped, "
-                    "a sweep that did not run, or for a constituent a read it was not part of; "
-                    "nothing is drawn across it. Each constituent is drawn at its own price in "
-                    "the index at that read.", charts)
-
+    regional = {series for _k, _l, _g, series in s.REGIONS}
     others = []
-    for series in cfg.series[1:]:
+    for series in cfg.series:
+        if series in regional:
+            continue
         pts = _series_points(built, series, week_start)
         if not any(v is not None for _, v in pts):
             continue
@@ -562,7 +630,7 @@ def _body(s: Any, built: Built) -> str:
         others.append(
             f'<div class="card"><div class="card__body"><h3 class="section__h">{s._e(name)}'
             f'</h3>{chart}<div class="cons-on">{fam_legend}</div></div></div>')
-    other = _section("s-family", f"The rest of the family, last {CHART_DAYS} days",
+    other = _section("s-family", f"The EU/EEA family, last {CHART_DAYS} days",
                      "Only series with at least one value in the window are drawn. A series "
                      "that gapped at every read is left out rather than drawn flat.",
                      "".join(others)) if others else ""
@@ -587,11 +655,9 @@ def _table_view(s: Any, built: Built, series: str, since: datetime) -> str:
     return f'<details class="tableview"><summary>Table view</summary>{table}</details>'
 
 
-def _settlement(s: Any, built: Built) -> str:
-    cfg = built.cfg
-    head = cfg.series[0]
+def _settlement_table(s: Any, built: Built, series: str) -> str:
     rows = []
-    for st in built.settlements.get(head, []):
+    for st in built.settlements.get(series, []):
         diff = pct = None
         if st.value_usd is not None and st.fixing_usd:
             diff = st.value_usd - st.fixing_usd
@@ -606,17 +672,29 @@ def _settlement(s: Any, built: Built) -> str:
             f'<td class="ta-r num">{"+" if pct >= 0 else "&#8722;"}{s._num(abs(pct))}%</td>',
             f'<td class="u">{s._e(st.reason or "")}</td>',
         ])
-    w = cfg.settlement
+    return _table([("Date", False), ("Window", True), ("Reads", True), ("Fixing", True),
+                   ("Window minus fixing", True), ("As % of fixing", True),
+                   ("Why empty", False)], rows,
+                  f"{s.display_series(series)}: settlement window value against the "
+                  "published fixing, by date")
+
+
+def _settlement(s: Any, built: Built) -> str:
+    w = built.cfg.settlement
+    panels = "".join(
+        f'<div class="rpanel rpanel--{key}"><h3 class="section__h">'
+        f"{s._e(s.display_series(series))} <span class=\"u\">&#183; {s._e(long)}</span></h3>"
+        + _settlement_table(s, built, series) + "</div>"
+        for key, _label, long, series in s.REGIONS
+    )
     return _section(
         "s-settle", "A settlement window, against the fixing",
-        f"The {w.method} of every reconstructed {s._e(s.display_series(head))} value from "
-        f"{w.start} to {w.end} UTC, beside the 11:00 fixing as published. At least "
+        f"The {w.method} of every reconstructed value from {w.start} to {w.end} UTC, beside "
+        f"the 11:00 fixing as published, for the region chosen above. At least "
         f"{w.min_points} values are required; with fewer the window has no value, and no "
-        "earlier one is carried in. Shown to measure what averaging would change. The "
-        "published price remains the fixing.",
-        _table([("Date", False), ("Window", True), ("Reads", True), ("Fixing", True),
-                ("Window minus fixing", True), ("As % of fixing", True), ("Why empty", False)],
-               rows, "Settlement window value against the published fixing, by date"))
+        "earlier one is carried in. Before a series takes effect it has no fixing, so its "
+        "window averages indicative values and the fixing column is empty. Shown to measure "
+        "what averaging would change. The published price remains the fixing.", panels)
 
 
 def _freshness(s: Any, built: Built) -> str:

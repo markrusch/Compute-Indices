@@ -116,7 +116,10 @@ NAV: tuple[tuple[str, str], ...] = (
 # the ticker kept rendering its final 0.2.0-dev value. Removed 2026-09-04 and not
 # replaced: the remaining sub-population series draw on segments smaller than
 # aggregation.min_providers and so cannot print (see the note in TILES).
-TICKER = (HEADLINE, SERIES_7D, "EU-CRI-H100-MKT", COMPOSITE)
+# The US and Global series follow the headline. current_print() returns nothing before a
+# series' first print, so they join the ticker on their first session and never earlier.
+TICKER = (HEADLINE, "EU-CRI-H100-US", "EU-CRI-H100-GLOBAL", SERIES_7D, "EU-CRI-H100-MKT",
+          COMPOSITE)
 
 # The landing page's "headline series, today" table: the headline plus one row per GPU
 # class the index prices. Class series only — segment cuts of H100 belong in the tiles,
@@ -149,7 +152,53 @@ SERIES_LABEL: dict[str, str] = {
     "EU-CRI-B300": "B300 SXM",
     "EU-CRI-A100": "A100 SXM 80GB",
     COMPOSITE: "Chain-linked class composite (level, not $/hr)",
+    "EU-CRI-H100-US": "H100 SXM 80GB, on-demand, United States",
+    "EU-CRI-H100-GLOBAL": "H100 SXM 80GB, on-demand, every country",
 }
+
+# The three regional views of the headline, in tab order: (key, tab label, long label,
+# stored series). US prints from 1 October 2026 (v0.6.0, notice 2026-N3), Global from
+# 23 October 2026 (v0.9.0, notice 2026-N6). The stored keys keep the EU-CRI prefix; only
+# display_series() turns them into published codes.
+REGIONS: tuple[tuple[str, str, str, str], ...] = (
+    ("eu", "EU", "EU/EEA", HEADLINE),
+    ("us", "US", "United States", "EU-CRI-H100-US"),
+    ("global", "Global", "Every country", "EU-CRI-H100-GLOBAL"),
+)
+
+# Keeps the chosen region in the address (#us, #global) so a link opens on it, and opens
+# on the one the address names. The tabs work without it; this only remembers.
+REGION_JS = """(function(){var r=document.querySelectorAll('input[name=region]');
+if(!r.length)return;var h=(location.hash||'').slice(1);
+r.forEach(function(i){if(i.value===h)i.checked=true;
+i.addEventListener('change',function(){if(i.checked&&history.replaceState)
+history.replaceState(null,'','#'+i.value);});});})();"""
+
+
+def series_start(series: str) -> tuple[str, str, str] | None:
+    """(effective date, version, notice) of the first version that prices `series`.
+
+    For a regional series only; the EU/EEA family has been priced since the first
+    version. None if no version in the succession defines it.
+    """
+    for entry in load_succession():
+        f = load_factors(for_date=str(entry.effective_from))
+        if series in f.regional_series:
+            return str(entry.effective_from), entry.version, entry.notice or ""
+    return None
+
+
+def region_tabs() -> str:
+    """The EU / US / Global selector: the same segmented radios as the currency toggle,
+    so it is keyboard- and screen-reader-operable and works with scripting off. site.css
+    swaps the .rpanel blocks with :has(); a browser without :has() shows all three."""
+    tabs = "".join(
+        f'<input type="radio" id="region-{key}" name="region" value="{key}"'
+        f'{" checked" if i == 0 else ""}><label for="region-{key}">{_e(label)}</label>'
+        for i, (key, label, _long, _series) in enumerate(REGIONS)
+    )
+    return f'<fieldset class="seg seg--region"><legend class="vh">Region</legend>{tabs}</fieldset>'
+
 
 # Why a print gapped, in words. Colour is never the only channel and neither is a flag
 # string: every gap on the page says what the gate was.
@@ -158,6 +207,8 @@ FLAG_TEXT: dict[str, str] = {
     "insufficient_offers": "below the offer gate",
     "insufficient_history": "too few days in the window",
     "no_linkable_series": "no class linked on both endpoints",
+    "computation_failed": "could not be computed this session",
+    "indicative": "indicative, before the series' first print",
     "no_executable_input": "list prices only, no executable quote",
     "bootstrap_weights": "bootstrap weighting",
     "correction": "revised",
@@ -1524,11 +1575,54 @@ def _tiles(ctx: SiteContext) -> str:
     return '<div class="tiles">' + "".join(out) + "</div>"
 
 
-def _chart_card(ctx: SiteContext) -> str:
-    dates = _window(ctx.date, WINDOW_DAYS)
-    points = _windowed(series_history(ctx.conn, HEADLINE, since=dates[0]), dates)
+def _region_charts(ctx: SiteContext) -> str:
+    """EU / US / Global tabs over the session chart, one panel per region.
+
+    Only published prints appear here. A region before its first print says when that is
+    and links to the intraday page, where its indicative values are drawn and labelled;
+    an indicative value never reaches this page. Each panel is built on its own, so a
+    region that fails costs its panel and not the dashboard.
+    """
+    panels = []
+    for key, label, long, series in REGIONS:
+        try:
+            start = series_start(series) if series != HEADLINE else None
+            if start is not None and latest_print(ctx.conn, series) is None:
+                inner = (
+                    f'<div class="card"><div class="card__head"><div><h3 class="card__title">'
+                    f'{_nbsp_series(series)}</h3><p class="card__sub">H100 SXM 80GB, '
+                    f"on-demand, {_e(long.lower() if key == 'global' else long)}</p></div>"
+                    '</div><div class="card__body"><div class="gapnote">' + _icon("warn", 14)
+                    + f"<p>No print yet. The first is on {_e(_human_date(start[0]))} at "
+                    f"{_e(CUTOFF_UTC)}, under methodology v{_e(start[1])} (notice "
+                    f'{_e(start[2])}). Until then <a href="intraday.html#{key}">the intraday '
+                    "page</a> draws its indicative values, labelled as such; none is shown "
+                    "here.</p></div></div></div>")
+            else:
+                inner = _chart_card(ctx, series, start[0] if start else None, key)
+        except Exception:  # noqa: BLE001 - one region never takes the dashboard with it
+            log.exception("site: %s region panel not built", series)
+            inner = ('<div class="gapnote">' + _icon("warn", 14) + f"<p>The {_e(label)} "
+                     "panel could not be built on this run.</p></div>")
+        panels.append(f'<div class="rpanel rpanel--{key}">{inner}</div>')
+    return '<div class="rtabs">' + region_tabs() + "</div>" + "".join(panels)
+
+
+def _chart_card(ctx: SiteContext, series: str = HEADLINE, first: str | None = None,
+                key: str = "eu") -> str:
+    # A regional series is drawn from its first print date, never before it: a session
+    # when it was not yet defined is not a gap and is not counted as one.
+    dates = [d for d in _window(ctx.date, WINDOW_DAYS) if first is None or d >= first]
+    points = _windowed(series_history(ctx.conn, series, since=dates[0]), dates)
     vals = [p.value for p in points if p.value is not None]
     published = len(vals)
+    today = current_print(ctx.conn, series, ctx.date)
+    if today is None:
+        now = "no print this session"
+    elif today["value_usd"] is None:
+        now = "today a gap, " + (_flag_words(today["flags"]) or "not computed")
+    else:
+        now = f"today ${_num(today['value_usd'])} from {today['n_sources']} providers"
     meta = (
         f"Last ${_num(vals[-1])} &#183; high ${_num(max(vals))} &#183; low ${_num(min(vals))}"
         if vals
@@ -1548,18 +1642,18 @@ def _chart_card(ctx: SiteContext) -> str:
     )
     return f"""<div class="card">
   <div class="card__head">
-    <div><h3 class="card__title">{_nbsp_series(HEADLINE)}</h3>
-    <p class="card__sub">USD per GPU-hour &#183; {WINDOW_DAYS} sessions to
-    {_e(_human_date(ctx.date))} &#183; {published} published, {WINDOW_DAYS - published}
-    gapped</p></div>
+    <div><h3 class="card__title">{_nbsp_series(series)}</h3>
+    <p class="card__sub">USD per GPU-hour &#183; {len(dates)} sessions to
+    {_e(_human_date(ctx.date))} &#183; {published} published, {len(dates) - published}
+    gapped &#183; {_e(now)}</p></div>
     <span class="card__meta num">{meta}</span>
   </div>
   <div class="card__body">
-    {line_chart(points, symbol=display_series(HEADLINE))}
+    {line_chart(points, symbol=display_series(series))}
     <p class="ledger__d" style="margin-top:var(--space-4)">A gapped session is drawn as a
     hairline tick on the baseline and the line breaks across it. Nothing is interpolated:
     the index publishes a gap rather than a value it cannot defend.
-    <a href="intraday.html">The same calculation, replayed at every hourly read</a>.</p>
+    <a href="intraday.html#{key}">The same calculation, replayed at every hourly read</a>.</p>
     <details class="tableview"><summary>Table view &#8212; {WINDOW_DAYS} sessions</summary>
       <div class="tableview__scroll"><table><caption class="vh">Every session in the window,
       published or gapped</caption><thead><tr><th scope="col">Session</th>
@@ -2206,11 +2300,12 @@ def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
 
   <section class="section" aria-labelledby="s-chart">
     <div class="section__head"><div>
-      <h2 class="section__h" id="s-chart">Headline, {WINDOW_DAYS} sessions</h2>
-      <p class="section__dek">Truncated y-axis, so this is a line and never an area fill.
-      Hover or tab through the plot for the crosshair readout; it is CSS-only and works with
-      scripting disabled.</p></div></div>
-    {_chart_card(ctx)}
+      <h2 class="section__h" id="s-chart">EU, US and Global, {WINDOW_DAYS} sessions</h2>
+      <p class="section__dek">The same H100 calculation over three regions: EU/EEA, the
+      headline; the United States; and every country. Truncated y-axis, so this is a line
+      and never an area fill. Hover or tab through the plot for the crosshair readout; it is
+      CSS-only and works with scripting disabled.</p></div></div>
+    {_region_charts(ctx)}
   </section>
 
   <section class="section" aria-labelledby="s-cons" id="constituents">
@@ -2284,7 +2379,7 @@ def _dashboard(ctx: SiteContext, notes: list[Note]) -> str:
         current="index.html",
         dataset=True,
         body=body,
-        extra_js=_REFRESH_JS + "\n" + _WAVE_JS,
+        extra_js=_REFRESH_JS + "\n" + _WAVE_JS + "\n" + REGION_JS,
     )
 
 

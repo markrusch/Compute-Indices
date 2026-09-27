@@ -3,6 +3,46 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## 0.9.0 — announced 2026-09-27, effective 2026-10-23 (notice 2026-N6)
+
+- **A Global H100 series.** `EU-CRI-H100-GLOBAL`, published as TCI-CRI-H100-GLOBAL,
+  prices one H100 SXM GPU-hour over every country with the headline's unit definition,
+  estimator, trim, weights, gate and population. The new `GLOBAL` block holds all 249
+  ISO 3166-1 alpha-2 codes, copied from the IANA time zone database's `iso3166.tab`. It
+  is the third view beside the EU/EEA headline and the US series, which starts on
+  1 October under v0.6.0.
+- **Measured on stored observations** with this version's parameters: $3.49/GPU-hr on
+  26 September (nine providers), $3.63 on 25 September (seven) and $3.85 on
+  24 September (six). On the same days the US series would have printed $3.49 on
+  26 September from exactly five providers and gapped on the 24th and 25th with three,
+  so the US series opens on a panel at its gate.
+- No existing series changes: every stored print recomputes unchanged.
+- 0.8.0 frozen under `config/methodology/0.8.0/`.
+
+## EU, US and Global tabs, and a guard per regional series — 2026-09-27 — no methodology change
+
+- **Tabs.** The dashboard's session chart and the intraday page now carry an EU / US /
+  Global selector. It is the same set of native radios as the currency toggle and swaps
+  panels with `:has()`; a browser without `:has()` shows all three panels in a row. The
+  chosen region is kept in the address (`intraday.html#us`), so a link opens on it. The
+  ticker names the US and Global series from their first print and not before.
+- **Indicative values.** Before a regional series takes effect, the intraday replay runs
+  it under the first version in the succession that defines it and flags every value
+  `indicative`: US until 1 October, Global until 23 October. Those stretches are drawn in
+  grey, solid, with a surface halo so they stay visible on top of the constituent they
+  usually equal, and every tooltip and a note above the chart say so in words. The
+  dashboard shows none of them; its US and Global panels say when the first print is and
+  link to the intraday page. On 26 September the US replay gapped at 09:14 and 10:13 UTC
+  because vast.ai listed no qualifying US H100 offer at either read, leaving four
+  providers against a gate of five.
+- **Found.** In the daily run an exception in any regional series escaped
+  `compute_all_series` after the EU series were stored and before the composite, the
+  7-day mean and the intake ledger were. With US and Global both live, one bad block
+  would have cost four other records. **Fixed.** Each regional and basis series is
+  computed inside its own guard and a failure is stored as a gap flagged
+  `computation_failed`. The intraday replay guards each series the same way.
+- No stored print moves; all reproduce.
+
 ## Azure's retail feed waited out instead of dropped on a 429 — 2026-09-26 — no methodology change
 
 - **Found.** The first scheduled hourly read, from a GitHub runner at 05:13 UTC, got 429

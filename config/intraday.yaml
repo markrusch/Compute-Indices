@@ -88,7 +88,13 @@ sources:
 # fixing uses (commands.print_definitions -> normalise -> index.compute_print), under the
 # methodology version live on the sweep's UTC date.
 series:
+  # The three regional views first, EU (the headline), US and Global: the page's tabs
+  # follow this order. US prints from 1 October (v0.6.0) and Global from 23 October
+  # (v0.9.0); before those dates they are replayed under the version that introduces them
+  # and labelled indicative.
   - EU-CRI-H100
+  - EU-CRI-H100-US
+  - EU-CRI-H100-GLOBAL
   - EU-CRI-H100-MKT
   - EU-CRI-H100-NC
   - EU-CRI-H100-HS

@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from datetime import date as date_type
 from pathlib import Path
+from typing import Any
 
 from tci import config, db, intake, series_read, weights
 from tci.basis import compute_basis
@@ -113,6 +114,44 @@ def print_definitions(
                 cls, headline_pop, (lambda c: (lambda o: o.model_class == c))(cls)
             )
     return definitions
+
+
+def regional_print(
+    rows: Sequence[Any],
+    factors: config.Factors,
+    fx: tuple[float, str] | None,
+    utc_date: str,
+    series: str,
+    rs: config.RegionalSeries,
+    prev_prices: dict[str, float] | None = None,
+) -> IndexPrint:
+    """One regional series (US, GLOBAL, ...): the headline's calculation over one block.
+
+    Public for the same reason as print_definitions: the intraday replay prices these
+    series from the hourly reads by calling this, not a copy of it.
+    """
+    countries = factors.countries_of(rs.block)
+    fx_rate = fx[0] if fx else None
+    block_rows = normalise_observations(rows, factors, fx_eur_usd=fx_rate, countries=countries)
+    block_unadmitted = unadmitted_providers(rows, factors, countries)
+    return compute_print(
+        utc_date, series,
+        [o for o in block_rows if o.model_class == rs.model_class],
+        factors, fx,
+        population=factors.population_for(rs.population),
+        prev_prices=prev_prices,
+        not_in_panel=frozenset(
+            p for p, classes in block_unadmitted.items() if rs.model_class in classes
+        ),
+    )
+
+
+def _failed_print(utc_date: str, series: str, fx: tuple[float, str] | None) -> IndexPrint:
+    return IndexPrint(
+        date=utc_date, series=series, value_usd=None, value_eur=None,
+        fx_rate=fx[0] if fx else None, fx_date=fx[1] if fx else None,
+        n_sources=0, n_executable=0, flags="computation_failed", constituents=(),
+    )
 
 
 def _observations_for_date(conn: sqlite3.Connection, utc_date: str) -> list[sqlite3.Row]:
@@ -518,27 +557,29 @@ def compute_all_series(
 
     # Series in other region blocks (v0.6.0+): the same unit, estimator and gate, drawn
     # from another block's countries. Defined in factors.yaml, so hash-locked.
-    fx_rate = fx[0] if fx else None
+    #
+    # Each is computed inside its own guard. Until the regional series multiplied (US
+    # from v0.6.0, GLOBAL from v0.9.0) an exception in one of them escaped this function
+    # after the EU series were stored and before the composite, the 7-day mean and the
+    # intake ledger were: one bad regional series cost four other records. A series that
+    # cannot be computed is now stored as a gap with the reason, which is what a gap is.
     for series, rs in factors.regional_series.items():
-        countries = factors.countries_of(rs.block)
-        block_rows = normalise_observations(rows, factors, fx_eur_usd=fx_rate, countries=countries)
-        block_unadmitted = unadmitted_providers(rows, factors, countries)
-        result = compute_print(
-            utc_date, series,
-            [o for o in block_rows if o.model_class == rs.model_class],
-            factors, fx,
-            population=factors.population_for(rs.population),
-            prev_prices=_prev_prices(conn, series, utc_date),
-            not_in_panel=frozenset(
-                p for p, classes in block_unadmitted.items() if rs.model_class in classes
-            ),
-        )
+        try:
+            result = regional_print(rows, factors, fx, utc_date, series, rs,
+                                    prev_prices=_prev_prices(conn, series, utc_date))
+        except Exception:  # noqa: BLE001
+            log.exception("%s %s could not be computed; stored as a gap", utc_date, series)
+            result = _failed_print(utc_date, series, fx)
         computed[series] = result
         _store_print(conn, result, version, run_id, series_extra)
     for series, bs in factors.basis_series.items():
-        result = compute_basis(
-            utc_date, series, computed.get(bs.lead), computed.get(bs.reference), fx
-        )
+        try:
+            result = compute_basis(
+                utc_date, series, computed.get(bs.lead), computed.get(bs.reference), fx
+            )
+        except Exception:  # noqa: BLE001
+            log.exception("%s %s could not be computed; stored as a gap", utc_date, series)
+            result = _failed_print(utc_date, series, fx)
         computed[series] = result
         _store_print(conn, result, version, run_id, series_extra)
 
