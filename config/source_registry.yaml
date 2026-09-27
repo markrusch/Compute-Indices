@@ -539,8 +539,13 @@ sources:
     access_basis: "Public pricing page."
     discovered: 2026-09-11
     discovered_via: "Computable GPU Index recipe (vendored)"
-    last_reviewed: 2026-09-11
-    notes: "Per-GPU rates, region not stated on the page."
+    last_reviewed: 2026-09-27
+    notes: >-
+      Per-GPU rates, region not stated on the page. Emailed support@crusoecloud.com
+      2026-09-27 asking whether $3.90/GPU-hr (NVIDIA H100 80GB HGX) holds at 8-GPU
+      instance size, which country/data centre it's deliverable from, and whether daily
+      automated reading is acceptable.
+    recheck: "Crusoe's answer on instance size, location and permission to read automatically"
 
   - id: lambda_pricing
     name: Lambda pricing page
