@@ -552,8 +552,11 @@ sources:
     notes: >-
       Per-GPU rates (HGX H100 $3.90/GPU-hr on 27 September), region not stated on the
       page. Not admitted to Global in v0.10.0: the page states no node size, and the
-      collector records the per-GPU rate at one GPU, below the floor. Recheck: an instance
-      size of two GPUs or more stated beside the on-demand rate.
+      collector records the per-GPU rate at one GPU, below the floor. Emailed
+      support@crusoecloud.com 2026-09-27 asking whether $3.90/GPU-hr (NVIDIA H100 80GB
+      HGX) holds at 8-GPU instance size, which country/data centre it's deliverable from,
+      and whether daily automated reading is acceptable.
+    recheck: "Crusoe's answer on instance size, location and permission to read automatically, or an instance size of two GPUs or more stated beside the on-demand rate"
 
   - id: lambda_pricing
     name: Lambda pricing page
