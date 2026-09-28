@@ -1,46 +1,46 @@
 {
-  "generated_at": "2026-09-27T11:11:14Z",
+  "generated_at": "2026-09-28T11:13:59Z",
   "tci_version": "0.1.0",
   "methodology_version": "0.5.0",
   "disclaimer": "TCI is a research publication. It is not investment advice and is not administered as a benchmark under EU Regulation 2016/1011; it may not be used as a reference price in financial instruments.",
-  "date": "2026-09-27",
+  "date": "2026-09-28",
   "series": {
     "EU-CRI-H100": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:b8adfca867413d3df37b94fefdc04d906f5082a3c6e0d5036e3eca72b932e675",
-      "value_usd": 3.49,
-      "value_eur": 3.060598,
+      "digest": "sha256:57580e0b4e6434ce6c9f487f1aad7b01648f3dd2c00edc01d145ffa81cb14005",
+      "value_usd": 3.640693,
+      "value_eur": 3.19275,
       "fx_rate": 1.1403,
       "fx_date": "2026-09-25",
-      "n_sources": 8,
-      "n_executable": 3,
+      "n_sources": 7,
+      "n_executable": 1,
       "flags": "",
-      "wow_pct": 6.4024,
-      "mom_pct": 7.3846,
-      "prev_date": "2026-09-26",
+      "wow_pct": 4.3179,
+      "mom_pct": 10.6594,
+      "prev_date": "2026-09-27",
       "prev_value_usd": 3.49
     },
     "EU-CRI-H100-7D": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:d879e7e5cd1ae1307a05d5e42d36553b4e4de684d87e766699e7acd8e496cadc",
-      "value_usd": 3.569899,
-      "value_eur": 3.130666,
+      "digest": "sha256:370054cc80304d057a4faddcde179c27a304d15f6bce10060297d9ad14bae830",
+      "value_usd": 3.591426,
+      "value_eur": 3.149545,
       "fx_rate": 1.1403,
       "fx_date": "2026-09-25",
       "n_sources": 7,
       "n_executable": 0,
       "flags": "",
-      "wow_pct": 6.8832,
-      "mom_pct": 8.7279,
-      "prev_date": "2026-09-26",
-      "prev_value_usd": 3.539899
+      "wow_pct": 6.2552,
+      "mom_pct": 9.3835,
+      "prev_date": "2026-09-27",
+      "prev_value_usd": 3.569899
     },
     "EU-CRI-H100-SOV": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:e4d59c5d7c937a6d339a0c67433002b2bcc77093a29071c3106d21822f06d166",
+      "digest": "sha256:3b7f87b1afaa83b2dbd1d30a92c464bd7d57174fa7df624f6e1d8e5ecb1411dd",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -50,21 +50,21 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-H100-MKT": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:d9065b5dfa7f68c2ca8a05535a00df6270db84a64f445674885b7de60def9b69",
+      "digest": "sha256:130eb6d437ae33262e12e5f54e5ef55eba87ec457b5ec8416f10bda8bd22300d",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
       "fx_date": "2026-09-25",
-      "n_sources": 2,
-      "n_executable": 3,
+      "n_sources": 1,
+      "n_executable": 1,
       "flags": "insufficient_sources"
     },
     "EU-CRI-H100-NC": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:e15656f1f9c3a1fe5f5b0c564a30648f02b6b4623cf6f0f7d2758999cc527023",
+      "digest": "sha256:015639b09530c0ac868be37d56545aee96cd81e72b19191353ac92de3e56a6a3",
       "value_usd": 3.774279,
       "value_eur": 3.3099,
       "fx_rate": 1.1403,
@@ -74,13 +74,13 @@
       "flags": "no_executable_input",
       "wow_pct": null,
       "mom_pct": null,
-      "prev_date": "2026-09-26",
+      "prev_date": "2026-09-27",
       "prev_value_usd": 3.774279
     },
     "EU-CRI-H100-HS": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:ac5bc5277ba6e005aac42c81889b698982c1e9c2f317c44885b85beb247b5ad0",
+      "digest": "sha256:a360884432d517adf0defe9667a78048948756ed21eacd3cabcf084af7876b81",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -90,9 +90,9 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-H100-PCIE": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:85c7a2d126b8434321b6fc73832ed2c231c3a82d1b95a730cf35e979bce78854",
+      "digest": "sha256:0b9c67ecc20b77dac38ccee4bc7102a4efd8854007a895286663f586720d4a55",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -102,9 +102,9 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-H200": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:d84f5621fb9cf2dad2c4d42b9e5f83ef687ac638ef2a3da1db2738e7620ad309",
+      "digest": "sha256:eca2b7f9dd33305fae465abf6f8feb5d22ad9c7179594646087a4d09e924dcfd",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -114,9 +114,9 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-B200": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:30e47b16808ad9bcf2d90e841dd351f186ad656471af3e37513ca220c3acdeff",
+      "digest": "sha256:b58d50b7af569c9682828ed5d44f3c18aeb846d5dda1792269fa23ca6c6ddc08",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -126,9 +126,9 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-B300": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:4c42b35c142e103a6fc6bf5bca86f5d8818442251001691ac3989587a994ae47",
+      "digest": "sha256:449432dd33fd12657bcef8d97ad94820da77f4b5c302f7e25a59102d154f6de6",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -138,9 +138,9 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-A100": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:22c1ecf7ff374cf3b090aa43aba9864868515dce08fe4c7ad5ee93fa2057d62a",
+      "digest": "sha256:a965de86f661848897352ee7c786103baf1586ec1dad4f50d9f776456612925f",
       "value_usd": null,
       "value_eur": null,
       "fx_rate": 1.1403,
@@ -150,19 +150,19 @@
       "flags": "insufficient_sources"
     },
     "EU-CRI-COMPUTE": {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "revision": 1,
-      "digest": "sha256:8dc4cb7f336552ed93410a7b26276f6add253c5098f971014f4e94798f8c49bd",
-      "value_usd": 107.384615,
+      "digest": "sha256:44f60d3180a09defa3f48b315fb87ec4183a5ec6646cd14f840c5526a1f6f736",
+      "value_usd": 112.021323,
       "value_eur": null,
       "fx_rate": null,
       "fx_date": null,
       "n_sources": 1,
       "n_executable": 0,
       "flags": "",
-      "wow_pct": 6.4024,
-      "mom_pct": 7.3846,
-      "prev_date": "2026-09-26",
+      "wow_pct": 4.3179,
+      "mom_pct": 10.6594,
+      "prev_date": "2026-09-27",
       "prev_value_usd": 107.384615
     }
   },
@@ -173,7 +173,7 @@
         "source": "static_yaml",
         "tier": "list",
         "price_usd": 2.155167,
-        "weight": 10.0,
+        "weight": 12.5,
         "included": true,
         "exclusion_reason": "trimmed",
         "flags": "",
@@ -181,25 +181,13 @@
         "note": "EUR 1.89/hr on-demand H100, native currency (converted at print time, not baked in). GPU-count selector on the product page confirmed linear per-GPU pricing: 8x SXM (640 GB GPU RAM) lists at EUR 15.12/hr = EUR 1.89/GPU-hr, same rate as the 1x config - so gpu_count: 8 is a real, priced node size, not a small-order quote."
       },
       {
-        "provider": "vast.ai",
-        "source": "vast_ai",
-        "tier": "executable",
-        "price_usd": 2.267037,
-        "weight": 20.0,
-        "included": true,
-        "exclusion_reason": "trimmed",
-        "flags": "",
-        "url": "https://cloud.vast.ai/",
-        "note": "Public marketplace search API; datacenter-verified hosts only."
-      },
-      {
         "provider": "runpod",
         "source": "runpod",
         "tier": "executable",
         "price_usd": 3.49,
-        "weight": 20.0,
+        "weight": 25.0,
         "included": true,
-        "exclusion_reason": null,
+        "exclusion_reason": "trimmed",
         "flags": "",
         "url": "https://www.runpod.io/console/gpu-cloud",
         "note": "Secure Cloud pricing via RunPod's public GraphQL API."
@@ -208,8 +196,8 @@
         "provider": "verda",
         "source": "gpuhunt",
         "tier": "list",
-        "price_usd": 3.52,
-        "weight": 10.0,
+        "price_usd": 3.555,
+        "weight": 12.5,
         "included": true,
         "exclusion_reason": null,
         "flags": "",
@@ -221,7 +209,7 @@
         "source": "scaleway",
         "tier": "list",
         "price_usd": 3.640693,
-        "weight": 10.0,
+        "weight": 12.5,
         "included": true,
         "exclusion_reason": null,
         "flags": "",
@@ -233,7 +221,7 @@
         "source": "gpuhunt",
         "tier": "list",
         "price_usd": 3.85,
-        "weight": 10.0,
+        "weight": 12.5,
         "included": true,
         "exclusion_reason": null,
         "flags": "",
@@ -245,7 +233,7 @@
         "source": "gpuhunt",
         "tier": "list",
         "price_usd": 3.99,
-        "weight": 10.0,
+        "weight": 12.5,
         "included": true,
         "exclusion_reason": "trimmed",
         "flags": "",
@@ -257,7 +245,7 @@
         "source": "digitalocean",
         "tier": "list",
         "price_usd": 4.41,
-        "weight": 10.0,
+        "weight": 12.5,
         "included": true,
         "exclusion_reason": "trimmed",
         "flags": "",
@@ -390,7 +378,7 @@
         "provider": "verda",
         "source": "gpuhunt",
         "tier": "list",
-        "price_usd": 4.5925,
+        "price_usd": 4.63875,
         "weight": 0.0,
         "included": false,
         "exclusion_reason": "insufficient_sources",
@@ -476,7 +464,7 @@
         "provider": "verda",
         "source": "gpuhunt",
         "tier": "list",
-        "price_usd": 6.815,
+        "price_usd": 6.85,
         "weight": 0.0,
         "included": false,
         "exclusion_reason": "insufficient_sources",
@@ -502,7 +490,7 @@
         "provider": "verda",
         "source": "gpuhunt",
         "tier": "list",
-        "price_usd": 8.3675,
+        "price_usd": 8.45,
         "weight": 0.0,
         "included": false,
         "exclusion_reason": "insufficient_sources",
@@ -649,16 +637,16 @@
     ]
   },
   "weight_review": {
-    "effective_date": "2026-09-21",
-    "window_start": "2026-08-24",
-    "window_end": "2026-09-20",
+    "effective_date": "2026-09-28",
+    "window_start": "2026-08-31",
+    "window_end": "2026-09-27",
     "n_days_window": 24,
     "providers": {
       "A100": [
         {
           "provider": "runpod",
-          "weight": 10.0,
-          "days_observed": 15
+          "weight": 12.0,
+          "days_observed": 18
         },
         {
           "provider": "azure",
@@ -667,47 +655,52 @@
         },
         {
           "provider": "lambdalabs",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         },
         {
           "provider": "oci",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         },
         {
           "provider": "verda",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         },
         {
           "provider": "vast.ai",
-          "weight": 2.3333,
-          "days_observed": 14
+          "weight": 2.0,
+          "days_observed": 12
         }
       ],
       "B200": [
         {
           "provider": "lambdalabs",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         },
         {
           "provider": "oci",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         },
         {
           "provider": "verda",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         }
       ],
       "B300": [
         {
           "provider": "verda",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
+        },
+        {
+          "provider": "nebius",
+          "weight": 1.0,
+          "days_observed": 3
         }
       ],
       "H100": [
@@ -718,8 +711,8 @@
         },
         {
           "provider": "vast.ai",
-          "weight": 12.0,
-          "days_observed": 16
+          "weight": 9.0,
+          "days_observed": 18
         },
         {
           "provider": "aws",
@@ -737,34 +730,34 @@
           "days_observed": 24
         },
         {
-          "provider": "seeweb",
-          "weight": 6.0,
-          "days_observed": 18
-        },
-        {
           "provider": "digitalocean",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         },
         {
           "provider": "lambdalabs",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         },
         {
           "provider": "nebius",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         },
         {
           "provider": "oci",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         },
         {
           "provider": "verda",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
+        },
+        {
+          "provider": "seeweb",
+          "weight": 3.6667,
+          "days_observed": 11
         }
       ],
       "H100P": [
@@ -775,8 +768,8 @@
         },
         {
           "provider": "vast.ai",
-          "weight": 0.1667,
-          "days_observed": 1
+          "weight": 0.3333,
+          "days_observed": 2
         }
       ],
       "H200": [
@@ -787,28 +780,33 @@
         },
         {
           "provider": "nebius",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         },
         {
           "provider": "oci",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
         },
         {
           "provider": "verda",
-          "weight": 2.6667,
-          "days_observed": 8
+          "weight": 5.0,
+          "days_observed": 15
+        },
+        {
+          "provider": "vast.ai",
+          "weight": 0.6667,
+          "days_observed": 1
         }
       ]
     },
     "model_shares": {
-      "A100": 19.2754,
-      "B200": 6.9565,
+      "A100": 19.9404,
+      "B200": 10.1968,
       "B300": 5.0,
-      "H100": 47.8261,
-      "H100P": 7.029,
-      "H200": 13.913
+      "H100": 43.4496,
+      "H100P": 5.5516,
+      "H200": 15.8617
     }
   },
   "sources": [
