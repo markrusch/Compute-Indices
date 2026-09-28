@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-09-27T23:14:34Z",
+ "generated_utc": "2026-09-28T00:45:45Z",
  "latest": {
-  "at_utc": "2026-09-27T23:14:33Z",
+  "at_utc": "2026-09-28T00:45:43Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -35,7 +35,7 @@
      "weight_pct": 10.0
     },
     {
-     "price_usd": 3.029111,
+     "price_usd": 2.267407,
      "provider": "vast.ai",
      "weight_pct": 20.0
     },
@@ -77,7 +77,7 @@
      "weight_pct": 9.090909
     },
     {
-     "price_usd": 3.029111,
+     "price_usd": 2.267407,
      "provider": "vast.ai",
      "weight_pct": 18.181818
     },
@@ -191,29 +191,29 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 0,
-   "civo": 1,
-   "coreweave": 1,
-   "crusoe": 1,
-   "digitalocean": 1,
-   "gpuhunt": 1,
-   "hyperstack": 1,
-   "lambda_pricing": 1,
-   "latitude": 1,
-   "ovh": 1,
-   "runpod": 1,
-   "scaleway": 1,
-   "seeweb": 1,
-   "static_yaml": 1,
-   "together": 1,
-   "vast_ai": 1,
-   "voltagepark": 1
+   "azure_retail": 91,
+   "civo": 92,
+   "coreweave": 92,
+   "crusoe": 92,
+   "digitalocean": 92,
+   "gpuhunt": 0,
+   "hyperstack": 0,
+   "lambda_pricing": 92,
+   "latitude": 92,
+   "ovh": 92,
+   "runpod": 0,
+   "scaleway": 92,
+   "seeweb": 92,
+   "static_yaml": 0,
+   "together": 92,
+   "vast_ai": 0,
+   "voltagepark": 92
   },
   "sources_missing": [],
   "values": {
    "EU-CRI-A100": {
     "flags": "insufficient_sources",
-    "n_sources": 4,
+    "n_sources": 3,
     "value_eur": null,
     "value_usd": null
    },
@@ -226,14 +226,14 @@
    "EU-CRI-H100": {
     "flags": "",
     "n_sources": 8,
-    "value_eur": 3.117601,
-    "value_usd": 3.555
+    "value_eur": 3.060598,
+    "value_usd": 3.49
    },
    "EU-CRI-H100-GLOBAL": {
     "flags": "indicative",
     "n_sources": 9,
-    "value_eur": 3.117601,
-    "value_usd": 3.555
+    "value_eur": 3.060598,
+    "value_usd": 3.49
    },
    "EU-CRI-H100-HS": {
     "flags": "insufficient_sources",
@@ -301,6 +301,13 @@
  "settlements": {
   "EU-CRI-A100": [
    {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
+   {
     "date": "2026-09-27",
     "fixing_usd": null,
     "n_points": 0,
@@ -316,6 +323,13 @@
    }
   ],
   "EU-CRI-B200": [
+   {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
    {
     "date": "2026-09-27",
     "fixing_usd": null,
@@ -333,6 +347,13 @@
   ],
   "EU-CRI-H100": [
    {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
+   {
     "date": "2026-09-27",
     "fixing_usd": 3.49,
     "n_points": 3,
@@ -348,6 +369,13 @@
    }
   ],
   "EU-CRI-H100-GLOBAL": [
+   {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
    {
     "date": "2026-09-27",
     "fixing_usd": null,
@@ -365,6 +393,13 @@
   ],
   "EU-CRI-H100-HS": [
    {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
+   {
     "date": "2026-09-27",
     "fixing_usd": null,
     "n_points": 0,
@@ -380,6 +415,13 @@
    }
   ],
   "EU-CRI-H100-MKT": [
+   {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
    {
     "date": "2026-09-27",
     "fixing_usd": null,
@@ -397,6 +439,13 @@
   ],
   "EU-CRI-H100-NC": [
    {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
+   {
     "date": "2026-09-27",
     "fixing_usd": 3.774279,
     "n_points": 3,
@@ -412,6 +461,13 @@
    }
   ],
   "EU-CRI-H100-PCIE": [
+   {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
    {
     "date": "2026-09-27",
     "fixing_usd": null,
@@ -429,6 +485,13 @@
   ],
   "EU-CRI-H100-SPOT": [
    {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
+   {
     "date": "2026-09-27",
     "fixing_usd": null,
     "n_points": 3,
@@ -444,6 +507,13 @@
    }
   ],
   "EU-CRI-H100-SPOT-GLOBAL": [
+   {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
    {
     "date": "2026-09-27",
     "fixing_usd": null,
@@ -461,6 +531,13 @@
   ],
   "EU-CRI-H100-SPOT-US": [
    {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
+   {
     "date": "2026-09-27",
     "fixing_usd": null,
     "n_points": 0,
@@ -477,6 +554,13 @@
   ],
   "EU-CRI-H100-US": [
    {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
+   {
     "date": "2026-09-27",
     "fixing_usd": null,
     "n_points": 0,
@@ -492,6 +576,13 @@
    }
   ],
   "EU-CRI-H200": [
+   {
+    "date": "2026-09-28",
+    "fixing_usd": null,
+    "n_points": 0,
+    "reason": "0 published value(s) in the window, 2 required",
+    "value_usd": null
+   },
    {
     "date": "2026-09-27",
     "fixing_usd": null,
@@ -537,12 +628,12 @@
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-09-27T23:12:58Z"
+   "last_ok_utc": "2026-09-28T00:45:38Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-09-27T23:13:04Z"
+   "last_ok_utc": "2026-09-28T00:45:37Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
@@ -562,7 +653,7 @@
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-09-27T23:12:57Z"
+   "last_ok_utc": "2026-09-28T00:45:37Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
@@ -577,7 +668,7 @@
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-09-27T23:12:56Z"
+   "last_ok_utc": "2026-09-28T00:45:36Z"
   },
   "together": {
    "consecutive_failures": 0,
@@ -587,7 +678,7 @@
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-09-27T23:13:04Z"
+   "last_ok_utc": "2026-09-28T00:45:43Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
