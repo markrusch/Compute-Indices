@@ -374,10 +374,16 @@ sources:
     access_basis: "Same open-source catalog package already in the calculation path."
     discovered: 2026-09-07
     discovered_via: "tier-0: gpuhunt providers we do not query"
-    last_reviewed: 2026-09-11
+    last_reviewed: 2026-09-29
     notes: >-
       Thin: 2 rows in eu-north1, 1 at 2+ GPUs. Same staleness argument as verda but much
-      less data behind it. Take it only alongside verda, not on its own merits.
+      less data behind it. Take it only alongside verda, not on its own merits. Spot, checked
+      2026-09-29: the gpuhunt catalogue's Nebius H100 spot row read a constant $2.15 from 17
+      to 28 September, while nebius.com/prices calls spot dynamic ("as frequently as every
+      15 minutes"), shows the live rate only in the console and publishes a floor, "from
+      $0.79". Left out of the spot series in v0.11.0 (panel `tiers`); on-demand ($3.85)
+      matches the page and stays in.
+    recheck: "a public, current Nebius spot rate (API or page) rather than a floor"
 
   # ---- shadow: collected daily from 2026-09-11, admitted to no print ----------
   # Collector recipes vendored from the Computable GPU Index (Apache-2.0, see

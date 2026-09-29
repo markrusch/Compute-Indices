@@ -262,7 +262,8 @@ def sellers(conn: sqlite3.Connection, region: Region, day: str, replay: _Replay)
                 and row["tier"] in tiers
                 and (country in countries or (country is None and row["provider"] in unplaced))
                 and (row["gpu_count"] is None or row["gpu_count"] >= floor)
-                and factors.admits(row["provider"], row["source"], rs.model_class, block)
+                and factors.admits(row["provider"], row["source"], rs.model_class, block,
+                                   row["tier"])
                 and "EUR" not in str(row["raw_json"] or "")
                 and lo <= row["price_usd_per_gpu_hr"] <= hi)
 

@@ -131,6 +131,10 @@ class PanelEntry:
     # v0.10.0: the region blocks this provider may be priced in. None, the default and the
     # only value before 0.10.0, is every block.
     blocks: frozenset[str] | None = None
+    # v0.11.0: the stored tiers this provider may be priced from. None, the default, is
+    # every tier a series reads. Nebius is limited to its on-demand tiers: its spot price
+    # is dynamic and public only as a floor (see factors.yaml).
+    tiers: frozenset[str] | None = None
 
 
 @dataclass(frozen=True)
@@ -214,15 +218,17 @@ class Factors:
         return self.segments.get(provider, "neocloud")
 
     def admits(self, provider: str, source: str, model_class: str,
-               block: str = "EU_EEA") -> bool:
+               block: str = "EU_EEA", tier: str | None = None) -> bool:
         """Whether a row from (provider, source) may enter a print of `model_class` priced
-        in region block `block`."""
+        in region block `block`, from stored tier `tier` (None: any tier)."""
         if self.panel is None:
             return True
         entry = self.panel.get(provider)
         if entry is None:
             return False
         if entry.blocks is not None and block not in entry.blocks:
+            return False
+        if tier is not None and entry.tiers is not None and tier not in entry.tiers:
             return False
         return model_class in entry.sources.get(source, frozenset())
 
@@ -307,6 +313,8 @@ def _parse_panel(raw: dict[str, Any] | None) -> dict[str, PanelEntry] | None:
             },
             blocks=(frozenset(str(b) for b in entry["blocks"])
                     if entry.get("blocks") is not None else None),
+            tiers=(frozenset(str(t) for t in entry["tiers"])
+                   if entry.get("tiers") is not None else None),
         )
         for provider, entry in raw.items()
     }

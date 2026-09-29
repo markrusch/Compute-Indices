@@ -32,19 +32,21 @@ notices:
       (published as TCI-CRI-H100-SPOT, -SPOT-US and -SPOT-GLOBAL), price one H100 SXM
       GPU-hour of interruptible capacity with the headline's unit, estimator, trim, weights
       and gate. Three spread series publish on-demand minus spot in each region. No
-      existing series changes.
+      existing series changes. Amended on 29 September, before the effective date:
+      Nebius's spot rows are left out (see below).
     effect_on_level: >-
       None on any existing series; every stored print recomputes unchanged. Measured on
-      the stored 24, 25 and 26 September observations under v0.11.0: the EU spot series
-      prints $2.15/GPU-hr on all three days (five providers), $1.70, $1.62 and $1.34 below
-      the EU on-demand series (44.2%, 43.0% and 38.4% below it). The Global spot series
-      prints $2.38, $2.38 and $2.43 (seven providers). The US spot series gaps on all three
-      days with three providers against a gate of five.
+      the stored 24, 25 and 26 September observations under v0.11.0 as amended: the EU
+      spot series gaps on all three days with four providers (AWS, Verda, Azure, Google
+      Cloud) against a gate of five. The Global spot series prints $2.44/GPU-hr on all
+      three days (six providers), $1.41, $1.34 and $1.05 below the Global on-demand series.
+      The US spot series gaps with three providers. As first announced, with Nebius, the
+      EU series would have printed $2.15 on each day, which was Nebius's own catalogue
+      value.
     body: |
       **What is priced.** A spot row is a price the seller itself publishes for capacity it
       may reclaim: AWS and Google Cloud spot through the gpuhunt catalogues, Azure Spot,
-      CoreWeave, Nebius and Verda spot, and from 27 September Together AI's preemptible
-      rate. The collectors have stored these rows as tier `spot` since 11 September (Azure),
+      CoreWeave and Verda spot, and from 27 September Together AI's preemptible rate. The collectors have stored these rows as tier `spot` since 11 September (Azure),
       12 September (CoreWeave) and 17 September (the gpuhunt catalogues); the on-demand
       series never read them and still do not.
 
@@ -52,6 +54,16 @@ notices:
       Low Priority meter, a retired product. vast.ai's are `min_bid`, the lowest bid a host
       will accept, which is a floor nobody has necessarily paid. RunPod's API publishes a
       spot price equal to its on-demand price and is not collected as spot.
+
+      **Nebius, left out on 29 September.** Nebius prices spot dynamically: its pricing
+      page says the rate "may vary during the active use, including as frequently as every
+      15 minutes", shows the current rate only in its console, and publishes a floor
+      ("from $0.79" per H100 GPU-hour on 29 September). The catalogue row this series would
+      have read gave a constant $2.15 from 17 to 28 September, which is neither the floor
+      nor a rate a reader can check. It sat at the EU median on every one of those days,
+      so it would have fixed the EU spot value to a number nobody can reproduce. Nebius's
+      panel entry is limited to its on-demand tiers, which match its page ($3.85 for H100),
+      and it stays in every on-demand series. No print has been computed under this version.
 
       **Population.** Every segment: marketplace, neocloud and hyperscaler. The on-demand
       headline leaves the hyperscalers out; the spot market is mostly theirs, and without

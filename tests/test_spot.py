@@ -35,16 +35,21 @@ EU_OD = [("vast.ai", "vast_ai", "executable", 2.27), ("runpod", "runpod", "execu
          ("verda", "gpuhunt", "list", 3.48), ("nebius", "gpuhunt", "list", 3.85),
          ("seeweb", "seeweb", "list", 2.16), ("lambdalabs", "gpuhunt", "list", 3.99)]
 EU_SPOT = [("aws", "gpuhunt", 1.31, "SE"), ("verda", "gpuhunt", 1.74, "FI"),
-           ("nebius", "gpuhunt", 2.15, "FI"), ("azure", "azure_retail", 2.66, "NL"),
-           ("gcp", "gpuhunt", 6.31, "BE")]
+           ("azure", "azure_retail", 2.66, "NL"), ("gcp", "gpuhunt", 6.31, "BE")]
+# Outside the EU: CoreWeave's US spot row, and Together's preemptible rate, which has no
+# country and counts in GLOBAL only.
+WORLD_SPOT = [("coreweave", "coreweave", 2.46, "US"), ("together", "together", 1.99, None)]
 
 
 def _seed(conn: sqlite3.Connection, day: str, run_id: str = "r1") -> None:
     run = insert_run(conn, run_id=run_id, utc_date=day)
     for p, s, t, price in EU_OD:
         _obs(conn, run, day, p, s, t, price, "NL")
-    for p, s, price, cc in EU_SPOT:
+    for p, s, price, cc in EU_SPOT + WORLD_SPOT:
         _obs(conn, run, day, p, s, "spot", price, cc)
+    # Nebius's catalogue spot row: dynamic at the source and public only as a floor, so
+    # its panel entry admits on-demand tiers only (0.11.0 as amended on 29 September).
+    _obs(conn, run, day, "nebius", "gpuhunt", "spot", 2.15, "FI")
     # Kept out of every spot series: a bid floor and a retired product.
     _obs(conn, run, day, "vast.ai", "vast_ai", "interruptible", 0.65, "NL", count=2)
     _obs(conn, run, day, "azure", "azure_retail", "interruptible", 3.04, "NL")
@@ -86,12 +91,17 @@ def test_every_other_regional_series_still_reads_on_demand_tiers_only() -> None:
 
 def test_the_tier_filter_keeps_spot_and_on_demand_apart() -> None:
     f = load_factors(for_date=V011)
-    row = {"provider": "nebius", "source": "gpuhunt", "tier": "spot", "gpu_model": "H100_SXM",
-           "gpu_count": 8, "price_usd_per_gpu_hr": 2.15, "country": "FI",
+    row = {"provider": "verda", "source": "gpuhunt", "tier": "spot", "gpu_model": "H100_SXM",
+           "gpu_count": 8, "price_usd_per_gpu_hr": 1.78, "country": "FI",
            "term": "on_demand", "raw_json": "{}"}
     assert normalise_observations([row], f) == []  # on-demand series: spot never enters
     got = normalise_observations([row], f, tiers=frozenset({"spot"}))
-    assert [(o.provider, o.tier) for o in got] == [("nebius", "spot")]
+    assert [(o.provider, o.tier) for o in got] == [("verda", "spot")]
+    # Nebius's panel entry admits its on-demand tiers only: its spot row never enters, and
+    # its on-demand row still does.
+    nebius = dict(row, provider="nebius", price_usd_per_gpu_hr=2.15)
+    assert normalise_observations([nebius], f, tiers=frozenset({"spot"})) == []
+    assert normalise_observations([dict(nebius, tier="list", price_usd_per_gpu_hr=3.85)], f)
     interruptible = dict(row, tier="interruptible")
     assert normalise_observations([interruptible], f, tiers=frozenset({"spot"})) == []
 
@@ -102,16 +112,26 @@ def test_the_tier_filter_keeps_spot_and_on_demand_apart() -> None:
 def test_the_daily_run_prints_spot_and_its_spread(conn: sqlite3.Connection) -> None:
     _seed(conn, V011)
     compute_all_series(conn, V011)
-    eu, sp = _row(conn, V011, "EU-CRI-H100"), _row(conn, V011, "EU-CRI-H100-SPOT")
-    assert eu["value_usd"] is not None and sp["value_usd"] is not None
-    assert sp["value_usd"] < eu["value_usd"]
-    assert _row(conn, V011, "EU-CRI-H100-SPOTSPREAD")["value_usd"] == round(
-        eu["value_usd"] - sp["value_usd"], 6)
+    od, sp = _row(conn, V011, "EU-CRI-H100-GLOBAL"), _row(conn, V011, "EU-CRI-H100-SPOT-GLOBAL")
+    assert od["value_usd"] is not None and sp["value_usd"] is not None
+    assert sp["value_usd"] < od["value_usd"]
+    assert _row(conn, V011, "EU-CRI-H100-SPOTSPREAD-GLOBAL")["value_usd"] == round(
+        od["value_usd"] - sp["value_usd"], 6)
     cons = {r["provider"]: r["tier"] for r in conn.execute(
-        "SELECT provider, tier FROM constituents WHERE date=? AND series='EU-CRI-H100-SPOT'"
-        " AND included=1", (V011,))}
-    assert set(cons) == {p for p, _s, _pr, _c in EU_SPOT}
+        "SELECT provider, tier FROM constituents WHERE date=?"
+        " AND series='EU-CRI-H100-SPOT-GLOBAL' AND included=1", (V011,))}
+    assert set(cons) == {p for p, *_ in EU_SPOT + WORLD_SPOT}  # Nebius's spot row is not
     assert set(cons.values()) == {"spot"}  # recorded as priced, not relabelled list
+    # The EU/EEA has four spot sellers once Nebius is out: a gap with its reason, and so
+    # is its spread, while the on-demand headline, Nebius included, prints as before.
+    eu_spot = _row(conn, V011, "EU-CRI-H100-SPOT")
+    assert eu_spot["value_usd"] is None and eu_spot["n_sources"] == 4
+    assert "insufficient_sources" in eu_spot["flags"]
+    assert _row(conn, V011, "EU-CRI-H100-SPOTSPREAD")["value_usd"] is None
+    headline = {r[0] for r in conn.execute(
+        "SELECT provider FROM constituents WHERE date=? AND series='EU-CRI-H100'"
+        " AND included=1", (V011,))}
+    assert "nebius" in headline
     # US has no spot seller in this fixture: a gap with its reason, and so is its spread.
     us = _row(conn, V011, "EU-CRI-H100-SPOT-US")
     assert us["value_usd"] is None and "insufficient" in us["flags"]
@@ -167,10 +187,13 @@ def test_before_the_version_values_are_replayed_and_marked_indicative(
     day = "2026-10-01"
     _seed(conn, day)
     replay = spot._Replay(conn)
-    got = spot.daily(conn, "EU-CRI-H100-SPOT", [day], replay)[0]
+    got = spot.daily(conn, "EU-CRI-H100-SPOT-GLOBAL", [day], replay)[0]
     assert got.status == "indicative" and got.value is not None
+    # A replayed gap is a gap too: EU spot has four sellers, and says so.
+    eu = spot.daily(conn, "EU-CRI-H100-SPOT", [day], replay)[0]
+    assert eu.value is None and "insufficient_sources" in eu.flags
     # After the version with no stored print, the day stays empty: never back-filled.
-    after = spot.daily(conn, "EU-CRI-H100-SPOT", ["2026-10-07"], replay)[0]
+    after = spot.daily(conn, "EU-CRI-H100-SPOT-GLOBAL", ["2026-10-07"], replay)[0]
     assert after.value is None and after.status == "none"
 
 
@@ -217,3 +240,19 @@ def test_spot_has_a_nav_tab_and_stays_off_the_intraday_family_section() -> None:
     assert ("spot.html", "Spot") in site.NAV
     series = intraday.load_config().series
     assert set(SPOT_SERIES) <= set(series)  # replayed hourly, for the spot page
+
+
+def test_intake_agrees_that_nebius_spot_is_refused_and_its_on_demand_is_not() -> None:
+    from tci import intake
+
+    f = load_factors(for_date=V011)
+    base = {"provider": "nebius", "source": "gpuhunt", "gpu_model": "H100_SXM",
+            "gpu_count": 8, "country": "FI", "term": "on_demand", "raw_json": "{}"}
+    spot_row = dict(base, tier="spot", price_usd_per_gpu_hr=2.15)
+    od_row = dict(base, tier="list", price_usd_per_gpu_hr=3.85)
+    assert intake.classify(spot_row, f, None, f.eu_eea_countries, "EU_EEA",
+                           frozenset({"spot"})).gate == "not_in_panel"
+    assert intake.classify(od_row, f, None, f.eu_eea_countries).gate == "admitted"
+    # Frozen versions carry no tier restriction, so nothing earlier changes.
+    before = load_factors(for_date="2026-10-05")
+    assert all(e.tiers is None for e in (before.panel or {}).values())
