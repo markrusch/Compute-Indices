@@ -1,17 +1,17 @@
 {
- "generated_utc": "2026-09-29T10:16:01Z",
+ "generated_utc": "2026-09-29T11:13:07Z",
  "note": "Values with status 'indicative' predate the spot series (v0.11.0, effective 2026-10-06) and are replayed, never published as prints. Volatility: standard deviation of daily log changes (spread: of daily USD changes), per day and annualised by sqrt(365); never across a gap.",
  "regions": {
   "eu": {
    "latest": {
-    "breakeven_overhead_pct": 69.33,
-    "date": "2026-09-28",
-    "discount_pct": 40.95,
+    "breakeven_overhead_pct": 65.35,
+    "date": "2026-09-29",
+    "discount_pct": 39.52,
     "on_demand": {
      "flags": "",
-     "n_sources": 7,
+     "n_sources": 8,
      "status": "print",
-     "value_usd": 3.640693
+     "value_usd": 3.555
     },
     "spot": {
      "flags": "no_executable_input",
@@ -23,7 +23,7 @@
      "flags": "",
      "n_sources": 2,
      "status": "indicative",
-     "value_usd": 1.490693
+     "value_usd": 1.405
     }
    },
    "outside_index": [
@@ -33,6 +33,13 @@
      "provider": "azure",
      "tier": "interruptible",
      "why": "Low Priority, a retired product"
+    },
+    {
+     "median_usd": 1.066667,
+     "offers": 5,
+     "provider": "vast.ai",
+     "tier": "interruptible",
+     "why": "min_bid, a bid floor"
     }
    ],
    "segments": [
@@ -54,14 +61,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 78.3,
+     "discount_pct": 76.98,
      "in_spot_population": true,
      "on_demand_usd": 7.3616,
      "pairs": 1,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 1.597163
+     "spot_usd": 1.694613
     },
     {
      "discount_pct": 81.52,
@@ -74,14 +81,14 @@
      "spot_usd": 2.657285
     },
     {
-     "discount_pct": -4.34,
+     "discount_pct": -7.85,
      "in_spot_population": true,
      "on_demand_usd": 5.59612,
      "pairs": 8,
      "provider": "gcp",
      "segment": "hyperscaler",
      "spot_above_on_demand": 4,
-     "spot_usd": 7.634896
+     "spot_usd": 7.773148
     },
     {
      "discount_pct": 44.16,
@@ -113,27 +120,27 @@
     "on_demand": {
      "30d": {
       "annualised": null,
-      "changes": 14,
+      "changes": 15,
       "needed": 20,
       "per_period": null
      },
      "7d": {
-      "annualised": 0.9040730512888266,
+      "annualised": 0.929748146835832,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.047321346281370115
+      "per_period": 0.04866524220377932
      },
      "hourly": {
-      "annualised": 1.2406580200902158,
-      "changes": 77,
+      "annualised": 1.2479927487332982,
+      "changes": 78,
       "needed": 48,
-      "per_period": 0.01325561965266231
+      "per_period": 0.013333986431882517
      }
     },
     "spot": {
      "30d": {
       "annualised": null,
-      "changes": 11,
+      "changes": 12,
       "needed": 20,
       "per_period": null
      },
@@ -145,7 +152,7 @@
      },
      "hourly": {
       "annualised": 0.0,
-      "changes": 71,
+      "changes": 72,
       "needed": 48,
       "per_period": 0.0
      }
@@ -153,29 +160,29 @@
     "spread": {
      "30d": {
       "annualised": null,
-      "changes": 11,
+      "changes": 12,
       "needed": 20,
       "per_period": null
      },
      "7d": {
-      "annualised": 3.2738249097812604,
+      "annualised": 3.3653047023053593,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.171359827615126
+      "per_period": 0.17614809879919627
      }
     }
    }
   },
   "global": {
    "latest": {
-    "breakeven_overhead_pct": 45.77,
-    "date": "2026-09-28",
-    "discount_pct": 31.4,
+    "breakeven_overhead_pct": 43.1,
+    "date": "2026-09-29",
+    "discount_pct": 30.12,
     "on_demand": {
      "flags": "",
-     "n_sources": 8,
+     "n_sources": 9,
      "status": "indicative",
-     "value_usd": 3.555
+     "value_usd": 3.49
     },
     "spot": {
      "flags": "no_executable_input",
@@ -187,7 +194,7 @@
      "flags": "",
      "n_sources": 2,
      "status": "indicative",
-     "value_usd": 1.1162
+     "value_usd": 1.0512
     }
    },
    "outside_index": [
@@ -197,6 +204,13 @@
      "provider": "azure",
      "tier": "interruptible",
      "why": "Low Priority, a retired product"
+    },
+    {
+     "median_usd": 1.066667,
+     "offers": 5,
+     "provider": "vast.ai",
+     "tier": "interruptible",
+     "why": "min_bid, a bid floor"
     }
    ],
    "segments": [
@@ -218,14 +232,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 68.01,
+     "discount_pct": 68.18,
      "in_spot_population": true,
      "on_demand_usd": 8.6,
      "pairs": 12,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.570306
+     "spot_usd": 2.563487
     },
     {
      "discount_pct": 81.52,
@@ -255,7 +269,7 @@
      "provider": "gcp",
      "segment": "hyperscaler",
      "spot_above_on_demand": 10,
-     "spot_usd": 6.570972
+     "spot_usd": 6.587388
     },
     {
      "discount_pct": 44.16,
@@ -297,27 +311,27 @@
     "on_demand": {
      "30d": {
       "annualised": null,
-      "changes": 14,
+      "changes": 15,
       "needed": 20,
       "per_period": null
      },
      "7d": {
-      "annualised": 1.027126074947795,
+      "annualised": 0.9659042577279102,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.053762235914386475
+      "per_period": 0.050557739542653156
      },
      "hourly": {
-      "annualised": 0.7453821867788968,
-      "changes": 77,
+      "annualised": 0.7180816907031801,
+      "changes": 78,
       "needed": 48,
-      "per_period": 0.007963921244866721
+      "per_period": 0.007672233296658088
      }
     },
     "spot": {
      "30d": {
       "annualised": null,
-      "changes": 11,
+      "changes": 12,
       "needed": 20,
       "per_period": null
      },
@@ -328,24 +342,24 @@
       "per_period": 0.0
      },
      "hourly": {
-      "annualised": 0.2560221957855802,
-      "changes": 77,
+      "annualised": 0.254380104235368,
+      "changes": 78,
       "needed": 48,
-      "per_period": 0.0027354297437470446
+      "per_period": 0.002717885069330737
      }
     },
     "spread": {
      "30d": {
       "annualised": null,
-      "changes": 11,
+      "changes": 12,
       "needed": 20,
       "per_period": null
      },
      "7d": {
-      "annualised": 3.7565015178516403,
+      "annualised": 3.5415509024703202,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.19662427596899973
+      "per_period": 0.18537324654239265
      }
     }
    }
@@ -353,7 +367,7 @@
   "us": {
    "latest": {
     "breakeven_overhead_pct": null,
-    "date": "2026-09-28",
+    "date": "2026-09-29",
     "discount_pct": null,
     "on_demand": {
      "flags": "insufficient_sources",
@@ -377,7 +391,7 @@
    "outside_index": [],
    "segments": [
     {
-     "median_spot_usd": 4.570639,
+     "median_spot_usd": 4.571333,
      "segment": "hyperscaler",
      "sellers": 2
     },
@@ -394,14 +408,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 63.08,
+     "discount_pct": 63.04,
      "in_spot_population": true,
      "on_demand_usd": 6.88,
      "pairs": 4,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.570306
+     "spot_usd": 2.563487
     },
     {
      "discount_pct": 59.97,
@@ -421,7 +435,7 @@
      "provider": "gcp",
      "segment": "hyperscaler",
      "spot_above_on_demand": 4,
-     "spot_usd": 6.570972
+     "spot_usd": 6.57918
     }
    ],
    "series": {
