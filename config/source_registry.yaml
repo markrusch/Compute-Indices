@@ -717,21 +717,19 @@ sources:
     gpu_classes: [H100]
     discovered: 2026-09-07
     discovered_via: "tier-3 GetDeploying European name harvest"
-    last_reviewed: 2026-09-25
+    last_reviewed: 2026-09-28
     access_basis: >-
       Public, unauthenticated JSON API (confirmed live 2026-09-25), named by Leafcloud's
       own support reply as "the source of truth" for pricing. Single self-operated
       datacentre (Amsterdam, ams-1) per their own site, so every row is deliverable in NL.
     reason: >-
-      No longer a lead. GET https://pricing.leaf.cloud lists 57 instance flavors with no
-      key; one is eg1.h100x1.V24_96, a single H100 80GB. Their product page states 700W
-      TDP for it, which is the SXM5 figure (PCIe H100 is 350W) -- read as the reference
-      variant pending their confirmation. Two things unresolved before this could feed a
-      collector: the API returns bare numbers with no currency field (their site shows EUR
-      elsewhere, unconfirmed for this endpoint), and the API's price for that flavor
-      (4.1184) does not match the EUR 3.15/hour their own leaf.cloud/pricing comparison
-      table quotes for H100 -- asked which is the on-demand rate on 2026-09-25.
-    recheck: "Leafcloud's answer on currency and which H100 price (API vs. comparison table) is the on-demand rate"
+      Both open questions answered by Leafcloud support 2026-09-28: pricing.leaf.cloud is
+      EUR, and the correct on-demand H100 rate is EUR 3.15/hour -- the API's
+      eg1.h100x1.V24_96 figure (4.1184) was stale, from before a discount, and Leafcloud
+      says the endpoint will catch up "in the upcoming days." A wider GPU price cut is
+      also coming, to be reflected in the same API. Not built yet: reading it now would
+      risk publishing the stale pre-discount number the endpoint still returns.
+    recheck: "pricing.leaf.cloud returning 3.15 for eg1.h100x1.V24_96 (or its post-cut successor)"
 
   - id: exoscale
     name: Exoscale
@@ -743,11 +741,17 @@ sources:
     gpu_classes: []
     discovered: 2026-09-07
     discovered_via: "tier-3 GetDeploying European name harvest"
-    last_reviewed: 2026-09-07
+    last_reviewed: 2026-09-29
     reason: >-
-      Lead only. Swiss, so outside the EEA and outside the headline by definition -- but
-      the CH shadow block exists precisely for this.
-    recheck: "a public on-demand H100-class hourly rate"
+      Still fails gate 2. Exoscale's support explicitly permitted automated reads of
+      exoscale.com/pricing and exoscale.com/gpu "as long as you don't perform many
+      hundreds of requests per second" (2026-09-29), but the GPU catalog checked that day
+      is V100, A40, A5000, RTX 6000 and 3080 Ti, none in factors.yaml:model_classes, plus
+      NVIDIA B300 (in-scope) whose page states "pricing available on request" rather than
+      a number. Swiss zone is CH-GVA-2; other zones seen (DE-FRA-1, AT-VIE-1/2, HR-ZAG-1)
+      are EU/EEA but weren't checked for GPU availability. Asked whether B300 pricing
+      would carry the same permission once public.
+    recheck: "a published on-demand rate for B300, or any H100/H200/B200/A100 SXM offering"
 
   - id: elastx
     name: Elastx
