@@ -1,12 +1,12 @@
 {
- "generated_utc": "2026-09-29T08:21:26Z",
+ "generated_utc": "2026-09-29T08:27:10Z",
  "note": "Values with status 'indicative' predate the spot series (v0.11.0, effective 2026-10-06) and are replayed, never published as prints. Volatility: standard deviation of daily log changes (spread: of daily USD changes), per day and annualised by sqrt(365); never across a gap.",
  "regions": {
   "eu": {
    "latest": {
-    "breakeven_overhead_pct": null,
+    "breakeven_overhead_pct": 69.33,
     "date": "2026-09-28",
-    "discount_pct": null,
+    "discount_pct": 40.95,
     "on_demand": {
      "flags": "",
      "n_sources": 7,
@@ -14,16 +14,16 @@
      "value_usd": 3.640693
     },
     "spot": {
-     "flags": "insufficient_sources",
-     "n_sources": 4,
+     "flags": "no_executable_input",
+     "n_sources": 5,
      "status": "indicative",
-     "value_usd": null
+     "value_usd": 2.15
     },
     "spread": {
      "flags": "",
-     "n_sources": 0,
-     "status": "gap",
-     "value_usd": null
+     "n_sources": 2,
+     "status": "indicative",
+     "value_usd": 1.490693
     }
    },
    "outside_index": [
@@ -42,9 +42,9 @@
      "sellers": 3
     },
     {
-     "median_spot_usd": 1.7775,
+     "median_spot_usd": 1.96375,
      "segment": "neocloud",
-     "sellers": 1
+     "sellers": 2
     },
     {
      "median_spot_usd": null,
@@ -82,6 +82,16 @@
      "segment": "hyperscaler",
      "spot_above_on_demand": 4,
      "spot_usd": 7.634896
+    },
+    {
+     "discount_pct": 44.16,
+     "in_spot_population": true,
+     "on_demand_usd": 3.85,
+     "pairs": 1,
+     "provider": "nebius",
+     "segment": "neocloud",
+     "spot_above_on_demand": 0,
+     "spot_usd": 2.15
     },
     {
      "discount_pct": 50.0,
@@ -123,44 +133,44 @@
     "spot": {
      "30d": {
       "annualised": null,
-      "changes": 0,
+      "changes": 11,
       "needed": 20,
       "per_period": null
      },
      "7d": {
-      "annualised": null,
-      "changes": 0,
+      "annualised": 0.0,
+      "changes": 7,
       "needed": 5,
-      "per_period": null
+      "per_period": 0.0
      },
      "hourly": {
-      "annualised": null,
-      "changes": 0,
+      "annualised": 0.0,
+      "changes": 69,
       "needed": 48,
-      "per_period": null
+      "per_period": 0.0
      }
     },
     "spread": {
      "30d": {
       "annualised": null,
-      "changes": 0,
+      "changes": 11,
       "needed": 20,
       "per_period": null
      },
      "7d": {
-      "annualised": null,
-      "changes": 0,
+      "annualised": 3.2738249097812604,
+      "changes": 7,
       "needed": 5,
-      "per_period": null
+      "per_period": 0.171359827615126
      }
     }
    }
   },
   "global": {
    "latest": {
-    "breakeven_overhead_pct": 44.29,
+    "breakeven_overhead_pct": 45.77,
     "date": "2026-09-28",
-    "discount_pct": 30.69,
+    "discount_pct": 31.4,
     "on_demand": {
      "flags": "",
      "n_sources": 8,
@@ -169,15 +179,15 @@
     },
     "spot": {
      "flags": "no_executable_input",
-     "n_sources": 6,
+     "n_sources": 7,
      "status": "indicative",
-     "value_usd": 2.4638
+     "value_usd": 2.4388
     },
     "spread": {
      "flags": "",
      "n_sources": 2,
      "status": "indicative",
-     "value_usd": 1.0912
+     "value_usd": 1.1162
     }
    },
    "outside_index": [
@@ -196,9 +206,9 @@
      "sellers": 3
     },
     {
-     "median_spot_usd": 1.99,
+     "median_spot_usd": 2.07,
      "segment": "neocloud",
-     "sellers": 3
+     "sellers": 4
     },
     {
      "median_spot_usd": null,
@@ -246,6 +256,16 @@
      "segment": "hyperscaler",
      "spot_above_on_demand": 10,
      "spot_usd": 6.570972
+    },
+    {
+     "discount_pct": 44.16,
+     "in_spot_population": true,
+     "on_demand_usd": 3.85,
+     "pairs": 1,
+     "provider": "nebius",
+     "segment": "neocloud",
+     "spot_above_on_demand": 0,
+     "spot_usd": 2.15
     },
     {
      "discount_pct": 50.13,
@@ -308,10 +328,10 @@
       "per_period": 0.0
      },
      "hourly": {
-      "annualised": 0.262978066650185,
-      "changes": 69,
+      "annualised": 0.259404090233802,
+      "changes": 75,
       "needed": 48,
-      "per_period": 0.0028097486753471744
+      "per_period": 0.002771563074435399
      }
     },
     "spread": {
@@ -322,10 +342,10 @@
       "per_period": null
      },
      "7d": {
-      "annualised": 3.756501517851639,
+      "annualised": 3.7565015178516403,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.19662427596899967
+      "per_period": 0.19662427596899973
      }
     }
    }
