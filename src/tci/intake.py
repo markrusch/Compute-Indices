@@ -125,7 +125,7 @@ def classify(
         return verdict("not_a_reference_variant")
     model_class, factor = entry
 
-    if not factors.admits(provider, source, model_class, block_id, str(row["tier"])):
+    if not factors.admits(provider, source, model_class, block_id):
         return verdict("not_in_panel", model_class)
     if row["term"] != factors.reference_unit.term:
         return verdict("term_not_reference", model_class)

@@ -41,7 +41,7 @@ printed on the headline's date, so none of these fixes moves a number already ou
 
 - **Spot series.** EU-CRI-H100-SPOT, -SPOT-US and -SPOT-GLOBAL, the headline's
   calculation over rows stored as tier `spot`: AWS, Google Cloud, Azure Spot, CoreWeave,
-  Verda, and Together's preemptible rate, which its collector now stores as well.
+  Nebius, Verda, and Together's preemptible rate, which its collector now stores as well.
   Population every segment, because the spot market is mostly the hyperscalers'. Azure's
   Low Priority rows and vast.ai's `min_bid` stay out.
 - **Spread series.** EU-CRI-H100-SPOTSPREAD, -SPOTSPREAD-US and -SPOTSPREAD-GLOBAL, on-demand
@@ -51,25 +51,22 @@ printed on the headline's date, so none of these fixes moves a number already ou
   take it. A constituent's recorded tier is now the tier it was priced from rather than
   always `list` when not executable; every existing print records the same tiers as
   before, and all reproduce.
-- **Measured** on the stored 24–26 September observations, as amended: EU spot a gap each
-  day (four providers); Global spot $2.44/GPU-hr each day (six), $1.41, $1.34 and $1.05
-  below Global on-demand; US spot a gap (three).
-- **Amended 29 September, before the effective date: Nebius's spot rows are out.** The spot
-  page looked frozen: the EU value was $2.15 at every hourly read for two days while AWS
-  moved between $1.44 and $1.66 and Verda between $1.76 and $1.78. The median sat on
-  Nebius, whose catalogue spot row read a constant $2.15 from 17 to 28 September. Nebius's
-  own page says its spot price is dynamic, changes as often as every 15 minutes, shows the
-  current rate only in its console, and publishes a floor of "from $0.79". A price nobody
-  outside can check fails the first admission gate, so a panel entry may now carry `tiers`
-  and Nebius's is its on-demand tiers only (`$3.85`, which does match its page). Every other
-  spot input was checked against its seller the same day: Azure's retail API ($21.26 per
-  8-GPU hour, effective 1 December 2025), CoreWeave's page ($19.71), Verda's page ($1.78),
-  Google's Spot VM page ($52.96 per a3-highgpu-8g hour, $6.62/GPU-hr) and Together's page
-  ($1.99) all match what is stored, and the gpuhunt catalogue was that day's build. Those
-  prices are flat at the source, and the Global spot value sits on CoreWeave's, so it will
-  stay flat until a moving seller crosses the median. No print existed under 0.11.0; its
-  recorded hash was withdrawn from `METHODOLOGY.lock` and recorded again.
+- **Measured** on the stored 24–26 September observations: EU spot $2.15/GPU-hr each day
+  (five providers), 44.2%, 43.0% and 38.4% below EU on-demand; Global spot $2.38, $2.38,
+  $2.43 (seven); US spot a gap (three). The EU value sits on Nebius's fixed rate on all
+  three days, so its day-to-day volatility is near zero until more sellers move.
 - 0.10.0 frozen under `config/methodology/0.10.0/`.
+- **Every spot input checked against its seller on 29 September.** Azure's retail API
+  ($2.6573 and $2.9525 per GPU-hour, Linux meters, all four regions), CoreWeave's page
+  ($19.71 and $19.51 per 8-GPU hour), Together's page ($1.99), Verda's page ($1.78) and
+  Google's Spot VM page (a3-highgpu-8g $6.62 per GPU-hour) match what is stored. AWS spot
+  is EC2's `DescribeSpotPriceHistory` at the catalogue build, the cheapest zone per region;
+  AWS's own public spot page still lists p5.48xlarge at $57.76 an hour, above today's
+  on-demand $55.04, and is not a usable check. Nebius's rate comes from its own price
+  calculator API, the source its pricing page names for current spot prices. For about an
+  hour that day notice 2026-N8 said Nebius's spot rows were left out, on the reading that
+  the flat $2.15 was not a current price; that reading was wrong, and the notice and the
+  parameters are back as announced. No print was ever computed without them.
 
 ## 0.10.0 — announced 2026-09-27, effective 2026-10-05 (notice 2026-N7)
 

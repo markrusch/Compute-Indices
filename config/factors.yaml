@@ -76,12 +76,7 @@ panel:
                                                   gpuhunt: [H100]}}
   oci:           {segment: hyperscaler, sources: {gpuhunt: [H100, H200, B200, A100]}}
   scaleway:      {segment: neocloud, sources: {scaleway: [H100, H100P, B300]}}
-  # v0.11.0 (notice 2026-N8, amended 29 September): on-demand only. Nebius prices spot
-  # dynamically, "as frequently as every 15 minutes", and shows the current rate only in
-  # its console; the public page gives a floor ("from $0.79" for H100 on 29 September).
-  # The catalogue row read a constant $2.15 for three weeks, which is neither.
-  nebius:        {segment: neocloud, sources: {gpuhunt: [H100, H200, B200, B300]},
-                  tiers: [executable, list]}
+  nebius:        {segment: neocloud, sources: {gpuhunt: [H100, H200, B200, B300]}}
   verda:         {segment: neocloud, sources: {gpuhunt: [H100, H200, B200, B300, A100]}}
   lambdalabs:    {segment: neocloud, sources: {gpuhunt: [H100, H200, B200, A100]}}
   ovhcloud:      {segment: neocloud, sources: {ovh: [H100P, H200]}}

@@ -104,7 +104,7 @@ def unadmitted_providers(
         if entry is None:
             continue
         model_class = entry[0]
-        if factors.admits(row["provider"], row["source"], model_class, block_id, row["tier"]):
+        if factors.admits(row["provider"], row["source"], model_class, block_id):
             continue
         if row["term"] != factors.reference_unit.term or row["tier"] not in tiers:
             continue
@@ -157,8 +157,7 @@ def normalise_observations(
         # The explicit panel: a row enters only if its provider, the collector that
         # observed it, and its class are all named in the version's panel. Everything
         # else is stored and audited but cannot move a print.
-        if not factors.admits(row["provider"], row["source"], model_class, block_id,
-                              row["tier"]):
+        if not factors.admits(row["provider"], row["source"], model_class, block_id):
             continue
 
         if row["term"] != reference.term:
