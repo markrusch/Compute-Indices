@@ -20,7 +20,7 @@ The order follows what a buyer of a benchmark checks first.
 |---|---|---|
 | 1. Benchmark governance | Can this number be trusted, and who checks it? | `iosco-self-assessment.md`, `oversight-panel-terms.md`, `conflicts-of-interest-policy.md`, `contributor-code-of-conduct.md`, `record-keeping-policy.md` |
 | 2. Personal data | Is personal data handled lawfully? | `gdpr-records-of-processing.md`, `gdpr-processors.md`, `dpia-contributed-prices.md`, `personal-data-breach-procedure.md`, `data-subject-requests.md` |
-| 3. Information security | Can a number be tampered with, or contributed data leak? | `information-security-policy.md`, `../../SECURITY.md` |
+| 3. Information security | Can a number be tampered with, or contributed data leak? | `information-security-policy.md`, `SECURITY.draft.md` (moves to the repo root as `SECURITY.md` on adoption) |
 | 4. Reuse for audits | What would a later ISO 27001 or SOC 2 audit reuse? | `control-framework-map.md` |
 
 ## Frameworks deliberately not pursued yet
