@@ -3,6 +3,34 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Build and test time — 2026-09-30 — no methodology change
+
+All 688 stored prints recompute unchanged, all 1,388 published digests match, and the
+site built from a copy of the record at a fixed clock is byte-identical before and after.
+Nothing in `index.py`, `normalise.py` or `weights.py` was touched.
+
+- **`observations` had no index on `run_id`.** Every read of a day's rows joins on it, so
+  each was a full scan of 40,244 rows with their `raw_json`, about 50 ms a date and
+  growing by some 2,000 rows a session. Migration 0012 adds the index. The queries that
+  feed a calculation now say `ORDER BY o.id`: they returned rowid order only because the
+  planner scanned, and the new plan would otherwise have handed rows over grouped by run,
+  which is enough to move a floating-point sum.
+- **factors.yaml was parsed about a hundred times per site build.** Every print computed
+  with `for_date` reloads its parameter set, and the intraday replay does that per source
+  per read. Parsing is now memoised on the file's text, so an edited file is still read
+  afresh; a third of the build was YAML.
+- **The intraday log encoded each row three times per book** when loading. Once is enough.
+- **The forward estimator fetched each day's observations once per version** (1,241
+  fetches of about 75 days). `record_forward` goes from 10.2 s to 3.2 s.
+- **The site tests replayed the real intraday log.** The `built` fixture in
+  `test_site.py` uses a three-print database, but the intraday page still read the
+  committed `data/intraday/` against the wall clock, so each of about 40 tests spent 8 of
+  its 9 seconds there and rendered a page that depended on the day the suite ran. It now
+  reads an empty store; `test_intraday.py` covers the populated page.
+
+Site generation on the full record: 13.7 s to 5.9 s. `reproduce`: 10.2 s to 2.4 s. The
+test suite: 6 min 17 s to 1 min 18 s.
+
 ## Four output and storage defects — 2026-09-27 — no methodology change
 
 Every stored print recomputes unchanged and every published digest still matches. All

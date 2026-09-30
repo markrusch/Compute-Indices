@@ -1,0 +1,13 @@
+-- An index on observations(run_id).
+--
+-- Every read of a day's observations joins `observations` to `runs` on run_id, and until
+-- now nothing indexed that column, so each one scanned the whole table, raw_json and all:
+-- about 50 ms per date at 40,000 rows, growing by roughly 2,000 rows a session. A reproduce
+-- of the record makes some 1,800 of those reads, the weekly weight review one per window
+-- day, and the intraday replay one per fixing run.
+--
+-- The index changes no stored value and no print. The queries that feed a calculation
+-- carry `ORDER BY o.id`, so they return rows in the order the full scan used to; without
+-- that, the new plan (runs first, then observations per run) would reorder them, and the
+-- order of a floating-point sum is enough to move a digest.
+CREATE INDEX IF NOT EXISTS idx_observations_run ON observations (run_id);

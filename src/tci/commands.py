@@ -161,7 +161,7 @@ def _failed_print(utc_date: str, series: str, fx: tuple[float, str] | None) -> I
 def _observations_for_date(conn: sqlite3.Connection, utc_date: str) -> list[sqlite3.Row]:
     return conn.execute(
         "SELECT o.* FROM observations o JOIN runs r ON o.run_id = r.run_id"
-        " WHERE r.utc_date = ?",
+        " WHERE r.utc_date = ? ORDER BY o.id",
         (utc_date,),
     ).fetchall()
 

@@ -265,7 +265,7 @@ TERM_SEGMENT_FALLBACK = {
 def _term_rows(conn: sqlite3.Connection, date: str) -> list[sqlite3.Row]:
     return conn.execute(
         "SELECT o.* FROM observations o JOIN runs r ON o.run_id = r.run_id"
-        " WHERE r.utc_date = ?",
+        " WHERE r.utc_date = ? ORDER BY o.id",
         (date,),
     ).fetchall()
 

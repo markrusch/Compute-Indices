@@ -120,7 +120,7 @@ class _Replay:
         if day not in self._rows:
             self._rows[day] = self.conn.execute(
                 "SELECT o.* FROM observations o JOIN runs r ON o.run_id = r.run_id"
-                " WHERE r.utc_date = ? AND r.status = 'ok'", (day,)).fetchall()
+                " WHERE r.utc_date = ? AND r.status = 'ok' ORDER BY o.id", (day,)).fetchall()
         return self._rows[day]
 
     def value(self, series: str, day: str) -> DayValue:
