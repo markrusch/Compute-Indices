@@ -104,8 +104,11 @@ series:
   - EU-CRI-H100-MKT
   - EU-CRI-H100-NC
   - EU-CRI-H100-HS
+  # One class series per GPU, each behind its own tab on intraday.html. Priced in the
+  # EU/EEA only: no version defines a US or Global series for them.
   - EU-CRI-H200
   - EU-CRI-B200
+  - EU-CRI-B300
   - EU-CRI-A100
   - EU-CRI-H100-PCIE
 

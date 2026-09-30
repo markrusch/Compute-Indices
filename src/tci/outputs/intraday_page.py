@@ -32,9 +32,25 @@ CHART_DAYS = 7
 MAX_JOIN_HOURS = 2.5  # two points further apart than this are not joined by a line
 
 DESCRIPTION = (
-    "The TCI H100 index for the EU, the US and every country, recomputed at every hourly "
-    "read of its sources, beside the published 11:00 UTC fixing, with a settlement-window "
-    "average for comparison."
+    "The TCI GPU indices recomputed at every hourly read of their sources: H100 for the EU, "
+    "the US and every country, and the H100 PCIe, H200, B200, B300 and A100 series for the "
+    "EU/EEA, beside the published 11:00 UTC fixing, with a settlement-window average for "
+    "comparison."
+)
+
+# The GPU selector, in tab order: (key, tab label, stored series). One class series per GPU,
+# the same set the landing page's headline table lists. Only H100 has regional series
+# (factors.yaml `regional_series`), so only its panel carries the EU / US / Global tabs; the
+# rest are priced in the EU/EEA alone. A US or Global H200 would be a new series under a new
+# methodology version, not something this page may replay into existence. A GPU whose series
+# the intraday config does not name gets no tab.
+GPUS: tuple[tuple[str, str, str], ...] = (
+    ("h100", "H100 SXM", "EU-CRI-H100"),
+    ("h100p", "H100 PCIe", "EU-CRI-H100-PCIE"),
+    ("h200", "H200", "EU-CRI-H200"),
+    ("b200", "B200", "EU-CRI-B200"),
+    ("b300", "B300", "EU-CRI-B300"),
+    ("a100", "A100", "EU-CRI-A100"),
 )
 
 
@@ -194,8 +210,7 @@ def render(ctx: Any, built: Built | None = None) -> str:
                      "could not be built from the stored reads on this run. The index and "
                      "every other page are unaffected.</p></div>")
     return s._shell(ctx, title=f"Intraday — {s.BRAND}", description=DESCRIPTION,
-                    current="intraday.html", body=body,
-                    extra_js=CONS_JS + "\n" + s.REGION_JS)
+                    current="intraday.html", body=body, extra_js=CONS_JS + "\n" + PICK_JS)
 
 
 def _hhmm(t: datetime) -> str:
@@ -386,6 +401,37 @@ if(!c)return;try{if(localStorage.getItem(k)==='0')c.checked=false;}catch(e){}
 c.addEventListener('change',function(){try{localStorage.setItem(k,c.checked?'1':'0');}catch(e){}});})();"""
 
 
+# Keeps the GPU and region in the address so a link opens on them: #h200, #h100-us. A bare
+# #us or #global still opens H100 on that region, which is what the landing page links to.
+# Replaces site.REGION_JS on this page, which knows only the region. The selectors work
+# without it; this only remembers.
+PICK_JS = """(function(){var g=document.querySelectorAll('input[name=gpu]'),
+r=document.querySelectorAll('input[name=region]');if(!g.length&&!r.length)return;
+function pick(n,v){var i=document.querySelector('input[name='+n+'][value="'+v+'"]');
+if(i){i.checked=true;return true;}return false;}
+(location.hash||'').slice(1).split('-').forEach(function(t){pick('gpu',t)||pick('region',t);});
+function val(n){var i=document.querySelector('input[name='+n+']:checked');return i?i.value:'';}
+function save(){if(!history.replaceState)return;var gv=val('gpu')||'h100',rv=val('region');
+history.replaceState(null,'','#'+gv+(gv==='h100'&&rv&&rv!=='eu'?'-'+rv:''));}
+[].forEach.call(g,function(i){i.addEventListener('change',save);});
+[].forEach.call(r,function(i){i.addEventListener('change',save);});})();"""
+
+
+def _gpus(cfg: intraday.IntradayConfig) -> list[tuple[str, str, str]]:
+    return [g for g in GPUS if g[2] in cfg.series]
+
+
+def gpu_tabs(gpus: list[tuple[str, str, str]]) -> str:
+    """The GPU selector: the same segmented radios as the region tabs, so it works with
+    scripting off and from the keyboard. site.css swaps the .gpanel blocks with :has()."""
+    tabs = "".join(
+        f'<input type="radio" id="gpu-{key}" name="gpu" value="{key}"'
+        f'{" checked" if i == 0 else ""}><label for="gpu-{key}">{label}</label>'
+        for i, (key, label, _series) in enumerate(gpus)
+    )
+    return f'<fieldset class="seg seg--gpu"><legend class="vh">GPU</legend>{tabs}</fieldset>'
+
+
 def _palette(built: Built, series: str, since: datetime) -> list[tuple[str, str]]:
     """(provider, colour) for every constituent of `series` in the window.
 
@@ -556,7 +602,8 @@ def _start_note(s: Any, series: str, indicative: frozenset[datetime]) -> str:
             "grey and marked in every tooltip. They are never stored as prints.</p></div>")
 
 
-def _region_panel(s: Any, built: Built, key: str, long: str, series: str) -> str:
+def _region_panel(s: Any, built: Built, key: str, long: str, series: str,
+                  cls: str | None = None) -> str:
     now = built.now
     day_start = now - timedelta(hours=24)
     week_start = now - timedelta(days=CHART_DAYS)
@@ -575,7 +622,7 @@ def _region_panel(s: Any, built: Built, key: str, long: str, series: str) -> str
 
     legend = _cons_legend(s, _cons(built, series, week_start, palette), day_start)
     return (
-        f'<div class="rpanel rpanel--{key}"><div class="card"><div class="card__body">'
+        f'<div class="{cls or f"rpanel rpanel--{key}"}"><div class="card"><div class="card__body">'
         f'<h3 class="section__h">{s._e(sym)} <span class="u">&#183; {s._e(long)}</span></h3>'
         + _start_note(s, series, ind)
         + '<h4 class="rpanel__h">Last 24 hours</h4>' + pair(day_start, True)
@@ -584,6 +631,83 @@ def _region_panel(s: Any, built: Built, key: str, long: str, series: str) -> str
         + _table_view(s, built, series, day_start)
         + _cons_table(s, built, series, day_start, palette) + "</div></div></div>"
     )
+
+
+def _gap_panel(s: Any, built: Built, key: str, long: str, series: str) -> str | None:
+    """A series with no value at any read in the chart window, stated once in words.
+
+    Two empty charts and an empty constituent table would say the same thing three times
+    and still not say why. This says why, with the provider count at each read against
+    the gate, so a reader can see how far the series is from printing. None when the
+    series has a value anywhere in the window: then it gets the full panel.
+    """
+    from collections import Counter
+
+    from tci import config
+
+    week_start = built.now - timedelta(days=CHART_DAYS)
+    vals = [sn.values[series] for sn in built.snapshots
+            if sn.at >= week_start and series in sn.values]
+    if any(v[0] is not None for v in vals):
+        return None
+    sym = s.display_series(series)
+    head = (f'<div class="gpanel gpanel--{key}"><div class="card"><div class="card__body">'
+            f'<h3 class="section__h">{s._e(sym)} <span class="u">&#183; {s._e(long)}'
+            "</span></h3>")
+    if not vals:
+        note = (f"No read in the last {CHART_DAYS} days priced this series, so there is "
+                "nothing to draw.")
+    else:
+        reasons = Counter(s._flag_words(v[3]) or "no value" for v in vals)
+        counts = [v[2] for v in vals]
+        latest = built.snapshots[-1]
+        gate = config.load_factors(
+            for_date=latest.at.strftime("%Y-%m-%d")).aggregation.min_providers
+        lo, hi = min(counts), max(counts)
+        quoted = f"{lo}" if lo == hi else f"between {lo} and {hi}"
+        if set(reasons) == {s.FLAG_TEXT["insufficient_sources"]}:
+            why = (f"Every one was below the provider gate: the series needs {gate} "
+                   f"providers, and {quoted} were admitted at these reads, "
+                   f"{latest.values.get(series, (None, None, 0, ''))[2]} at the latest.")
+        else:
+            why = "Why each gapped: " + "; ".join(
+                f"{s._e(r)} ({n} read{'s' if n != 1 else ''})"
+                for r, n in reasons.most_common()) + "."
+        note = (f"No value at any of the {len(vals)} reads in the last {CHART_DAYS} days. "
+                f"{why} Nothing is drawn in place of a value.")
+    return (head + '<div class="gapnote">' + s._icon("warn", 14) + f"<p>{note} This "
+            "series is priced in the EU/EEA only.</p></div>"
+            + _table_view(s, built, series, built.now - timedelta(hours=24))
+            + "</div></div></div>")
+
+
+def _gpu_panel(s: Any, built: Built, key: str, series: str) -> str:
+    """One GPU's panel. H100 carries the region tabs and a panel per region; every other
+    GPU has a single EU/EEA series and so one panel, full or, if it never printed in the
+    window, the gap summary. Built on its own so a failure costs this GPU only."""
+    long = s.SERIES_LABEL.get(series, "EU/EEA")
+    try:
+        if key == "h100":
+            panels = []
+            for rkey, label, rlong, rseries in s.REGIONS:
+                try:
+                    panels.append(_region_panel(s, built, rkey, rlong, rseries))
+                except Exception:  # noqa: BLE001
+                    log.exception("intraday page: %s panel not built", rseries)
+                    panels.append(
+                        f'<div class="rpanel rpanel--{rkey}"><div class="gapnote">'
+                        + s._icon("warn", 14) + f"<p>The {s._e(label)} panel could not be "
+                        "built on this run. The other regions are unaffected.</p></div></div>")
+            return (f'<div class="gpanel gpanel--{key}"><div class="rtabs">'
+                    + s.region_tabs() + "</div>" + "".join(panels) + "</div>")
+        return (_gap_panel(s, built, key, f"EU/EEA · {long}", series)
+                or _region_panel(s, built, key, f"EU/EEA · {long}", series,
+                                 cls=f"gpanel gpanel--{key}"))
+    except Exception:  # noqa: BLE001
+        log.exception("intraday page: %s panel not built", series)
+        return (f'<div class="gpanel gpanel--{key}"><div class="gapnote">'
+                + s._icon("warn", 14) + f"<p>The {s._e(s.display_series(series))} panel "
+                "could not be built on this run. The other GPUs are unaffected.</p></div></div>")
 
 
 def _body(s: Any, built: Built) -> str:
@@ -600,31 +724,24 @@ def _body(s: Any, built: Built) -> str:
     day_start = now - timedelta(hours=24)
     week_start = now - timedelta(days=CHART_DAYS)
 
-    # One panel per region, each built on its own so a failure in one (a series the config
-    # names but no version defines, say) costs that panel and not the page.
-    panels = []
-    for key, label, long, series in s.REGIONS:
-        try:
-            panels.append(_region_panel(s, built, key, long, series))
-        except Exception:  # noqa: BLE001
-            log.exception("intraday page: %s panel not built", series)
-            panels.append(f'<div class="rpanel rpanel--{key}"><div class="gapnote">'
-                          + s._icon("warn", 14) + f"<p>The {s._e(label)} panel could not be "
-                          "built on this run. The other regions are unaffected.</p></div></div>")
+    gpus = _gpus(cfg)
+    picker = f'<div class="gtabs">{gpu_tabs(gpus)}</div>' if len(gpus) > 1 else ""
     main = _section(
-        "s-path", "The H100 index through the day, by region",
-        "USD per GPU-hour, times in UTC. EU is the EU/EEA headline; US and Global are the "
-        "same calculation over US offers and over every country. A break in a line is a read "
-        "that gapped, a sweep that did not run, or for a constituent a read it was not part "
-        "of; nothing is drawn across it. Each constituent is drawn at its own price in the "
-        "index at that read.",
-        '<div class="rtabs">' + s.region_tabs() + "</div>" + "".join(panels))
+        "s-path", "The index through the day, by GPU and region",
+        "USD per GPU-hour, times in UTC. Pick a GPU, then for H100 a region: EU is the "
+        "EU/EEA headline; US and Global are the same calculation over US offers and over "
+        "every country. The other GPUs are priced in the EU/EEA only. A break in a line is a "
+        "read that gapped, a sweep that did not run, or for a constituent a read it was not "
+        "part of; nothing is drawn across it. Each constituent is drawn at its own price in "
+        "the index at that read.",
+        picker + "".join(_gpu_panel(s, built, key, series) for key, _l, series in gpus))
 
     # The spot series have their own page (spot.html), built from the same replay.
     from tci.spot import REGIONS as SPOT_REGIONS
 
     regional = ({series for _k, _l, _g, series in s.REGIONS}
-                | {r.spot for r in SPOT_REGIONS} | {r.spread for r in SPOT_REGIONS})
+                | {r.spot for r in SPOT_REGIONS} | {r.spread for r in SPOT_REGIONS}
+                | {series for _k, _l, series in gpus})
     others = []
     for series in cfg.series:
         if series in regional:
@@ -643,7 +760,7 @@ def _body(s: Any, built: Built) -> str:
         others.append(
             f'<div class="card"><div class="card__body"><h3 class="section__h">{s._e(name)}'
             f'</h3>{chart}<div class="cons-on">{fam_legend}</div></div></div>')
-    other = _section("s-family", f"The EU/EEA family, last {CHART_DAYS} days",
+    other = _section("s-family", f"H100 by segment, EU/EEA, last {CHART_DAYS} days",
                      "Only series with at least one value in the window are drawn. A series "
                      "that gapped at every read is left out rather than drawn flat.",
                      "".join(others)) if others else ""
@@ -694,16 +811,24 @@ def _settlement_table(s: Any, built: Built, series: str) -> str:
 
 def _settlement(s: Any, built: Built) -> str:
     w = built.cfg.settlement
-    panels = "".join(
+    region = "".join(
         f'<div class="rpanel rpanel--{key}"><h3 class="section__h">'
         f"{s._e(s.display_series(series))} <span class=\"u\">&#183; {s._e(long)}</span></h3>"
         + _settlement_table(s, built, series) + "</div>"
         for key, _label, long, series in s.REGIONS
     )
+    panels = "".join(
+        f'<div class="gpanel gpanel--{key}">' + (
+            region if key == "h100" else
+            f'<h3 class="section__h">{s._e(s.display_series(series))} <span class="u">'
+            "&#183; EU/EEA</span></h3>" + _settlement_table(s, built, series))
+        + "</div>"
+        for key, _label, series in _gpus(built.cfg)
+    )
     return _section(
         "s-settle", "A settlement window, against the fixing",
         f"The {w.method} of every reconstructed value from {w.start} to {w.end} UTC, beside "
-        f"the 11:00 fixing as published, for the region chosen above. At least "
+        f"the 11:00 fixing as published, for the GPU and region chosen above. At least "
         f"{w.min_points} values are required; with fewer the window has no value, and no "
         "earlier one is carried in. Before a series takes effect it has no fixing, so its "
         "window averages indicative values and the fixing column is empty. Shown to measure "
