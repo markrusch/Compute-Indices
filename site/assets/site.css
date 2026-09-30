@@ -1618,6 +1618,26 @@ main:has(#cons-toggle:not(:checked)) .cons-off { display: block; }
   main:has(#region-us:checked) .rpanel--us,
   main:has(#region-global:checked) .rpanel--global { display: block; }
 }
+
+/* ---- GPU TABS (intraday.html; CSS-only) --------------------------------- */
+/* H100 SXM / H100 PCIe / H200 / B200 / B300 / A100, above the region tabs. Same pattern:
+   every GPU's panel is in the markup and the radios pick one. The hiding is keyed on the
+   selector being present, so a page built with one GPU and no selector never hides its
+   only panel, and it sits inside @supports for the same reason as the region tabs. Only
+   H100 has regional series, so its panel alone carries the region tabs. Six labels do not
+   fit one row at 390px; they wrap rather than scroll. */
+.gtabs { margin: 0 0 var(--space-4); }
+.seg--gpu { flex-wrap: wrap; }
+.seg--gpu label { font-size: var(--text-xs); padding: 6px var(--space-5); }
+@supports selector(:has(a)) {
+  main:has(.seg--gpu) .gpanel { display: none; }
+  main:has(#gpu-h100:checked) .gpanel--h100,
+  main:has(#gpu-h100p:checked) .gpanel--h100p,
+  main:has(#gpu-h200:checked) .gpanel--h200,
+  main:has(#gpu-b200:checked) .gpanel--b200,
+  main:has(#gpu-b300:checked) .gpanel--b300,
+  main:has(#gpu-a100:checked) .gpanel--a100 { display: block; }
+}
 /* Before a regional series takes effect its replayed values are indicative: the same
    solid stroke in the de-emphasis grey, never dashed (DESIGN.md §3), and named in words
    in the legend, the tooltip and the note above the chart. */

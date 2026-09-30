@@ -281,3 +281,66 @@ def test_intraday_page_has_a_panel_per_region() -> None:
         assert html.count(f'<div class="rpanel rpanel--{key}">') == 2  # charts, settlement
     assert "could not be built" not in html and "Not built" not in html
     assert "region-global" in html and "history.replaceState" in html
+
+
+def test_intraday_page_has_a_tab_and_a_panel_per_gpu() -> None:
+    """Every GPU series the intraday config names gets a tab, and a panel in the charts and
+    in the settlement section. Only H100 carries the region tabs."""
+    from tci.outputs import intraday_page as ip
+
+    html = ip.render(_read_only_ctx())
+    gpus = ip._gpus(intraday.load_config())
+    keys = [k for k, _l, _s in gpus]
+    assert keys[0] == "h100" and {"h200", "b200", "b300", "a100", "h100p"} <= set(keys)
+    assert re.findall(r'<input type="radio" id="gpu-(\w+)" name="gpu"', html) == keys
+    assert re.search(r'id="gpu-h100"[^>]*checked', html)
+    for key in keys:
+        assert html.count(f'<div class="gpanel gpanel--{key}">') == 2  # charts, settlement
+    assert html.count('name="region"') == 3  # one set of region tabs, inside H100's panel
+    assert "could not be built" not in html
+
+
+def test_a_gpu_that_never_printed_in_the_window_says_why_in_numbers() -> None:
+    """A series below the gate at every read gets one note with the provider count against
+    the gate, never an empty chart and never a value."""
+    from tci.outputs import intraday_page as ip
+    from tci.outputs import site
+
+    t0 = datetime(2026, 9, 30, 12, tzinfo=UTC)
+    snaps = [intraday.Snapshot(at=t0 - timedelta(hours=h), origin="intraday",
+                               values={"EU-CRI-H200": (None, None, 3 + h % 2,
+                                                       "insufficient_sources")},
+                               ages={}, missing=())
+             for h in range(5, -1, -1)]
+    cfg = intraday.load_config()
+    built = ip.Built(now=t0, cfg=cfg, snapshots=snaps, settlements={}, fixings={})
+    html = ip._gap_panel(site, built, "h200", "EU/EEA", "EU-CRI-H200")
+    assert html is not None and html.startswith('<div class="gpanel gpanel--h200">')
+    assert "No value at any of the 6 reads" in html
+    assert "needs 5 providers" in html and "between 3 and 4" in html
+    assert '<svg class="chart"' not in html
+    # One value anywhere in the window and the full panel is drawn instead.
+    snaps[2] = intraday.Snapshot(at=snaps[2].at, origin="intraday",
+                                 values={"EU-CRI-H200": (4.1, 3.5, 5, "")}, ages={}, missing=())
+    assert ip._gap_panel(site, ip.Built(now=t0, cfg=cfg, snapshots=snaps, settlements={},
+                                        fixings={}), "h200", "EU/EEA", "EU-CRI-H200") is None
+
+
+def test_gpu_panels_are_hidden_only_when_the_selector_is_there() -> None:
+    """A page built with one GPU has no selector; its only panel must not be hidden."""
+    css = (REPO_ROOT / "site" / "assets" / "site.css").read_text(encoding="utf-8")
+    assert "main:has(.seg--gpu) .gpanel { display: none; }" in css
+    assert not re.search(r"^\s*\.gpanel\s*\{[^}]*display:\s*none", css, re.M)
+    from tci.outputs import intraday_page as ip
+
+    for key, _l, _s in ip.GPUS:
+        assert f"main:has(#gpu-{key}:checked) .gpanel--{key}" in css
+
+
+def test_the_address_keeps_gpu_and_region_and_old_region_links_still_work() -> None:
+    from tci.outputs import intraday_page as ip
+
+    js = ip.PICK_JS
+    # '#us' and '#global' (the landing page's links) resolve through the region radios.
+    assert "split('-')" in js and "pick('gpu',t)||pick('region',t)" in js
+    assert "gv==='h100'&&rv&&rv!=='eu'" in js
