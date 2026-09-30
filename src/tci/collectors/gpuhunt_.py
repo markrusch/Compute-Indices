@@ -93,11 +93,26 @@ LEGACY_FLOOR_UNTIL = "2026-09-15"  # first collection day at the published floor
 #   us-gov-*, *-gov-*     GovCloud sells to a different buyer on a different price ladder
 #   us-east-1-atl-1 etc.  AWS Local Zones carry a location premium over the parent region
 #   cn-*, china*          operated by separate legal entities on separate price lists
+#   germanynorth, uaecentral, jioindia*   Azure restricted-access regions: sold only to
+#                         customers Microsoft admits case by case, not on-demand to anyone
+#   southcentralus2       new in the catalog and not yet confirmed against Microsoft's
+#                         region list; left unplaced until it is
+#
+# Gaps found by a data audit on 2026-09-30: on 29 September, 38 catalog locations had no
+# entry, three of them on purpose (GovCloud, a Local Zone). The rest included two OCI
+# regions inside the EEA (eu-madrid-3, eu-turin-1) and Lambda, Azure and GCP regions in
+# the US. The OCI and Lambda rows carry exactly the price of that provider's mapped
+# regions, but the trim is count-based, so even an identical price is not harmless.
+# Replaying 15-29 September with them placed, under both the version live on each date
+# and 0.11.0, moves no EU or US print. It moves EU-CRI-H100-GLOBAL on two of the
+# fourteen days: 21 September from $3.49 to $3.66, 27 September from $3.49 to $3.52.
+# That series first prints on 2026-10-04 (notice 2026-N6).
 REGION_COUNTRY = {
     # -- EU / EEA: the published population --------------------------------------
     # oci (region-flat prices; gpuhunt lists every region a shape is sold in)
     "eu-frankfurt-1": "DE", "eu-amsterdam-1": "NL", "eu-stockholm-1": "SE",
     "eu-paris-1": "FR", "eu-marseille-1": "FR", "eu-milan-1": "IT", "eu-madrid-1": "ES",
+    "eu-madrid-3": "ES", "eu-turin-1": "IT",
     # lambdalabs (docs.lambda.ai, checked 2026-09-11: europe-central-1 is Germany)
     "europe-central-1": "DE",
     # verda (FIN-* Finland, ICE-* Iceland; both EEA)
@@ -127,6 +142,9 @@ REGION_COUNTRY = {
     "eastus": "US", "eastus2": "US", "westus3": "US", "southcentralus": "US",
     "us-east4": "US", "us-east5": "US", "us-central1": "US", "us-west1": "US",
     "us-west4": "US",
+    "us-midwest-2": "US", "us-southeast-1": "US",  # lambdalabs
+    "westus": "US", "westus2": "US", "centralus": "US", "northcentralus": "US",  # azure
+    "us-east1": "US", "us-west2": "US", "us-west3": "US", "us-south1": "US",  # gcp
 
     # -- UK ----------------------------------------------------------------------
     "uk-london-1": "GB", "uk-cardiff-1": "GB", "uk-south1": "GB", "uk-south2": "GB",
@@ -139,10 +157,12 @@ REGION_COUNTRY = {
     # -- Canada ------------------------------------------------------------------
     "ca-central-1": "CA", "ca-west-1": "CA", "canadacentral": "CA", "canadaeast": "CA",
     "northamerica-northeast1": "CA", "northamerica-northeast2": "CA",
+    "mexicocentral": "MX", "mx-monterrey-1": "MX", "mx-queretaro-1": "MX",
 
     # -- Latin America -----------------------------------------------------------
     "sa-east-1": "BR", "brazilsouth": "BR", "southamerica-east1": "BR",
-    "southamerica-west1": "CL",
+    "southamerica-west1": "CL", "sa-santiago-1": "CL", "sa-valparaiso-1": "CL",
+    "sa-vinhedo-1": "BR",
 
     # -- Asia-Pacific, north-east ------------------------------------------------
     "ap-tokyo-1": "JP", "ap-osaka-1": "JP", "asia-northeast-2": "JP",
@@ -150,13 +170,16 @@ REGION_COUNTRY = {
     "asia-northeast1": "JP", "asia-northeast2": "JP", "asia-northeast-1": "JP",
     "asia-south-1": "IN",
     "ap-northeast-2": "KR", "koreacentral": "KR", "koreasouth": "KR",
-    "asia-northeast3": "KR",
+    "asia-northeast3": "KR", "ap-seoul-1": "KR", "ap-chuncheon-1": "KR",
     "ap-east-1": "HK", "eastasia": "HK", "asia-east2": "HK",
     "asia-east1": "TW",
 
     # -- Asia-Pacific, south-east ------------------------------------------------
     "ap-singapore-1": "SG", "ap-southeast-1": "SG", "southeastasia": "SG", "asia-southeast1": "SG",
-    "ap-southeast-3": "ID", "asia-southeast2": "ID",
+    "ap-singapore-2": "SG",
+    "ap-southeast-3": "ID", "asia-southeast2": "ID", "ap-batam-1": "ID",
+    "indonesiacentral": "ID",
+    "ap-kulai-2": "MY", "malaysiawest": "MY",
 
     # -- South Asia --------------------------------------------------------------
     "ap-mumbai-1": "IN", "ap-hyderabad-1": "IN",
@@ -177,6 +200,7 @@ REGION_COUNTRY = {
     "me-south-1": "BH",
     "qatarcentral": "QA", "me-central1": "QA",
     "af-south-1": "ZA", "southafricanorth": "ZA", "africa-south1": "ZA",
+    "me-jeddah-1": "SA", "me-riyadh-1": "SA", "af-casablanca-1": "MA",
 }
 
 

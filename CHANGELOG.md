@@ -3,6 +3,41 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## gpuhunt region map completed before GLOBAL prints — 2026-09-30 — no methodology change
+
+A data audit on 30 September. All 688 stored prints recompute: 674 match their digests
+and 14 belong to the retired EU-CRI-H100-CLOUD. `index_history.csv`, `latest.json` and
+every `v1/series` file agree with the latest revision of every print, field for field. No
+latest revision carries weights that fail to sum to 100 or an FX rate dated after its
+print. The one print that did, EU-CRI-H100-CLOUD on 18 and 19 July, is the retired series
+whose look-ahead is recorded under 0.3.0-dev.
+
+- **38 gpuhunt catalog locations had no country.** A row from an unmapped region is stored
+  with a null country and cannot enter any block. On 29 September the list included two
+  OCI regions inside the EEA (`eu-madrid-3`, `eu-turin-1`), two Lambda US regions, four
+  Azure and four GCP US regions, and OCI and Azure regions in Latin America, Korea,
+  South-East Asia, Saudi Arabia and Morocco. They are now mapped. Three stay unmapped on purpose, as
+  before (GovCloud and an AWS Local Zone). So do four Azure restricted-access regions,
+  sold only to customers Microsoft admits, and `southcentralus2`, which is not yet
+  confirmed against Microsoft's region list.
+- **Effect.** Replaying 15 to 29 September from stored rows with those countries filled
+  in, under the version live on each date and under 0.11.0, moves no EU/EEA series and
+  no EU-CRI-H100-US print. It moves EU-CRI-H100-GLOBAL on two days: 21 September from
+  $3.49 to $3.66/GPU-hr and 27 September from $3.49 to $3.52/GPU-hr. The OCI and Lambda
+  rows carry the same price as those providers' mapped regions, but the trim is
+  count-based, so extra offers at the same price still move the median. GLOBAL first
+  prints on 4 October, so no published number changes.
+- **Stored rows keep their null country.** The observations table is append-only, so rows
+  collected before this change stay unplaced and every stored print still reproduces.
+  The hourly intraday reads pick up the new map from their next sweep, so the intraday
+  GLOBAL path can step on the day this lands.
+- **Found, not fixed: `config/regions.yaml` still lists the US block as shadow.** It reads
+  `status: shadow` and `TCI-US-CRI-H100 (unpublished)`, and its header says a block wired
+  into a published series would join `METHODOLOGY.lock`. From 1 October EU-CRI-H100-US
+  publishes under 0.6.0, with its countries defined in `factors.yaml:blocks`, which is
+  already locked. The register needs its US and GLOBAL status, and its header, brought in
+  line on the effective dates.
+
 ## Four output and storage defects — 2026-09-27 — no methodology change
 
 Every stored print recomputes unchanged and every published digest still matches. All
