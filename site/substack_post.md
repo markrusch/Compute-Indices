@@ -1,21 +1,21 @@
-# EU-CRI weekly — 2026-09-29
+# EU-CRI weekly — 2026-09-30
 
-**EU-CRI-H100: $3.56 / GPU-hour** (€3.12 at ECB 1.1378 on 2026-09-28)
+**EU-CRI-H100: $3.49 / GPU-hour** (€3.07 at ECB 1.1355 on 2026-09-29)
 
-Week-over-week: +1.9% · Month-over-month: +9.4% · Constituents: 8 (6 executable-quote)
+Week-over-week: +0.0% · Month-over-month: +6.1% · Constituents: 8 (3 executable-quote)
 
 7-day mean: $3.60
 
 <!-- EDITORIAL: lead commentary -->
 
-Dispersion: cheapest constituent $2.15, dearest $4.41 — a 2.1x spread for the same reference unit.
+Dispersion: cheapest constituent $2.13, dearest $4.41 — a 2.1x spread for the same reference unit.
 
 | provider | tier | $/GPU-hr | weight |
 |---|---|---|---|
+| vast.ai | executable | $2.13 | 20 |
 | seeweb | list | $2.15 | 10 |
-| vast.ai | executable | $2.27 | 20 |
 | runpod | executable | $3.49 | 20 |
-| verda | list | $3.56 | 10 |
+| verda | list | $3.59 | 10 |
 | scaleway | list | $3.63 | 10 |
 | nebius | list | $3.85 | 10 |
 | lambdalabs | list | $3.99 | 10 |
