@@ -151,6 +151,7 @@ SERIES_LABEL: dict[str, str] = {
     "EU-CRI-H100-SOV": "EU/EEA-headquartered operators",
     "EU-CRI-H100-PCIE": "H100 PCIe — priced as its own class",
     "EU-CRI-H200": "H200 SXM 141GB",
+    "EU-CRI-B200": "B200 SXM",
     "EU-CRI-B300": "B300 SXM",
     "EU-CRI-A100": "A100 SXM 80GB",
     COMPOSITE: "Chain-linked class composite (level, not $/hr)",
