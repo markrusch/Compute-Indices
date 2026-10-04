@@ -1,12 +1,12 @@
 {
- "generated_utc": "2026-10-04T11:27:05Z",
+ "generated_utc": "2026-10-04T12:52:53Z",
  "note": "Values with status 'indicative' predate the spot series (v0.11.0, effective 2026-10-06) and are replayed, never published as prints. Volatility: standard deviation of daily log changes (spread: of daily USD changes), per day and annualised by sqrt(365); never across a gap.",
  "regions": {
   "eu": {
    "latest": {
-    "breakeven_overhead_pct": 62.33,
-    "date": "2026-10-03",
-    "discount_pct": 38.4,
+    "breakeven_overhead_pct": 57.3,
+    "date": "2026-10-04",
+    "discount_pct": 36.43,
     "on_demand": {
      "flags": "",
      "n_sources": 8,
@@ -17,13 +17,13 @@
      "flags": "no_executable_input",
      "n_sources": 5,
      "status": "indicative",
-     "value_usd": 2.15
+     "value_usd": 2.21875
     },
     "spread": {
      "flags": "",
      "n_sources": 2,
      "status": "indicative",
-     "value_usd": 1.34
+     "value_usd": 1.27125
     }
    },
    "outside_index": [
@@ -36,7 +36,7 @@
     },
     {
      "median_usd": 1.066667,
-     "offers": 2,
+     "offers": 3,
      "provider": "vast.ai",
      "tier": "interruptible",
      "why": "min_bid, a bid floor"
@@ -61,14 +61,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 71.28,
+     "discount_pct": 69.86,
      "in_spot_population": true,
      "on_demand_usd": 7.3616,
      "pairs": 1,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.114387
+     "spot_usd": 2.21875
     },
     {
      "discount_pct": 81.52,
@@ -119,10 +119,10 @@
    "volatility": {
     "on_demand": {
      "30d": {
-      "annualised": null,
-      "changes": 19,
+      "annualised": 0.8179427481888416,
+      "changes": 20,
       "needed": 20,
-      "per_period": null
+      "per_period": 0.04281308017112229
      },
      "7d": {
       "annualised": 0.4048885549670787,
@@ -131,44 +131,44 @@
       "per_period": 0.02119283556527517
      },
      "hourly": {
-      "annualised": 1.8281525807265786,
-      "changes": 155,
+      "annualised": 1.8336256728420317,
+      "changes": 154,
       "needed": 48,
-      "per_period": 0.019532614858188243
+      "per_period": 0.019591091268473453
      }
     },
     "spot": {
      "30d": {
       "annualised": null,
-      "changes": 16,
+      "changes": 17,
       "needed": 20,
       "per_period": null
      },
      "7d": {
-      "annualised": 0.0,
+      "annualised": 0.22728918509179155,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.0
+      "per_period": 0.011896859682307866
      },
      "hourly": {
-      "annualised": 0.12118874157336275,
-      "changes": 155,
+      "annualised": 0.12157963631249462,
+      "changes": 154,
       "needed": 48,
-      "per_period": 0.001294822455880685
+      "per_period": 0.0012989989105541347
      }
     },
     "spread": {
      "30d": {
       "annualised": null,
-      "changes": 16,
+      "changes": 17,
       "needed": 20,
       "per_period": null
      },
      "7d": {
-      "annualised": 1.4440097374885204,
+      "annualised": 1.5269645035743142,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.07558292410547061
+      "per_period": 0.0799249750116886
      }
     }
    }
@@ -176,12 +176,12 @@
   "global": {
    "latest": {
     "breakeven_overhead_pct": 43.1,
-    "date": "2026-10-03",
+    "date": "2026-10-04",
     "discount_pct": 30.12,
     "on_demand": {
      "flags": "",
      "n_sources": 9,
-     "status": "indicative",
+     "status": "print",
      "value_usd": 3.49
     },
     "spot": {
@@ -207,7 +207,7 @@
     },
     {
      "median_usd": 1.066667,
-     "offers": 2,
+     "offers": 3,
      "provider": "vast.ai",
      "tier": "interruptible",
      "why": "min_bid, a bid floor"
@@ -215,7 +215,7 @@
    ],
    "segments": [
     {
-     "median_spot_usd": 2.764644,
+     "median_spot_usd": 2.8117,
      "segment": "hyperscaler",
      "sellers": 3
     },
@@ -232,14 +232,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 64.91,
+     "discount_pct": 63.37,
      "in_spot_population": true,
      "on_demand_usd": 8.6,
      "pairs": 12,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.764644
+     "spot_usd": 2.8117
     },
     {
      "discount_pct": 81.52,
@@ -310,10 +310,10 @@
    "volatility": {
     "on_demand": {
      "30d": {
-      "annualised": null,
-      "changes": 19,
+      "annualised": 0.6482764283404011,
+      "changes": 20,
       "needed": 20,
-      "per_period": null
+      "per_period": 0.03393233910447063
      },
      "7d": {
       "annualised": 0.20354502105610828,
@@ -322,16 +322,16 @@
       "per_period": 0.010654033334489584
      },
      "hourly": {
-      "annualised": 1.2619516116451408,
-      "changes": 155,
+      "annualised": 1.2660689198490913,
+      "changes": 154,
       "needed": 48,
-      "per_period": 0.01348312775410569
+      "per_period": 0.013527118499871704
      }
     },
     "spot": {
      "30d": {
       "annualised": null,
-      "changes": 16,
+      "changes": 17,
       "needed": 20,
       "per_period": null
      },
@@ -343,7 +343,7 @@
      },
      "hourly": {
       "annualised": 0.0,
-      "changes": 155,
+      "changes": 154,
       "needed": 48,
       "per_period": 0.0
      }
@@ -351,7 +351,7 @@
     "spread": {
      "30d": {
       "annualised": null,
-      "changes": 16,
+      "changes": 17,
       "needed": 20,
       "per_period": null
      },
@@ -367,7 +367,7 @@
   "us": {
    "latest": {
     "breakeven_overhead_pct": null,
-    "date": "2026-10-03",
+    "date": "2026-10-04",
     "discount_pct": null,
     "on_demand": {
      "flags": "insufficient_sources",
@@ -391,7 +391,7 @@
    "outside_index": [],
    "segments": [
     {
-     "median_spot_usd": 4.671912,
+     "median_spot_usd": 4.69544,
      "segment": "hyperscaler",
      "sellers": 2
     },
@@ -408,14 +408,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 59.82,
+     "discount_pct": 59.13,
      "in_spot_population": true,
      "on_demand_usd": 6.88,
      "pairs": 4,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.764644
+     "spot_usd": 2.8117
     },
     {
      "discount_pct": 59.97,

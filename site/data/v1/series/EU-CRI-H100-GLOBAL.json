@@ -1,0 +1,21 @@
+{
+ "note": "A null value_usd is a session that did not print; flags carry the reason. Never interpolate across one. Digest = sha256 over the canonical print; verify with python -m tci.run reproduce --published.",
+ "points": [
+  {
+   "date": "2026-10-04",
+   "digest": "sha256:be4635343d34d8804ec58c803829afd08e8e88d28922486557b3e9bb285faeb7",
+   "flags": "",
+   "fx_date": "2026-10-02",
+   "fx_rate": 1.1225,
+   "methodology_version": "0.9.0",
+   "n_executable": 5,
+   "n_sources": 9,
+   "revision": 1,
+   "value_eur": 3.109131,
+   "value_usd": 3.49
+  }
+ ],
+ "schema_version": "1",
+ "series": "EU-CRI-H100-GLOBAL",
+ "unit": "USD per GPU-hour"
+}
