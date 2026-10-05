@@ -8,8 +8,10 @@ nothing numeric that affects a print may be hard-coded elsewhere.
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
 from datetime import date as date_type
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +19,24 @@ import yaml
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "config"
 SUCCESSION_PATH = CONFIG_DIR / "methodology" / "succession.yaml"
+
+
+@lru_cache(maxsize=64)
+def _parse(text: str) -> Any:
+    return yaml.safe_load(text)
+
+
+def read_yaml(path: Path) -> Any:
+    """Parse a config file, memoised on its text.
+
+    Every print computed with `for_date` reloads its parameter set, and the intraday
+    replay does that once per source per read: building the site parsed factors.yaml
+    about a hundred times, which was a third of the build. The file is still read every
+    call and the cache is keyed on the text, so an edited file is parsed afresh rather
+    than served stale. The copy keeps a caller that mutates what it got from reaching
+    the next caller.
+    """
+    return copy.deepcopy(_parse(path.read_text(encoding="utf-8")))
 
 
 @dataclass(frozen=True)
@@ -261,7 +281,7 @@ def load_succession(path: Path | None = None) -> list[SuccessionEntry]:
     is announced and is selected for a print only once its effective date arrives.
     """
     succ_path = path or SUCCESSION_PATH
-    raw = yaml.safe_load(succ_path.read_text(encoding="utf-8"))
+    raw = read_yaml(succ_path)
     root = succ_path.parents[2]
     out = []
     for v in raw["versions"]:
@@ -321,7 +341,7 @@ def load_factors(config_dir: Path | None = None, *, for_date: str | None = None)
     a print must pass `for_date`.
     """
     cfg_dir = _params_dir(config_dir, for_date)
-    raw = yaml.safe_load((cfg_dir / "factors.yaml").read_text(encoding="utf-8"))
+    raw = read_yaml(cfg_dir / "factors.yaml")
     panel = _parse_panel(raw.get("panel"))
     segments = (
         {p: e.segment for p, e in panel.items()}
@@ -428,7 +448,7 @@ def load_sovereign(
     config_dir: Path | None = None, *, for_date: str | None = None
 ) -> frozenset[str]:
     cfg_dir = _params_dir(config_dir, for_date)
-    raw = yaml.safe_load((cfg_dir / "sovereign.yaml").read_text(encoding="utf-8"))
+    raw = read_yaml(cfg_dir / "sovereign.yaml")
     return frozenset(raw["sovereign_providers"])
 
 

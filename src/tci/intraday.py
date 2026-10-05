@@ -397,19 +397,32 @@ class Store:
         kind = rec.get("kind")
         if kind == "book":
             base_hash = rec.get("base")
+            # Each row is serialised once and kept beside its key. This used to go key ->
+            # json.loads -> row -> key again inside book_hash, three encodes and two sorts
+            # per row per book, which was most of the cost of loading a month of log.
+            # `_row_key(by_key[k]) == k` by construction, so hashing the sorted keys is
+            # exactly `book_hash(rows)`.
             counts: Counter[str] = Counter()
+            by_key: dict[str, Row] = {}
+
+            def keyed(rows_in: Iterable[Row]) -> Iterator[str]:
+                for r in rows_in:
+                    k = _row_key(r)
+                    by_key.setdefault(k, r)
+                    yield k
+
             if base_hash is not None:
                 if base_hash not in log_.books:
                     raise IntradayStoreError(f"{where}: base {base_hash} not in this file")
-                counts.update(_row_key(r) for r in log_.books[base_hash][1])
-            counts.subtract(_row_key(_row_from_json(r)) for r in rec.get("drop") or [])
+                counts.update(keyed(log_.books[base_hash][1]))
+            counts.subtract(keyed(_row_from_json(r) for r in rec.get("drop") or []))
             if any(v < 0 for v in counts.values()):
                 raise IntradayStoreError(f"{where}: drops a row its base does not hold")
-            counts.update(_row_key(_row_from_json(r)) for r in rec.get("add") or [])
-            rows = tuple(
-                _row_from_json(json.loads(k)) for k in sorted(counts.elements())
-            )
-            if book_hash(rows) != rec["book"]:
+            counts.update(keyed(_row_from_json(r) for r in rec.get("add") or []))
+            keys = sorted(counts.elements())
+            rows = tuple(by_key[k] for k in keys)
+            digest = hashlib.sha256("\n".join(keys).encode("utf-8")).hexdigest()[:24]
+            if digest != rec["book"]:
                 raise IntradayStoreError(f"{where}: book {rec['book']} does not verify")
             log_.books[rec["book"]] = (str(rec["source"]), rows)
             log_.latest_book[str(rec["source"])] = rec["book"]

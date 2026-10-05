@@ -66,7 +66,7 @@ def load_params(path: Path | None = None) -> tuple[forward.Params, str]:
 
 def known_versions(on_date: str) -> list[tuple[int, str, str]]:
     """(first day in effect, version, effective_from) for versions knowable on `on_date`."""
-    raw = yaml.safe_load(NOTICES_PATH.read_text(encoding="utf-8")) or {}
+    raw = config.read_yaml(NOTICES_PATH) or {}
     announced = {str(n["id"]): str(n["announced"]) for n in raw.get("notices") or []}
     out = []
     for entry in config.load_succession():
@@ -89,6 +89,10 @@ class ProForma:
         self._values: dict[tuple[str, str], float | None] = {}
         self._factors: dict[str, config.Factors] = {}
         self._dates: list[str] | None = None
+        # One day's observations are the same under every version, and each estimate date
+        # asks for every earlier day under each version it knows: 1,241 fetches of about
+        # 75 distinct days before this was kept.
+        self._rows: dict[str, list[sqlite3.Row]] = {}
 
     def dates(self) -> list[str]:
         if self._dates is None:
@@ -116,7 +120,9 @@ class ProForma:
         factors = self.factors(version_from)
         sovereign = config.load_sovereign(for_date=version_from)
         fx = rate_for(self.conn, obs_date, strictly_before=factors.fx.strictly_before)
-        rows = commands._observations_for_date(self.conn, obs_date)
+        if obs_date not in self._rows:
+            self._rows[obs_date] = commands._observations_for_date(self.conn, obs_date)
+        rows = self._rows[obs_date]
         normalised = normalise_observations(rows, factors, fx_eur_usd=fx[0] if fx else None)
         _, population, predicate = commands._series_definitions(
             sovereign, factors.headline_class, factors)[commands.HEADLINE]

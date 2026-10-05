@@ -126,7 +126,7 @@ def _day(conn: sqlite3.Connection, series: str, date: str, factors: Factors) -> 
 
     rows = conn.execute(
         "SELECT o.* FROM observations o JOIN runs r ON o.run_id = r.run_id"
-        " WHERE substr(o.ts_utc, 1, 10) = ? AND r.status = 'ok'", (date,)
+        " WHERE substr(o.ts_utc, 1, 10) = ? AND r.status = 'ok' ORDER BY o.id", (date,)
     ).fetchall()
     fx = conn.execute(
         "SELECT fx_rate FROM daily_index WHERE date = ? AND fx_rate IS NOT NULL LIMIT 1",

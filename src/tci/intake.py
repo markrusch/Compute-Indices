@@ -503,7 +503,7 @@ def compute(
     )
     rows = conn.execute(
         "SELECT o.* FROM observations o JOIN runs r ON o.run_id = r.run_id"
-        " WHERE r.utc_date = ?",
+        " WHERE r.utc_date = ? ORDER BY o.id",
         (date,),
     ).fetchall()
     fx = conn.execute(

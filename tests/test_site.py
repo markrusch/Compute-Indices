@@ -214,6 +214,13 @@ def built(conn, tmp_path, monkeypatch) -> Path:
     monkeypatch.setattr(site, "SITE_DIR", out)
     monkeypatch.setattr(site, "ASSETS", out / "assets")
     monkeypatch.setattr(site, "RESEARCH_SRC", research)
+    # The intraday page otherwise replays the committed data/intraday log against the
+    # wall clock: eight of every nine seconds this fixture took, repeated for every test
+    # that uses it, and a page whose content depended on the day the suite ran rather
+    # than on the fixture. The intraday tests build from their own stores.
+    from tci import intraday
+
+    monkeypatch.setattr(intraday, "STORE_DIR", tmp_path / "intraday")
 
     insert_run(conn, "r1", "2026-08-16")
     _print(conn, "2026-08-10", "EU-CRI-H100", 1, 3.25)
