@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-04",
+ "as_of": "2026-10-05",
  "calibration": [
   {
    "backfilled": false,
@@ -46,7 +46,7 @@
    "bias": null,
    "coverage": null,
    "horizon_days": 30,
-   "n_closed": 8,
+   "n_closed": 9,
    "n_nonoverlapping": 1,
    "required": 20,
    "rmse": null
@@ -86,27 +86,27 @@
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-10-04",
+   "date": "2026-10-05",
    "detail": {
-    "commit_days": 30,
-    "covers_days": 30,
-    "kind": "reserved",
-    "price_usd": 2.985646,
-    "seller": "vast.ai:214845"
+    "commit_days": 91,
+    "covers_days": 91,
+    "kind": "rate_card",
+    "price_usd": 2.0205,
+    "seller": "seeweb"
    },
    "horizon_days": 30,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 40,
+   "n_inputs": 36,
    "p10": null,
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 2.985646
+   "value_usd": 6.12885
   },
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-10-04",
+   "date": "2026-10-05",
    "detail": {
     "commit_days": 91,
     "covers_days": 91,
@@ -116,7 +116,7 @@
    },
    "horizon_days": 91,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 38,
+   "n_inputs": 36,
    "p10": null,
    "p50": null,
    "p90": null,
@@ -126,7 +126,7 @@
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-10-04",
+   "date": "2026-10-05",
    "detail": {
     "commit_days": 182,
     "covers_days": 182,
@@ -136,7 +136,7 @@
    },
    "horizon_days": 182,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 36,
+   "n_inputs": 35,
    "p10": null,
    "p50": null,
    "p90": null,
@@ -146,7 +146,7 @@
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-10-04",
+   "date": "2026-10-05",
    "detail": {
     "commit_days": 365,
     "covers_days": 365,
@@ -156,7 +156,7 @@
    },
    "horizon_days": 365,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 35,
+   "n_inputs": 34,
    "p10": null,
    "p50": null,
    "p90": null,
@@ -166,21 +166,14 @@
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-10-04",
+   "date": "2026-10-05",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
-     "0.10.0": {
-      "days": 1,
-      "level_usd": 3.545205,
-      "prints": 22,
-      "q": 0.01,
-      "r": 1000.0
-     },
      "0.11.0": {
-      "days": 29,
-      "level_usd": 3.545205,
-      "prints": 22,
+      "days": 30,
+      "level_usd": 3.552451,
+      "prints": 23,
       "q": 0.01,
       "r": 1000.0
      }
@@ -188,31 +181,24 @@
    },
    "horizon_days": 30,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 44,
-   "p10": 3.505003,
-   "p50": 3.545146,
-   "p90": 3.585748,
+   "n_inputs": 23,
+   "p10": 3.512669,
+   "p50": 3.552391,
+   "p90": 3.592562,
    "revision": 1,
-   "value_usd": 3.545286
+   "value_usd": 3.552528
   },
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-10-04",
+   "date": "2026-10-05",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
-     "0.10.0": {
-      "days": 1,
-      "level_usd": 3.545205,
-      "prints": 22,
-      "q": 0.01,
-      "r": 1000.0
-     },
      "0.11.0": {
-      "days": 90,
-      "level_usd": 3.545205,
-      "prints": 22,
+      "days": 91,
+      "level_usd": 3.552451,
+      "prints": 23,
       "q": 0.01,
       "r": 1000.0
      }
@@ -220,31 +206,24 @@
    },
    "horizon_days": 91,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 44,
-   "p10": 3.511102,
-   "p50": 3.545185,
-   "p90": 3.579598,
+   "n_inputs": 23,
+   "p10": 3.518874,
+   "p50": 3.55243,
+   "p90": 3.586307,
    "revision": 1,
-   "value_usd": 3.545286
+   "value_usd": 3.552528
   },
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-10-04",
+   "date": "2026-10-05",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
-     "0.10.0": {
-      "days": 1,
-      "level_usd": 3.545205,
-      "prints": 22,
-      "q": 0.01,
-      "r": 1000.0
-     },
      "0.11.0": {
-      "days": 181,
-      "level_usd": 3.545205,
-      "prints": 22,
+      "days": 182,
+      "level_usd": 3.552451,
+      "prints": 23,
       "q": 0.01,
       "r": 1000.0
      }
@@ -252,31 +231,24 @@
    },
    "horizon_days": 182,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 44,
-   "p10": 3.512698,
-   "p50": 3.545194,
-   "p90": 3.577991,
+   "n_inputs": 23,
+   "p10": 3.520503,
+   "p50": 3.55244,
+   "p90": 3.584666,
    "revision": 1,
-   "value_usd": 3.545286
+   "value_usd": 3.552528
   },
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-10-04",
+   "date": "2026-10-05",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
-     "0.10.0": {
-      "days": 1,
-      "level_usd": 3.545205,
-      "prints": 22,
-      "q": 0.01,
-      "r": 1000.0
-     },
      "0.11.0": {
-      "days": 364,
-      "level_usd": 3.545205,
-      "prints": 22,
+      "days": 365,
+      "level_usd": 3.552451,
+      "prints": 23,
       "q": 0.01,
       "r": 1000.0
      }
@@ -284,28 +256,46 @@
    },
    "horizon_days": 365,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 44,
-   "p10": 3.513381,
-   "p50": 3.545198,
-   "p90": 3.577303,
+   "n_inputs": 23,
+   "p10": 3.521201,
+   "p50": 3.552444,
+   "p90": 3.583963,
    "revision": 1,
-   "value_usd": 3.545286
+   "value_usd": 3.552528
   },
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-10-04",
+   "date": "2026-10-05",
    "detail": {
-    "gap": "1 of 3 eligible sellers at 1 month",
-    "sellers": [
-     [
-      "vast.ai:214845",
-      "market_quoted"
-     ]
-    ],
+    "gap": "0 of 3 eligible sellers at 1 month",
+    "sellers": [],
     "tenor_months": 1
    },
    "horizon_days": 30,
+   "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 0,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": null
+  },
+  {
+   "backfilled": false,
+   "component": "T",
+   "date": "2026-10-05",
+   "detail": {
+    "gap": "1 of 3 eligible sellers at 3 months",
+    "sellers": [
+     [
+      "seeweb",
+      "administered_untested"
+     ]
+    ],
+    "tenor_months": 3
+   },
+   "horizon_days": 91,
    "method_version": "1.0.0+4b8640d50d57",
    "n_inputs": 1,
    "p10": null,
@@ -317,51 +307,20 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-10-04",
+   "date": "2026-10-05",
    "detail": {
-    "gap": "2 of 3 eligible sellers at 3 months",
+    "gap": "1 of 3 eligible sellers at 6 months",
     "sellers": [
      [
       "seeweb",
       "administered_untested"
-     ],
-     [
-      "vast.ai:214845",
-      "market_quoted"
-     ]
-    ],
-    "tenor_months": 3
-   },
-   "horizon_days": 91,
-   "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 2,
-   "p10": null,
-   "p50": null,
-   "p90": null,
-   "revision": 1,
-   "value_usd": null
-  },
-  {
-   "backfilled": false,
-   "component": "T",
-   "date": "2026-10-04",
-   "detail": {
-    "gap": "2 of 3 eligible sellers at 6 months",
-    "sellers": [
-     [
-      "seeweb",
-      "administered_untested"
-     ],
-     [
-      "vast.ai:214845",
-      "market_quoted"
      ]
     ],
     "tenor_months": 6
    },
    "horizon_days": 182,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 2,
+   "n_inputs": 1,
    "p10": null,
    "p50": null,
    "p90": null,
@@ -371,7 +330,7 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-10-04",
+   "date": "2026-10-05",
    "detail": {
     "gap": "1 of 3 eligible sellers at 12 months",
     "sellers": [
