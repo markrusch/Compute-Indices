@@ -553,20 +553,55 @@ sources:
     homepage: https://www.crusoe.ai/cloud/pricing
     endpoint: "GET https://www.crusoe.ai/cloud/pricing"
     auth: none
-    blocks: []
-    gpu_classes: [H100, H200]
-    access_basis: "Public pricing page."
+    blocks: [EU_EEA, US]
+    gpu_classes: [H100, H200, A100]
+    access_basis: >-
+      Public pricing page; robots.txt (read 2026-10-05) allows every path to every crawler.
     discovered: 2026-09-11
     discovered_via: "Computable GPU Index recipe (vendored)"
-    last_reviewed: 2026-09-27
+    last_reviewed: 2026-10-05
     notes: >-
-      Per-GPU rates (HGX H100 $3.90/GPU-hr on 27 September), region not stated on the
-      page. Not admitted to Global in v0.10.0: the page states no node size, and the
-      collector records the per-GPU rate at one GPU, below the floor. Emailed
-      support@crusoecloud.com 2026-09-27 asking whether $3.90/GPU-hr (NVIDIA H100 80GB
-      HGX) holds at 8-GPU instance size, which country/data centre it's deliverable from,
-      and whether daily automated reading is acceptable.
-    recheck: "Crusoe's answer on instance size, location and permission to read automatically, or an instance size of two GPUs or more stated beside the on-demand rate"
+      Per-GPU rates (HGX H100 $3.90, HGX H200 $4.29, A100 SXM $2.30 per GPU-hour on
+      5 October), no region and no node size on the page. Both come from Crusoe's own
+      instance documentation (docs.crusoecloud.com/compute/virtual-machines/overview, read
+      2026-10-05): the HGX parts are sold only as 8-GPU instances, H100 in us-east1-a,
+      us-southcentral1-a and eu-iceland1-a, H200 in eu-iceland1-a only, A100 SXM in
+      us-east1-a only. From 2026-10-05 the collector records each part once per location at
+      8 GPUs (collectors/computable_sources.py, CRUSOE_REGIONS). Iceland is EEA, so this is
+      a fifth EU/EEA H200 seller and a new EU/EEA H100 seller once a version admits it.
+      B200 (Iceland, Norway) and B300 (Iceland) instances exist but the page prices them
+      "Contact sales". The support email of 2026-09-27 is unanswered.
+    recheck: "the instance documentation still lists h100/h200 .8x in eu-iceland1-a, and /cloud/pricing still shows an on-demand rate; a published B200 or B300 rate would close two more EU/EEA classes"
+
+  - id: ibm_cloud
+    name: IBM Cloud (VPC gx3d 8x H100)
+    kind: hyperscaler
+    status: shadow
+    tier: list
+    collector: ibm_cloud
+    homepage: https://cloud.ibm.com/docs/vpc?topic=vpc-accelerated-profile-family
+    endpoint: "GET https://globalcatalog.cloud.ibm.com/api/v1/99548819-fcbc-486c-8eeb-0355a56b035e/pricing/deployment"
+    auth: none
+    blocks: [EU_EEA, UK, US, CA, LATAM, APAC_NE, OCEANIA]
+    gpu_classes: [H100]
+    access_basis: >-
+      IBM's Global Catalog API, documented for outside use and read by the IBM Cloud
+      console and cost estimator; no key, the same list price for every caller, and the
+      host serves no robots.txt (404 on 2026-10-05).
+    discovered: 2026-10-05
+    discovered_via: "targeted search for a fifth EU/EEA hyperscaler H100 seller"
+    last_reviewed: 2026-10-05
+    notes: >-
+      Profile gx3d-160x1792x8h100, which IBM's profile documentation lists under "NVIDIA
+      Hopper HGX instance profiles" with accelerator NVIDIA H100 SXM5 (80 GB). One request
+      returns all nine regions. On 5 October: eu-de (Frankfurt) and eu-es (Madrid) $99.60
+      per instance-hour, $12.45 per GPU-hour; eu-gb $97.01; us-east and us-south $85.85;
+      br-sao $118.50; spot is a separate meter at a quarter of on-demand. The only
+      candidate found for a fifth EU/EEA hyperscaler: the hyperscaler series has had four
+      (AWS, GCP, Azure, OCI) and gaps every day. Its EU/EEA price sits well above that
+      cluster ($5.44 to $7.36). Also a fourth LATAM provider (Sao Paulo). The H200 profile
+      (plan 473375e7-f226-4deb-9214-dd68607b3d99) is not read: one request a day.
+    recheck: "the deployment pricing still carries part-is.instance-hours-gx3d-160x1792x8h100 for eu-de and eu-es"
 
   - id: lambda_pricing
     name: Lambda pricing page

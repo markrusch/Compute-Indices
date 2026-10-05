@@ -27,6 +27,7 @@ from tci.collectors.azure_retail import AzureRetailCollector
 from tci.collectors.computable_sources import computable_collectors
 from tci.collectors.fx import collect_fx, rate_for
 from tci.collectors.gpuhunt_ import GpuHuntCollector
+from tci.collectors.ibm_cloud import IbmCloudCollector
 from tci.collectors.runpod import RunPodCollector
 from tci.collectors.scaleway import ScalewayCollector
 from tci.collectors.seeweb import SeewebCollector
@@ -58,7 +59,7 @@ def collectors_for_daily() -> list[base.Collector]:
     return [
         VastAiCollector(), RunPodCollector(), GpuHuntCollector(), StaticYamlCollector(),
         ScalewayCollector(), AzureRetailCollector(), SeewebCollector(), TogetherCollector(),
-        *computable_collectors(),
+        IbmCloudCollector(), *computable_collectors(),
         # Last: its spaced requests start well after vast_ai's own book has been read.
         VastReservedCollector(),
     ]

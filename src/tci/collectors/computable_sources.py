@@ -507,6 +507,32 @@ def _voltagepark_count(obs: dict[str, Any]) -> int | None:
     return 8 if "8x per node" in str(obs.get("notes") or "") else None
 
 
+# Crusoe's pricing page gives one per-GPU rate per part and no region or node size. Its
+# instance documentation (docs.crusoecloud.com/compute/virtual-machines/overview, read
+# 2026-10-05) answers both: the HGX parts are sold only as 8-GPU instances, and it lists
+# where each instance type exists. h100-80gb-sxm-ib.8x: us-east1-a, us-southcentral1-a,
+# eu-iceland1-a. h200-141gb-sxm-ib.8x: eu-iceland1-a only. a100-80gb-sxm-ib.8x: us-east1-a
+# only. The locations page maps eu-iceland1-a to Iceland, which is in the EEA. The rate
+# is the same wherever the instance runs, so each part is recorded once per location at
+# 8 GPUs, the DigitalOcean rule above. B200 and B300 instances exist in Iceland and
+# Norway too, but the page prices them "Contact sales", so there is no row to place.
+# This placement is what the open question on the registry row (27 September) asked for.
+CRUSOE_REGIONS: dict[str, list[tuple[str, str]]] = {
+    "H100_SXM": [("eu-iceland1-a", "IS"), ("us-east1-a", "US"), ("us-southcentral1-a", "US")],
+    "H200_SXM": [("eu-iceland1-a", "IS")],
+    "A100_SXM": [("us-east1-a", "US")],
+}
+_CRUSOE_HGX_LABELS = ("NVIDIA H100 80GB HGX", "NVIDIA H200 141GB HGX", "NVIDIA A100 80GB SXM")
+
+
+def _crusoe_regions(variant: str) -> list[tuple[str, str]] | None:
+    return CRUSOE_REGIONS.get(variant)
+
+
+def _crusoe_count(obs: dict[str, Any]) -> int | None:
+    return 8 if str(obs.get("sku_identifier") or "") in _CRUSOE_HGX_LABELS else None
+
+
 def computable_collectors() -> list[ComputableSource]:
     return [
         ComputableSource("ovh", "ovh", "ovhcloud", country_of=_ovh_country,
@@ -524,6 +550,7 @@ def computable_collectors() -> list[ComputableSource]:
         ComputableSource("hyperstack", "hyperstack", "hyperstack",
                          variant_override=_hyperstack_variant,
                          stock_placements=_hyperstack_placements),
-        ComputableSource("crusoe", "crusoe", "crusoe"),
+        ComputableSource("crusoe", "crusoe", "crusoe", gpu_count_of=_crusoe_count,
+                         regions_of=_crusoe_regions),
         ComputableSource("lambda_pricing", "lambda_", "lambdalabs"),
     ]

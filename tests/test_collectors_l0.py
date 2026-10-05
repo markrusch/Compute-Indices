@@ -274,6 +274,27 @@ def test_digitalocean_h100_is_one_row_per_region_it_is_sold_in(
         "H200_UNSPEC"}
 
 
+def test_crusoe_hgx_parts_are_placed_where_its_docs_say_at_eight_gpus(
+    collected: dict[str, list]
+) -> None:
+    rows = [o for o in collected["crusoe"] if o.term == "on_demand" and o.tier == "list"]
+    placed = sorted((o.gpu_model, o.region, o.country, o.gpu_count) for o in rows
+                    if o.gpu_model in ("H100_SXM", "H200_SXM", "A100_SXM"))
+    assert placed == [
+        ("A100_SXM", "us-east1-a", "US", 8),
+        ("H100_SXM", "eu-iceland1-a", "IS", 8),
+        ("H100_SXM", "us-east1-a", "US", 8),
+        ("H100_SXM", "us-southcentral1-a", "US", 8),
+        ("H200_SXM", "eu-iceland1-a", "IS", 8),
+    ]
+    # Region-flat: every placement of a part carries the page's one rate.
+    for model in ("H100_SXM", "H200_SXM"):
+        assert len({o.price_usd_per_gpu_hr for o in rows if o.gpu_model == model}) == 1
+    # Parts the docs do not place keep the single unplaced row at the page's basis.
+    others = [o for o in rows if o.gpu_model not in ("H100_SXM", "H200_SXM", "A100_SXM")]
+    assert others and all(o.country is None and o.gpu_count == 1 for o in others)
+
+
 def test_every_row_is_storable(conn: sqlite3.Connection, collected: dict[str, list]) -> None:
     class Replay:
         def __init__(self, name: str, rows: list) -> None:
