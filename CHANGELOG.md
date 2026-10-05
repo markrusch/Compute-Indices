@@ -3,6 +3,26 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## 0.12.0 — announced 2026-10-05, effective 2026-10-07 (notice 2026-N9)
+
+- **IBM Cloud in the hyperscaler segment, H100 class.** New collector
+  `collectors/ibm_cloud.py` reads the gx3d-160x1792x8h100 profile (8 x H100 SXM5, per
+  IBM's profile documentation) from IBM's public Global Catalog API, one GET for every
+  region. Frankfurt and Madrid $12.45/GPU-hr on 5 October. The on-demand meter is stored
+  as `list` and the spot meter as `spot`; the reservation and dedicated-host meters are
+  skipped. The only fifth EU/EEA hyperscaler H100 seller the 5 October search found.
+- **Crusoe in the neocloud segment, H100 and H200 classes.** Its page rate is recorded
+  once per location Crusoe's instance documentation lists for the 8-GPU HGX part: H100
+  in Iceland and two US sites, H200 in Iceland only. That documentation answers the
+  question that kept it out of v0.10.0 (no node size).
+- **Measured** on stored 3-5 October observations with both providers' 5 October prices
+  added: EU-CRI-H100-HS $10.00 each day instead of a gap; EU-CRI-H200 $5.40, $4.87, $4.88
+  instead of a gap; headline $3.49 to $3.58 on 3 and 4 October, $3.72 to $3.74 on
+  5 October; US $3.99 to $3.90; EU spot unchanged; Global spot $2.44 to $2.46.
+- Still a gap, with no admissible source found: A100, B200, B300, H100 PCIe, sovereign
+  and marketplace.
+- 0.11.0 frozen under `config/methodology/0.11.0/`.
+
 ## Build and test time — 2026-09-30 — no methodology change
 
 All 688 stored prints recompute unchanged, all 1,388 published digests match, and the

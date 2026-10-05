@@ -1,7 +1,7 @@
 # EU-CRI methodology parameters. Every number that affects a published print lives here.
 # Changing anything in this file (or sovereign.yaml, index.py, normalise.py, weights.py)
 # requires a methodology_version bump + CHANGELOG entry - enforced by CI (see GOVERNANCE.md).
-methodology_version: "0.11.0"      # effective 2026-10-06 (notice 2026-N8). See
+methodology_version: "0.12.0"      # effective 2026-10-07 (notice 2026-N9). See
                                     # config/methodology/succession.yaml for every version
                                     # and the date it takes effect.
 
@@ -93,6 +93,17 @@ panel:
   coreweave:     {segment: neocloud, sources: {coreweave: [H100]}, blocks: [US, GLOBAL]}
   civo:          {segment: neocloud, sources: {civo: [H100]}}
   together:      {segment: neocloud, sources: {together: [H100]}}
+  # v0.12.0 (notice 2026-N9): a fifth EU/EEA hyperscaler and a fifth EU/EEA H200 seller.
+  # IBM Cloud's gx3d-160x1792x8h100 profile, which IBM's own documentation lists as eight
+  # NVIDIA H100 SXM5 under "Hopper HGX", is read from IBM's public Global Catalog API in
+  # every region it is sold (Frankfurt and Madrid in the EEA). IBM sells at hyperscaler
+  # list prices ($12.45/GPU-hr in Frankfurt on 5 October) and joins that segment, so it
+  # reaches the hyperscaler series and the spot series, never the headline.
+  # Crusoe's pricing page names no region; its instance documentation places the 8-GPU
+  # HGX H100 in Iceland and two US sites and the HGX H200 in Iceland only, and the
+  # collector records the page's rate once per location (collectors/computable_sources.py).
+  ibm:           {segment: hyperscaler, sources: {ibm_cloud: [H100]}}
+  crusoe:        {segment: neocloud, sources: {crusoe: [H100, H200]}}
 
 # Which segments each published series draws from. The headline deliberately excludes the
 # hyperscaler catalog tier - those are the two highest and least-moving prices in the panel

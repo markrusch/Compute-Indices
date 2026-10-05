@@ -82,6 +82,7 @@ sources:
   civo:           {every_hours: 6, max_age_hours: 13}
   crusoe:         {every_hours: 6, max_age_hours: 13}
   together:       {every_hours: 6, max_age_hours: 13}
+  ibm_cloud:      {every_hours: 6, max_age_hours: 13}
   # A local file: no request at all, so it rides every sweep.
   static_yaml:    {every_hours: 1, max_age_hours: 3}
 

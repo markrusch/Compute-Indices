@@ -21,6 +21,60 @@
 # yet quantifiable and why.
 
 notices:
+  - id: 2026-N9
+    title: IBM Cloud joins the hyperscaler series and Crusoe the H100 and H200 series
+    announced: 2026-10-05
+    effective: 2026-10-07
+    version: 0.12.0
+    status: announced
+    summary: >-
+      Two providers enter the panel. IBM Cloud's eight-GPU H100 SXM instance, priced in
+      Frankfurt and Madrid, joins the hyperscaler segment and gives the hyperscaler H100
+      series its fifth provider. Crusoe's HGX H100 and HGX H200 join the neocloud segment,
+      placed in Iceland and the United States by Crusoe's own instance documentation; its
+      H200 is the fifth EU/EEA H200 seller. Both series have printed a gap every day since
+      they were defined.
+    effect_on_level: >-
+      Measured on the stored 3, 4 and 5 October observations under v0.11.0 and v0.12.0,
+      with both providers' rows added at the prices read on 5 October, because neither has
+      been collected in this form before. EU-CRI-H100-HS prints $10.00/GPU-hr on all three
+      days instead of a gap (five providers instead of four). EU-CRI-H200 prints $5.40,
+      $4.87 and $4.88 instead of a gap (five instead of four). The headline EU-CRI-H100
+      moves from $3.49 to $3.58 on 3 and 4 October and from $3.72 to $3.74 on 5 October,
+      one provider more each day, and EU-CRI-H100-GLOBAL by the same amounts.
+      EU-CRI-H100-US moves from $3.99 to $3.90 on all three days (six providers instead of
+      five). The EU spot series is unchanged with IBM's spot rate as a sixth provider; the
+      Global spot series moves from $2.44 to $2.46. The composite gains the H200 class on
+      the days it prints.
+    body: |
+      **IBM Cloud.** The price is the on-demand instance-hour meter of the virtual server
+      profile gx3d-160x1792x8h100, read once a day from IBM's public Global Catalog API,
+      which needs no key and returns the same list price to every caller. IBM's profile
+      documentation lists the profile under "NVIDIA Hopper HGX instance profiles" with
+      eight NVIDIA H100 SXM5 (80 GB). On 5 October the Frankfurt (eu-de) and Madrid (eu-es)
+      meters read $99.60 per instance-hour, $12.45 per GPU-hour. IBM sells at hyperscaler
+      list prices and enters the hyperscaler segment, so it reaches the hyperscaler series
+      and, through its spot meter, the spot series. It never reaches the headline, whose
+      population leaves the hyperscalers out. Rows from its other regions (London, the
+      United States, Canada, Sao Paulo, Tokyo, Sydney) are stored against their countries.
+      Only the H100 class is admitted.
+
+      **Crusoe.** Crusoe's pricing page gives one per-GPU on-demand rate per part ($3.90
+      for HGX H100 and $4.29 for HGX H200 on 5 October) and names no region or instance
+      size. Its virtual machine documentation answers both: the HGX parts are sold only as
+      eight-GPU instances, the H100 in eu-iceland1-a, us-east1-a and us-southcentral1-a, and
+      the H200 in eu-iceland1-a alone. Iceland is in the EEA. The rate is the same wherever
+      the instance runs, so it is recorded once per location at eight GPUs, the rule
+      DigitalOcean's rows have followed since v0.5.0. Crusoe is a neocloud and enters the
+      headline population in the H100 and H200 classes. Its B200 and B300 instances in
+      Iceland and Norway are priced "Contact sales" and are not admitted.
+
+      **What does not change.** The unit definition, the estimator, the trim, the weights,
+      the concentration cap, the publication gate and the sovereign list. The A100, B200,
+      B300, H100 PCIe, sovereign and marketplace series still have fewer than five
+      providers and keep publishing a gap. Prints dated before the effective date keep the
+      version they record.
+
   - id: 2026-N8
     title: Spot H100 series for the EU, US and Global, and the on-demand to spot spread
     announced: 2026-09-27
