@@ -1,29 +1,29 @@
 {
- "generated_utc": "2026-10-08T10:16:26Z",
+ "generated_utc": "2026-10-08T11:13:18Z",
  "note": "Values with status 'indicative' predate the spot series (v0.11.0, effective 2026-10-06) and are replayed, never published as prints. Volatility: standard deviation of daily log changes (spread: of daily USD changes), per day and annualised by sqrt(365); never across a gap.",
  "regions": {
   "eu": {
    "latest": {
-    "breakeven_overhead_pct": 47.63,
-    "date": "2026-10-07",
-    "discount_pct": 32.26,
+    "breakeven_overhead_pct": 39.46,
+    "date": "2026-10-08",
+    "discount_pct": 28.29,
     "on_demand": {
      "flags": "",
      "n_sources": 7,
      "status": "print",
-     "value_usd": 3.729926
+     "value_usd": 3.699475
     },
     "spot": {
      "flags": "no_executable_input",
      "n_sources": 5,
      "status": "print",
-     "value_usd": 2.526475
+     "value_usd": 2.65275
     },
     "spread": {
      "flags": "",
      "n_sources": 2,
      "status": "print",
-     "value_usd": 1.203451
+     "value_usd": 1.046725
     }
    },
    "outside_index": [
@@ -42,7 +42,7 @@
      "sellers": 3
     },
     {
-     "median_spot_usd": 2.028,
+     "median_spot_usd": 2.0375,
      "segment": "neocloud",
      "sellers": 2
     },
@@ -54,14 +54,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 65.68,
+     "discount_pct": 63.97,
      "in_spot_population": true,
      "on_demand_usd": 7.3616,
      "pairs": 1,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.526475
+     "spot_usd": 2.65275
     },
     {
      "discount_pct": 81.52,
@@ -96,12 +96,12 @@
     {
      "discount_pct": 50.0,
      "in_spot_population": true,
-     "on_demand_usd": 3.8125,
+     "on_demand_usd": 3.85,
      "pairs": 9,
      "provider": "verda",
      "segment": "neocloud",
      "spot_above_on_demand": 0,
-     "spot_usd": 1.906
+     "spot_usd": 1.925
     }
    ],
    "series": {
@@ -112,70 +112,70 @@
    "volatility": {
     "on_demand": {
      "30d": {
-      "annualised": 0.8047172973850621,
-      "changes": 23,
+      "annualised": 0.7876456953988631,
+      "changes": 24,
       "needed": 20,
-      "per_period": 0.042120828437348476
+      "per_period": 0.041227259949696955
      },
      "7d": {
-      "annualised": 0.44947868740685554,
+      "annualised": 0.4636895884263528,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.02352678976831968
+      "per_period": 0.024270622323836335
      },
      "hourly": {
-      "annualised": 3.005772914673603,
-      "changes": 149,
+      "annualised": 2.9762951937406688,
+      "changes": 150,
       "needed": 48,
-      "per_period": 0.03211471805606047
+      "per_period": 0.03179976788398494
      }
     },
     "spot": {
      "30d": {
-      "annualised": 0.3398230415666,
-      "changes": 20,
+      "annualised": 0.3721594339736917,
+      "changes": 21,
       "needed": 20,
-      "per_period": 0.017787150940332702
+      "per_period": 0.019479715075946338
      },
      "7d": {
-      "annualised": 0.46756012500032146,
+      "annualised": 0.45371962180249903,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.024473215467443892
+      "per_period": 0.02374877042000123
      },
      "hourly": {
-      "annualised": 0.4216199043441495,
-      "changes": 149,
+      "annualised": 0.42032789408793925,
+      "changes": 150,
       "needed": 48,
-      "per_period": 0.004504732971920428
+      "per_period": 0.004490928687205115
      }
     },
     "spread": {
      "30d": {
-      "annualised": 2.87384657736563,
-      "changes": 20,
+      "annualised": 2.8699454804746023,
+      "changes": 21,
       "needed": 20,
-      "per_period": 0.15042400484471782
+      "per_period": 0.1502198121010072
      },
      "7d": {
-      "annualised": 1.9230553897933704,
+      "annualised": 2.146383739324732,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.10065731954838984
+      "per_period": 0.1123468596221202
      }
     }
    }
   },
   "global": {
    "latest": {
-    "breakeven_overhead_pct": 52.94,
-    "date": "2026-10-07",
-    "discount_pct": 34.62,
+    "breakeven_overhead_pct": 51.69,
+    "date": "2026-10-08",
+    "discount_pct": 34.08,
     "on_demand": {
      "flags": "",
      "n_sources": 11,
      "status": "print",
-     "value_usd": 3.729926
+     "value_usd": 3.699475
     },
     "spot": {
      "flags": "no_executable_input",
@@ -187,7 +187,7 @@
      "flags": "",
      "n_sources": 2,
      "status": "print",
-     "value_usd": 1.291126
+     "value_usd": 1.260675
     }
    },
    "outside_index": [
@@ -201,7 +201,7 @@
    ],
    "segments": [
     {
-     "median_spot_usd": 2.777087,
+     "median_spot_usd": 2.79045,
      "segment": "hyperscaler",
      "sellers": 3
     },
@@ -218,14 +218,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 63.13,
+     "discount_pct": 63.44,
      "in_spot_population": true,
      "on_demand_usd": 8.6,
      "pairs": 12,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.777087
+     "spot_usd": 2.79045
     },
     {
      "discount_pct": 81.52,
@@ -280,12 +280,12 @@
     {
      "discount_pct": 50.0,
      "in_spot_population": true,
-     "on_demand_usd": 3.8125,
+     "on_demand_usd": 3.85,
      "pairs": 9,
      "provider": "verda",
      "segment": "neocloud",
      "spot_above_on_demand": 0,
-     "spot_usd": 1.906
+     "spot_usd": 1.925
     }
    ],
    "series": {
@@ -296,28 +296,28 @@
    "volatility": {
     "on_demand": {
      "30d": {
-      "annualised": 0.6521822100251359,
-      "changes": 23,
+      "annualised": 0.639310845909986,
+      "changes": 24,
       "needed": 20,
-      "per_period": 0.034136777061491125
+      "per_period": 0.03346305907206726
      },
      "7d": {
-      "annualised": 0.44947868740685554,
+      "annualised": 0.4636895884263528,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.02352678976831968
+      "per_period": 0.024270622323836335
      },
      "hourly": {
-      "annualised": 2.5833390687743423,
-      "changes": 149,
+      "annualised": 2.552047049129623,
+      "changes": 150,
       "needed": 48,
-      "per_period": 0.027601288650876937
+      "per_period": 0.027266953883473527
      }
     },
     "spot": {
      "30d": {
       "annualised": 0.0,
-      "changes": 20,
+      "changes": 21,
       "needed": 20,
       "per_period": 0.0
      },
@@ -329,23 +329,23 @@
      },
      "hourly": {
       "annualised": 0.0,
-      "changes": 149,
+      "changes": 150,
       "needed": 48,
       "per_period": 0.0
      }
     },
     "spread": {
      "30d": {
-      "annualised": 2.547845863952146,
-      "changes": 20,
+      "annualised": 2.489630324901471,
+      "changes": 21,
       "needed": 20,
-      "per_period": 0.13336034762650842
+      "per_period": 0.13031320704594762
      },
      "7d": {
-      "annualised": 1.6187853286190055,
+      "annualised": 1.6720649236338478,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.0847310966537248
+      "per_period": 0.08751987811539348
      }
     }
    }
@@ -353,7 +353,7 @@
   "us": {
    "latest": {
     "breakeven_overhead_pct": null,
-    "date": "2026-10-07",
+    "date": "2026-10-08",
     "discount_pct": null,
     "on_demand": {
      "flags": "",
@@ -377,7 +377,7 @@
    "outside_index": [],
    "segments": [
     {
-     "median_spot_usd": 4.52154,
+     "median_spot_usd": 4.528221,
      "segment": "hyperscaler",
      "sellers": 2
     },
@@ -394,14 +394,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 59.64,
+     "discount_pct": 59.44,
      "in_spot_population": true,
      "on_demand_usd": 6.88,
      "pairs": 4,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.777087
+     "spot_usd": 2.79045
     },
     {
      "discount_pct": 59.97,
@@ -433,19 +433,19 @@
     "on_demand": {
      "30d": {
       "annualised": null,
-      "changes": 5,
+      "changes": 6,
       "needed": 20,
       "per_period": null
      },
      "7d": {
       "annualised": null,
-      "changes": 2,
+      "changes": 3,
       "needed": 5,
       "per_period": null
      },
      "hourly": {
       "annualised": 0.0,
-      "changes": 81,
+      "changes": 82,
       "needed": 48,
       "per_period": 0.0
      }
