@@ -17,7 +17,7 @@ from typing import Protocol
 import requests
 
 from tci import USER_AGENT
-from tci.db import utc_now_iso
+from tci.db import code_sha, utc_now_iso
 from tci.models import MarketOffer, Observation, TermQuote
 
 log = logging.getLogger("tci.collectors")
@@ -62,9 +62,9 @@ def run_collector(
 
     run_id = str(uuid.uuid4())
     conn.execute(
-        "INSERT INTO runs (run_id, utc_date, source, started_utc, status)"
-        " VALUES (?, ?, ?, ?, 'running')",
-        (run_id, utc_date, collector.name, utc_now_iso()),
+        "INSERT INTO runs (run_id, utc_date, source, started_utc, status, git_sha)"
+        " VALUES (?, ?, ?, ?, 'running', ?)",
+        (run_id, utc_date, collector.name, utc_now_iso(), code_sha()),
     )
     conn.commit()
     # Fetch AND persist inside one fail-soft boundary.
