@@ -14,7 +14,10 @@ permissions:
 
 jobs:
   daily:
-    runs-on: ubuntu-latest
+    # A named image, never ubuntu-latest. GitHub moves that label to Ubuntu 26 from
+    # 19 October 2026, and a label move is an unannounced change of environment under a
+    # published fixing. Moving to a new image is a commit that CI has seen first.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

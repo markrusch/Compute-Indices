@@ -35,7 +35,7 @@ permissions:
 
 jobs:
   canary:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # A source can be down for reasons that have nothing to do with the change under
     # review. This reports; it does not block a merge on somebody else's outage.
     continue-on-error: true

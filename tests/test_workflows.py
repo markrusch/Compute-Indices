@@ -256,3 +256,14 @@ def test_the_push_race_restore_is_the_tested_one() -> None:
     text = (WORKFLOWS / "intraday.yml").read_text(encoding="utf-8")
     assert "intraday restore --from" in text
     assert '"$SAVE"/*.jsonl' not in text
+
+
+def test_no_job_runs_on_a_moving_image() -> None:
+    """ubuntu-latest changes under the fixing whenever GitHub moves the label (to Ubuntu
+    26 from 19 October 2026). An image change should be a commit CI has seen first."""
+    for path in _all_workflows():
+        wf = yaml.safe_load(path.read_text(encoding="utf-8"))
+        for name, job in wf["jobs"].items():
+            assert "latest" not in str(job.get("runs-on", "")), (
+                f"{path.name}:{name} runs on a moving image label"
+            )

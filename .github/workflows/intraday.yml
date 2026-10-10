@@ -32,7 +32,7 @@ permissions:
 
 jobs:
   sweep:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # The job limit sits well above the sweep step's own. A job that hits its limit is
     # cancelled, and a cancelled job runs no further steps, commit included; a step that
     # hits its limit only fails, and the commit step below runs on failure.
