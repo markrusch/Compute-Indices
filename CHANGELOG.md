@@ -3,6 +3,50 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Endpoints, provenance and the Sources panel — 2026-10-10 — no methodology change
+
+Nothing in `index.py`, `normalise.py` or `weights.py` was touched, and no stored print
+moves: all 863 prints still recompute to their published values on Python 3.11 and 3.13.
+
+- **`/api/refresh` let anyone choose when the fixing was read.** It took an anonymous GET
+  or POST and dispatched `daily.yml`. A collector with an `ok` run for the day is skipped
+  at 11:00 (`has_ok_run`), so a dispatch before 11:00 did not add to the fixing; it
+  replaced the fixing's observations with prices read whenever the caller asked. After
+  11:00 every call stored a new revision of all 21 series and committed the database
+  again. It now takes only a POST carrying `Authorization: Bearer <REFRESH_SECRET>`,
+  compared in constant time, refuses every request while that variable is unset, refuses
+  any request before 11:00 UTC, and no longer returns GitHub's error body to the caller.
+  Nothing on the site called it.
+- **`/api/contact` had no budget.** A script posting the three real fields passed the
+  honeypot, and each post cost two Resend sends, one of them to whatever address was
+  typed in. The form now stops sending after 10 messages in an hour or 40 in a day,
+  site-wide, counted in Upstash; it stores nothing about the sender to do so, and it
+  still sends when Upstash is unset or down. Names over 200 characters, messages over
+  10,000 and addresses that do not look like one are refused, and line breaks are taken
+  out of the name before it becomes a subject line.
+- **No run recorded the code that ran it.** `runs.git_sha` has existed since migration
+  0001 and all 791 runs in the record have it null. Collection and index runs now store
+  the commit, marked `-dirty` when `src/` or `config/` had uncommitted changes.
+- **The Sources panel described a source that had stopped and missed eight that had
+  not.** It said "every collector the index reads", listed the hand-kept rate cards as a
+  live source eight days after notice 2026-N4 retired them, and left out Scaleway,
+  Azure Retail, Seeweb, Together, CoreWeave, Civo, DigitalOcean and Voltage Park, all
+  feeding that day's prints. The list now has one entry per collector in the daily run,
+  in run order, and `test_sources_panel.py` fails when the two drift apart.
+- **The live chip read "8 of 5 providers".** The gate is a minimum, not a total: it now
+  reads "8 providers, 5 needed".
+
+**Found, not fixed: three fixings were read before 11:00.** On 16 August (09:04 UTC),
+12 September (08:32, a workflow dispatch) and 17 September (06:27) the day's first
+revision was computed from collector runs that started before 11:00, and the 11:00 job
+recomputed from those rows rather than reading the sources again. The prints are
+reproducible from what was stored, but they are not 11:00 observations.
+
+**Found, not fixed: one smoke test depends on the clock.**
+`test_intraday_builds_from_the_copy_without_touching_the_record` failed once and passed
+on the next two runs with no code change between them; the intraday page reads the
+committed log against the wall clock.
+
 ## 0.11.1 — announced 2026-10-10, effective 2026-10-11 (notice 2026-N9)
 
 No numeric effect. All 863 stored prints recompute to their published values on Python
