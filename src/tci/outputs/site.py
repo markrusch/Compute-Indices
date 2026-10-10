@@ -1455,8 +1455,10 @@ def _print_card(ctx: SiteContext) -> str:
         )
         row = f'<div class="print__row">{_delta(pct)}{abs_move}{vs}</div>'
         status = (
+            # "8 of 5 providers" read as a count that had overrun its total. The gate is a
+            # minimum, so say it as one.
             f'<span class="chip chip--good">{_icon("check")}<span>Index live &#183;'
-            f' {head["n_sources"]} of {gate} providers</span></span>'
+            f' {head["n_sources"]} providers, {gate} needed</span></span>'
         )
     else:
         figure = (

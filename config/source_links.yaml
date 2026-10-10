@@ -57,6 +57,11 @@ providers:
     collected_via: ovh
     note: "Public order-catalogue API. Its H100 is PCIe, so it prices the H100 PCIe class only."
 
+# One entry per collector in commands.collectors_for_daily, in that order. The dashboard's
+# Sources panel says "every collector the index reads", and until 10 October 2026 this list
+# was kept by hand: it still described the retired hand-kept files as a live source and
+# left out eight of the collectors feeding the print that day. test_sources_panel.py now
+# fails when a collector is added or removed without this list following.
 collectors:
   vast_ai:
     label: "Vast.ai marketplace API"
@@ -67,10 +72,66 @@ collectors:
     url: https://www.runpod.io/
     endpoint: "POST api.runpod.io/graphql"
   gpuhunt:
-    label: "gpuhunt (dstack open-source catalogs)"
+    label: "gpuhunt (dstack open-source catalogues)"
     url: https://github.com/dstackai/gpuhunt
-    endpoint: "aws/azure/gcp public catalog prices"
+    endpoint: "AWS, Azure, GCP, OCI, Nebius, Verda and Lambda catalogue prices"
   static_yaml:
-    label: "Manually verified public pricing pages"
+    label: "Hand-kept rate cards (retired)"
     url: https://github.com/markrusch/Compute-Indices/tree/main/config/providers
-    endpoint: "config/providers/*.yaml, refreshed manually with a last_verified date"
+    endpoint: "config/providers/*.yaml; no constituent priced from them since v0.7.0 (notice 2026-N4)"
+  scaleway:
+    label: "Scaleway Instance API"
+    url: https://www.scaleway.com/en/pricing/gpu/
+    endpoint: "GET api.scaleway.com/instance/v1/zones/{zone}/products/servers"
+  azure_retail:
+    label: "Azure Retail Prices API"
+    url: https://prices.azure.com/api/retail/prices
+    endpoint: "GET prices.azure.com/api/retail/prices"
+  seeweb:
+    label: "Seeweb GPU cloud server pricing page"
+    url: https://www.seeweb.it/en/products/cloud-server-gpu
+    endpoint: "GET seeweb.it/en/products/cloud-server-gpu"
+  together:
+    label: "Together AI pricing page"
+    url: https://www.together.ai/pricing
+    endpoint: "GET together.ai/pricing"
+  ovh:
+    label: "OVHcloud public order-catalogue API"
+    url: https://www.ovhcloud.com/en/public-cloud/prices/
+    endpoint: "GET api.ovh.com/1.0/order/catalog/public/cloud"
+  civo:
+    label: "Civo pricing page"
+    url: https://www.civo.com/pricing
+    endpoint: "GET civo.com/pricing"
+  coreweave:
+    label: "CoreWeave pricing page"
+    url: https://www.coreweave.com/pricing
+    endpoint: "GET coreweave.com/pricing"
+  voltagepark:
+    label: "Voltage Park locations API"
+    url: https://www.voltagepark.com/
+    endpoint: "GET cloud-api.voltagepark.com/api/v1/bare-metal/locations"
+  digitalocean:
+    label: "DigitalOcean Droplet pricing"
+    url: https://docs.digitalocean.com/products/droplets/details/pricing/
+    endpoint: "GET docs.digitalocean.com/products/droplets/details/pricing/"
+  latitude:
+    label: "Latitude.sh pricing page"
+    url: https://www.latitude.sh/pricing
+    endpoint: "GET latitude.sh/pricing"
+  hyperstack:
+    label: "Hyperstack GPU pricing page"
+    url: https://www.hyperstack.cloud/gpu-pricing
+    endpoint: "GET hyperstack.cloud/gpu-pricing"
+  crusoe:
+    label: "Crusoe Cloud pricing page"
+    url: https://www.crusoe.ai/cloud/pricing
+    endpoint: "GET crusoe.ai/cloud/pricing"
+  lambda_pricing:
+    label: "Lambda pricing page"
+    url: https://lambda.ai/pricing
+    endpoint: "GET lambda.ai/pricing"
+  vast_reserved:
+    label: "Vast.ai reserved-term quotes"
+    url: https://cloud.vast.ai/
+    endpoint: "POST console.vast.ai/api/v0/bundles/ (term quotes; research tables only)"
