@@ -520,9 +520,9 @@ def compute_all_series(
 
     run_id = str(uuid.uuid4())
     conn.execute(
-        "INSERT INTO runs (run_id, utc_date, source, started_utc, status)"
-        " VALUES (?, ?, 'index', ?, 'running')",
-        (run_id, utc_date, db.utc_now_iso()),
+        "INSERT INTO runs (run_id, utc_date, source, started_utc, status, git_sha)"
+        " VALUES (?, ?, 'index', ?, 'running', ?)",
+        (run_id, utc_date, db.utc_now_iso(), db.code_sha()),
     )
     conn.commit()
 

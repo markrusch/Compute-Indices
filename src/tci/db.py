@@ -8,8 +8,11 @@ created in the migrations — corrections happen as new revisions, never edits.
 
 from __future__ import annotations
 
+import functools
+import os
 import re
 import sqlite3
+import subprocess
 from datetime import UTC, datetime
 from importlib import resources
 from pathlib import Path
@@ -39,6 +42,36 @@ def connect_readonly(db_path: Path | None = None) -> sqlite3.Connection:
 
 def utc_now_iso() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+@functools.lru_cache(maxsize=1)
+def code_sha() -> str | None:
+    """The commit the running code came from, for `runs.git_sha`.
+
+    The column has existed since migration 0001 and was never filled: none of the 791 runs
+    in the record up to 10 October 2026 says which code collected or computed it. That
+    mattered the day v0.11.1 showed a print can depend on the interpreter: `reproduce`
+    can only claim that today's code gives yesterday's numbers, not that yesterday's
+    numbers came from a given commit. A tree with uncommitted changes under src/ or
+    config/ is marked `-dirty`, because then the commit alone does not describe the code
+    that ran. Outside a git checkout it falls back to Actions' GITHUB_SHA, then to None.
+    It never raises: provenance is an observer and must not cost a run.
+    """
+    def git(*args: str) -> str:
+        return subprocess.run(
+            ["git", "-C", str(_REPO_ROOT), *args],
+            capture_output=True, text=True, timeout=5, check=True,
+        ).stdout.strip()
+
+    try:
+        sha = git("rev-parse", "HEAD")
+        dirty = git("status", "--porcelain", "--untracked-files=no", "--", "src", "config")
+        return f"{sha}-dirty" if dirty else sha
+    except (OSError, subprocess.SubprocessError):
+        return os.environ.get("GITHUB_SHA") or None
 
 
 def _migration_files() -> list[tuple[int, str, str]]:
