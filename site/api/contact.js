@@ -37,14 +37,57 @@
 // No dependencies: Vercel's Node runtime ships a global fetch and parses a plain HTML
 // form's application/x-www-form-urlencoded body into req.body for free.
 //
-// Spam control is a honeypot only: a hidden "website" field a real visitor never sees
+// Spam control is a honeypot: a hidden "website" field a real visitor never sees
 // (site.css .hp-trap) but a bot filling in every input on the page does. A submission
 // that fills it is redirected the same as a genuine one and nothing is sent, so a bot
 // never learns its post was dropped.
+//
+// A HONEYPOT ONLY STOPS BOTS THAT FILL EVERY FIELD. A script that posts the three real
+// fields straight at this endpoint passes it, and before 10 October 2026 nothing else
+// stood in the way: no cap on how often, and none on how long a name or message could be.
+// Each accepted post costs two Resend sends (the owner's copy and the confirmation), so a
+// loop could empty the Resend quota, fill the owner's inbox, and send the confirmation to
+// any number of strangers' addresses from this domain. So there is now a site-wide budget
+// (MAX_PER_HOUR, MAX_PER_DAY), counted in the Upstash database the visit log already uses.
+// It is deliberately not per visitor: a per-IP limit would mean storing something derived
+// from the IP for every sender, which PRIVACY.md does not cover. A real correspondent
+// writes a few times a week; the budget is far above that and far below abuse. With
+// Upstash unset or unreachable the form still works -- a broken counter must not cost a
+// genuine message -- so the cap is a guard, not a dependency.
+
+const MAX_PER_HOUR = 10;
+const MAX_PER_DAY = 40;
+const MAX_NAME = 200;
+const MAX_EMAIL = 254; // RFC 5321 path limit
+const MAX_MESSAGE = 10000;
 
 function redirect(res, path) {
   res.writeHead(302, { Location: path });
   res.end();
+}
+
+// True when the budget is spent. Counts this submission. Fails open (returns false).
+async function overBudget() {
+  const base = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!base || !token) return false;
+  const now = new Date().toISOString();
+  const hourKey = `tci:contact:${now.slice(0, 13)}`; // e.g. 2026-10-10T14
+  const dayKey = `tci:contact:${now.slice(0, 10)}`;
+  try {
+    const { upstashPipeline } = await import("./_upstash.mjs");
+    const out = await upstashPipeline(base, token, [
+      ["INCR", hourKey],
+      ["EXPIRE", hourKey, 7200],
+      ["INCR", dayKey],
+      ["EXPIRE", dayKey, 172800],
+    ]);
+    const hour = Number(out && out[0] && out[0].result);
+    const day = Number(out && out[2] && out[2].result);
+    return hour > MAX_PER_HOUR || day > MAX_PER_DAY;
+  } catch (err) {
+    return false;
+  }
 }
 
 // Fixed text only -- see "THE CONFIRMATION CARRIES NOTHING THE VISITOR TYPED" above.
@@ -95,7 +138,8 @@ module.exports = async (req, res) => {
   const body = req.body || {};
   const honeypot = String(body.website || "").trim();
   const email = String(body.email || "").trim();
-  const name = String(body.name || "").trim();
+  // The name goes into a subject line: line breaks out, so it stays one header.
+  const name = String(body.name || "").replace(/[\r\n]+/g, " ").trim();
   const message = String(body.message || "").trim();
 
   if (honeypot) {
@@ -103,7 +147,15 @@ module.exports = async (req, res) => {
     return;
   }
 
-  if (!email || !message) {
+  if (
+    !email || !message || !PLAUSIBLE_EMAIL.test(email) || email.length > MAX_EMAIL ||
+    name.length > MAX_NAME || message.length > MAX_MESSAGE
+  ) {
+    redirect(res, "/contact.html#error");
+    return;
+  }
+
+  if (await overBudget()) {
     redirect(res, "/contact.html#error");
     return;
   }
