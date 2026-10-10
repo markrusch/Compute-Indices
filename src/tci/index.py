@@ -58,7 +58,15 @@ def weighted_median(pairs: Sequence[tuple[float, float]]) -> float:
     if not pairs:
         raise ValueError("empty observation list")
     ordered = sorted(pairs, key=lambda p: p[0])
-    total = sum(w for _, w in ordered)
+    # A plain left fold, deliberately not built-in sum(). Python 3.12 made sum() use
+    # compensated summation, which moves `total` by an ulp. That is enough to flip a print
+    # whose cumulative weight lands on 50% exactly: re-run under 3.13, the 8 October H100
+    # print came out $3.85/GPU-hr against the $3.70/GPU-hr published from CI on 3.11, and
+    # thirty prints from 4 October no longer reproduced. The fold is the arithmetic every
+    # published print was computed with, and it is the same on every interpreter.
+    total = 0.0
+    for _, w in ordered:
+        total += w
     if total <= 0:
         raise ValueError("non-positive total weight")
     cumulative = 0.0

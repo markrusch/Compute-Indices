@@ -3,6 +3,48 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## 0.11.1 — announced 2026-10-10, effective 2026-10-11 (notice 2026-N9)
+
+No numeric effect. All 863 stored prints recompute to their published values on Python
+3.11 and on Python 3.13, and every published digest matches.
+
+- **The weighted median's total depended on the interpreter.** `weighted_median` summed
+  the weights with built-in `sum()`, which Python 3.12 changed to compensated summation.
+  On a print whose cumulative weight lands on exactly half the total, the last bit of that
+  total decides which of two adjacent prices is returned. Recomputed on 3.13, 30 prints
+  from 4 October came out differently; the 8 October headline went from the published
+  $3.70/GPU-hr to $3.85/GPU-hr. CI and the daily run use 3.11, so nothing published was
+  touched, but the record could only be checked on one interpreter. The total is now a
+  plain left fold, which is the arithmetic every published print used.
+  `test_weighted_median.py` replays the 8 October book with `sum()` swapped for
+  `math.fsum` and fails on the old code.
+- **Runners pinned to `ubuntu-24.04`.** Every workflow ran on `ubuntu-latest`, which GitHub
+  moves to Ubuntu 26 from 19 October 2026. `test_workflows.py` now refuses a moving image
+  label. Not a methodology change; listed here because it ships in the same commit set.
+
+**Found, not fixed: the headline sits on a weight tie most days, and three prints broke
+the tie the wrong way.** The panel gives every non-executable provider the same share and
+RunPod twice that, so whenever the providers below the middle add up to half the units,
+the lower weighted median is simply the lower of two adjacent prices. That held for 21 of
+the 31 EU H100 headline prints since 1 September, with the two candidates between 0.6%
+and 7.4% apart, and for every one of the 19 neocloud prints. The methodology says a tie
+goes to the lower price. In floating point the tie is only exact to the last bit, and on
+three dates the arithmetic in CI landed just short of half and returned the upper price:
+
+| date | published | lower median (the stated rule) |
+|---|---|---|
+| 2026-09-12 | $3.49/GPU-hr | $3.25/GPU-hr |
+| 2026-09-28 | $3.64/GPU-hr | $3.56/GPU-hr |
+| 2026-10-10 | $3.99/GPU-hr | $3.93/GPU-hr |
+
+The 7-day series and the composite inherit each of these. Whether to correct them is a
+decision under the correction policy, not a code change. The remedy for future prints is
+a minor version that detects ties exactly rather than to the last bit, for instance by
+carrying weights as rationals, since every weight is built from small integers. Whether a
+tie should then still go to the lower price or to the midpoint of the pair is a separate
+question that version has to answer: on two-thirds of days the lower-median rule is what
+sets the level.
+
 ## Build and test time — 2026-09-30 — no methodology change
 
 All 688 stored prints recompute unchanged, all 1,388 published digests match, and the

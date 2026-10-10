@@ -21,6 +21,40 @@
 # yet quantifiable and why.
 
 notices:
+  - id: 2026-N9
+    title: The weighted median sums its weights the same way on every Python version
+    announced: 2026-10-10
+    effective: 2026-10-11
+    version: 0.11.1
+    status: announced
+    summary: >-
+      A patch release with no numeric effect. The total weight inside the weighted median
+      is now summed by an explicit left-to-right addition rather than Python's built-in
+      sum(), which changed its arithmetic in Python 3.12. The estimator, its tie rule, the
+      trim, the weights, the gate and every parameter are unchanged.
+    effect_on_level: >-
+      None. All 863 stored prints recompute to their published values under v0.11.1 on
+      Python 3.11 and on Python 3.13, and every published digest matches. Under the old
+      code on Python 3.13, 30 prints from 4 October recomputed differently, among them the
+      8 October H100 headline at $3.85/GPU-hr against $3.70/GPU-hr published.
+    body: |
+      **What changed.** `weighted_median` in `src/tci/index.py` returns the first price at
+      which cumulative weight reaches half the total. When the weights below a price sum
+      to exactly half, the print sits on a tie between two adjacent prices. Python 3.12
+      made the built-in sum() use compensated summation, which can move the total by the
+      last bit of a floating-point number, enough to decide which side of such a tie a
+      print falls on. The index is computed on Python 3.11, so no published print was
+      affected, but the record could only be recomputed on that interpreter. The total
+      is now an explicit fold that gives the same result on every version.
+
+      **Why it is a version.** `index.py` is part of the hash-locked calculation path, and
+      GOVERNANCE.md §1 requires a version and a notice for any change to it, including one
+      that moves no number.
+
+      **What does not change.** The unit definition, the estimator and its tie rule, the
+      trim, the weights, the concentration cap, the publication gate, the panel and every
+      series. Prints dated before 11 October keep the version they record.
+
   - id: 2026-N8
     title: Spot H100 series for the EU, US and Global, and the on-demand to spot spread
     announced: 2026-09-27
