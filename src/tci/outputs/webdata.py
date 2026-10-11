@@ -780,5 +780,14 @@ def generate(conn: sqlite3.Connection) -> Path:
         write_forward(conn)
     except Exception:  # noqa: BLE001
         log.exception("webdata: forward estimate not written")
+    # Market-price statements for every closed month: research beside the index on the
+    # same terms. They are written before the site so the data page can list them.
+    try:
+        from tci.outputs.market_pages import write_statements
+
+        if head is not None:
+            write_statements(conn, head["date"])
+    except Exception:  # noqa: BLE001
+        log.exception("webdata: market-price statements not written")
     log.info("webdata: %s", OUT_PATH)
     return OUT_PATH

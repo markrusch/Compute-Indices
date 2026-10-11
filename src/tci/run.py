@@ -475,6 +475,94 @@ def _cmd_contrib(args: argparse.Namespace) -> int:
     return 2
 
 
+def _cmd_panel(args: argparse.Namespace) -> int:
+    """The EU term panel: register panellists, validate and ingest assessments, aggregate.
+
+    Exit 0 on success, 1 when a rule refuses the input (the message names the rule).
+    """
+    import hashlib
+    from pathlib import Path
+
+    from tci import panel
+    from tci.contrib import ContributionError
+    from tci.db import utc_now_iso
+
+    try:
+        if args.action == "validate":
+            rows, digest = panel.read_file(Path(args.file))
+            print(f"{len(rows)} assessments valid (sha256 {digest[:12]}...)")
+            return 0
+        if args.action == "register":
+            agreement = (hashlib.sha256(Path(args.agreement).read_bytes()).hexdigest()
+                         if args.agreement else None)
+            conn = panel.connect_private()
+            panel.register(conn, args.panellist, args.kind, args.status, utc_now_iso(),
+                           args.conflicts, agreement)
+            print(f"{args.panellist}: {args.status} ({args.kind})")
+            return 0
+        if args.action == "ingest":
+            rows, digest = panel.read_file(Path(args.file))
+            conn = panel.connect_private()
+            n = panel.ingest(conn, args.panellist, rows, digest, utc_now_iso(), args.supersedes)
+            print(f"{n} assessments stored privately at {panel.private_db_path()}")
+            return 0
+        if args.action == "aggregate":
+            from tci import db
+            from tci.collectors.fx import rate_for
+
+            cfg = panel.load_config()
+            window = panel.normalise_window(args.window)
+            _, cutoff = panel.window_bounds(window, cfg.rules)
+            # Strictly before the cutoff day, as prints have used since v0.5.0: on or
+            # before would give a different rate to a run after the ECB's ~14:00 UTC
+            # publication on the cutoff Friday than to one before it.
+            fx = rate_for(db.connect_readonly(), cutoff[:10], strictly_before=True)
+            cells = panel.aggregate(panel.connect_private(), window,
+                                    fx[0] if fx else None, cfg, utc_now_iso())
+            text = panel.to_json(panel.publishable(cells, window, cfg))
+            if args.out:
+                Path(args.out).write_text(text + "\n", encoding="utf-8")
+            else:
+                print(text)
+            return 0
+    except (panel.PanelError, ContributionError) as exc:
+        print(f"rejected: {exc}")
+        return 1
+    return 2
+
+
+def _cmd_statement(args: argparse.Namespace) -> int:
+    """Market-price statements: build one for a series and period, or verify a file."""
+    import json
+    from pathlib import Path
+
+    from tci import db, statement
+
+    conn = db.connect_readonly()
+    if args.action == "verify":
+        check = statement.verify(conn, statement.read(Path(args.file)))
+        if check.ok:
+            print("statement verified: it matches the statement rebuilt from the record")
+            return 0
+        for problem in check.problems:
+            print(f"FAIL {problem}")
+        return 1
+    try:
+        payload = statement.build(conn, args.series, args.date_from, args.date_to)
+    except statement.StatementError as exc:
+        print(f"refused: {exc}")
+        return 1
+    text = json.dumps(payload, indent=1, sort_keys=True)
+    if args.out:
+        Path(args.out).write_text(text + "\n", encoding="utf-8")
+        if args.markdown:
+            Path(args.markdown).write_text(statement.markdown(payload), encoding="utf-8")
+        print(f"{args.out}: {payload['digest']}")
+    else:
+        print(text)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s"
@@ -608,7 +696,43 @@ def main(argv: list[str] | None = None) -> int:
     p_con.add_argument("--to", dest="date_to", help="last as_of date (aggregate)")
     p_con.add_argument("--out", help="write the publishable aggregates here (aggregate)")
 
+    p_pan = sub.add_parser(
+        "panel", help="EU term panel: register, validate, ingest privately, aggregate"
+    )
+    p_pan.add_argument("action", choices=["register", "validate", "ingest", "aggregate"])
+    p_pan.add_argument("--file", help="assessments CSV (validate, ingest)")
+    p_pan.add_argument("--panellist", help="pseudonym (register, ingest)")
+    p_pan.add_argument("--kind", choices=["broker", "marketplace", "seller", "buyer"],
+                       help="register: what the panellist is")
+    p_pan.add_argument("--status", choices=["active", "suspended", "left"], default="active",
+                       help="register: the status to record")
+    p_pan.add_argument("--conflicts", help="register: the panellist's declaration, verbatim")
+    p_pan.add_argument("--agreement", help="register: the signed agreement (its digest is kept)")
+    p_pan.add_argument("--supersedes", type=int, help="ingest: id of the assessment replaced")
+    p_pan.add_argument("--window", help="aggregate: ISO week, e.g. 2026-W42")
+    p_pan.add_argument("--out", help="aggregate: write the publishable JSON here")
+
+    p_st = sub.add_parser(
+        "statement", help="market-price statement for a series and period, or verify one"
+    )
+    p_st.add_argument("action", choices=["build", "verify"])
+    p_st.add_argument("--series", default="EU-CRI-H100")
+    p_st.add_argument("--from", dest="date_from", help="build: first date (YYYY-MM-DD)")
+    p_st.add_argument("--to", dest="date_to", help="build: last date (YYYY-MM-DD)")
+    p_st.add_argument("--out", help="build: write the statement JSON here")
+    p_st.add_argument("--markdown", help="build: also write a readable cover sheet here")
+    p_st.add_argument("--file", help="verify: the statement JSON to check")
+
     args = parser.parse_args(argv)
+
+    if args.command == "panel":
+        return _cmd_panel(args)
+    if args.command == "statement":
+        if args.action == "build" and not (args.date_from and args.date_to):
+            parser.error("statement build needs --from and --to")
+        if args.action == "verify" and not args.file:
+            parser.error("statement verify needs --file")
+        return _cmd_statement(args)
 
     if args.command == "contrib":
         return _cmd_contrib(args)

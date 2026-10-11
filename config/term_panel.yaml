@@ -1,0 +1,51 @@
+# The EU term panel: what is assessed, when, and the rules a published value must pass.
+# Research beside the index, read by tci.panel. Not hash-locked and read by no print.
+# TERM-PANEL.md is the panellist-facing version of these rules; the two must agree, and
+# tests/test_panel_assessments.py holds the numbers below to what that document states.
+
+version: "2026-10-11"
+
+# A cell is one standard contract. A panellist assesses where a deal of exactly this
+# specification would be agreed today, in USD or EUR per GPU-hour, as a range.
+cells:
+  - id: EU-H100-12M-8
+    gpu_model: H100_SXM
+    region: EU_EEA
+    tenor_months: 12
+    gpus: [8, 63]
+    description: >-
+      12 months of 8 to 63 NVIDIA H100 SXM GPUs at one EU/EEA site, in whole 8-GPU nodes,
+      starting within 30 days, billed monthly, compute only (storage and egress excluded),
+      ex-VAT.
+  - id: EU-H100-12M-64
+    gpu_model: H100_SXM
+    region: EU_EEA
+    tenor_months: 12
+    gpus: [64, 1024]
+    description: >-
+      12 months of 64 to 1,024 NVIDIA H100 SXM GPUs in one cluster at one EU/EEA site with
+      a non-blocking InfiniBand or RoCE fabric between nodes, starting within 60 days,
+      billed monthly, compute only, ex-VAT.
+  - id: EU-B200-12M-64
+    gpu_model: B200_SXM
+    region: EU_EEA
+    tenor_months: 12
+    gpus: [64, 1024]
+    description: >-
+      12 months of 64 to 1,024 NVIDIA B200 GPUs in one cluster at one EU/EEA site with a
+      non-blocking InfiniBand or RoCE fabric between nodes, starting within 60 days,
+      billed monthly, compute only, ex-VAT.
+
+# One assessment window per ISO week. Submissions count if received from Monday 00:00 UTC
+# to Friday 12:00 UTC of the week they name; anything later is stored and left out.
+window:
+  opens: monday
+  cutoff_weekday: 5
+  cutoff_hour_utc: 12
+
+rules:
+  min_panellists: 3          # below this a cell publishes a count, never a value
+  trim_from: 5               # from this many, drop the highest and lowest mid and average the rest
+  max_seller_share: 0.5      # sellers must be fewer than half of a cell's panellists
+  max_range_ratio: 1.5       # high over low; a wider range is not an assessment
+  price_band: [0.25, 60.0]   # per GPU-hour, native currency: a junk-entry guard only

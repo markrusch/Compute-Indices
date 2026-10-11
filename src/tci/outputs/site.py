@@ -832,6 +832,8 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <a href="{prefix}reliability.html">Reliability</a>
         <a href="{prefix}intake.html">Intake</a>
         <a href="{prefix}performance.html">Price vs performance</a>
+        <a href="{prefix}availability.html">Moves and stock</a>
+        <a href="{prefix}running-cost.html">Rent vs running cost</a>
       </nav>
       <nav class="footer__nav" aria-label="Footer, data">
         <h4>Data</h4>
@@ -839,6 +841,7 @@ def _footer(ctx: SiteContext, prefix: str) -> str:
         <a href="{prefix}data/index_history.csv">index_history.csv</a>
         <a href="{prefix}data/latest.json">latest.json</a>
         <a href="{prefix}data/intraday/path.csv">intraday/path.csv</a>
+        <a href="{prefix}data.html#statements">Market-price statements</a>
       </nav>
       <nav class="footer__nav" aria-label="Footer, company">
         <h4>Company</h4>
@@ -1453,7 +1456,7 @@ def _print_card(ctx: SiteContext) -> str:
             f'{_num(head["value_eur"])}</span>'
             '<span class="print__unit">/GPU&#8209;hr</span></div>'
         )
-        row = f'<div class="print__row">{_delta(pct)}{abs_move}{vs}</div>'
+        row = f'<div class="print__row">{_delta(pct)}{abs_move}{vs}</div>' + _why_line(ctx)
         status = (
             # "8 of 5 providers" read as a count that had overrun its total. The gate is a
             # minimum, so say it as one.
@@ -3428,6 +3431,12 @@ def _data(ctx: SiteContext) -> str:
     definition, and it needs none of this project's code to check.</p>
   </section>
 
+  <section class="section" aria-labelledby="statements">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="statements">Market-price statements</h2></div></div>
+    {_market_section("statements_section", ctx)}
+  </section>
+
   <section class="section" aria-labelledby="s-ids">
     <div class="section__head"><div>
       <h2 class="section__h" id="s-ids">Series identifiers</h2>
@@ -3665,6 +3674,26 @@ def _leg_table(ctx: SiteContext, entry: SuccessionEntry) -> str:
   <tbody>{"".join(rows)}</tbody></table></div></div>"""
 
 
+def _us_leg_line(ctx: SiteContext) -> str:
+    """Who the US leg drew on this session, read from its audit set.
+
+    A sentence written by hand went stale: it named vast.ai, which has never qualified in
+    a stored US audit set, and missed CoreWeave, in every one since v0.10.0.
+    """
+    rows = series_read.constituents_for(ctx.conn, US_SERIES, ctx.date)
+    sellers = sorted({r["provider"] for r in rows
+                      if r["included"] or r["exclusion_reason"] == "insufficient_sources"})
+    if not sellers:
+        return ""
+    gate = load_factors(for_date=ctx.date).aggregation.min_providers
+    names = ", ".join(sellers[:-1]) + " and " + sellers[-1] if len(sellers) > 1 else sellers[0]
+    n = len(sellers)
+    return (f"<p>On {_e(_human_date(ctx.date))} the US leg had {n} qualifying "
+            f"{'seller' if n == 1 else 'sellers'} ({_e(names)}). It publishes with {gate} or "
+            f"more; with fewer it gaps and so does the spread, with the reason in the audit "
+            "set.</p>")
+
+
 def _basis(ctx: SiteContext) -> str:
     entry = _basis_entry()
     if entry is None:
@@ -3698,9 +3727,10 @@ def _basis(ctx: SiteContext) -> str:
     <div class="eyebrow">EU&#8211;US basis</div>
     <h1 class="pagehead__h pagehead__h--display">What a European buyer carries when the
     hedge is priced in the US.</h1>
-    <p class="pagehead__dek">CME Group plans to list compute futures on 5 October 2026,
-    pending regulatory review, that settle in cash on third-party H100 and B200 rental
-    indices. A European buyer who hedges with them is exposed to the
+    <p class="pagehead__dek">CME Group has applied to list compute futures that settle in
+    cash on third-party H100 and B200 rental indices; on 21 September 2026 the CFTC extended
+    its review to 9 November. A European buyer who hedges with contracts like these is
+    exposed to the
     difference between what the EU/EEA population of sellers charges and what the
     reference population charges. {_nbsp_series(BASIS_SERIES)} is that difference for one
     H100 SXM GPU-hour: the EU/EEA headline minus a US series priced with exactly the same
@@ -3744,11 +3774,9 @@ def _basis(ctx: SiteContext) -> str:
     it would mix a regional difference with a methodological one that nobody outside can
     measure. What is published here is the regional part, with the method held
     constant.</p>
-    <p>The US leg draws on five candidate sellers (vast.ai, RunPod, Lambda, DigitalOcean,
-    Voltage Park) against a gate of five. On any day one of them has no qualifying offer,
-    the US leg gaps and so does the spread, with the reason in the audit set.</p>
-    <p>RunPod and DigitalOcean charge one price in every region, so on a day both qualify
-    in both legs the same two prices sit on each side of the spread. That pulls the basis
+    {_us_leg_line(ctx)}
+    <p>RunPod, Lambda and DigitalOcean charge one price in every region, so on a day they
+    qualify in both legs the same prices sit on each side of the spread. That pulls the basis
     toward zero, and it is correct: a buyer can rent from either at the same price on
     either side of the Atlantic. A basis driven by the other sellers is the one that
     reflects regional pricing.</p></div>
@@ -3759,6 +3787,12 @@ def _basis(ctx: SiteContext) -> str:
     <div class="section__head"><div>
       <h2 class="section__h" id="s-both">Sellers in both legs</h2></div></div>
     {_matched_section(ctx)}
+  </section>
+
+  <section class="section" aria-labelledby="s-makeup">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-makeup">What each print is made of</h2></div></div>
+    {_market_section("basis_makeup_section", ctx)}
   </section>
 
   <section class="section" aria-labelledby="s-where">
@@ -4014,6 +4048,12 @@ def _term(ctx: SiteContext) -> str:
     <div class="md"><p>Hyperscaler reservations and neocloud commitments are shown
     separately and never pooled: they are different products at very different
     discounts.</p></div>
+  </section>
+
+  <section class="section" aria-labelledby="s-panel">
+    <div class="section__head"><div>
+      <h2 class="section__h" id="s-panel">EU term panel</h2></div></div>
+    {_market_section("panel_section")}
   </section>
 
   <section class="section" aria-labelledby="s-contrib">
@@ -4429,6 +4469,34 @@ def _write_feed(ctx: SiteContext, notes: list[Note]) -> Path:
     return path
 
 
+def _market_page(name: str, ctx: SiteContext) -> str:
+    """A page from outputs.market_pages. Research beside the index, like spot.html: a
+    failure keeps the previous page and costs nothing else."""
+    try:
+        from tci.outputs import market_pages
+
+        return str(getattr(market_pages, name)(ctx))
+    except Exception:  # noqa: BLE001
+        log.exception("site: %s not rendered; the previous page is kept", name)
+        return ""
+
+
+def _market_section(name: str, *args: Any) -> str:
+    """A section from outputs.market_pages, spliced into an existing page. On failure the
+    section is left out and the page around it is still written."""
+    try:
+        from tci.outputs import market_pages
+
+        return str(getattr(market_pages, name)(*args))
+    except Exception:  # noqa: BLE001
+        log.exception("site: section %s not rendered", name)
+        return ""
+
+
+def _why_line(ctx: SiteContext) -> str:
+    return _market_section("why_line", ctx)
+
+
 def build_context(conn: sqlite3.Connection) -> SiteContext:
     """The build context every page renders from. Also used by the hourly intraday build,
     which renders one page and must render it exactly as the full build would."""
@@ -4468,6 +4536,8 @@ def generate(conn: sqlite3.Connection) -> list[Path]:
         (SITE_DIR / "reliability.html", _reliability(ctx)),
         (SITE_DIR / "intake.html", _intake(ctx)),
         (SITE_DIR / "performance.html", _performance(ctx)),
+        (SITE_DIR / "availability.html", _market_page("availability_page", ctx)),
+        (SITE_DIR / "running-cost.html", _market_page("running_cost_page", ctx)),
         (SITE_DIR / "research.html", _research_index(ctx, notes)),
         (SITE_DIR / "contact.html", _contact(ctx)),
         (SITE_DIR / "privacy.html", _privacy(ctx)),
