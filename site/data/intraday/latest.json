@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-10-11T04:18:40Z",
+ "generated_utc": "2026-10-11T05:15:17Z",
  "latest": {
-  "at_utc": "2026-10-11T04:18:38Z",
+  "at_utc": "2026-10-11T05:15:15Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -35,7 +35,7 @@
      "weight_pct": 10.0
     },
     {
-     "price_usd": 3.109022,
+     "price_usd": 2.629022,
      "provider": "vast.ai",
      "weight_pct": 20.0
     },
@@ -92,7 +92,7 @@
      "weight_pct": 7.142857
     },
     {
-     "price_usd": 3.109022,
+     "price_usd": 2.629022,
      "provider": "vast.ai",
      "weight_pct": 14.285714
     },
@@ -233,29 +233,29 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 303,
-   "civo": 304,
-   "coreweave": 304,
-   "crusoe": 304,
-   "digitalocean": 304,
+   "azure_retail": 360,
+   "civo": 0,
+   "coreweave": 0,
+   "crusoe": 0,
+   "digitalocean": 0,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 304,
-   "latitude": 304,
-   "ovh": 304,
+   "lambda_pricing": 0,
+   "latitude": 0,
+   "ovh": 0,
    "runpod": 0,
-   "scaleway": 304,
-   "seeweb": 304,
+   "scaleway": 0,
+   "seeweb": 0,
    "static_yaml": 0,
-   "together": 304,
+   "together": 0,
    "vast_ai": 0,
-   "voltagepark": 304
+   "voltagepark": 0
   },
   "sources_missing": [],
   "values": {
    "EU-CRI-A100": {
     "flags": "insufficient_sources",
-    "n_sources": 3,
+    "n_sources": 4,
     "value_eur": null,
     "value_usd": null
    },
@@ -1855,82 +1855,82 @@
   "civo": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-10T23:13:58Z"
+   "last_ok_utc": "2026-10-11T05:15:07Z"
   },
   "coreweave": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-10T23:13:58Z"
+   "last_ok_utc": "2026-10-11T05:15:06Z"
   },
   "crusoe": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-10T23:14:01Z"
+   "last_ok_utc": "2026-10-11T05:15:08Z"
   },
   "digitalocean": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-10T23:14:00Z"
+   "last_ok_utc": "2026-10-11T05:15:07Z"
   },
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-11T04:18:32Z"
+   "last_ok_utc": "2026-10-11T05:15:04Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-11T04:18:32Z"
+   "last_ok_utc": "2026-10-11T05:15:09Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-10T23:13:53Z"
+   "last_ok_utc": "2026-10-11T05:15:08Z"
   },
   "latitude": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-10T23:14:00Z"
+   "last_ok_utc": "2026-10-11T05:15:07Z"
   },
   "ovh": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-10T23:14:06Z"
+   "last_ok_utc": "2026-10-11T05:15:15Z"
   },
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-11T04:18:32Z"
+   "last_ok_utc": "2026-10-11T05:15:04Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-10T23:14:05Z"
+   "last_ok_utc": "2026-10-11T05:15:05Z"
   },
   "seeweb": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-10T23:13:55Z"
+   "last_ok_utc": "2026-10-11T05:15:04Z"
   },
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-11T04:18:31Z"
+   "last_ok_utc": "2026-10-11T05:15:02Z"
   },
   "together": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-10T23:13:55Z"
+   "last_ok_utc": "2026-10-11T05:15:05Z"
   },
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-11T04:18:38Z"
+   "last_ok_utc": "2026-10-11T05:15:10Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-10T23:14:00Z"
+   "last_ok_utc": "2026-10-11T05:15:07Z"
   }
  },
  "store_problems": {}
