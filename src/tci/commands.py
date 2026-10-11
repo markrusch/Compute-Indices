@@ -668,6 +668,15 @@ def cmd_daily(args: argparse.Namespace) -> int:
     from tci.collectors.entsoe import collect_overlay
 
     collect_overlay(conn, session, utc_date)  # overlay only; skips without token
+    # The same overlay from a source that needs no token; never overwrites an ENTSO-E row.
+    # Guarded twice over, like the term-schedule refresh below: an overlay is worth less
+    # than any print and must not be able to stop the collection that follows.
+    try:
+        from tci.collectors import energy_charts
+
+        energy_charts.collect(conn, session, utc_date)
+    except Exception:  # noqa: BLE001
+        log.exception("energy_charts overlay failed unexpectedly; prints unaffected")
 
     # term.html research table only, never a print input (CLAUDE.md). refresh() is
     # already fail-soft on its own (network/shape/file failures all leave
