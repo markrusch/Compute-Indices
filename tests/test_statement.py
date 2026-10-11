@@ -52,6 +52,42 @@ def test_a_changed_value_fails_even_with_a_recomputed_digest(
     assert any("value_eur differs" in p for p in check.problems)
 
 
+def _reseal(forged: dict) -> dict:
+    """What a forger would do: make the summary and digest consistent with the edit."""
+    forged["summary"] = statement._summary(forged["sessions"])
+    forged["digest"] = statement.digest_of(forged)
+    return forged
+
+
+def test_dropping_sessions_fails_even_when_resealed(record: sqlite3.Connection,
+                                                    september: dict) -> None:
+    forged = copy.deepcopy(september)
+    printed = sorted((x for x in forged["sessions"] if x["value_eur"] is not None),
+                     key=lambda x: x["value_eur"], reverse=True)
+    top = {x["date"] for x in printed[:5]}
+    forged["sessions"] = [x for x in forged["sessions"] if x["date"] not in top]
+    check = statement.verify(record, _reseal(forged))
+    assert not check.ok
+    assert any("missing from the statement" in p for p in check.problems)
+
+
+@pytest.mark.parametrize("edit", [
+    lambda f: f["period"].update({"from": "2026-08-01", "to": "2026-10-31"}),
+    lambda f: f.update({"series": "EU-CRI-H100-SPOT"}),
+    lambda f: f.update({"measures": "A three-year commitment for a 1,024-GPU cluster."}),
+    lambda f: f["sessions"][0].update({"flags": "", "n_sources": 99}),
+])
+def test_relabelling_fails_even_when_resealed(record: sqlite3.Connection, september: dict,
+                                              edit) -> None:  # type: ignore[no-untyped-def]
+    forged = copy.deepcopy(september)
+    edit(forged)
+    assert not statement.verify(record, _reseal(forged)).ok
+
+
+def test_statements_keep_the_stored_key(september: dict) -> None:
+    assert september["series"] == "EU-CRI-H100" and "series_key" not in september
+
+
 def test_an_edited_file_fails_its_own_digest(record: sqlite3.Connection,
                                              september: dict) -> None:
     edited = copy.deepcopy(september)

@@ -6,7 +6,12 @@ A statement is the thing a public compute operator, an auditor or a tax adviser 
 to a file when they have to show what a GPU-hour cost in the market over a period. It
 carries every session in the period, including the ones that gapped, each with the digest
 TCI published for that print, and a digest over the whole statement. Anyone holding the
-file and a clone of the repository can check both with `python -m tci.run statement verify`.
+file and a clone of the repository can check it with `python -m tci.run statement verify`,
+which rebuilds the statement from the record and requires the file to match it exactly.
+The digest alone proves nothing: it is unkeyed, so whoever edits the file can recompute it.
+
+The `series` field carries the stored key (EU-CRI-*), like everything else under
+site/data/; only site.py::display_series renames it, and only on rendered pages.
 
 WHY. EU State aid rules for research infrastructure require that the price charged for its
 use "shall correspond to a market price" (Regulation 651/2014, Art. 26(6)). EuroHPC's AI
@@ -61,10 +66,6 @@ DISCLAIMER = (
 
 class StatementError(ValueError):
     pass
-
-
-def _published_name(series: str) -> str:
-    return series.replace("EU-CRI", "TCI-CRI", 1)
 
 
 def _days(start: str, end: str) -> list[str]:
@@ -183,8 +184,7 @@ def build(conn: sqlite3.Connection, series: str, start: str, end: str) -> dict[s
     payload: dict[str, Any] = {
         "kind": KIND,
         "format": FORMAT,
-        "series": _published_name(series),
-        "series_key": series,
+        "series": series,
         "period": {"from": start, "to": end},
         "measures": _what(series, factors),
         "currency_note": (
@@ -213,38 +213,50 @@ class Check:
 
 
 def verify(conn: sqlite3.Connection, payload: dict[str, Any]) -> Check:
-    """Check a statement against itself and against the record it claims to come from.
+    """Rebuild the statement from the record and require the file to match it exactly.
 
-    Three things are checked: the statement digest matches its content, every session's
-    print digest matches the database, and the summary is what the sessions add up to.
-    A statement issued before a correction fails the second check for the corrected date,
-    which is the point: it no longer describes the record.
+    Checking only the digest, the listed sessions and the summary passed forgeries: drop
+    the five highest sessions and recompute the summary and digest, or relabel the period
+    or the series, and the file still verified. Rebuilding closes all of those at once.
+    A statement issued before a correction fails for the corrected date, which is the
+    point: it no longer describes the record. The messages below say where it differs.
     """
-    problems: list[str] = []
     if payload.get("kind") != KIND:
         return Check(False, ("not a TCI market-price statement",))
+    problems: list[str] = []
     if payload.get("digest") != digest_of(payload):
         problems.append("the statement's digest does not match its content")
-    series = str(payload.get("series_key"))
-    for s in payload.get("sessions", []):
-        if s.get("status") == "not_computed":
-            if head_print(conn, series, s["date"]) is not None:
-                problems.append(f"{s['date']}: listed as not computed, but a print exists")
+    if payload.get("format") != FORMAT:
+        problems.append(f"statement format {payload.get('format')!r}; this code checks"
+                        f" format {FORMAT}")
+        return Check(False, tuple(problems))
+    try:
+        period = payload["period"]
+        expected = build(conn, str(payload["series"]), str(period["from"]), str(period["to"]))
+    except (KeyError, TypeError, ValueError) as exc:
+        problems.append(f"cannot rebuild this statement from the record: {exc}")
+        return Check(False, tuple(problems))
+    mine = {str(s.get("date")): s for s in payload.get("sessions", [])
+            if isinstance(s, dict)}
+    for want in expected["sessions"]:
+        got = mine.pop(want["date"], None)
+        if got is None:
+            problems.append(f"{want['date']}: missing from the statement")
             continue
-        pd = print_digest(conn, s["date"], series)
-        head = head_print(conn, series, s["date"])
-        if pd is None or head is None:
-            problems.append(f"{s['date']}: no print in the database")
+        for key, value in want.items():
+            if got.get(key) != value:
+                problems.append(f"{want['date']}: {key} differs from the database")
+        extra = set(got) - set(want)
+        if extra:
+            problems.append(f"{want['date']}: fields the record does not have:"
+                            f" {', '.join(sorted(extra))}")
+    for d in sorted(mine):
+        problems.append(f"{d}: listed, but outside the period")
+    for key in sorted(set(expected) | set(payload)):
+        if key in ("sessions", "digest"):
             continue
-        if pd[1] != s.get("digest"):
-            problems.append(f"{s['date']}: print digest differs from the database")
-        # The digest above vouches for the print, not for the numbers this file repeats
-        # beside it; those are checked against the same row.
-        for key in ("value_usd", "value_eur", "fx_rate", "revision", "methodology_version"):
-            if head[key] != s.get(key):
-                problems.append(f"{s['date']}: {key} differs from the database")
-    if payload.get("summary") != _summary(list(payload.get("sessions", []))):
-        problems.append("the summary is not what the listed sessions add up to")
+        if payload.get(key) != expected.get(key):
+            problems.append(f"{key} differs from a statement rebuilt from the record")
     return Check(not problems, tuple(problems))
 
 
@@ -322,7 +334,7 @@ def write_monthly(conn: sqlite3.Connection, out_dir: Path, through: str) -> list
         for month in completed_months(conn, series, through):
             start, end = month_bounds(month)
             payload = build(conn, series, start, end)
-            path = out_dir / month / f"{_published_name(series)}.json"
+            path = out_dir / month / f"{series}.json"
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n",
                             encoding="utf-8", newline="\n")

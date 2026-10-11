@@ -3,9 +3,8 @@
 """The EU term panel: weekly assessments of standard term contracts, aggregated privately.
 
 WHY A PANEL. CoreWeave reported 98% of its first-half 2026 revenue under committed
-contracts, and at the last turn in the market the 1-year H100 rate moved about six months
-before on-demand rate cards did. The term price is where the volume is and where the
-signal comes first, and no public source has it: as of September 2026 no committed tenor
+contracts (10-Q for the period to 30 June 2026). The term price is where the volume is,
+and no public source has it: as of September 2026 no committed tenor
 of any GPU is published by three or more sellers (tci.term). Contributed prices
 (tci.contrib) wait for parties to volunteer deals; a panel asks named market participants
 for a judgement every week about a fixed contract. Freight has priced its time charters
@@ -27,10 +26,15 @@ RULES, ENFORCED HERE, NOT PROMISED:
 - ONE VOICE PER PANELLIST PER CELL PER WEEK. A second assessment in the same window must
   supersede the first.
 - THE WINDOW IS FIXED. An assessment received after the window's cutoff is stored and not
-  counted, so nobody can see one week's number and then shape their input to it.
-- THREE OR NO VALUE. Below three panellists a cell is a count. From five, the highest and
-  lowest mids are dropped and the rest averaged, and quartiles appear; at three or four the
-  value is the median of the mids. A median of two reveals both inputs to either party.
+  counted, and neither is a correction received after it: a late correction cannot
+  withdraw an assessment that counted. No week is aggregated before its cutoff, so nobody
+  can see one week's number and then shape their input to it.
+- THREE OR NO VALUE. Below three panellists a cell is a count. At three or four the value
+  is the mean of the mids; from five, the highest and lowest mids are dropped and the rest
+  averaged, and quartiles appear. Not a median at three: the median of three mids IS one
+  panellist's mid, published to the cent.
+- A SUSPENDED PANELLIST COUNTS NOWHERE. While its latest register entry is a suspension,
+  its assessments are left out of every week, past weeks included.
 - NOT A SELLERS' CLUB. A cell where sellers are half the panellists or more publishes no
   value. Competing sellers pooling current prices is the arrangement competition law is
   most wary of; brokers, marketplaces and buyers are the panel this is designed for.
@@ -44,11 +48,11 @@ import csv
 import hashlib
 import json
 import sqlite3
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 from datetime import date as date_type
 from pathlib import Path
-from statistics import mean, median
+from statistics import mean
 from typing import Any
 
 from tci import config
@@ -162,13 +166,25 @@ def load_config(path: Path | None = None) -> PanelConfig:
 
 # ------------------------------------------------------------------------------- windows
 
-def window_bounds(window: str, rules: Rules) -> tuple[str, str]:
-    """(opens, cutoff) as ISO UTC timestamps for an ISO week like 2026-W42."""
+def _monday(window: str) -> date_type:
     try:
-        year, week = window.split("-W")
-        monday = date_type.fromisocalendar(int(year), int(week), 1)
+        year, week = window.strip().split("-W")
+        return date_type.fromisocalendar(int(year), int(week), 1)
     except (ValueError, AttributeError) as exc:
         raise PanelError(f"window must be an ISO week like 2026-W42, got {window!r}") from exc
+
+
+def normalise_window(window: str) -> str:
+    """One spelling per week. Stored raw, "2027-W1" and "2027-W01" were two windows: three
+    on-time panellists split into three cells of one, and one panellist could file twice
+    for the same week under two spellings."""
+    y, w, _ = _monday(window).isocalendar()
+    return f"{y}-W{w:02d}"
+
+
+def window_bounds(window: str, rules: Rules) -> tuple[str, str]:
+    """(opens, cutoff) as ISO UTC timestamps for an ISO week like 2026-W42."""
+    monday = _monday(window)
     cutoff_day = monday + timedelta(days=rules.cutoff_weekday - 1)
     return (f"{monday.isoformat()}T00:00:00Z",
             f"{cutoff_day.isoformat()}T{rules.cutoff_hour_utc:02d}:00:00Z")
@@ -240,8 +256,7 @@ def parse_row(raw: dict[str, str], line: int, cfg: PanelConfig) -> Assessment:
     missing = [f for f in FIELDS[:6] if not str(raw.get(f, "")).strip()]
     if missing:
         raise PanelError(f"{where}: missing {', '.join(missing)}")
-    window = raw["window"].strip()
-    window_bounds(window, cfg.rules)
+    window = normalise_window(raw["window"])
     cell_id = raw["cell"].strip()
     if cfg.cell(cell_id) is None:
         raise PanelError(f"{where}: unknown cell {cell_id!r}; cells are "
@@ -304,6 +319,7 @@ def ingest(conn: sqlite3.Connection, panellist: str, rows: list[Assessment],
            source_sha256: str, received_utc: str, supersedes: int | None = None) -> int:
     """Store validated assessments from an active panellist."""
     _pseudonym(panellist)
+    rows = [replace(a, window=normalise_window(a.window)) for a in rows]
     entry = standing(conn).get(panellist)
     if entry is None or entry["status"] != "active":
         raise PanelError(f"{panellist} is not an active panellist")
@@ -367,30 +383,41 @@ class PanelCell:
 
 
 def aggregate(conn: sqlite3.Connection, window: str, fx_usd_per_eur: float | None,
-              cfg: PanelConfig | None = None) -> list[PanelCell]:
+              cfg: PanelConfig | None = None, now_utc: str | None = None) -> list[PanelCell]:
     """Every configured cell for one window: a value where the rules allow, a count where not.
 
-    `fx_usd_per_eur` converts EUR assessments to USD (the ECB rate on or before the
-    cutoff); without it, a cell with any EUR input publishes no value rather than guess.
+    `fx_usd_per_eur` converts EUR assessments to USD; the caller passes the ECB rate dated
+    strictly before the cutoff day, so the result does not depend on when this runs (the
+    defect v0.5.0 fixed for prints). Without it, a cell with any EUR input publishes no
+    value rather than guess. Refuses a window whose cutoff is after `now_utc`.
     """
     cfg = cfg or load_config()
+    window = normalise_window(window)
     opens, cutoff = window_bounds(window, cfg.rules)
+    now = now_utc or datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if now < cutoff:
+        raise PanelError(f"{window} closes at {cutoff}; no value exists before then")
     reg = standing(conn)
-    rows = conn.execute(
-        "SELECT * FROM assessments WHERE window = ?"
-        " AND id NOT IN (SELECT supersedes FROM assessments WHERE supersedes IS NOT NULL)",
-        (window,),
-    ).fetchall()
+    rows = conn.execute("SELECT * FROM assessments WHERE window = ? ORDER BY id",
+                        (window,)).fetchall()
+    suspended = {p for p, e in reg.items() if e["status"] == "suspended"}
+    rows = [r for r in rows if r["panellist"] not in suspended]
+    # Lateness first, supersession second, and only among rows that were on time.
+    # The other order let a correction received after the cutoff withdraw an assessment
+    # that had counted, turning a published cell back into a count on re-aggregation.
+    on_time = [r for r in rows if opens <= r["received_utc"] <= cutoff]
+    replaced = {r["supersedes"] for r in on_time if r["supersedes"] is not None}
+    on_time = [r for r in on_time if r["id"] not in replaced]
+    late_rows = [r for r in rows if not opens <= r["received_utc"] <= cutoff]
     out: list[PanelCell] = []
     for cell in cfg.cells:
-        members = [r for r in rows if r["cell"] == cell.id]
-        on_time = [r for r in members if opens <= r["received_utc"] <= cutoff]
-        late = len(members) - len(on_time)
+        live = [r for r in on_time if r["cell"] == cell.id]
+        late = sum(1 for r in late_rows if r["cell"] == cell.id)
         mids: list[float] = []
         bases: dict[str, int] = {}
         kinds: dict[str, int] = {}
         missing_fx = False
-        for r in on_time:
+        for r in live:
             mid = (float(r["low"]) + float(r["high"])) / 2.0
             if r["currency"] == "EUR":
                 if fx_usd_per_eur is None:
@@ -401,7 +428,7 @@ def aggregate(conn: sqlite3.Connection, window: str, fx_usd_per_eur: float | Non
             bases[r["basis"]] = bases.get(r["basis"], 0) + 1
             kind = reg[r["panellist"]]["kind"] if r["panellist"] in reg else "unknown"
             kinds[kind] = kinds.get(kind, 0) + 1
-        n = len(on_time)
+        n = len(live)
         reason = None
         rules = cfg.rules
         if n < rules.min_panellists:
@@ -417,7 +444,7 @@ def aggregate(conn: sqlite3.Connection, window: str, fx_usd_per_eur: float | Non
         if n >= rules.trim_from:
             value, method = mean(ordered[1:-1]), "trimmed mean (highest and lowest mid dropped)"
         else:
-            value, method = median(ordered), "median of mids"
+            value, method = mean(ordered), "mean of mids"
         ranged = n >= rules.quartiles_from
         out.append(PanelCell(
             cell.id, cell.description, window, n, late, True, None,

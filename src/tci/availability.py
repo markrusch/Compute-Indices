@@ -8,23 +8,27 @@ the database; no print reads it.
 WHY. A posted price is not a price anyone can pay when the seller has nothing to rent. For
 much of 2026 on-demand H100 capacity was reported sold out across sellers while rate cards
 did not move, and the index's own record shows the same thing from the inside: RunPod's
-8-GPU H100 stock level changed 16 times between 5 September and 11 October 2026 while its
-posted price changed once. The headline already reacts to stock, but only for the two
-sellers whose rows disappear when they have none (RunPod's node-size floor, vast.ai's live
-offer book). The rate-card sellers never drop out, sold out or not. This module publishes
-what is known about stock, seller by seller, so the asymmetry is visible instead of buried
-in the median.
+8-GPU H100 stock level changed 15 times between 5 September and 11 October 2026, from one
+collected session to the next, while its posted price changed once. The headline already
+reacts to stock, but only for the two sellers whose rows disappear when they have none
+(RunPod's node-size floor, vast.ai's live offer book). The rate-card sellers never drop
+out, sold out or not. This module publishes what is known about stock, seller by seller,
+so the asymmetry is visible instead of buried in the median.
 
 WHAT COUNTS. Only what a seller publishes about its own capacity, read as published:
 
 - RunPod: a stock level (High, Medium, Low, or none) for each node size, and the list of
-  datacentres reporting stock of the GPU type. One level per node size, for every region
-  at once; the EU/EEA count comes from the datacentre list.
+  datacentres reporting stock of the GPU type. The level is one label for every region at
+  once, so it counts as EU/EEA stock only on a day an EU/EEA datacentre is on the list.
+  Counting the label alone put RunPod among the EU sellers with stock on 9 October 2026,
+  when no EU/EEA datacentre reported any. Before 12 September 2026 the list was not
+  stored and RunPod's EU/EEA stock is unknown.
 - vast.ai: the live offer book, datacentre-verified hosts only (`in_index_scope`), counted
   as offers and GPUs located in the region.
 - Hyperstack: its public stock feed, through the placement rule its collector already
   applies (a row is placed in a country only when the feed shows the model deployable in a
-  named datacentre there).
+  named datacentre there). No rows means no stock only on a day its collector ran cleanly;
+  on any other day the answer is unknown.
 
 Every other seller publishes a price and nothing about stock, and is reported as such. None
 of this is utilisation: a seller with stock "Low" may be 40% or 95% rented, and nobody
@@ -151,6 +155,13 @@ def _hyperstack(
     return {str(r[0]): int(r[1]) for r in rows}
 
 
+def _ran_ok(conn: sqlite3.Connection, date: str, source: str) -> bool:
+    return conn.execute(
+        "SELECT 1 FROM runs WHERE utc_date = ? AND source = ? AND status = 'ok' LIMIT 1",
+        (date, source),
+    ).fetchone() is not None
+
+
 def regional_sellers(
     conn: sqlite3.Connection, date: str, gpu_model: str, cls: str,
     countries: frozenset[str], population: frozenset[str], factors: config.Factors,
@@ -219,11 +230,19 @@ def reading(
             if not stored:
                 out.append(SellerStock(p, True, None, None, "stock not recorded that day"))
                 continue
-            out.append(SellerStock(
-                p, True, best or "no", level8 or "no",
-                f"stock at 2+ GPUs {best or 'none'}, at 8 GPUs {level8 or 'none'}; "
-                f"{eu_centres or 0} EU/EEA datacentres reporting stock of the GPU type",
-            ))
+            label = (f"stock at 2+ GPUs {best or 'none'}, at 8 GPUs {level8 or 'none'},"
+                     " one label for all regions")
+            if eu_centres is None:
+                out.append(SellerStock(p, True, None, None,
+                                       f"{label}; which datacentres had it was not recorded"))
+            elif eu_centres == 0:
+                out.append(SellerStock(p, True, "no", "no",
+                                       f"{label}; no EU/EEA datacentre reported stock"))
+            else:
+                out.append(SellerStock(
+                    p, True, best or "no", level8 or "no",
+                    f"{label}; {eu_centres} EU/EEA datacentres reporting stock of the GPU type",
+                ))
         elif p == "vast.ai":
             if v_largest is None:
                 out.append(SellerStock(p, True, None, None, "offer book not recorded that day"))
@@ -235,6 +254,9 @@ def reading(
                 f"{v_largest} GPUs",
             ))
         elif p == "hyperstack":
+            if not hs and not _ran_ok(conn, date, "hyperstack"):
+                out.append(SellerStock(p, True, None, None, "stock feed not read that day"))
+                continue
             where = ", ".join(f"{c} ({n} GPUs)" for c, n in sorted(hs.items()))
             largest = max(hs.values(), default=0)
             out.append(SellerStock(

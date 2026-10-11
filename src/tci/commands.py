@@ -668,15 +668,6 @@ def cmd_daily(args: argparse.Namespace) -> int:
     from tci.collectors.entsoe import collect_overlay
 
     collect_overlay(conn, session, utc_date)  # overlay only; skips without token
-    # The same overlay from a source that needs no token; never overwrites an ENTSO-E row.
-    # Guarded twice over, like the term-schedule refresh below: an overlay is worth less
-    # than any print and must not be able to stop the collection that follows.
-    try:
-        from tci.collectors import energy_charts
-
-        energy_charts.collect(conn, session, utc_date)
-    except Exception:  # noqa: BLE001
-        log.exception("energy_charts overlay failed unexpectedly; prints unaffected")
 
     # term.html research table only, never a print input (CLAUDE.md). refresh() is
     # already fail-soft on its own (network/shape/file failures all leave
@@ -708,7 +699,23 @@ def cmd_daily(args: argparse.Namespace) -> int:
     export_csv(conn)
     _record_forward(conn, utc_date)
     _load_intraday(conn)
+    _collect_power(conn, session, utc_date)
     return 0 if _maybe_outputs(conn, utc_date) else 1
+
+
+def _collect_power(conn: sqlite3.Connection, session: Any, utc_date: str) -> None:
+    """Day-ahead power from Energy-Charts, after the prints, for running-cost.html.
+
+    After the prints because a hung API would otherwise hold up the fixing by one timeout
+    per zone, for an overlay no print reads. Never overwrites an ENTSO-E row, and guarded:
+    an overlay is worth less than any print or page.
+    """
+    try:
+        from tci.collectors import energy_charts
+
+        energy_charts.collect(conn, session, utc_date)
+    except Exception:  # noqa: BLE001
+        log.exception("energy_charts overlay failed unexpectedly; prints unaffected")
 
 
 def _load_intraday(conn: sqlite3.Connection) -> None:

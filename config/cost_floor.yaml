@@ -11,7 +11,7 @@
 # cost and is excluded. And the power line is the wholesale day-ahead price, without grid
 # fees or levies, so it is a lower bound on what a site pays for electricity.
 
-version: "2026-10-12"
+version: "2026-10-11"
 
 # IT power per GPU: the vendor's 8-GPU system maximum divided by eight. A maximum, so it
 # overstates average draw; SemiAnalysis's all-in H100 figure (1.37 kW including host and a
@@ -63,12 +63,19 @@ colocation_eur_kw_month:
 
 # Other cash running costs per GPU-hour, in USD as published, converted at the print's FX.
 # Cloudrift's 8-GPU server model (US colocation): network $0.68, remote hands $0.21 and
-# insurance $0.27 per server-hour, i.e. $0.145 per GPU-hour; spares $0.14 per GPU-hour.
-# The low end leaves spares out, the high end keeps them. No public source gives a staff
-# cost per GPU-hour; none is added.
+# insurance $0.27 per server-hour for every GPU type, i.e. $0.145 per GPU-hour. Spares per
+# server-hour: H100 $1.10, H200 $1.32, B200 $1.71, i.e. $0.1375, $0.165 and $0.21375 per
+# GPU-hour. Cloudrift gives no A100 figure; the H100 one is used, which if anything
+# overstates an older GPU's spares and so understates its ratio. The low end leaves spares
+# out, the high end adds them. No public source gives a staff cost per GPU-hour; none is
+# added.
 other_usd_per_gpu_hour:
   low: 0.145
-  high: 0.285
+  spares:
+    A100: 0.1375
+    H100: 0.1375
+    H200: 0.165
+    B200: 0.21375
   source: "Cloudrift, The True Cost of GPU Ownership, 21 Jan 2026"
   url: "https://www.cloudrift.ai/blog/the-true-cost-of-gpu-ownership"
   read: "2026-10-11"

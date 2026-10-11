@@ -117,6 +117,26 @@ def _names(providers: tuple[str, ...] | list[str]) -> str:
     return ", ".join(items[:-1]) + " and " + items[-1]
 
 
+def shown_steps(m: explain.Move) -> list[float | None]:
+    """Each step in cents, rounded so the shown steps add up to the shown total.
+
+    Rounding each step on its own showed 24 September as $0.00 + $0.30 - $0.02 + $0.00 =
+    $0.28 against a move of +$0.29, under a sentence saying the steps sum to the move.
+    Rounding the running total instead keeps every step within a cent of its exact value
+    and makes the column add up. The CSV carries the exact values.
+    """
+    if not m.split:
+        return [None for _ in m.steps]
+    out: list[float | None] = []
+    running, shown = 0.0, 0.0
+    for st in m.steps:
+        running += st.delta or 0.0
+        r = round(running, 2)
+        out.append(round(r - shown, 2))
+        shown = r
+    return out
+
+
 def cause(m: explain.Move) -> str:
     """The step that moved the print most, in words. Empty when nothing moved."""
     if abs(m.total) < 1e-9:
@@ -140,11 +160,14 @@ def why_line(ctx: Any) -> str:
     if m is None:
         return ""
     who = f"Set by {site._e(_names(m.setters))}."
+    since = site._e(site._human_date(m.prev_date))
     if abs(m.total) < 1e-9:
         what = " Unchanged."
+    elif not m.split:
+        what = (f" {_money(m.total, signed=True)} since {since}; this move cannot be split"
+                " into steps.")
     else:
-        what = f" {_money(m.total, signed=True)} since {site._e(site._human_date(m.prev_date))}," \
-               f" mostly from {site._e(cause(m))}."
+        what = f" {_money(m.total, signed=True)} since {since}, mostly from {site._e(cause(m))}."
     return (f'<div class="print__row"><span class="print__vs">{who}{what} '
             '<a href="availability.html">Why it moved</a></span></div>')
 
@@ -198,8 +221,9 @@ def readings(conn: sqlite3.Connection, end: str) -> list[availability.Reading]:
         dates = [d for d in availability.collection_dates(conn) if d <= end]
         since = _window(end)[0]
         out = [availability.reading(conn, d) for d in dates if d >= since]
-        # Sessions before any stock was recorded say nothing and are left out.
-        return [r for r in out if r.publishing]
+        # Sessions before any stock was recorded say nothing and are left out. RunPod's
+        # all-regions label counts as a record even before its datacentre list was stored.
+        return [r for r in out if r.publishing or r.runpod_node2 is not None]
 
     return _cached(("stock", _stamp(conn), end), build)
 
@@ -228,28 +252,36 @@ def write_availability_data(ctx: Any) -> None:
 
 
 def _steps_table(m: explain.Move) -> str:
+    # The amount sits beside the step name, before the description, so a 390px screen
+    # shows it without scrolling the table sideways.
     site = _site()
     rows = "".join(
-        f'<tr><th scope="row">{i}. {site._e(s.name.capitalize())}</th>'
-        f'<td>{site._e(STEP_WORDS[s.name])}</td>'
-        f'<td class="ta-r num">{_money(s.delta, signed=True)}</td></tr>'
-        for i, s in enumerate(m.steps, 1)
+        f'<tr><th scope="row" class="ta-l">{i}. {site._e(s.name.capitalize())}</th>'
+        f'<td class="ta-r num">{_money(shown, signed=True)}</td>'
+        f'<td>{site._e(STEP_WORDS[s.name])}</td></tr>'
+        for i, (s, shown) in enumerate(zip(m.steps, shown_steps(m), strict=True), 1)
     )
     return f"""<div class="card card__body--flush"><div class="scroll-x">
   <table class="grid grid--narrow">
   <caption class="vh">The move split into four steps, in order</caption>
-  <thead><tr><th scope="col">Step</th><th scope="col">What it prices</th>
-  <th scope="col" class="ta-r">USD/GPU&#8209;hr</th></tr></thead>
-  <tbody>{rows}<tr><th scope="row">Total</th><td>published move</td>
-  <td class="ta-r num strong">{_money(m.total, signed=True)}</td></tr></tbody>
-  </table></div></div>"""
+  <thead><tr><th scope="col">Step</th><th scope="col" class="ta-r">USD/GPU&#8209;hr</th>
+  <th scope="col">What it prices</th></tr></thead>
+  <tbody>{rows}<tr><th scope="row" class="ta-l">Total</th>
+  <td class="ta-r num strong">{_money(m.total, signed=True)}</td><td>published move</td></tr>
+  </tbody></table></div></div>"""
+
+
+# One company under two provider keys over time. v0.5.0 replaced the static `datacrunch`
+# entry with the `verda` feed (factors.yaml: the same company, renamed), so counting the
+# keys apart split one seller's sessions in two.
+SAME_COMPANY = {"datacrunch": "verda"}
 
 
 def _who_set(conn: sqlite3.Connection, end: str) -> tuple[str, int, list[tuple[str, int]]]:
     hist = setters(conn, HEADLINE, end)
     counts: Counter[str] = Counter()
     for names in hist.values():
-        for n in names:
+        for n in {SAME_COMPANY.get(x, x) for x in names}:
             counts[n] += 1
     return f"{len(hist)}", len(hist), counts.most_common()
 
@@ -279,6 +311,12 @@ def _runpod_placement_finding(rs: list[availability.Reading], conn: sqlite3.Conn
             f"reporting H100 stock: {dates}.</p>")
 
 
+def _previous(conn: sqlite3.Connection, date: str) -> tuple[str, float] | None:
+    from tci.series_read import previous_published
+
+    return previous_published(conn, HEADLINE, date)
+
+
 def availability_page(ctx: Any) -> str:
     site = _site()
     e, hd = site._e, site._human_date
@@ -303,9 +341,17 @@ def availability_page(ctx: Any) -> str:
         {_steps_table(today)}
         {('<p class="section__dek">Sellers on both days whose audit price changed:</p>' + rep)
          if rep else ''}"""
-    else:
+    elif ctx.head is None or ctx.head["value_usd"] is None:
         now = ('<p class="section__dek">The headline did not publish this session, so there '
                "is no move to explain. A gap is not a move.</p>")
+    elif _previous(ctx.conn, ctx.date) is None:
+        now = ('<p class="section__dek">This is the first published print, so there is no '
+               "earlier print to move from.</p>")
+    else:
+        now = ('<p class="section__dek">This session&#8217;s move is not split: the stored '
+               "print or the one before it does not recompute from stored rows under the "
+               'current code. <code class="inline">python -m tci.run reproduce</code> lists '
+               "it.</p>")
 
     set_rows = "".join(
         f'<tr><td>{e(p)}</td><td class="ta-r num">{c}</td>'
@@ -315,7 +361,7 @@ def availability_page(ctx: Any) -> str:
     move_rows = "".join(
         f'<tr><td class="num">{e(m.date)}</td><td class="ta-r num">{_money(m.value)}</td>'
         f'<td class="ta-r num">{_money(m.total, signed=True)}</td>'
-        + "".join(f'<td class="ta-r num">{_money(s.delta, signed=True)}</td>' for s in m.steps)
+        + "".join(f'<td class="ta-r num">{_money(x, signed=True)}</td>' for x in shown_steps(m))
         + f"<td>{e(_names(m.exited)) if m.exited else ''}</td>"
         f"<td>{e(_names(m.entered)) if m.entered else ''}</td>"
         f"<td>{e(_names(m.setters))}</td></tr>"
@@ -349,6 +395,8 @@ def availability_page(ctx: Any) -> str:
         f'<td class="ta-r num">{r.with_stock}</td><td class="ta-r num">{r.with_8gpu_stock}</td>'
         f"<td>{e(r.runpod_node2 or 'not recorded')}</td>"
         f"<td>{e(r.runpod_node8 or 'not recorded')}</td>"
+        f'<td class="ta-r num">'
+        f'{"&#8212;" if r.runpod_eu_datacentres is None else r.runpod_eu_datacentres}</td>'
         f'<td class="ta-r num">{"&#8212;" if r.vast_gpus is None else r.vast_gpus}</td></tr>'
         for r in reversed(rs)
     )
@@ -377,8 +425,10 @@ def availability_page(ctx: Any) -> str:
       step priced under the rules live on the later date: the earlier book recomputed under
       today's rules, then without the sellers absent today, then today's offers from the
       sellers present on both days, then today's full book. The four steps sum to the
-      published move. Another order would split it differently with the same total, and a
-      weighted median has no order-free split.</p></div>
+      published move; each is shown rounded so that the cents add up, and
+      <a href="data/moves/history.csv">moves/history.csv</a> carries them to six decimals.
+      Another order would split it differently with the same total, and a weighted median
+      has no order-free split.</p></div>
   </section>
 
   <section class="section" aria-labelledby="s-set">
@@ -386,7 +436,8 @@ def availability_page(ctx: Any) -> str:
       <h2 class="section__h" id="s-set">Whose price the headline landed on</h2>
       <p class="section__dek">Over the {n_set} published sessions in the last
       {WINDOW_DAYS} days, the seller with an offer priced exactly at the print. Two sellers
-      posting the same price both count.</p></div></div>
+      posting the same price both count. DataCrunch's sessions before it was renamed Verda
+      count under Verda.</p></div></div>
     <div class="card card__body--flush"><div class="scroll-x">
     <table class="grid grid--narrow"><caption class="vh">Sellers that set the headline</caption>
     <thead><tr><th scope="col">Seller</th><th scope="col" class="ta-r">Sessions</th>
@@ -426,7 +477,8 @@ def availability_page(ctx: Any) -> str:
     <table class="grid"><caption class="vh">Stock readings by session</caption>
     <thead><tr><th scope="col">Date</th><th scope="col" class="ta-r">Recorded</th>
     <th scope="col" class="ta-r">Stock at 2+</th><th scope="col" class="ta-r">Stock at 8</th>
-    <th scope="col">RunPod 2+</th><th scope="col">RunPod 8</th>
+    <th scope="col">RunPod 2+, all regions</th><th scope="col">RunPod 8, all regions</th>
+    <th scope="col" class="ta-r">RunPod EU/EEA datacentres</th>
     <th scope="col" class="ta-r">vast.ai EU GPUs</th></tr></thead>
     <tbody>{hist_rows}</tbody></table></div></div>
   </section>
@@ -484,7 +536,7 @@ def running_cost_page(ctx: Any) -> str:
         return ("&#8364;" + num(x)) if x is not None else "&#8212;"
 
     rows = "".join(
-        f"<tr><th scope=\"row\">{e(r.cls)}</th>"
+        f"<tr><th scope=\"row\" class=\"ta-l\">{e(r.cls)}</th>"
         f'<td class="ta-r num">{num(r.kw, 3)}</td>'
         f'<td class="ta-r num">&#8364;{rng(r.cost)}</td>'
         f'<td class="ta-r num">&#8364;{rng(r.power)}</td>'
@@ -633,7 +685,8 @@ def basis_makeup_section(ctx: Any) -> str:
                  f"{e(_names(last.lead_setters))} and the US leg by "
                  f"{e(_names(last.reference_setters))}.{verdict}</p>")
     return f"""<div class="md">{today}<p>On {shared} of the {len(made)} sessions the basis
-    has published, one seller's price set both legs. On {flat} of them every seller present
+    has published, the same seller had an offer exactly at both legs&#8217; prints. On {flat}
+    of them every seller present
     in both legs charged the same price on both sides of the Atlantic, so the like-for-like
     spread was zero and the whole basis came from which sellers each leg contained. The
     like-for-like spread is the median, over sellers in both legs, of what each charged in
@@ -716,10 +769,10 @@ def statements_section(ctx: Any) -> str:
     except (OSError, ValueError):
         items = []
     def mean_cell(x: float | None) -> str:
-        return ("&#8364;" + site._num(x, 4)) if x is not None else "&#8212;"
+        return ("&#8364;" + site._num(x, 2)) if x is not None else "&#8212;"
 
     rows = "".join(
-        f"<tr><td>{e(site.display_series(s['series'].replace('TCI-CRI', 'EU-CRI', 1)))}</td>"
+        f"<tr><td>{e(site.display_series(s['series']))}</td>"
         f'<td class="num">{e(s["month"])}</td>'
         f'<td class="ta-r num">{e(s["published"])} of {e(s["calendar_days"])}</td>'
         f'<td class="ta-r num">{mean_cell(s["mean_eur"])}</td>'
@@ -736,10 +789,10 @@ def statements_section(ctx: Any) -> str:
              '<p class="section__dek">No month has closed since the first print.</p>')
     return f"""<div class="md"><p>A statement lists every calendar day of a period for one
     series: the value published, the ECB rate it was converted at, the methodology version,
-    the gaps with their reasons, and the digest TCI published for each print. A digest over
-    the whole statement lets anyone check that nothing was changed after it was issued. A
-    statement is evidence of what the series printed. It is not a valuation, and it says
-    nothing about the terms of any particular contract.</p>
+    the gaps with their reasons, and the digest TCI published for each print. The verify
+    command rebuilds the statement from the record and reports any session, value or label
+    that differs from the file. A statement is evidence of what the series printed. It is
+    not a valuation, and it says nothing about the terms of any particular contract.</p>
     <p>One is published for each closed month for the headline and the spot series. Any
     other period is one command in a clone of the repository, and the same command checks a
     statement against the record:</p></div>

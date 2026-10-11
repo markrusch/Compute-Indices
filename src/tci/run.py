@@ -511,11 +511,15 @@ def _cmd_panel(args: argparse.Namespace) -> int:
             from tci.collectors.fx import rate_for
 
             cfg = panel.load_config()
-            _, cutoff = panel.window_bounds(args.window, cfg.rules)
-            fx = rate_for(db.connect_readonly(), cutoff[:10])
-            cells = panel.aggregate(panel.connect_private(), args.window,
-                                    fx[0] if fx else None, cfg)
-            text = panel.to_json(panel.publishable(cells, args.window, cfg))
+            window = panel.normalise_window(args.window)
+            _, cutoff = panel.window_bounds(window, cfg.rules)
+            # Strictly before the cutoff day, as prints have used since v0.5.0: on or
+            # before would give a different rate to a run after the ECB's ~14:00 UTC
+            # publication on the cutoff Friday than to one before it.
+            fx = rate_for(db.connect_readonly(), cutoff[:10], strictly_before=True)
+            cells = panel.aggregate(panel.connect_private(), window,
+                                    fx[0] if fx else None, cfg, utc_now_iso())
+            text = panel.to_json(panel.publishable(cells, window, cfg))
             if args.out:
                 Path(args.out).write_text(text + "\n", encoding="utf-8")
             else:
@@ -538,7 +542,7 @@ def _cmd_statement(args: argparse.Namespace) -> int:
     if args.action == "verify":
         check = statement.verify(conn, statement.read(Path(args.file)))
         if check.ok:
-            print("statement verified: digest, every print and the summary match the record")
+            print("statement verified: it matches the statement rebuilt from the record")
             return 0
         for problem in check.problems:
             print(f"FAIL {problem}")

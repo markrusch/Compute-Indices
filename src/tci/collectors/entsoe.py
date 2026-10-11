@@ -85,7 +85,10 @@ def collect_overlay(conn: sqlite3.Connection, session: requests.Session, utc_dat
             conn.execute(
                 "INSERT INTO overlay_power (date, zone, avg_price_eur_mwh, raw_json)"
                 " VALUES (?, ?, ?, ?) ON CONFLICT(date, zone) DO UPDATE SET"
-                " avg_price_eur_mwh = excluded.avg_price_eur_mwh",
+                " avg_price_eur_mwh = excluded.avg_price_eur_mwh,"
+                # Replace the provenance with the price: an Energy-Charts row taken over by
+                # ENTSO-E must stop carrying Energy-Charts' CC BY attribution.
+                " raw_json = excluded.raw_json",
                 (utc_date, zone, avg, json.dumps({"eic": eic, "doc": "A44"})),
             )
         stored += 1

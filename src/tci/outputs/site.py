@@ -3674,6 +3674,26 @@ def _leg_table(ctx: SiteContext, entry: SuccessionEntry) -> str:
   <tbody>{"".join(rows)}</tbody></table></div></div>"""
 
 
+def _us_leg_line(ctx: SiteContext) -> str:
+    """Who the US leg drew on this session, read from its audit set.
+
+    A sentence written by hand went stale: it named vast.ai, which has never qualified in
+    a stored US audit set, and missed CoreWeave, in every one since v0.10.0.
+    """
+    rows = series_read.constituents_for(ctx.conn, US_SERIES, ctx.date)
+    sellers = sorted({r["provider"] for r in rows
+                      if r["included"] or r["exclusion_reason"] == "insufficient_sources"})
+    if not sellers:
+        return ""
+    gate = load_factors(for_date=ctx.date).aggregation.min_providers
+    names = ", ".join(sellers[:-1]) + " and " + sellers[-1] if len(sellers) > 1 else sellers[0]
+    n = len(sellers)
+    return (f"<p>On {_e(_human_date(ctx.date))} the US leg had {n} qualifying "
+            f"{'seller' if n == 1 else 'sellers'} ({_e(names)}) against a gate of {gate}. On "
+            "a day it has fewer, the US leg gaps and so does the spread, with the reason in "
+            "the audit set.</p>")
+
+
 def _basis(ctx: SiteContext) -> str:
     entry = _basis_entry()
     if entry is None:
@@ -3754,9 +3774,7 @@ def _basis(ctx: SiteContext) -> str:
     it would mix a regional difference with a methodological one that nobody outside can
     measure. What is published here is the regional part, with the method held
     constant.</p>
-    <p>The US leg draws on five candidate sellers (vast.ai, RunPod, Lambda, DigitalOcean,
-    Voltage Park) against a gate of five. On any day one of them has no qualifying offer,
-    the US leg gaps and so does the spread, with the reason in the audit set.</p>
+    {_us_leg_line(ctx)}
     <p>RunPod, Lambda and DigitalOcean charge one price in every region, so on a day they
     qualify in both legs the same prices sit on each side of the spread. That pulls the basis
     toward zero, and it is correct: a buyer can rent from either at the same price on

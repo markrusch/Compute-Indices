@@ -7,12 +7,12 @@ the calculation code in memory, and writes nothing to the database. Nothing here
 calculation path or the methodology lock, and no print depends on it.
 
 WHY IT EXISTS. On 24 September 2026 the headline rose 8.2%, from $3.49 to $3.78/GPU-hr,
-and on 26 September it came back. No seller changed a price on either day. RunPod and
-vast.ai had no qualifying stock on the 24th and 25th, so their offers left the median and
-it landed higher up the book. The print was right; a reader had no way to tell that move
-from a price rise. And on 24 of the 47 sessions the headline printed up to 11 October, the
-value was RunPod's own posted price. Both facts were recoverable from the database and
-published nowhere.
+and on 26 September it came back. RunPod and vast.ai had no qualifying stock on the 24th
+and 25th, so their offers left the median and it landed higher up the book: exits moved
+the print by +$0.30, price changes by sellers present on both days by -$0.02. The print
+was right; a reader had no way to tell that move from a price rise. And on 27 of the 47
+sessions the headline printed up to 11 October, RunPod had an offer exactly at the print.
+Both facts were recoverable from the database and published nowhere.
 
 WHAT A MOVE IS SPLIT INTO. A weighted median has no additive decomposition, so the split is
 a path, taken in a fixed order, with every step priced under the rules live on the later
@@ -95,16 +95,22 @@ def book(
 ) -> Book | None:
     """Rebuild the book behind (date, series), priced under the rules live on `rules_date`.
 
-    `rules_date` defaults to `date`, which reproduces the print as computed. Basis, 7-day,
-    composite and any series the rules do not define return None: they are not computed
-    from offers.
+    `rules_date` defaults to `date`, which reproduces the print as computed, with the FX the
+    print recorded. Under another date's rules the FX is the one those rules would choose
+    for `date`: the FX rule is a methodology parameter (v0.5.0 made it strictly T-1), so a
+    change to it belongs in the methodology step. Basis, 7-day, composite and any series
+    the rules do not define return None: they are not computed from offers.
     """
+    from tci.collectors.fx import rate_for
     from tci.commands import print_definitions
 
     conn.row_factory = sqlite3.Row
     on = rules_date or date
     factors = config.load_factors(for_date=on)
-    fx = recorded_fx(conn, date)
+    if on == date:
+        fx = recorded_fx(conn, date)
+    else:
+        fx = rate_for(conn, date, strictly_before=factors.fx.strictly_before)
     rate = fx[0] if fx else None
     rows = _rows(conn, date)
     rs = factors.regional_series.get(series)
@@ -193,16 +199,20 @@ def explain_move(conn: sqlite3.Connection, series: str, date: str) -> Move | Non
     prev_date, prev_value = prev
     later = book(conn, date, series)
     earlier = book(conn, prev_date, series, rules_date=date)
-    if later is None or earlier is None:
+    earlier_as_printed = book(conn, prev_date, series)
+    if later is None or earlier is None or earlier_as_printed is None:
         return None
 
     notes: list[str] = []
     value = float(head["value_usd"])
-    if later.value() is None or abs((later.value() or 0.0) - value) > _SAME:
-        # The stored print does not reproduce from stored rows with today's code. That
-        # is reproduce's finding to report; a split built on a different number would
-        # not sum to the published move.
-        return None
+    # Both ends must reproduce from stored rows with today's code. If the later print does
+    # not, a split built on a different number would not sum to the published move. If
+    # the earlier one does not, whatever made it drift would be booked as "methodology".
+    # Either is reproduce's finding to report, not this module's to absorb.
+    for bk, published in ((later, value), (earlier_as_printed, float(prev_value))):
+        v = bk.value()
+        if v is None or abs(v - published) > _SAME:
+            return None
 
     p_earlier, p_later = earlier.providers(), later.providers()
     both = p_earlier & p_later
@@ -311,3 +321,55 @@ def basis_makeup(
         lead_setters=setters(lead) if head["value_usd"] is not None else (),
         reference_setters=setters(reference) if head["value_usd"] is not None else (),
     )
+
+
+@dataclass(frozen=True)
+class ReplaySession:
+    """One session of the basis replayed with region-flat sellers taken out of both legs."""
+
+    date: str
+    us_sellers: tuple[str, ...]  # qualifying in the US leg under the replay's rules
+    region_flat: tuple[str, ...]  # in both legs at the same price
+    us_left: int  # US sellers left once the region-flat ones are dropped
+    us_value: float | None  # the US leg over those alone; None where it falls below the gate
+
+
+def basis_replay(
+    conn: sqlite3.Connection, start: str, end: str, rules_date: str,
+    lead: str = "EU-CRI-H100", reference: str = "EU-CRI-H100-US",
+) -> list[ReplaySession]:
+    """Would a basis over sellers that price the regions differently ever have printed?
+
+    The question the basis-composition finding left: if the sellers that charge one price
+    everywhere are taken out of both legs, what remains of the US leg? Every session from
+    `start` to `end` with a collection is rebuilt under the rules live on `rules_date`.
+    The CHANGELOG entry of 11 October 2026 quotes this over 12 September to 11 October.
+    """
+    from datetime import date as date_type
+    from datetime import timedelta
+
+    def qualifying(b: Book) -> dict[str, float]:
+        p = compute_print(b.date, b.series, list(b.offers), b.factors, b.fx,
+                          population=b.population)
+        return {c.provider: c.price_usd for c in p.constituents
+                if c.included or c.exclusion_reason == "insufficient_sources"}
+
+    conn.row_factory = sqlite3.Row
+    out: list[ReplaySession] = []
+    d, last = date_type.fromisoformat(start), date_type.fromisoformat(end)
+    while d <= last:
+        day = d.isoformat()
+        d += timedelta(days=1)
+        if conn.execute("SELECT 1 FROM runs WHERE utc_date = ? AND source <> 'index' LIMIT 1",
+                        (day,)).fetchone() is None:
+            continue
+        eu, us = book(conn, day, lead, rules_date=rules_date), book(conn, day, reference,
+                                                                     rules_date=rules_date)
+        if eu is None or us is None:
+            continue
+        a, b = qualifying(eu), qualifying(us)
+        flat = {p for p in a.keys() & b.keys() if abs(a[p] - b[p]) < _REPRICE}
+        keep = frozenset(b) - flat
+        out.append(ReplaySession(day, tuple(sorted(b)), tuple(sorted(flat)), len(keep),
+                                 us.value(keep)))
+    return out

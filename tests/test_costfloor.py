@@ -23,6 +23,7 @@ def test_every_input_carries_a_source_and_a_read_date() -> None:
         assert str(e["url"]).startswith("https://")
         assert e["source"] and len(str(e["read"])) == 10
     assert set(cfg["it_kw_per_gpu"]) == set(costfloor.CLASSES)
+    assert set(cfg["other_usd_per_gpu_hour"]["spares"]) == set(costfloor.CLASSES)
 
 
 def test_the_arithmetic(record: sqlite3.Connection) -> None:
@@ -35,6 +36,9 @@ def test_the_arithmetic(record: sqlite3.Connection) -> None:
     assert h100.power.low == pytest.approx(kw * 1.2 * price / 1000, abs=1e-4)
     assert h100.power.high == pytest.approx(kw * 1.54 * price / 1000, abs=1e-4)
     assert h100.colocation.low == pytest.approx(kw * 165 / 730, abs=1e-4)
+    assert h100.other.high == pytest.approx((0.145 + 0.1375) / t.fx, abs=1e-4)
+    b200 = next(r for r in t.rows if r.cls == "B200")
+    assert b200.other.high > h100.other.high
     assert h100.cost.low == pytest.approx(
         h100.power.low + h100.colocation.low + h100.other.low, abs=2e-4)
     for r in t.rows:

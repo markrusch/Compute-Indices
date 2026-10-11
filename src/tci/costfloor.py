@@ -13,9 +13,10 @@ lines are that cash cost; depreciation and financing are not, because once the h
 bought they no longer decide whether to keep it on. A GPU whose rent falls to its running
 cost is at the end of its economic life whatever its book life says.
 
-Power is where this table meets the energy market. It is a small share of the rent (about
-3% of the H100 headline at a 2025 German day-ahead price) and a large share of the running
-cost, so it moves the floor and barely moves the rent.
+Power is where this table meets the energy market. It is a small share of the rent (3.8%
+to 4.9% of the 11 October 2026 EU/EEA H100 rent at the 2025 German day-ahead average, PUE
+1.20 to 1.54) and a large share of the running cost, so it moves the floor and barely
+moves the rent.
 
 RENTS. The on-demand prices the index already collects, under the rules live on the date:
 the same admission, node floor and price band as the headline population, one price per
@@ -39,6 +40,7 @@ from statistics import median
 from typing import Any
 
 from tci import config
+from tci.index import provider_offers
 from tci.normalise import normalise_observations
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -152,10 +154,12 @@ def rents(
     obs = normalise_observations(_rows(conn, date), factors, fx_eur_usd=fx, **kwargs)
     out: dict[str, Rent] = {}
     for cls in CLASSES:
-        lows: dict[str, float] = {}
-        for o in obs:
-            if o.model_class == cls and o.segment in population:
-                lows[o.provider] = min(lows.get(o.provider, o.price_usd), o.price_usd)
+        # provider_offers applies the population and the staleness exclusion exactly as a
+        # print does; filtering on segment alone skipped staleness, which normalise does
+        # not apply.
+        kept, _ = provider_offers([o for o in obs if o.model_class == cls], factors, date,
+                                  population)
+        lows = {p: min(o.price_usd for o in offers) for p, offers in kept.items() if offers}
         n = len(lows)
         out[cls] = Rent(round(median(lows.values()) / fx, 4) if n >= min_sellers else None, n)
     return out
@@ -171,7 +175,6 @@ def table(conn: sqlite3.Connection, date: str, cfg: dict[str, Any] | None = None
     colo = cfg["colocation_eur_kw_month"]
     hours = float(cfg["hours_per_month"])
     other = cfg["other_usd_per_gpu_hour"]
-    other_r = Range(float(other["low"]) / fx, float(other["high"]) / fx)
     eu = rents(conn, date, "EU_EEA", int(cfg["min_sellers"]))
     world = rents(conn, date, "GLOBAL", int(cfg["min_sellers"]))
     rows = []
@@ -179,6 +182,10 @@ def table(conn: sqlite3.Connection, date: str, cfg: dict[str, Any] | None = None
         kw = float(cfg["it_kw_per_gpu"][cls]["kw"])
         power = Range(kw * pue_lo * pb.eur_mwh / 1000.0, kw * pue_hi * pb.eur_mwh / 1000.0)
         colocation = Range(kw * float(colo["low"]) / hours, kw * float(colo["high"]) / hours)
+        # Spares scale with the GPU (Cloudrift: B200 $0.21 against H100 $0.14 per GPU-hour);
+        # one figure for every class understated the newest GPU's running cost.
+        other_r = Range(float(other["low"]) / fx,
+                        (float(other["low"]) + float(other["spares"][cls])) / fx)
         cost = power + colocation + other_r
         rows.append(ClassRow(
             cls=cls, kw=kw, power=power.rounded(), colocation=colocation.rounded(),

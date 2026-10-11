@@ -34,8 +34,6 @@ import sqlite3
 
 import requests
 
-from tci.collectors.base import TIMEOUT_SECONDS
-
 log = logging.getLogger("tci.collectors.energy_charts")
 
 URL = "https://api.energy-charts.info/price"
@@ -68,6 +66,11 @@ def day_average(payload: dict) -> tuple[float, int, str]:
     if len(values) < MIN_POINTS or len(values) < 0.9 * len(prices):
         raise PriceError(f"{len(values)} of {len(prices)} points carry a price")
     return round(sum(values) / len(values), 4), len(values), licence
+
+
+# Shorter than the price collectors' 30 s: three zones of an overlay are not worth a
+# minute and a half of a stalled daily run.
+TIMEOUT_SECONDS = 10
 
 
 def collect(conn: sqlite3.Connection, session: requests.Session, utc_date: str) -> int:

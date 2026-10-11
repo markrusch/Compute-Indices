@@ -47,3 +47,24 @@ def test_sellers_that_publish_no_stock_are_never_counted_as_in_stock(
         if not s.publishes_stock:
             assert s.node2 is None and s.node8 is None
     assert r.with_stock <= r.publishing <= r.publishers
+
+
+def test_runpods_one_label_counts_in_the_eu_only_with_an_eu_datacentre(
+    record: sqlite3.Connection,
+) -> None:
+    # 9 October 2026: RunPod's all-regions label said Low at 2+ GPUs while no EU/EEA
+    # datacentre reported H100 stock. Counting the label put RunPod among the EU sellers
+    # with stock on the one day the page's own finding says it had none.
+    r = availability.reading(record, "2026-10-09")
+    rp = next(s for s in r.sellers if s.provider == "runpod")
+    assert r.runpod_eu_datacentres == 0 and r.runpod_node2 not in (None, "no")
+    assert rp.node2 == "no" and rp.node8 == "no"
+
+
+def test_before_the_datacentre_list_runpods_eu_stock_is_unknown(
+    record: sqlite3.Connection,
+) -> None:
+    r = availability.reading(record, "2026-09-06")
+    rp = next(s for s in r.sellers if s.provider == "runpod")
+    assert r.runpod_eu_datacentres is None and r.runpod_node2 is not None
+    assert rp.node2 is None

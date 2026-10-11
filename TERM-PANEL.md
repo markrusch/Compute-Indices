@@ -1,9 +1,10 @@
 # The EU term panel
 
 Most GPU capacity is not rented by the hour. CoreWeave reported 98% of its first-half 2026
-revenue under committed contracts, and at the last turn in the market the 1-year H100 rate
-moved about six months before on-demand rate cards did. Nobody publishes what a 12-month
-block of GPUs costs in Europe. This panel is how TCI intends to.
+revenue under committed contracts
+([10-Q for the period to 30 June 2026](https://www.sec.gov/Archives/edgar/data/0001769628/000176962826000366/crwv-20260630.htm)).
+Nobody publishes what a 12-month block of GPUs costs in Europe. This panel is how TCI
+intends to.
 
 Each week, panellists say where a deal of a fixed specification would be agreed. TCI
 combines the answers under the rules below and publishes one value per contract, or a count
@@ -46,14 +47,16 @@ be run before sending:
 ## The window
 
 Each assessment names an ISO week, such as `2026-W42`. It counts if TCI receives it between
-Monday 00:00 UTC and Friday 12:00 UTC of that week. A later one is stored and not counted.
-Nobody sees a week's value before the window closes, so nobody can shape an input to it.
+Monday 00:00 UTC and Friday 12:00 UTC of that week. A later one is stored and not counted,
+and so is a later correction: the assessment it would have replaced stands. No week is
+aggregated before its window closes, so nobody can shape an input to its value.
 
 ## What is published
 
-- **A value needs three panellists.** With three or four, it is the median of their
+- **A value needs three panellists.** With three or four, it is the mean of their
   mid-points. From five, the highest and lowest mid-points are dropped and the rest are
   averaged, and the 25th and 75th percentiles of the mid-points are published beside it.
+  It is never a median of three, which would be one panellist's mid-point to the cent.
 - **Sellers must be fewer than half of a cell's panellists.** A cell where they are half
   or more publishes no value that week. Competing sellers pooling current prices is the
   arrangement competition law watches most closely. Brokers, marketplaces and buyers are
@@ -87,8 +90,9 @@ record.
 5. Correct a mistake by sending a correction that names the assessment it replaces.
    Corrections, like everything else, are kept.
 
-A panellist that breaks these is suspended, and its assessments from the affected weeks are
-left out of a recomputation published with a notice.
+A panellist that breaks these is suspended. While suspended, its assessments count in no
+week, past weeks included, and a past value that changes as a result is republished with a
+notice.
 
 ## What panellists receive
 
@@ -98,8 +102,8 @@ receives anything before publication.
 
 ## Status
 
-The panel is open and has no panellists yet, so no cell has a value. Before the first
-assessment is accepted, the agreement and these thresholds go to a lawyer for the
-competition-law question.
+The panel is open and has no panellists yet, so no cell has a value. No assessment is
+accepted until the panellist agreement and these thresholds have had a competition-law
+review.
 
 Questions and applications: [contact](https://thecomputeindices.com/contact.html).
