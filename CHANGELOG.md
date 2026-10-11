@@ -3,6 +3,70 @@
 All methodology-affecting changes require an entry here **before** the lock regenerates
 (see GOVERNANCE.md §1). Format: version, date, what changed, why.
 
+## Moves, stock, running cost, the term panel and statements — 2026-10-12 — no methodology change
+
+Nothing in the calculation path or the lock was touched, and no print moves: 884 live
+prints and 1,817 published digests reproduce on Python 3.11 and 3.13. Everything below is
+an observer (it reads stored rows, runs the calculation in memory and writes nothing to the
+database) or a store outside the repository.
+
+- **`availability.html`: why the headline moved, whose price it landed on, and what stock
+  sellers published.** Each move since the last published print is split into four steps
+  taken in a fixed order (methodology, sellers leaving, price changes by sellers present on
+  both days, sellers joining), and the four sum to the published move. The 8.2% rise on
+  24 September, which was RunPod and vast.ai having no qualifying stock, now reads as $0.30
+  of exits instead of looking like a price rise. The dashboard's print card says in one
+  line who set the print and what moved it. Stock is read from rows already stored: RunPod's
+  per-node level and EU/EEA datacentre list, the vast.ai offer book, Hyperstack's stock
+  feed. Six of the eight sellers that price the H100 in the EU/EEA publish nothing about
+  stock, and the page says so rather than counting them as available. `explain.py`,
+  `availability.py`; data in `site/data/moves/` and `site/data/availability/`.
+- **`running-cost.html`: rent against the cash cost of running the GPU, per generation.**
+  Power, colocation and operating lines from sourced, dated inputs in
+  `config/cost_floor.yaml`, all as ranges. Depreciation and financing are excluded on
+  purpose. On 11 October the EU/EEA H100 rent was 4.7x to 6.4x its running cost and the
+  A100 3.0x to 4.3x. `costfloor.py`; data in `site/data/costs/`.
+- **Power prices are stored for the first time.** `overlay_power` held no rows: the
+  ENTSO-E collector needs a token that was never set. `collectors/energy_charts.py` reads
+  the same day-ahead results for NL, DE-LU and FR with no key, and stores a zone only when
+  its response states CC BY 4.0. SE3's response said its data was for private use only, so
+  SE3 is not requested. Until five days are stored the cost table uses the German 2025
+  average and says so.
+- **What the EU-US basis is made of, on `basis.html`.** The like-for-like spread (what
+  sellers in both legs charge on each side) and which seller set each leg. The page also
+  stopped saying CME plans to list on 5 October: the CFTC extended its review to 9 November.
+- **The EU term panel.** `panel.py`, `config/term_panel.yaml`, `TERM-PANEL.md` and
+  `contrib/panel-template.csv`: three standard 12-month contracts assessed weekly by
+  brokers, marketplaces, buyers and sellers, in the private store beside contributed
+  prices. A value needs three panellists, sellers fewer than half of them, and every
+  assessment inside the week's window; from five the highest and lowest are dropped.
+  `term.html` shows each cell's count until then. No panellist has joined.
+- **Market-price statements.** `python -m tci.run statement build|verify`: one series over
+  a period, every calendar day listed with its print digest, gaps left out of every
+  average, and a digest over the whole file. A statement for each closed month of the
+  headline is published under `site/data/statements/` and listed on `data.html`.
+
+**Found, not fixed: the EU-US basis is composition, measured.** On every one of the seven
+sessions the basis has published, each seller in both legs (RunPod, Lambda and
+DigitalOcean) charged the same price on both sides, so the like-for-like spread was $0.00
+and the whole basis came from which sellers each leg held. On three of them one seller's
+price set both legs and the basis was $0.00 by construction. Restricting both legs to
+sellers that price the regions differently was replayed over 29 sessions from 12 September
+to 11 October under the current rules: the US leg kept two to four sellers against a gate
+of five and would have gapped on all 29. No version is proposed.
+
+**Found, not fixed: RunPod's EU/EEA row does not depend on EU/EEA stock.** Its US row is
+recorded only on a day a US datacentre reports stock; its EU row is recorded against
+Romania by convention whatever the datacentre list says. Of the 27 sessions since
+12 September in which RunPod's price entered the headline, one had no EU/EEA datacentre
+reporting H100 stock: 9 October, when RunPod's $3.99 set the print. Applying the US rule in
+the EU would move prints and is a methodology change; it is held until the stock series
+has 60 sessions behind it.
+
+**Found, not fixed: one seller sets the headline more often than not.** Over the 44
+published sessions in the 60 days to 11 October, RunPod had an offer exactly at the print
+on 26.
+
 ## Endpoints, provenance and the Sources panel — 2026-10-10 — no methodology change
 
 Nothing in `index.py`, `normalise.py` or `weights.py` was touched, and no stored print
