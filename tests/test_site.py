@@ -22,6 +22,7 @@ EXPECTED_PAGES = (
     "index.html", "basis.html", "term.html", "methodology.html", "data.html",
     "governance.html", "notices.html", "reliability.html", "performance.html",
     "research.html", "contact.html", "privacy.html", "intake.html",
+    "availability.html", "running-cost.html",
 )
 
 

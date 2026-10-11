@@ -36,6 +36,8 @@ python -m tci.run intraday sweep [--force] [--source S]   # read the sources tha
 python -m tci.run intraday path|settle [--date D] [--series S]   # replayed index, window mean
 python -m tci.run intraday build|verify|status # page + data; check the store; source health
 python -m tci.run intraday ingest              # load the log into the intraday_* tables
+python -m tci.run statement build|verify [--series S --from D --to D] [--file F]   # market-price statements
+python -m tci.run panel register|validate|ingest|aggregate   # EU term panel (private store)
 
 pytest                                         # 289 tests
 pytest tests/test_site.py::test_pages_are_self_contained -q    # a single test
@@ -73,6 +75,15 @@ One direction, and each stage earns its place:
   `config/regions.yaml` (region blocks; one published, eight shadow) and reports coverage
   against them. Neither file is hash-locked. The monthly process that maintains them is
   `.claude/skills/source-discovery/`.
+
+- **Observers** sit beside the pipeline, read stored rows, run the calculation code in
+  memory and write nothing to the database: `explain.py` (why a print moved, whose price
+  it landed on, what the EU-US basis is made of), `availability.py` (stock as sellers
+  publish it), `costfloor.py` (rent against running cost, inputs in
+  `config/cost_floor.yaml`), `statement.py` (market-price statements). Their pages and
+  sections are in `outputs/market_pages.py`, each called inside a guard in `site.py`.
+  `panel.py` is the EU term panel; like `contrib.py` it keeps everything in the private
+  store and publishes only what `panel aggregate` writes to `site/data/term/panel.json`.
 
 - **`intraday.py`** is beside the pipeline, not in it. The hourly `intraday.yml` workflow
   reads each source at the cadence in `config/intraday.yaml` and appends to

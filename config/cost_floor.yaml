@@ -1,0 +1,79 @@
+# Inputs to the rent-against-running-cost table (tci.costfloor). Research beside the index:
+# not hash-locked, read by no print. Every figure carries its source and the date it was read.
+#
+# The question the table answers: how far does the rent a GPU earns sit above the cash cost
+# of keeping it switched on? An operator keeps a GPU running while rent covers that cost,
+# which makes the ratio the distance from the end of a GPU's economic life. Depreciation and
+# financing are left out on purpose: they are sunk once the hardware is bought and decide
+# whether it was worth buying, not whether it is worth running.
+#
+# Two things the table is not. It is not a TCO model: capital recovery is most of the full
+# cost and is excluded. And the power line is the wholesale day-ahead price, without grid
+# fees or levies, so it is a lower bound on what a site pays for electricity.
+
+version: "2026-10-12"
+
+# IT power per GPU: the vendor's 8-GPU system maximum divided by eight. A maximum, so it
+# overstates average draw; SemiAnalysis's all-in H100 figure (1.37 kW including host and a
+# cooling share) sits below 1.275 kW x any PUE above 1.07.
+it_kw_per_gpu:
+  A100: {kw: 0.8125, source: "NVIDIA DGX A100 User Guide: system power 6.5 kW max, 8 GPUs",
+         url: "https://docs.nvidia.com/dgx/dgxa100-user-guide/introduction-to-dgxa100.html",
+         read: "2026-10-11"}
+  H100: {kw: 1.275, source: "NVIDIA DGX H100/H200 User Guide: system power 10.2 kW max, 8 GPUs",
+         url: "https://docs.nvidia.com/dgx/dgxh100-user-guide/introduction-to-dgxh100.html",
+         read: "2026-10-11"}
+  H200: {kw: 1.275, source: "NVIDIA DGX H100/H200 User Guide: system power 10.2 kW max, 8 GPUs",
+         url: "https://docs.nvidia.com/dgx/dgxh100-user-guide/introduction-to-dgxh100.html",
+         read: "2026-10-11"}
+  B200: {kw: 1.7875, source: "AMAX, Comparing NVIDIA Blackwell Configurations: DGX B200 approximately 14.3 kW, 8 GPUs",
+         url: "https://www.amax.com/comparing-nvidia-blackwell-configurations/",
+         read: "2026-10-11"}
+
+# Power usage effectiveness: facility energy over IT energy. The low end is the level German
+# law (EnEfG) requires of new data centres above 300 kW from 2027; the high end is the
+# global average Uptime Institute reported for 2025.
+pue:
+  low: {value: 1.2, source: "German Energy Efficiency Act (EnEfG) target for new data centres, via Datacentres.com 7 Sep 2026",
+        url: "https://www.datacentres.com/news/frankfurt-data-centre-market-1-020-mw-live-as-germany-s-waste-heat-mandate-colli-slot1-2026-09-07",
+        read: "2026-10-11"}
+  high: {value: 1.54, source: "Uptime Institute Global Data Center Survey 2025 average, via mgrid.org",
+         url: "https://mgrid.org/2025/10/01/uptime-institute-data-center-pue-stagnation-2025-liquid-cooling/",
+         read: "2026-10-11"}
+
+# Wholesale power. The table uses the trailing mean of stored day-ahead prices (overlay_power,
+# zones below) when at least `min_days` are stored; otherwise this fallback, which is the
+# German 2025 day-ahead average as published by the regulator.
+power:
+  zones: ["NL", "DE-LU", "FR"]
+  window_days: 30
+  min_days: 5
+  fallback_eur_mwh: {value: 89.32, source: "Bundesnetzagentur/SMARD: 2025 day-ahead average, DE-LU",
+                     url: "https://bundesnetzagentur.de/SharedDocs/Pressemitteilungen/EN/2026/20260104_SMARD.html",
+                     read: "2026-10-11"}
+
+# Colocation, per kW of IT load per month. Frankfurt wholesale asking rents for new
+# capacity. Power is billed on top in this market, which is why it is a separate line.
+colocation_eur_kw_month:
+  low: 165.0
+  high: 185.0
+  source: "Datacentres.com, Frankfurt data centre market, 7 Sep 2026"
+  url: "https://www.datacentres.com/news/frankfurt-data-centre-market-1-020-mw-live-as-germany-s-waste-heat-mandate-colli-slot1-2026-09-07"
+  read: "2026-10-11"
+
+# Other cash running costs per GPU-hour, in USD as published, converted at the print's FX.
+# Cloudrift's 8-GPU server model (US colocation): network $0.68, remote hands $0.21 and
+# insurance $0.27 per server-hour, i.e. $0.145 per GPU-hour; spares $0.14 per GPU-hour.
+# The low end leaves spares out, the high end keeps them. No public source gives a staff
+# cost per GPU-hour; none is added.
+other_usd_per_gpu_hour:
+  low: 0.145
+  high: 0.285
+  source: "Cloudrift, The True Cost of GPU Ownership, 21 Jan 2026"
+  url: "https://www.cloudrift.ai/blog/the-true-cost-of-gpu-ownership"
+  read: "2026-10-11"
+
+# Rents: the on-demand prices TCI already collects, as the median over sellers of each
+# seller's lowest qualifying price. Shown only with at least this many sellers.
+min_sellers: 3
+hours_per_month: 730
