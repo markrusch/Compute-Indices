@@ -226,6 +226,8 @@ def verify(conn: sqlite3.Connection, payload: dict[str, Any]) -> Check:
     problems: list[str] = []
     if payload.get("digest") != digest_of(payload):
         problems.append("the statement's digest does not match its content")
+    # The fixed text (measures, notes, disclaimer, URLs) is part of what is verified, so a
+    # change to any of it is a new FORMAT, with the old text kept for checking old files.
     if payload.get("format") != FORMAT:
         problems.append(f"statement format {payload.get('format')!r}; this code checks"
                         f" format {FORMAT}")
@@ -257,6 +259,13 @@ def verify(conn: sqlite3.Connection, payload: dict[str, Any]) -> Check:
             continue
         if payload.get(key) != expected.get(key):
             problems.append(f"{key} differs from a statement rebuilt from the record")
+    # The checks above say where a file differs; this one decides whether it does. Field
+    # by field, a duplicate session placed before the genuine one, junk appended to the
+    # list, reordered sessions or `revision: true` for 1 all passed. Canonical bytes
+    # compare order, count and JSON type as well as value.
+    if _canonical(payload) != _canonical(expected) and not problems:
+        problems.append("the statement differs from the one rebuilt from the record"
+                        " (order, duplicates or value types)")
     return Check(not problems, tuple(problems))
 
 

@@ -46,7 +46,6 @@ window:
 rules:
   min_panellists: 3          # below this a cell publishes a count, never a value
   trim_from: 5               # from this many, drop the highest and lowest mid and average the rest
-  quartiles_from: 5          # quartiles of the mids only from this many panellists
   max_seller_share: 0.5      # sellers must be fewer than half of a cell's panellists
   max_range_ratio: 1.5       # high over low; a wider range is not an assessment
   price_band: [0.25, 60.0]   # per GPU-hour, native currency: a junk-entry guard only

@@ -35,7 +35,8 @@ database) or a store outside the repository.
   the same day-ahead results for NL, DE-LU and FR with no key, after the day's prints, and
   stores a zone only when its response states CC BY 4.0. SE3's response said its data was
   for private use only, so SE3 is not requested. An ENTSO-E row that later replaces one
-  now replaces its provenance too. Until five days are stored the cost table uses the
+  replaces its provenance too, and the credit line on the page names whoever stored the
+  rows it averages. Until five days are stored the cost table uses the
   German 2025 average and says so.
 - **What the EU-US basis is made of, on `basis.html`.** The like-for-like spread (what
   sellers in both legs charge on each side) and which seller set each leg. The page also
@@ -49,16 +50,18 @@ database) or a store outside the repository.
   prices. A value needs three panellists, sellers fewer than half of them, and every
   assessment inside the week's window. At three or four it is the mean of their
   mid-points, never a median, which at three is one panellist's own number; from five the
-  highest and lowest are dropped. No week is aggregated before its cutoff, a correction
-  received after it does not withdraw an assessment that counted, and a suspended
-  panellist counts in no week. `term.html` shows each cell's count until then. No
-  panellist has joined.
+  highest and lowest are dropped. No percentile is published, since at these sizes each
+  one is a single panellist's mid-point too. No week is aggregated before its cutoff, a
+  correction received after it does not withdraw an assessment that counted, and a
+  suspension removes every week that opened before it, whatever happens to the panellist
+  afterwards. `term.html` shows each cell's count until then. No panellist has joined.
 - **Market-price statements.** `python -m tci.run statement build|verify`: one series over
   a period, every calendar day listed with its print digest, gaps left out of every
   average. `verify` rebuilds the statement from the record and requires the file to match
-  it; a digest alone proves nothing, because whoever edits the file can recompute it. A
-  statement for each closed month of the headline and the spot series is published under
-  `site/data/statements/`, keyed on the stored series names, and listed on `data.html`.
+  it byte for byte; a digest alone proves nothing, because whoever edits the file can
+  recompute it. A statement for each closed month of the headline is published under
+  `site/data/statements/`, keyed on the stored series names, and listed on `data.html`;
+  the spot series joins when its first month closes at the end of October.
 
 **Found, not fixed: the EU-US basis is composition, measured.** On every one of the seven
 sessions the basis has published, each seller in both legs (RunPod, Lambda and

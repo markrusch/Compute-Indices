@@ -31,6 +31,7 @@ midpoint was measured.
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from dataclasses import dataclass
 from datetime import date as date_type
@@ -90,6 +91,22 @@ class PowerBasis:
     days: int  # stored days averaged; 0 means the configured fallback was used
     zones: tuple[str, ...]
     source: str
+    # Who stored the rows that were averaged: "energy_charts" and/or "entsoe". The credit
+    # line follows the rows, because CC BY 4.0 attaches to Energy-Charts' data only.
+    providers: tuple[str, ...] = ()
+
+
+_CREDITS = {
+    "energy_charts": "Bundesnetzagentur | SMARD.de via Energy-Charts (Fraunhofer ISE), CC BY 4.0",
+    "entsoe": "ENTSO-E Transparency Platform",
+}
+
+
+def attribution(pb: PowerBasis) -> str | None:
+    """The credit the stored rows require, or None when the fallback was used."""
+    if not pb.days:
+        return None
+    return "; ".join(_CREDITS[p] for p in pb.providers if p in _CREDITS) or None
 
 
 @dataclass(frozen=True)
@@ -118,10 +135,29 @@ def power_basis(conn: sqlite3.Connection, date: str, cfg: dict[str, Any]) -> Pow
     ).fetchall()
     if len(rows) >= int(p["min_days"]):
         mean = sum(float(r[1]) for r in rows) / len(rows)
+        raws = conn.execute(
+            f"SELECT raw_json FROM overlay_power WHERE date BETWEEN ? AND ? AND zone IN ({marks})",
+            (start, date, *zones),
+        ).fetchall()
+        providers = sorted({_stored_by(str(r[0])) for r in raws})
         return PowerBasis(round(mean, 2), len(rows), zones,
-                          f"day-ahead mean of {', '.join(zones)} over {len(rows)} days")
+                          f"day-ahead mean of {', '.join(zones)} over {len(rows)} days",
+                          tuple(providers))
     fb = p["fallback_eur_mwh"]
     return PowerBasis(float(fb["value"]), 0, zones, str(fb["source"]))
+
+
+def _stored_by(raw_json: str) -> str:
+    """Energy-Charts rows name their source; ENTSO-E rows carry its document type, A44."""
+    try:
+        raw = json.loads(raw_json)
+    except ValueError:
+        return "unknown"
+    if raw.get("source") == "energy_charts":
+        return "energy_charts"
+    if raw.get("doc") == "A44":
+        return "entsoe"
+    return "unknown"
 
 
 def _fx(conn: sqlite3.Connection, date: str) -> float | None:
@@ -209,9 +245,7 @@ def as_json(t: Table, cfg: dict[str, Any] | None = None) -> dict[str, Any]:
         "power": {"eur_mwh": t.power.eur_mwh, "days": t.power.days,
                   "zones": list(t.power.zones), "basis": t.power.source,
                   # Required by CC BY 4.0 wherever the stored day-ahead prices are used.
-                  "attribution": ("Day-ahead prices: Bundesnetzagentur | SMARD.de, via"
-                                  " Energy-Charts (Fraunhofer ISE), CC BY 4.0"
-                                  if t.power.days else None)},
+                  "attribution": attribution(t.power)},
         "classes": [
             {
                 "class": r.cls, "it_kw_per_gpu": r.kw,

@@ -69,3 +69,19 @@ def test_power_falls_back_openly_until_enough_days_are_stored(
     conn.commit()
     pb = costfloor.power_basis(conn, "2026-10-11", cfg)
     assert pb.days == 6 and pb.eur_mwh == 100.0
+    assert costfloor.attribution(pb) is None  # rows of unknown origin earn no credit line
+
+
+def test_the_credit_line_follows_the_rows(conn: sqlite3.Connection) -> None:
+    cfg = costfloor.load_inputs()
+    for day in range(5, 11):
+        conn.execute("INSERT INTO overlay_power VALUES (?, 'NL', 90.0, ?)",
+                     (f"2026-10-{day:02d}", '{"eic": "x", "doc": "A44"}'))
+    conn.commit()
+    pb = costfloor.power_basis(conn, "2026-10-11", cfg)
+    assert costfloor.attribution(pb) == "ENTSO-E Transparency Platform"
+    conn.execute("INSERT INTO overlay_power VALUES ('2026-10-11', 'FR', 90.0, ?)",
+                 ('{"source": "energy_charts", "licence": "CC BY 4.0"}',))
+    conn.commit()
+    credit = costfloor.attribution(costfloor.power_basis(conn, "2026-10-11", cfg)) or ""
+    assert "CC BY 4.0" in credit and "ENTSO-E" in credit

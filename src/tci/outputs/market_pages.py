@@ -117,26 +117,6 @@ def _names(providers: tuple[str, ...] | list[str]) -> str:
     return ", ".join(items[:-1]) + " and " + items[-1]
 
 
-def shown_steps(m: explain.Move) -> list[float | None]:
-    """Each step in cents, rounded so the shown steps add up to the shown total.
-
-    Rounding each step on its own showed 24 September as $0.00 + $0.30 - $0.02 + $0.00 =
-    $0.28 against a move of +$0.29, under a sentence saying the steps sum to the move.
-    Rounding the running total instead keeps every step within a cent of its exact value
-    and makes the column add up. The CSV carries the exact values.
-    """
-    if not m.split:
-        return [None for _ in m.steps]
-    out: list[float | None] = []
-    running, shown = 0.0, 0.0
-    for st in m.steps:
-        running += st.delta or 0.0
-        r = round(running, 2)
-        out.append(round(r - shown, 2))
-        shown = r
-    return out
-
-
 def cause(m: explain.Move) -> str:
     """The step that moved the print most, in words. Empty when nothing moved."""
     if abs(m.total) < 1e-9:
@@ -257,9 +237,9 @@ def _steps_table(m: explain.Move) -> str:
     site = _site()
     rows = "".join(
         f'<tr><th scope="row" class="ta-l">{i}. {site._e(s.name.capitalize())}</th>'
-        f'<td class="ta-r num">{_money(shown, signed=True)}</td>'
+        f'<td class="ta-r num">{_money(s.delta, signed=True)}</td>'
         f'<td>{site._e(STEP_WORDS[s.name])}</td></tr>'
-        for i, (s, shown) in enumerate(zip(m.steps, shown_steps(m), strict=True), 1)
+        for i, s in enumerate(m.steps, 1)
     )
     return f"""<div class="card card__body--flush"><div class="scroll-x">
   <table class="grid grid--narrow">
@@ -361,7 +341,7 @@ def availability_page(ctx: Any) -> str:
     move_rows = "".join(
         f'<tr><td class="num">{e(m.date)}</td><td class="ta-r num">{_money(m.value)}</td>'
         f'<td class="ta-r num">{_money(m.total, signed=True)}</td>'
-        + "".join(f'<td class="ta-r num">{_money(x, signed=True)}</td>' for x in shown_steps(m))
+        + "".join(f'<td class="ta-r num">{_money(s.delta, signed=True)}</td>' for s in m.steps)
         + f"<td>{e(_names(m.exited)) if m.exited else ''}</td>"
         f"<td>{e(_names(m.entered)) if m.entered else ''}</td>"
         f"<td>{e(_names(m.setters))}</td></tr>"
@@ -425,7 +405,8 @@ def availability_page(ctx: Any) -> str:
       step priced under the rules live on the later date: the earlier book recomputed under
       today's rules, then without the sellers absent today, then today's offers from the
       sellers present on both days, then today's full book. The four steps sum to the
-      published move; each is shown rounded so that the cents add up, and
+      published move exactly. Each is rounded to the cent on its own here, so the cents
+      shown may not add up to the total;
       <a href="data/moves/history.csv">moves/history.csv</a> carries them to six decimals.
       Another order would split it differently with the same total, and a weighted median
       has no order-free split.</p></div>
@@ -551,8 +532,7 @@ def running_cost_page(ctx: Any) -> str:
     if t.power.days:
         power_line = (f"Power is the mean day-ahead price across {e(', '.join(t.power.zones))} "
                       f"over the last {t.power.days} stored days, &#8364;{num(t.power.eur_mwh)}"
-                      "/MWh. Day-ahead prices: Bundesnetzagentur | SMARD.de via Energy-Charts, "
-                      "CC BY 4.0.")
+                      f"/MWh. Day-ahead prices: {e(costfloor.attribution(t.power))}.")
     else:
         power_line = (f"Power is &#8364;{num(t.power.eur_mwh)}/MWh, the German 2025 day-ahead "
                       "average published by the Bundesnetzagentur, until enough daily prices "

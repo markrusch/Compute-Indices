@@ -343,7 +343,7 @@ def basis_replay(
     The question the basis-composition finding left: if the sellers that charge one price
     everywhere are taken out of both legs, what remains of the US leg? Every session from
     `start` to `end` with a collection is rebuilt under the rules live on `rules_date`.
-    The CHANGELOG entry of 11 October 2026 quotes this over 12 September to 11 October.
+    The CHANGELOG entry of 12 October 2026 quotes this over 12 September to 11 October.
     """
     from datetime import date as date_type
     from datetime import timedelta

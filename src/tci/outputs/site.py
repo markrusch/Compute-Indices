@@ -3689,9 +3689,9 @@ def _us_leg_line(ctx: SiteContext) -> str:
     names = ", ".join(sellers[:-1]) + " and " + sellers[-1] if len(sellers) > 1 else sellers[0]
     n = len(sellers)
     return (f"<p>On {_e(_human_date(ctx.date))} the US leg had {n} qualifying "
-            f"{'seller' if n == 1 else 'sellers'} ({_e(names)}) against a gate of {gate}. On "
-            "a day it has fewer, the US leg gaps and so does the spread, with the reason in "
-            "the audit set.</p>")
+            f"{'seller' if n == 1 else 'sellers'} ({_e(names)}). It publishes with {gate} or "
+            f"more; with fewer it gaps and so does the spread, with the reason in the audit "
+            "set.</p>")
 
 
 def _basis(ctx: SiteContext) -> str:

@@ -85,7 +85,7 @@ def test_basis_makeup_shows_the_same_seller_setting_both_legs(record: sqlite3.Co
 def test_a_basis_without_region_flat_sellers_would_never_have_printed(
     record: sqlite3.Connection,
 ) -> None:
-    # The figure in the CHANGELOG entry of 11 October 2026.
+    # The figure in the CHANGELOG entry of 12 October 2026.
     replay = explain.basis_replay(record, "2026-09-12", "2026-10-11", "2026-10-11")
     assert len(replay) == 29
     assert min(r.us_left for r in replay) == 1 and max(r.us_left for r in replay) == 3
@@ -101,18 +101,3 @@ def test_an_earlier_print_that_does_not_reproduce_is_not_booked_as_methodology(
     monkeypatch.setattr(series_read, "previous_published",
                         lambda c, s, d: (lambda p: (p[0], p[1] + 0.5) if p else p)(real(c, s, d)))
     assert explain.explain_move(record, HEADLINE, "2026-09-24") is None
-
-
-def test_the_shown_steps_add_up_to_the_shown_move(record: sqlite3.Connection) -> None:
-    # 24 September 2026 rounded step by step read $0.00 + $0.30 - $0.02 + $0.00 = $0.28
-    # under a total of +$0.29.
-    from tci.outputs.market_pages import shown_steps
-
-    for date in _printed(record, "2026-09-01"):
-        m = explain.explain_move(record, HEADLINE, date)
-        if m is None or not m.split:
-            continue
-        shown = shown_steps(m)
-        assert round(sum(x or 0.0 for x in shown), 2) == round(m.total, 2), date
-        for x, s in zip(shown, m.steps, strict=True):
-            assert abs((x or 0.0) - (s.delta or 0.0)) <= 0.01 + 1e-9, date

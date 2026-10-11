@@ -55,8 +55,9 @@ aggregated before its window closes, so nobody can shape an input to its value.
 
 - **A value needs three panellists.** With three or four, it is the mean of their
   mid-points. From five, the highest and lowest mid-points are dropped and the rest are
-  averaged, and the 25th and 75th percentiles of the mid-points are published beside it.
-  It is never a median of three, which would be one panellist's mid-point to the cent.
+  averaged. It is never a median of three, which would be one panellist's mid-point to the
+  cent, and no percentile is published: at the panel sizes a week can have, a percentile
+  is one panellist's mid-point too.
 - **Sellers must be fewer than half of a cell's panellists.** A cell where they are half
   or more publishes no value that week. Competing sellers pooling current prices is the
   arrangement competition law watches most closely. Brokers, marketplaces and buyers are
@@ -90,15 +91,14 @@ record.
 5. Correct a mistake by sending a correction that names the assessment it replaces.
    Corrections, like everything else, are kept.
 
-A panellist that breaks these is suspended. While suspended, its assessments count in no
-week, past weeks included, and a past value that changes as a result is republished with a
-notice.
+A panellist that breaks these is suspended. Its assessments from every week that opened
+before the suspension are then left out for good, whether it is later reinstated or
+leaves, and a past value that changes as a result is republished with a notice.
 
 ## What panellists receive
 
-The full history of every cell, with quartiles where they exist, at the same time as
-everyone else sees the headline values. No panellist sees another's assessment, and none
-receives anything before publication.
+The full history of every cell, at the same time as everyone else sees the values. No
+panellist sees another's assessment, and none receives anything before publication.
 
 ## Status
 

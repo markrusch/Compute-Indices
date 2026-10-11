@@ -31,10 +31,13 @@ RULES, ENFORCED HERE, NOT PROMISED:
   can see one week's number and then shape their input to it.
 - THREE OR NO VALUE. Below three panellists a cell is a count. At three or four the value
   is the mean of the mids; from five, the highest and lowest mids are dropped and the rest
-  averaged, and quartiles appear. Not a median at three: the median of three mids IS one
-  panellist's mid, published to the cent.
-- A SUSPENDED PANELLIST COUNTS NOWHERE. While its latest register entry is a suspension,
-  its assessments are left out of every week, past weeks included.
+  averaged. Not a median at three: the median of three mids IS one panellist's mid,
+  published to the cent. And no percentile at any size: at five the 25th and 75th
+  percentiles are exactly the second and fourth mids, and at nine, thirteen and so on
+  they land on single mids again.
+- A SUSPENSION REACHES BACK. Every assessment a panellist made in a week that opened
+  before its suspension was recorded is left out, for good: being reinstated, or leaving,
+  does not bring them back. Weeks that open after a reinstatement count as normal.
 - NOT A SELLERS' CLUB. A cell where sellers are half the panellists or more publishes no
   value. Competing sellers pooling current prices is the arrangement competition law is
   most wary of; brokers, marketplaces and buyers are the panel this is designed for.
@@ -56,7 +59,7 @@ from statistics import mean
 from typing import Any
 
 from tci import config
-from tci.contrib import _quantile, private_db_path
+from tci.contrib import private_db_path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = REPO_ROOT / "config" / "term_panel.yaml"
@@ -123,7 +126,6 @@ class Cell:
 class Rules:
     min_panellists: int
     trim_from: int
-    quartiles_from: int
     max_seller_share: float
     max_range_ratio: float
     price_band: tuple[float, float]
@@ -155,7 +157,6 @@ def load_config(path: Path | None = None) -> PanelConfig:
         ),
         rules=Rules(
             min_panellists=int(r["min_panellists"]), trim_from=int(r["trim_from"]),
-            quartiles_from=int(r["quartiles_from"]),
             max_seller_share=float(r["max_seller_share"]),
             max_range_ratio=float(r["max_range_ratio"]),
             price_band=(float(r["price_band"][0]), float(r["price_band"][1])),
@@ -375,8 +376,6 @@ class PanelCell:
     reason: str | None
     value_usd: float | None = None
     value_eur: float | None = None
-    p25_usd: float | None = None
-    p75_usd: float | None = None
     method: str | None = None
     bases: dict[str, int] = field(default_factory=dict)
     kinds: dict[str, int] = field(default_factory=dict)
@@ -400,8 +399,16 @@ def aggregate(conn: sqlite3.Connection, window: str, fx_usd_per_eur: float | Non
     reg = standing(conn)
     rows = conn.execute("SELECT * FROM assessments WHERE window = ? ORDER BY id",
                         (window,)).fetchall()
-    suspended = {p for p, e in reg.items() if e["status"] == "suspended"}
-    rows = [r for r in rows if r["panellist"] not in suspended]
+    # Keyed on the register's history, not on current status: keyed on status, a
+    # suspended panellist recorded as "left" or reinstated had every assessment counted
+    # again, the weeks that led to the suspension included.
+    suspended_at = {
+        r["panellist"] for r in conn.execute(
+            "SELECT panellist FROM panellists WHERE status = 'suspended' AND recorded_utc > ?",
+            (opens,),
+        )
+    }
+    rows = [r for r in rows if r["panellist"] not in suspended_at]
     # Lateness first, supersession second, and only among rows that were on time.
     # The other order let a correction received after the cutoff withdraw an assessment
     # that had counted, turning a published cell back into a count on re-aggregation.
@@ -445,13 +452,10 @@ def aggregate(conn: sqlite3.Connection, window: str, fx_usd_per_eur: float | Non
             value, method = mean(ordered[1:-1]), "trimmed mean (highest and lowest mid dropped)"
         else:
             value, method = mean(ordered), "mean of mids"
-        ranged = n >= rules.quartiles_from
         out.append(PanelCell(
             cell.id, cell.description, window, n, late, True, None,
             value_usd=round(value, 2),
             value_eur=round(value / fx_usd_per_eur, 2) if fx_usd_per_eur else None,
-            p25_usd=round(_quantile(ordered, 0.25), 2) if ranged else None,
-            p75_usd=round(_quantile(ordered, 0.75), 2) if ranged else None,
             method=method, bases=dict(sorted(bases.items())), kinds=dict(sorted(kinds.items())),
         ))
     return out
@@ -468,7 +472,7 @@ def publishable(cells: list[PanelCell], window: str, cfg: PanelConfig | None = N
         "config_version": cfg.version,
         "rules": {
             "min_panellists": r.min_panellists, "trim_from": r.trim_from,
-            "quartiles_from": r.quartiles_from, "max_seller_share": r.max_seller_share,
+            "max_seller_share": r.max_seller_share,
         },
         "note": (
             "Weekly panel assessments of standard term contracts. A value is published only"
@@ -480,7 +484,7 @@ def publishable(cells: list[PanelCell], window: str, cfg: PanelConfig | None = N
         ),
         "cells": [
             {k: v for k, v in c.__dict__.items()
-             if c.published or k not in ("value_usd", "value_eur", "p25_usd", "p75_usd",
+             if c.published or k not in ("value_usd", "value_eur",
                                          "method", "bases", "kinds")}
             for c in cells
         ],

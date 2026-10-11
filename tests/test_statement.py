@@ -54,7 +54,8 @@ def test_a_changed_value_fails_even_with_a_recomputed_digest(
 
 def _reseal(forged: dict) -> dict:
     """What a forger would do: make the summary and digest consistent with the edit."""
-    forged["summary"] = statement._summary(forged["sessions"])
+    forged["summary"] = statement._summary(
+        [x for x in forged["sessions"] if isinstance(x, dict)])
     forged["digest"] = statement.digest_of(forged)
     return forged
 
@@ -76,6 +77,11 @@ def test_dropping_sessions_fails_even_when_resealed(record: sqlite3.Connection,
     lambda f: f.update({"series": "EU-CRI-H100-SPOT"}),
     lambda f: f.update({"measures": "A three-year commitment for a 1,024-GPU cluster."}),
     lambda f: f["sessions"][0].update({"flags": "", "n_sources": 99}),
+    lambda f: f["sessions"].insert(0, {**f["sessions"][1], "value_usd": 9.99}),
+    lambda f: f["sessions"].append("junk"),
+    lambda f: f["sessions"].reverse(),
+    lambda f: next(x for x in f["sessions"] if x["revision"] is not None).update(
+        {"revision": True}),
 ])
 def test_relabelling_fails_even_when_resealed(record: sqlite3.Connection, september: dict,
                                               edit) -> None:  # type: ignore[no-untyped-def]

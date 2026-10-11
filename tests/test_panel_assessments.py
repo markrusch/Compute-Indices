@@ -77,7 +77,7 @@ def test_three_give_a_mean_and_five_a_trimmed_mean(store: sqlite3.Connection) ->
         _join(store, f"B{i}")
         panel.ingest(store, f"B{i}", [_assess(low=lo, high=hi)], "x", ON_TIME)
     c = _agg(store)
-    assert c.published and c.value_usd == 2.53 and c.p25_usd is None
+    assert c.published and c.value_usd == 2.53
     # A median of three would have published B1's own mid, $2.50, to the cent.
     assert c.value_usd not in (2.1, 2.5, 3.0)
     for i, (lo, hi) in enumerate([(1.0, 1.2), (9.0, 9.4)], start=3):
@@ -85,7 +85,7 @@ def test_three_give_a_mean_and_five_a_trimmed_mean(store: sqlite3.Connection) ->
         panel.ingest(store, f"B{i}", [_assess(low=lo, high=hi)], "x", ON_TIME)
     c = _agg(store)
     assert c.value_usd == pytest.approx((2.1 + 2.5 + 3.0) / 3, abs=0.01)
-    assert c.p25_usd is not None and c.method and "trimmed" in c.method
+    assert c.method and "trimmed" in c.method
 
 
 def test_a_late_assessment_is_stored_and_not_counted(store: sqlite3.Connection) -> None:
@@ -153,13 +153,47 @@ def test_one_week_has_one_spelling(store: sqlite3.Connection) -> None:
         "2026-12-28T00:00:00Z", "2027-01-01T12:00:00Z")
 
 
-def test_a_suspended_panellist_counts_in_no_week(store: sqlite3.Connection) -> None:
+def test_a_suspension_reaches_back_and_stays(store: sqlite3.Connection) -> None:
     for i in range(3):
         _join(store, f"B{i}")
         panel.ingest(store, f"B{i}", [_assess()], "x", ON_TIME)
     panel.register(store, "B2", "broker", "suspended", AFTER)
-    c = _agg(store)
-    assert not c.published and c.panellists == 2
+    assert _agg(store).panellists == 2
+    # Leaving or being reinstated does not bring the earlier weeks back.
+    panel.register(store, "B2", "broker", "left", "2026-10-21T09:00:00Z")
+    assert _agg(store).panellists == 2
+    panel.register(store, "B2", "broker", "active", "2026-10-22T09:00:00Z", None, "ab" * 32)
+    assert _agg(store).panellists == 2
+    # A week that opens after the reinstatement counts as normal.
+    later = panel.Assessment("2026-W44", "EU-H100-12M-8", 2.4, 2.6, "USD", "judgement")
+    for i in range(3):
+        panel.ingest(store, f"B{i}", [later], "y", "2026-10-28T09:00:00Z")
+    c = _cell(panel.aggregate(store, "2026-W44", 1.12, now_utc="2026-11-02T00:00:00Z"))
+    assert c.published and c.panellists == 3
+
+
+def test_no_percentile_is_published(store: sqlite3.Connection) -> None:
+    # At five, the 25th and 75th percentiles are exactly the second and fourth mids.
+    for i, mid in enumerate((2.1, 2.5, 2.9, 3.3, 3.7)):
+        _join(store, f"B{i}")
+        panel.ingest(store, f"B{i}", [_assess(low=mid - 0.1, high=mid + 0.1)], "x", ON_TIME)
+    text = panel.to_json(panel.publishable(
+        panel.aggregate(store, WINDOW, 1.12, now_utc=AFTER), WINDOW))
+    numbers: list[float] = []
+
+    def walk(x: object) -> None:
+        if isinstance(x, dict):
+            for v in x.values():
+                walk(v)
+        elif isinstance(x, list):
+            for v in x:
+                walk(v)
+        elif isinstance(x, float):
+            numbers.append(x)
+
+    walk(json.loads(text))
+    assert not {2.1, 2.5, 3.3, 3.7} & set(numbers)
+    assert "p25" not in text and "p75" not in text
 
 
 def test_no_value_exists_before_the_cutoff(store: sqlite3.Connection) -> None:
