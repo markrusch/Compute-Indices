@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-10-15T16:16:02Z",
+ "generated_utc": "2026-10-15T17:12:31Z",
  "latest": {
-  "at_utc": "2026-10-15T16:16:00Z",
+  "at_utc": "2026-10-15T17:12:28Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -158,7 +158,7 @@
    ],
    "EU-CRI-H100-SPOT-GLOBAL": [
     {
-     "price_usd": 3.176575,
+     "price_usd": 3.180025,
      "provider": "aws",
      "weight_pct": 14.285714
     },
@@ -223,29 +223,29 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 289,
-   "civo": 288,
-   "coreweave": 288,
-   "crusoe": 288,
-   "digitalocean": 288,
+   "azure_retail": 345,
+   "civo": 0,
+   "coreweave": 0,
+   "crusoe": 345,
+   "digitalocean": 0,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 288,
-   "latitude": 288,
-   "ovh": 288,
+   "lambda_pricing": 0,
+   "latitude": 0,
+   "ovh": 0,
    "runpod": 0,
-   "scaleway": 289,
-   "seeweb": 288,
+   "scaleway": 0,
+   "seeweb": 0,
    "static_yaml": 0,
-   "together": 288,
+   "together": 0,
    "vast_ai": 0,
-   "voltagepark": 288
+   "voltagepark": 0
   },
   "sources_missing": [],
   "values": {
    "EU-CRI-A100": {
     "flags": "insufficient_sources",
-    "n_sources": 3,
+    "n_sources": 2,
     "value_eur": null,
     "value_usd": null
    },
@@ -293,7 +293,7 @@
    },
    "EU-CRI-H100-PCIE": {
     "flags": "insufficient_sources",
-    "n_sources": 2,
+    "n_sources": 3,
     "value_eur": null,
     "value_usd": null
    },
@@ -323,7 +323,7 @@
    },
    "EU-CRI-H200": {
     "flags": "insufficient_sources",
-    "n_sources": 4,
+    "n_sources": 3,
     "value_eur": null,
     "value_usd": null
    }
@@ -1845,82 +1845,82 @@
   "civo": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T11:27:09Z"
+   "last_ok_utc": "2026-10-15T17:12:23Z"
   },
   "coreweave": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T11:27:09Z"
+   "last_ok_utc": "2026-10-15T17:12:22Z"
   },
   "crusoe": {
-   "consecutive_failures": 0,
-   "last_error": null,
+   "consecutive_failures": 1,
+   "last_error": "RuntimeError: crusoe: row 'NVIDIA HGX B300': expected exactly 2 price cells (On-demand, Current spot), found 1 -- tier attribution rides on cell order; refusing to extract",
    "last_ok_utc": "2026-10-15T11:27:11Z"
   },
   "digitalocean": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T11:27:10Z"
+   "last_ok_utc": "2026-10-15T17:12:24Z"
   },
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T16:15:55Z"
+   "last_ok_utc": "2026-10-15T17:12:21Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T16:15:55Z"
+   "last_ok_utc": "2026-10-15T17:12:25Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T11:27:11Z"
+   "last_ok_utc": "2026-10-15T17:12:24Z"
   },
   "latitude": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T11:27:10Z"
+   "last_ok_utc": "2026-10-15T17:12:24Z"
   },
   "ovh": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T11:27:07Z"
+   "last_ok_utc": "2026-10-15T17:12:28Z"
   },
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T16:15:54Z"
+   "last_ok_utc": "2026-10-15T17:12:21Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T11:26:42Z"
+   "last_ok_utc": "2026-10-15T17:12:22Z"
   },
   "seeweb": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T11:27:01Z"
+   "last_ok_utc": "2026-10-15T17:12:21Z"
   },
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T16:15:53Z"
+   "last_ok_utc": "2026-10-15T17:12:20Z"
   },
   "together": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T11:27:01Z"
+   "last_ok_utc": "2026-10-15T17:12:21Z"
   },
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T16:16:00Z"
+   "last_ok_utc": "2026-10-15T17:12:26Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-15T11:27:10Z"
+   "last_ok_utc": "2026-10-15T17:12:23Z"
   }
  },
  "store_problems": {}
