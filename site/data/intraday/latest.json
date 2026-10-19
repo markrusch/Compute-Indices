@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-10-19T12:23:34Z",
+ "generated_utc": "2026-10-19T13:17:32Z",
  "latest": {
-  "at_utc": "2026-10-19T12:23:30Z",
+  "at_utc": "2026-10-19T13:17:30Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -131,7 +131,7 @@
    ],
    "EU-CRI-H100-SPOT": [
     {
-     "price_usd": 4.738375,
+     "price_usd": 4.836425,
      "provider": "aws",
      "weight_pct": 20.0
     },
@@ -223,23 +223,23 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 60,
-   "civo": 60,
-   "coreweave": 60,
-   "crusoe": 60,
-   "digitalocean": 60,
+   "azure_retail": 114,
+   "civo": 114,
+   "coreweave": 114,
+   "crusoe": 114,
+   "digitalocean": 114,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 60,
-   "latitude": 60,
-   "ovh": 60,
+   "lambda_pricing": 114,
+   "latitude": 114,
+   "ovh": 114,
    "runpod": 0,
-   "scaleway": 66,
-   "seeweb": 60,
+   "scaleway": 120,
+   "seeweb": 114,
    "static_yaml": 0,
-   "together": 60,
+   "together": 114,
    "vast_ai": 0,
-   "voltagepark": 60
+   "voltagepark": 114
   },
   "sources_missing": [],
   "values": {
@@ -1865,12 +1865,12 @@
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T12:23:25Z"
+   "last_ok_utc": "2026-10-19T13:17:23Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T12:23:24Z"
+   "last_ok_utc": "2026-10-19T13:17:22Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
@@ -1890,7 +1890,7 @@
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T12:23:24Z"
+   "last_ok_utc": "2026-10-19T13:17:22Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
@@ -1905,7 +1905,7 @@
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T12:23:23Z"
+   "last_ok_utc": "2026-10-19T13:17:21Z"
   },
   "together": {
    "consecutive_failures": 0,
@@ -1915,7 +1915,7 @@
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T12:23:30Z"
+   "last_ok_utc": "2026-10-19T13:17:30Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
