@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-10-19T16:16:41Z",
+ "generated_utc": "2026-10-19T17:12:33Z",
  "latest": {
-  "at_utc": "2026-10-19T16:16:38Z",
+  "at_utc": "2026-10-19T17:12:29Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -186,23 +186,23 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 294,
-   "civo": 293,
-   "coreweave": 293,
-   "crusoe": 293,
-   "digitalocean": 293,
+   "azure_retail": 349,
+   "civo": 0,
+   "coreweave": 0,
+   "crusoe": 0,
+   "digitalocean": 0,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 293,
-   "latitude": 293,
-   "ovh": 293,
+   "lambda_pricing": 0,
+   "latitude": 0,
+   "ovh": 0,
    "runpod": 0,
-   "scaleway": 299,
-   "seeweb": 294,
+   "scaleway": 0,
+   "seeweb": 0,
    "static_yaml": 0,
-   "together": 294,
+   "together": 0,
    "vast_ai": 0,
-   "voltagepark": 293
+   "voltagepark": 0
   },
   "sources_missing": [],
   "values": {
@@ -286,7 +286,7 @@
    },
    "EU-CRI-H200": {
     "flags": "insufficient_sources",
-    "n_sources": 4,
+    "n_sources": 3,
     "value_eur": null,
     "value_usd": null
    }
@@ -1808,82 +1808,82 @@
   "civo": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T11:22:45Z"
+   "last_ok_utc": "2026-10-19T17:12:20Z"
   },
   "coreweave": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T11:22:45Z"
+   "last_ok_utc": "2026-10-19T17:12:19Z"
   },
   "crusoe": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T11:22:48Z"
+   "last_ok_utc": "2026-10-19T17:12:20Z"
   },
   "digitalocean": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T11:22:47Z"
+   "last_ok_utc": "2026-10-19T17:12:19Z"
   },
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T16:16:32Z"
+   "last_ok_utc": "2026-10-19T17:12:17Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T16:16:32Z"
+   "last_ok_utc": "2026-10-19T17:12:20Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T11:22:48Z"
+   "last_ok_utc": "2026-10-19T17:12:20Z"
   },
   "latitude": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T11:22:47Z"
+   "last_ok_utc": "2026-10-19T17:12:19Z"
   },
   "ovh": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T11:22:43Z"
+   "last_ok_utc": "2026-10-19T17:12:29Z"
   },
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T16:16:31Z"
+   "last_ok_utc": "2026-10-19T17:12:16Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T11:17:30Z"
+   "last_ok_utc": "2026-10-19T17:12:18Z"
   },
   "seeweb": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T11:22:36Z"
+   "last_ok_utc": "2026-10-19T17:12:17Z"
   },
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T16:16:30Z"
+   "last_ok_utc": "2026-10-19T17:12:15Z"
   },
   "together": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T11:22:36Z"
+   "last_ok_utc": "2026-10-19T17:12:17Z"
   },
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T16:16:38Z"
+   "last_ok_utc": "2026-10-19T17:12:23Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-19T11:22:47Z"
+   "last_ok_utc": "2026-10-19T17:12:19Z"
   }
  },
  "store_problems": {}
