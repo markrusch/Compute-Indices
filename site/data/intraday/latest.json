@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-10-21T04:17:08Z",
+ "generated_utc": "2026-10-21T05:14:26Z",
  "latest": {
-  "at_utc": "2026-10-21T04:17:05Z",
+  "at_utc": "2026-10-21T05:14:22Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -131,7 +131,7 @@
    ],
    "EU-CRI-H100-SPOT": [
     {
-     "price_usd": 5.2929,
+     "price_usd": 5.362938,
      "provider": "aws",
      "weight_pct": 20.0
     },
@@ -223,29 +223,29 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 303,
-   "civo": 304,
-   "coreweave": 304,
-   "crusoe": 304,
-   "digitalocean": 304,
+   "azure_retail": 360,
+   "civo": 0,
+   "coreweave": 0,
+   "crusoe": 0,
+   "digitalocean": 0,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 304,
-   "latitude": 304,
-   "ovh": 304,
+   "lambda_pricing": 0,
+   "latitude": 0,
+   "ovh": 0,
    "runpod": 0,
-   "scaleway": 304,
-   "seeweb": 304,
+   "scaleway": 0,
+   "seeweb": 0,
    "static_yaml": 0,
-   "together": 304,
+   "together": 0,
    "vast_ai": 0,
-   "voltagepark": 304
+   "voltagepark": 0
   },
   "sources_missing": [],
   "values": {
    "EU-CRI-A100": {
     "flags": "insufficient_sources",
-    "n_sources": 3,
+    "n_sources": 4,
     "value_eur": null,
     "value_usd": null
    },
@@ -323,7 +323,7 @@
    },
    "EU-CRI-H200": {
     "flags": "insufficient_sources",
-    "n_sources": 4,
+    "n_sources": 3,
     "value_eur": null,
     "value_usd": null
    }
@@ -1845,82 +1845,82 @@
   "civo": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-20T23:12:39Z"
+   "last_ok_utc": "2026-10-21T05:14:18Z"
   },
   "coreweave": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-20T23:12:40Z"
+   "last_ok_utc": "2026-10-21T05:14:17Z"
   },
   "crusoe": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-20T23:12:41Z"
+   "last_ok_utc": "2026-10-21T05:14:18Z"
   },
   "digitalocean": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-20T23:12:40Z"
+   "last_ok_utc": "2026-10-21T05:14:18Z"
   },
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-21T04:16:59Z"
+   "last_ok_utc": "2026-10-21T05:14:16Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-21T04:16:59Z"
+   "last_ok_utc": "2026-10-21T05:14:19Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-20T23:12:42Z"
+   "last_ok_utc": "2026-10-21T05:14:18Z"
   },
   "latitude": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-20T23:12:41Z"
+   "last_ok_utc": "2026-10-21T05:14:18Z"
   },
   "ovh": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-20T23:12:44Z"
+   "last_ok_utc": "2026-10-21T05:14:22Z"
   },
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-21T04:16:59Z"
+   "last_ok_utc": "2026-10-21T05:14:15Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-20T23:12:37Z"
+   "last_ok_utc": "2026-10-21T05:14:17Z"
   },
   "seeweb": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-20T23:12:37Z"
+   "last_ok_utc": "2026-10-21T05:14:16Z"
   },
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-21T04:16:58Z"
+   "last_ok_utc": "2026-10-21T05:14:14Z"
   },
   "together": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-20T23:12:38Z"
+   "last_ok_utc": "2026-10-21T05:14:16Z"
   },
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-21T04:17:05Z"
+   "last_ok_utc": "2026-10-21T05:14:21Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-20T23:12:40Z"
+   "last_ok_utc": "2026-10-21T05:14:18Z"
   }
  },
  "store_problems": {}
