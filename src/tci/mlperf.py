@@ -249,7 +249,7 @@ def table(
     snap = snapshot or load()
     by_system = {(s.repo, s.system_key): s for s in snap.systems}
     out: list[Row] = []
-    for result in snap.results:
+    for result in _first_filings(snap.results):
         system = by_system.get((result.repo, result.system_key))
         if system is None or system.provider is None:
             continue
@@ -262,6 +262,32 @@ def table(
         out.append(Row(system, result, price, date if price else None, where))
     return sorted(out, key=lambda r: (r.system.submitter, r.result.benchmark,
                                       r.system.accelerators))
+
+
+def _round(repo: str) -> tuple[int, ...]:
+    """'training_results_v5.1' -> (5, 1), so v10.0 sorts after v9.0 and not before v2.0."""
+    return tuple(int(p) for p in repo.rsplit("_v", 1)[-1].split("."))
+
+
+def _first_filings(results: list[Result]) -> list[Result]:
+    """Each set of runs once, under the earliest round that carries it.
+
+    Nebius's v5.1 llama31_405b systems (`nebius_h200_n64`, `nebius_h200_n128`) carry the
+    same three run times as its v5.0 soperator systems to the ten-thousandth of a minute.
+    Independent runs do not agree like that; they are the v5.0 logs filed again under a
+    new system name, and the performance page printed each one twice, as two rounds. The
+    key is the submitter, the benchmark and the run times themselves, because the system
+    name is exactly what changed between the two filings.
+    """
+    seen: set[tuple[str, str, tuple[float, ...]]] = set()
+    kept: list[Result] = []
+    for result in sorted(results, key=lambda r: _round(r.repo)):
+        key = (result.submitter, result.benchmark, tuple(sorted(result.runs)))
+        if key in seen:
+            continue
+        seen.add(key)
+        kept.append(result)
+    return kept
 
 
 def comparable_cells(rows: list[Row]) -> dict[tuple[str, str, str, int], list[Row]]:

@@ -45,6 +45,27 @@ tie should then still go to the lower price or to the midpoint of the pair is a 
 question that version has to answer: on two-thirds of days the lower-median rule is what
 sets the level.
 
+## Crusoe's redesigned page, and one MLPerf result printed twice — 2026-10-23 — no methodology change
+
+All 1,136 live prints recompute unchanged and all 2,321 published digests match. Crusoe
+is a shadow source and the performance page is research, so neither reaches a print.
+
+- **Crusoe's collector failed on 23 October with "zero GPU rows".** The pricing page now
+  draws its GPU table as three parallel lists (chips, on-demand cells, spot cells) instead
+  of one container per chip, so a price is joined to its chip only by position.
+  `collectors/crusoe_columns.py` reads that layout after the vendored recipe refuses it,
+  and checks the position: each "Contact sales" cell names its chip's CMS item, and the
+  page is refused if one sits against a different chip. The on-demand column pairs (five
+  anchors, all in place) and reads H100 HGX at $3.90/GPU-hr, the rate recorded on 27
+  September. The spot column's anchors name items that are not in the chip list, so it is
+  skipped rather than read by position; every spot cell said "Contact sales" anyway. The
+  vendored recipe is unchanged and still runs first.
+- **The performance page listed Nebius's llama31_405b results twice.** Its v5.1 systems
+  `nebius_h200_n64` and `nebius_h200_n128` carry the same three run times as its v5.0
+  soperator systems, to the ten-thousandth of a minute: the v5.0 logs filed again under
+  new system names. The table now keeps a set of runs once, under the earliest round
+  that carries it, so the 512- and 1,024-GPU rows appear once each, as v5.0.
+
 ## Build and test time — 2026-09-30 — no methodology change
 
 All 688 stored prints recompute unchanged, all 1,388 published digests match, and the

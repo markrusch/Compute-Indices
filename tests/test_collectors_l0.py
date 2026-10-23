@@ -453,3 +453,38 @@ def test_coreweave_still_refuses_a_page_whose_headings_have_changed() -> None:
     assert reshaped != html, "the fixture no longer carries the heading this test edits"
     with pytest.raises(RuntimeError, match="section heading"):
         parse_coreweave(reshaped)
+
+
+# ------------------------------------------------------------------- crusoe column layout
+
+CRUSOE_COLUMNS = FIX / "crusoe" / "pricing_columns.html"
+
+
+def _crusoe(monkeypatch: pytest.MonkeyPatch, html: str) -> list[Observation]:
+    crusoe = next(c for c in computable_collectors() if c.name == "crusoe")
+    monkeypatch.setattr(crusoe.module, "fetch", lambda *a, **k: html)
+    return crusoe.collect(base.make_session())
+
+
+def test_crusoe_column_layout_is_read_when_the_recipe_refuses_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The 23 October redesign: the recipe found zero rows. The column reader pairs each
+    on-demand cell with its chip and reads H100 HGX at the $3.90 the register recorded."""
+    rows = _crusoe(monkeypatch, CRUSOE_COLUMNS.read_text(encoding="utf-8"))
+    h100 = [o for o in rows if o.gpu_model == "H100_SXM"]
+    assert [o.price_usd_per_gpu_hr for o in h100] == [3.90]
+    assert {o.term for o in rows} == {"on_demand"}
+    assert json.loads(h100[0].raw_json)["raw_value"] == "$3.90/GPU-hr"
+
+
+def test_crusoe_columns_out_of_step_are_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Swap two on-demand cells and a price would sit against the wrong chip. The Contact
+    sales cell that moves takes its CMS anchor with it, and the page is refused."""
+    from tci.collectors.crusoe_columns import _CELL_ITEM
+
+    html = CRUSOE_COLUMNS.read_text(encoding="utf-8")
+    head, *cells = html.split(_CELL_ITEM)
+    cells[0], cells[2] = cells[2], cells[0]  # Vera Rubin's anchor onto B300's $8.96 slot
+    with pytest.raises(RuntimeError, match="out of step"):
+        _crusoe(monkeypatch, _CELL_ITEM.join([head, *cells]))

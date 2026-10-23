@@ -328,6 +328,37 @@ def _fetch_latitude(timeout: float) -> dict[str, Any]:
     )
 
 
+def _fetch_crusoe(timeout: float) -> dict[str, Any]:
+    """The vendored recipe first; TCI's column reader only when the recipe refuses.
+
+    Crusoe's 22-23 October 2026 redesign split the GPU table into parallel lists, and the
+    recipe's row parser found nothing (see `tci.collectors.crusoe_columns`). The recipe is
+    tried first so that if the row layout returns, upstream's parser is what reads it.
+    One fetch either way, through the recipe module's own `fetch` so the tests' patch
+    keeps this path offline, as `_fetch_latitude` explains.
+    """
+    from tci.collectors.crusoe_columns import parse_columns
+    from tci.vendor.computable.sources import crusoe as crusoe_module
+
+    html = crusoe_module.fetch(crusoe_module.URL, timeout=timeout)
+    try:
+        rows, partial_errors = crusoe_module.parse_crusoe_pricing(html)
+        method = "html"
+    except RuntimeError as recipe_error:
+        try:
+            rows, partial_errors = parse_columns(html)
+        except RuntimeError as column_error:
+            raise RuntimeError(f"{recipe_error}; column reader: {column_error}") from None
+        method = "html-columns"
+    return result_(
+        crusoe_module.SOURCE_ID,
+        method=method,
+        url=crusoe_module.URL,
+        observations=rows,
+        partial_errors=partial_errors or None,
+    )
+
+
 def _ovh_country(obs: dict[str, Any]) -> str | None:
     # OVHcloud prices by subsidiary catalogue, not by region. The FR catalogue is the one
     # its French public-cloud regions bill against; OVH states Gravelines (France) carries
@@ -524,6 +555,6 @@ def computable_collectors() -> list[ComputableSource]:
         ComputableSource("hyperstack", "hyperstack", "hyperstack",
                          variant_override=_hyperstack_variant,
                          stock_placements=_hyperstack_placements),
-        ComputableSource("crusoe", "crusoe", "crusoe"),
+        ComputableSource("crusoe", "crusoe", "crusoe", fetch_override=_fetch_crusoe),
         ComputableSource("lambda_pricing", "lambda_", "lambdalabs"),
     ]

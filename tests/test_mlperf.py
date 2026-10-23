@@ -90,6 +90,23 @@ def test_every_result_resolves_to_exactly_one_system() -> None:
         assert (result.repo, result.system_key) in systems, result
 
 
+def test_a_result_filed_again_in_a_later_round_is_shown_once(conn) -> None:
+    """Nebius's v5.1 llama31_405b systems carry its v5.0 run times exactly. The page printed
+    each measurement twice, as two rounds; it is one measurement, kept under v5.0."""
+    rows = mlperf.table(conn, "2026-10-23", frozenset({"FI"}), mlperf.load(SNAPSHOT))
+    nebius_405b = [r for r in rows
+                   if r.system.submitter == "Nebius" and r.result.benchmark == "llama31_405b"]
+    assert sorted(r.system.accelerators for r in nebius_405b) == [512, 1024]
+    assert {r.result.repo for r in nebius_405b} == {"training_results_v5.0"}
+    runs = [tuple(sorted(r.result.runs)) for r in rows]
+    keys = [(r.system.submitter, r.result.benchmark, k) for r, k in zip(rows, runs, strict=True)]
+    assert len(keys) == len(set(keys))
+
+
+def test_rounds_sort_by_number_not_by_text() -> None:
+    assert mlperf._round("training_results_v10.0") > mlperf._round("training_results_v9.1")
+
+
 def test_an_accelerator_tci_does_not_price_is_left_unpriced(conn) -> None:
     """Never matched to something adjacent: an MI300X run is not an H200 run."""
     system = _system(accelerator_model="AMD Instinct MI300X 192GB HBM3")
