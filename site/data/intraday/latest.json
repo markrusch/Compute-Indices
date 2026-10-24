@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-10-24T07:14:06Z",
+ "generated_utc": "2026-10-24T08:17:27Z",
  "latest": {
-  "at_utc": "2026-10-24T07:14:02Z",
+  "at_utc": "2026-10-24T08:17:22Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -223,22 +223,22 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 480,
-   "civo": 121,
-   "coreweave": 121,
-   "digitalocean": 121,
+   "azure_retail": 543,
+   "civo": 184,
+   "coreweave": 184,
+   "digitalocean": 184,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 121,
-   "latitude": 121,
-   "ovh": 120,
+   "lambda_pricing": 184,
+   "latitude": 184,
+   "ovh": 184,
    "runpod": 0,
-   "scaleway": 121,
-   "seeweb": 121,
+   "scaleway": 184,
+   "seeweb": 184,
    "static_yaml": 0,
-   "together": 121,
+   "together": 184,
    "vast_ai": 0,
-   "voltagepark": 121
+   "voltagepark": 184
   },
   "sources_missing": [
    "crusoe"
@@ -246,7 +246,7 @@
   "values": {
    "EU-CRI-A100": {
     "flags": "insufficient_sources",
-    "n_sources": 4,
+    "n_sources": 3,
     "value_eur": null,
     "value_usd": null
    },
@@ -324,7 +324,7 @@
    },
    "EU-CRI-H200": {
     "flags": "insufficient_sources",
-    "n_sources": 4,
+    "n_sources": 3,
     "value_eur": null,
     "value_usd": null
    }
@@ -663,8 +663,8 @@
    {
     "date": "2026-10-24",
     "fixing_usd": null,
-    "n_points": 0,
-    "reason": "0 published value(s) in the window, 2 required",
+    "n_points": 1,
+    "reason": "1 published value(s) in the window, 2 required",
     "value_usd": null
    },
    {
@@ -770,8 +770,8 @@
    {
     "date": "2026-10-24",
     "fixing_usd": null,
-    "n_points": 0,
-    "reason": "0 published value(s) in the window, 2 required",
+    "n_points": 1,
+    "reason": "1 published value(s) in the window, 2 required",
     "value_usd": null
    },
    {
@@ -1091,8 +1091,8 @@
    {
     "date": "2026-10-24",
     "fixing_usd": null,
-    "n_points": 0,
-    "reason": "0 published value(s) in the window, 2 required",
+    "n_points": 1,
+    "reason": "1 published value(s) in the window, 2 required",
     "value_usd": null
    },
    {
@@ -1305,8 +1305,8 @@
    {
     "date": "2026-10-24",
     "fixing_usd": null,
-    "n_points": 0,
-    "reason": "0 published value(s) in the window, 2 required",
+    "n_points": 1,
+    "reason": "1 published value(s) in the window, 2 required",
     "value_usd": null
    },
    {
@@ -1412,8 +1412,8 @@
    {
     "date": "2026-10-24",
     "fixing_usd": null,
-    "n_points": 0,
-    "reason": "0 published value(s) in the window, 2 required",
+    "n_points": 1,
+    "reason": "1 published value(s) in the window, 2 required",
     "value_usd": null
    },
    {
@@ -1626,8 +1626,8 @@
    {
     "date": "2026-10-24",
     "fixing_usd": null,
-    "n_points": 0,
-    "reason": "0 published value(s) in the window, 2 required",
+    "n_points": 1,
+    "reason": "1 published value(s) in the window, 2 required",
     "value_usd": null
    },
    {
@@ -1866,12 +1866,12 @@
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-24T07:13:55Z"
+   "last_ok_utc": "2026-10-24T08:17:16Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-24T07:13:55Z"
+   "last_ok_utc": "2026-10-24T08:17:15Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
@@ -1891,7 +1891,7 @@
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-24T07:13:55Z"
+   "last_ok_utc": "2026-10-24T08:17:15Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
@@ -1906,7 +1906,7 @@
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-24T07:13:54Z"
+   "last_ok_utc": "2026-10-24T08:17:14Z"
   },
   "together": {
    "consecutive_failures": 0,
@@ -1916,7 +1916,7 @@
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-24T07:14:02Z"
+   "last_ok_utc": "2026-10-24T08:17:22Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
