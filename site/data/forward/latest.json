@@ -1,12 +1,12 @@
 {
- "as_of": "2026-10-23",
+ "as_of": "2026-10-24",
  "calibration": [
   {
    "backfilled": false,
    "bias": null,
    "coverage": null,
    "horizon_days": 30,
-   "n_closed": 4,
+   "n_closed": 5,
    "n_nonoverlapping": 1,
    "required": 20,
    "rmse": null
@@ -86,12 +86,12 @@
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "commit_days": 91,
     "covers_days": 91,
     "kind": "rate_card",
-    "price_usd": 2.0169,
+    "price_usd": 2.01474,
     "seller": "seeweb"
    },
    "horizon_days": 30,
@@ -101,17 +101,17 @@
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 6.11793
+   "value_usd": 6.111378
   },
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "commit_days": 91,
     "covers_days": 91,
     "kind": "rate_card",
-    "price_usd": 2.0169,
+    "price_usd": 2.01474,
     "seller": "seeweb"
    },
    "horizon_days": 91,
@@ -121,17 +121,17 @@
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 2.0169
+   "value_usd": 2.01474
   },
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "commit_days": 182,
     "covers_days": 182,
     "kind": "rate_card",
-    "price_usd": 1.90485,
+    "price_usd": 1.90281,
     "seller": "seeweb"
    },
    "horizon_days": 182,
@@ -141,17 +141,17 @@
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 1.90485
+   "value_usd": 1.90281
   },
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "commit_days": 365,
     "covers_days": 365,
     "kind": "rate_card",
-    "price_usd": 1.804005,
+    "price_usd": 1.802073,
     "seller": "seeweb"
    },
    "horizon_days": 365,
@@ -161,19 +161,19 @@
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 1.804005
+   "value_usd": 1.802073
   },
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
      "0.11.1": {
       "days": 30,
       "level_usd": 3.99,
-      "prints": 41,
+      "prints": 42,
       "q": 316.227766,
       "r": 316.227766
      }
@@ -181,7 +181,7 @@
    },
    "horizon_days": 30,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 41,
+   "n_inputs": 42,
    "p10": 3.69139,
    "p50": 3.983357,
    "p90": 4.298416,
@@ -191,14 +191,14 @@
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
      "0.11.1": {
       "days": 91,
       "level_usd": 3.99,
-      "prints": 41,
+      "prints": 42,
       "q": 316.227766,
       "r": 316.227766
      }
@@ -206,7 +206,7 @@
    },
    "horizon_days": 91,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 41,
+   "n_inputs": 42,
    "p10": 3.494117,
    "p50": 3.970587,
    "p90": 4.512031,
@@ -216,14 +216,14 @@
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
      "0.11.1": {
       "days": 182,
       "level_usd": 3.99,
-      "prints": 41,
+      "prints": 42,
       "q": 316.227766,
       "r": 316.227766
      }
@@ -231,7 +231,7 @@
    },
    "horizon_days": 182,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 41,
+   "n_inputs": 42,
    "p10": 3.303479,
    "p50": 3.951593,
    "p90": 4.726862,
@@ -241,14 +241,14 @@
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
      "0.11.1": {
       "days": 365,
       "level_usd": 3.99,
-      "prints": 41,
+      "prints": 42,
       "q": 316.227766,
       "r": 316.227766
      }
@@ -256,7 +256,7 @@
    },
    "horizon_days": 365,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 41,
+   "n_inputs": 42,
    "p10": 3.040263,
    "p50": 3.913666,
    "p90": 5.037979,
@@ -266,7 +266,7 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "gap": "0 of 3 eligible sellers at 1 month",
     "sellers": [],
@@ -284,7 +284,7 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "gap": "1 of 3 eligible sellers at 3 months",
     "sellers": [
@@ -307,7 +307,7 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "gap": "1 of 3 eligible sellers at 6 months",
     "sellers": [
@@ -330,7 +330,7 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "detail": {
     "gap": "1 of 3 eligible sellers at 12 months",
     "sellers": [
