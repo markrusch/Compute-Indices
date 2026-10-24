@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-10-24T15:12:27Z",
+ "generated_utc": "2026-10-24T16:13:40Z",
  "latest": {
-  "at_utc": "2026-10-24T15:12:23Z",
+  "at_utc": "2026-10-24T16:13:35Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -131,7 +131,7 @@
    ],
    "EU-CRI-H100-SPOT": [
     {
-     "price_usd": 5.558937,
+     "price_usd": 5.440213,
      "provider": "aws",
      "weight_pct": 20.0
     },
@@ -223,22 +223,22 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 235,
-   "civo": 234,
-   "coreweave": 234,
-   "digitalocean": 234,
+   "azure_retail": 296,
+   "civo": 296,
+   "coreweave": 296,
+   "digitalocean": 296,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 234,
-   "latitude": 234,
-   "ovh": 234,
+   "lambda_pricing": 296,
+   "latitude": 296,
+   "ovh": 296,
    "runpod": 0,
-   "scaleway": 237,
-   "seeweb": 234,
+   "scaleway": 298,
+   "seeweb": 296,
    "static_yaml": 0,
-   "together": 234,
+   "together": 296,
    "vast_ai": 0,
-   "voltagepark": 234
+   "voltagepark": 296
   },
   "sources_missing": [
    "crusoe"
@@ -294,7 +294,7 @@
    },
    "EU-CRI-H100-PCIE": {
     "flags": "insufficient_sources",
-    "n_sources": 2,
+    "n_sources": 3,
     "value_eur": null,
     "value_usd": null
    },
@@ -324,7 +324,7 @@
    },
    "EU-CRI-H200": {
     "flags": "insufficient_sources",
-    "n_sources": 3,
+    "n_sources": 4,
     "value_eur": null,
     "value_usd": null
    }
@@ -1866,12 +1866,12 @@
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-24T15:12:17Z"
+   "last_ok_utc": "2026-10-24T16:13:29Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-24T15:12:16Z"
+   "last_ok_utc": "2026-10-24T16:13:28Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
@@ -1891,7 +1891,7 @@
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-24T15:12:16Z"
+   "last_ok_utc": "2026-10-24T16:13:28Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
@@ -1906,7 +1906,7 @@
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-24T15:12:15Z"
+   "last_ok_utc": "2026-10-24T16:13:27Z"
   },
   "together": {
    "consecutive_failures": 0,
@@ -1916,7 +1916,7 @@
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-24T15:12:23Z"
+   "last_ok_utc": "2026-10-24T16:13:35Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
