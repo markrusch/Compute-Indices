@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-10-27T18:13:28Z",
+ "generated_utc": "2026-10-27T19:09:44Z",
  "latest": {
-  "at_utc": "2026-10-27T18:13:24Z",
+  "at_utc": "2026-10-27T19:09:40Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -131,7 +131,7 @@
    ],
    "EU-CRI-H100-SPOT": [
     {
-     "price_usd": 4.491038,
+     "price_usd": 4.461112,
      "provider": "aws",
      "weight_pct": 20.0
     },
@@ -146,7 +146,7 @@
      "weight_pct": 20.0
     },
     {
-     "price_usd": 1.0,
+     "price_usd": 0.79,
      "provider": "nebius",
      "weight_pct": 20.0
     },
@@ -178,7 +178,7 @@
      "weight_pct": 14.285714
     },
     {
-     "price_usd": 1.0,
+     "price_usd": 0.79,
      "provider": "nebius",
      "weight_pct": 14.285714
     },
@@ -223,22 +223,22 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 293,
-   "civo": 294,
-   "coreweave": 294,
-   "digitalocean": 294,
+   "azure_retail": 349,
+   "civo": 0,
+   "coreweave": 0,
+   "digitalocean": 0,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 294,
-   "latitude": 294,
-   "ovh": 293,
+   "lambda_pricing": 0,
+   "latitude": 0,
+   "ovh": 0,
    "runpod": 0,
-   "scaleway": 294,
-   "seeweb": 294,
+   "scaleway": 0,
+   "seeweb": 0,
    "static_yaml": 0,
-   "together": 294,
+   "together": 0,
    "vast_ai": 0,
-   "voltagepark": 294
+   "voltagepark": 0
   },
   "sources_missing": [
    "crusoe"
@@ -324,7 +324,7 @@
    },
    "EU-CRI-H200": {
     "flags": "insufficient_sources",
-    "n_sources": 3,
+    "n_sources": 4,
     "value_eur": null,
     "value_usd": null
    }
@@ -1846,12 +1846,12 @@
   "civo": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T13:19:22Z"
+   "last_ok_utc": "2026-10-27T19:09:36Z"
   },
   "coreweave": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T13:19:23Z"
+   "last_ok_utc": "2026-10-27T19:09:34Z"
   },
   "crusoe": {
    "consecutive_failures": 3,
@@ -1861,67 +1861,67 @@
   "digitalocean": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T13:19:23Z"
+   "last_ok_utc": "2026-10-27T19:09:35Z"
   },
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T18:13:18Z"
+   "last_ok_utc": "2026-10-27T19:09:34Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T18:13:18Z"
+   "last_ok_utc": "2026-10-27T19:09:36Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T13:19:24Z"
+   "last_ok_utc": "2026-10-27T19:09:36Z"
   },
   "latitude": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T13:19:23Z"
+   "last_ok_utc": "2026-10-27T19:09:35Z"
   },
   "ovh": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T13:19:27Z"
+   "last_ok_utc": "2026-10-27T19:09:40Z"
   },
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T18:13:18Z"
+   "last_ok_utc": "2026-10-27T19:09:33Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T13:19:21Z"
+   "last_ok_utc": "2026-10-27T19:09:34Z"
   },
   "seeweb": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T13:19:21Z"
+   "last_ok_utc": "2026-10-27T19:09:34Z"
   },
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T18:13:17Z"
+   "last_ok_utc": "2026-10-27T19:09:32Z"
   },
   "together": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T13:19:21Z"
+   "last_ok_utc": "2026-10-27T19:09:34Z"
   },
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T18:13:24Z"
+   "last_ok_utc": "2026-10-27T19:09:39Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-27T13:19:23Z"
+   "last_ok_utc": "2026-10-27T19:09:35Z"
   }
  },
  "store_problems": {}
