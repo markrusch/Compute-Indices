@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-10-29T17:10:20Z",
+ "generated_utc": "2026-10-29T18:14:14Z",
  "latest": {
-  "at_utc": "2026-10-29T17:10:16Z",
+  "at_utc": "2026-10-29T18:14:09Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -223,22 +223,22 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 236,
-   "civo": 238,
-   "coreweave": 238,
-   "digitalocean": 238,
+   "azure_retail": 300,
+   "civo": 302,
+   "coreweave": 302,
+   "digitalocean": 302,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 238,
-   "latitude": 238,
-   "ovh": 238,
+   "lambda_pricing": 302,
+   "latitude": 302,
+   "ovh": 302,
    "runpod": 0,
-   "scaleway": 238,
-   "seeweb": 238,
+   "scaleway": 302,
+   "seeweb": 302,
    "static_yaml": 0,
-   "together": 238,
+   "together": 302,
    "vast_ai": 0,
-   "voltagepark": 238
+   "voltagepark": 302
   },
   "sources_missing": [
    "crusoe"
@@ -1854,7 +1854,7 @@
    "last_ok_utc": "2026-10-29T13:11:36Z"
   },
   "crusoe": {
-   "consecutive_failures": 3,
+   "consecutive_failures": 2,
    "last_error": "RuntimeError: crusoe: zero GPU rows in the GPU-instances section -- row container class changed or listings pulled",
    "last_ok_utc": null
   },
@@ -1866,12 +1866,12 @@
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-29T17:10:10Z"
+   "last_ok_utc": "2026-10-29T18:14:03Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-29T17:10:10Z"
+   "last_ok_utc": "2026-10-29T18:14:02Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
@@ -1891,7 +1891,7 @@
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-29T17:10:10Z"
+   "last_ok_utc": "2026-10-29T18:14:02Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
@@ -1906,7 +1906,7 @@
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-29T17:10:09Z"
+   "last_ok_utc": "2026-10-29T18:14:01Z"
   },
   "together": {
    "consecutive_failures": 0,
@@ -1916,7 +1916,7 @@
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-29T17:10:16Z"
+   "last_ok_utc": "2026-10-29T18:14:09Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
