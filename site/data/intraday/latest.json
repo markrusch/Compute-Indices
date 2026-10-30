@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-10-30T12:16:58Z",
+ "generated_utc": "2026-10-30T13:15:47Z",
  "latest": {
-  "at_utc": "2026-10-30T10:11:04Z",
+  "at_utc": "2026-10-30T13:15:43Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -116,7 +116,7 @@
    ],
    "EU-CRI-H100-SPOT": [
     {
-     "price_usd": 3.719737,
+     "price_usd": 3.71515,
      "provider": "aws",
      "weight_pct": 20.0
     },
@@ -131,7 +131,7 @@
      "weight_pct": 20.0
     },
     {
-     "price_usd": 0.79,
+     "price_usd": 0.87,
      "provider": "nebius",
      "weight_pct": 20.0
     },
@@ -143,7 +143,7 @@
    ],
    "EU-CRI-H100-SPOT-GLOBAL": [
     {
-     "price_usd": 3.055413,
+     "price_usd": 3.050762,
      "provider": "aws",
      "weight_pct": 14.285714
     },
@@ -163,7 +163,7 @@
      "weight_pct": 14.285714
     },
     {
-     "price_usd": 0.79,
+     "price_usd": 0.87,
      "provider": "nebius",
      "weight_pct": 14.285714
     },
@@ -208,22 +208,22 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 1257,
-   "civo": 179,
-   "coreweave": 179,
-   "digitalocean": 179,
-   "gpuhunt": 0,
-   "hyperstack": 0,
-   "lambda_pricing": 179,
-   "latitude": 179,
-   "ovh": 179,
-   "runpod": 0,
-   "scaleway": 179,
-   "seeweb": 179,
-   "static_yaml": 0,
-   "together": 179,
-   "vast_ai": 0,
-   "voltagepark": 179
+   "azure_retail": 0,
+   "civo": 4,
+   "coreweave": 4,
+   "digitalocean": 4,
+   "gpuhunt": 4,
+   "hyperstack": 4,
+   "lambda_pricing": 4,
+   "latitude": 4,
+   "ovh": 4,
+   "runpod": 4,
+   "scaleway": 4,
+   "seeweb": 4,
+   "static_yaml": 4,
+   "together": 4,
+   "vast_ai": 4,
+   "voltagepark": 4
   },
   "sources_missing": [
    "crusoe"
@@ -309,7 +309,7 @@
    },
    "EU-CRI-H200": {
     "flags": "insufficient_sources",
-    "n_sources": 4,
+    "n_sources": 3,
     "value_eur": null,
     "value_usd": null
    }
@@ -1824,89 +1824,89 @@
  },
  "sources": {
   "azure_retail": {
-   "consecutive_failures": 1,
-   "last_error": "timed out after 300s",
-   "last_ok_utc": "2026-10-29T13:13:43Z"
+   "consecutive_failures": 0,
+   "last_error": null,
+   "last_ok_utc": "2026-10-30T13:15:43Z"
   },
   "civo": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T07:11:56Z"
+   "last_ok_utc": "2026-10-30T13:11:10Z"
   },
   "coreweave": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T07:11:54Z"
+   "last_ok_utc": "2026-10-30T13:11:11Z"
   },
   "crusoe": {
-   "consecutive_failures": 3,
+   "consecutive_failures": 2,
    "last_error": "RuntimeError: crusoe: zero GPU rows in the GPU-instances section -- row container class changed or listings pulled",
    "last_ok_utc": null
   },
   "digitalocean": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T07:11:55Z"
+   "last_ok_utc": "2026-10-30T13:11:11Z"
   },
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T10:10:58Z"
+   "last_ok_utc": "2026-10-30T13:11:08Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T10:10:58Z"
+   "last_ok_utc": "2026-10-30T13:11:15Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T07:11:56Z"
+   "last_ok_utc": "2026-10-30T13:11:14Z"
   },
   "latitude": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T07:11:55Z"
+   "last_ok_utc": "2026-10-30T13:11:06Z"
   },
   "ovh": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T07:12:01Z"
+   "last_ok_utc": "2026-10-30T13:11:14Z"
   },
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T10:10:58Z"
+   "last_ok_utc": "2026-10-30T13:11:07Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T07:11:54Z"
+   "last_ok_utc": "2026-10-30T13:11:14Z"
   },
   "seeweb": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T07:11:53Z"
+   "last_ok_utc": "2026-10-30T13:11:08Z"
   },
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T10:10:57Z"
+   "last_ok_utc": "2026-10-30T13:11:06Z"
   },
   "together": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T07:11:53Z"
+   "last_ok_utc": "2026-10-30T13:11:08Z"
   },
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T10:11:04Z"
+   "last_ok_utc": "2026-10-30T13:11:14Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-10-30T07:11:55Z"
+   "last_ok_utc": "2026-10-30T13:11:11Z"
   }
  },
  "store_problems": {}
