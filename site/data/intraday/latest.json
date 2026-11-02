@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-11-02T19:08:29Z",
+ "generated_utc": "2026-11-02T20:08:55Z",
  "latest": {
-  "at_utc": "2026-11-02T19:08:24Z",
+  "at_utc": "2026-11-02T20:08:52Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -171,22 +171,22 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 356,
-   "civo": 0,
-   "coreweave": 0,
-   "digitalocean": 0,
+   "azure_retail": 416,
+   "civo": 60,
+   "coreweave": 60,
+   "digitalocean": 60,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 0,
-   "latitude": 0,
-   "ovh": 0,
+   "lambda_pricing": 60,
+   "latitude": 60,
+   "ovh": 60,
    "runpod": 0,
-   "scaleway": 0,
-   "seeweb": 0,
+   "scaleway": 60,
+   "seeweb": 60,
    "static_yaml": 0,
-   "together": 0,
+   "together": 60,
    "vast_ai": 0,
-   "voltagepark": 0
+   "voltagepark": 60
   },
   "sources_missing": [
    "crusoe"
@@ -194,7 +194,7 @@
   "values": {
    "EU-CRI-A100": {
     "flags": "insufficient_sources",
-    "n_sources": 3,
+    "n_sources": 2,
     "value_eur": null,
     "value_usd": null
    },
@@ -1802,7 +1802,7 @@
    "last_ok_utc": "2026-11-02T19:08:18Z"
   },
   "crusoe": {
-   "consecutive_failures": 3,
+   "consecutive_failures": 2,
    "last_error": "RuntimeError: crusoe: zero GPU rows in the GPU-instances section -- row container class changed or listings pulled",
    "last_ok_utc": null
   },
@@ -1814,12 +1814,12 @@
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-02T19:08:16Z"
+   "last_ok_utc": "2026-11-02T20:08:47Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-02T19:08:20Z"
+   "last_ok_utc": "2026-11-02T20:08:46Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
@@ -1839,7 +1839,7 @@
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-02T19:08:15Z"
+   "last_ok_utc": "2026-11-02T20:08:46Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
@@ -1854,7 +1854,7 @@
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-02T19:08:14Z"
+   "last_ok_utc": "2026-11-02T20:08:45Z"
   },
   "together": {
    "consecutive_failures": 0,
@@ -1864,7 +1864,7 @@
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-02T19:08:22Z"
+   "last_ok_utc": "2026-11-02T20:08:52Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
