@@ -1,22 +1,38 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Mark Rusch
-"""Scaleway public Instance API (no auth) — EU list prices, zone by zone.
+"""Scaleway's public Product Catalog API (no auth): EU list prices, zone by zone.
 
 Collection scope (SOURCES.md): scaleway.com/pricing renders GPU prices via JS only, so
 Scaleway was first carried as a static entry (config/providers/scaleway.yaml) that never
-had a price. This collector reads the numbers straight from Scaleway's own public
-product-catalog API instead, one GET per zone. The null static entry was retired on
-2026-09-24.
+had a price. This collector reads the numbers from Scaleway's own public API instead, one
+GET per zone. The null static entry was retired on 2026-09-24.
 
-Schema verified against a live response on 2026-08-15: servers is a dict keyed by
-instance name; hourly_price is EUR per *instance*, not per GPU and not USD. Dividing by
-gpu gives the EUR-per-GPU native price. FX conversion is normalise.py's job, not ours:
-price_usd_per_gpu_hr carries the EUR-per-GPU figure verbatim for now, and raw_json
-records the native currency and per-GPU amount so that stopgap stays auditable.
+WHERE THE PRICE IS. Until 28 October 2026 it was `hourly_price` in the Instance API
+(`/instance/v1/zones/{zone}/products/servers`). From 29 October that field read 0.0 for
+every one of the 50 server types in every zone, GPU or not, and the collector stored
+$0.00 for each of them for nine days: the price band kept them out of every print, so
+Scaleway simply vanished from the panel. The prices had moved to the Product Catalog
+(`/product-catalog/v2alpha1/public-catalog/products`), which quotes them per MINUTE
+(`unit_of_measure`), in EUR, as `units` plus `nanos`. Converted, they are the same
+figures the Instance API had last given: H100-SXM-4-80G at EUR 0.2129/min is EUR 3.19 per
+GPU-hour, H100-2-80G at EUR 0.0955/min is EUR 2.865 (both checked 2026-11-06 against the
+26 October rows).
 
-Nine zones, one source, one logical "1 request per source per day" budget — but a
-single zone 404ing or timing out must not take the other eight down with it, so each
-zone is fetched and parsed independently; failures are logged and skipped.
+A price that is not positive is never recorded, and a run that finds no priced GPU at
+all raises, so the failure shows in `runs` instead of as a successful run of zeros.
+Retired products (`status: retired`, e.g. H100-1-M) are skipped: they cannot be bought.
+
+Schema (verified 2026-11-06): one product per (offer, zone); the GPU count is
+`properties.hardware.gpu.count`, the offer name `properties.instance.offer_id`. The price
+is per INSTANCE, not per GPU and not USD. Dividing by the GPU count gives the EUR-per-GPU
+native price. FX conversion is normalise.py's job: price_usd_per_gpu_hr carries the
+EUR-per-GPU figure verbatim, and raw_json records the native currency and per-GPU amount
+so that stays auditable.
+
+Nine zones, one source, one logical "1 request per source per day" budget, but a single
+zone failing must not take the other eight with it, so each zone is fetched and parsed
+on its own; failures are logged and skipped. A zone's whole catalog fits in one page
+(171 products for fr-par-2); a longer one is paged rather than truncated.
 """
 
 from __future__ import annotations
@@ -32,7 +48,9 @@ from tci.models import Observation
 
 log = logging.getLogger("tci.collectors.scaleway")
 
-URL = "https://api.scaleway.com/instance/v1/zones/{zone}/products/servers"
+URL = "https://api.scaleway.com/product-catalog/v2alpha1/public-catalog/products"
+PAGE_SIZE = 1000
+MINUTES = {"minute": 60.0, "hour": 1.0}  # unit_of_measure -> multiplier to per hour
 
 ZONES = (
     "fr-par-1", "fr-par-2", "fr-par-3",
@@ -69,30 +87,54 @@ class ScalewayCollector:
         out: list[Observation] = []
         for zone in ZONES:
             try:
-                resp = session.get(URL.format(zone=zone), timeout=TIMEOUT_SECONDS)
-                resp.raise_for_status()
-                servers = resp.json().get("servers", {})
-            except requests.RequestException as exc:
+                products = _zone_products(session, zone)
+            except (requests.RequestException, ValueError) as exc:
                 log.warning("scaleway: zone %s failed (%s), skipping", zone, exc)
                 continue
-            out.extend(self._zone_observations(zone, servers, ts))
+            out.extend(self._zone_observations(zone, products, ts))
+        if not out:
+            raise RuntimeError(
+                "scaleway: no priced GPU instance in any zone -- the catalog moved or "
+                "zeroed its prices again; refusing to report a successful empty run"
+            )
         log.info("scaleway: %d observations across %d zones", len(out), len(ZONES))
         return out
 
     def _zone_observations(
-        self, zone: str, servers: dict, ts: str
+        self, zone: str, products: list[dict], ts: str
     ) -> list[Observation]:
         country = COUNTRY_BY_ZONE_PREFIX.get(zone.split("-")[0])
         out: list[Observation] = []
-        for instance_name, spec in servers.items():
-            gpu = spec.get("gpu")
-            hourly_price = spec.get("hourly_price")
-            if not gpu or hourly_price is None:
-                continue  # non-GPU instance, or price missing -> never invent one
+        for product in products:
+            if product.get("product_category") != "Instance":
+                continue
+            if product.get("status") == "retired":
+                continue
+            props = product.get("properties") or {}
+            gpu = ((props.get("hardware") or {}).get("gpu") or {}).get("count")
+            instance_name = (props.get("instance") or {}).get("offer_id") or product.get(
+                "product", "")
+            if not gpu:
+                continue  # non-GPU instance
             gpu_model = _map_variant(instance_name)
             if gpu_model is None:
                 continue
-            price_native_per_gpu_hr = float(hourly_price) / gpu
+            retail = (product.get("price") or {}).get("retail_price") or {}
+            unit = (product.get("unit_of_measure") or {})
+            per_hour = MINUTES.get(str(unit.get("unit")))
+            size = unit.get("size") or 1
+            if retail.get("currency_code") != "EUR" or per_hour is None:
+                log.warning("scaleway: %s in %s priced in %s per %s %s; skipped, not guessed",
+                            instance_name, zone, retail.get("currency_code"), size,
+                            unit.get("unit"))
+                continue
+            price_per_unit = (retail.get("units") or 0) + (retail.get("nanos") or 0) / 1e9
+            if price_per_unit <= 0:
+                log.warning("scaleway: %s in %s has no price (%s); skipped, never recorded "
+                            "as zero", instance_name, zone, price_per_unit)
+                continue
+            hourly_price = price_per_unit * per_hour / size
+            price_native_per_gpu_hr = hourly_price / gpu
             out.append(
                 Observation(
                     ts_utc=ts,
@@ -111,6 +153,9 @@ class ScalewayCollector:
                         {
                             "instance_name": instance_name,
                             "zone": zone,
+                            "sku": product.get("sku"),
+                            "price_per_unit": price_per_unit,
+                            "unit": f"{size} {unit.get('unit')}",
                             "hourly_price": hourly_price,
                             "gpu": gpu,
                             "currency": "EUR",
@@ -120,3 +165,20 @@ class ScalewayCollector:
                 )
             )
         return out
+
+
+def _zone_products(session: requests.Session, zone: str) -> list[dict]:
+    """Every instance product the catalog lists for one zone, across pages."""
+    products: list[dict] = []
+    page = 1
+    while True:
+        params: dict[str, str | int] = {"product_types": "instance", "zone": zone,
+                                        "page_size": PAGE_SIZE, "page": page}
+        resp = session.get(URL, params=params, timeout=TIMEOUT_SECONDS)
+        resp.raise_for_status()
+        body = resp.json()
+        batch = body.get("products") or []
+        products.extend(batch)
+        if not batch or len(products) >= int(body.get("total_count") or 0):
+            return products
+        page += 1

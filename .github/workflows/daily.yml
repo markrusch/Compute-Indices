@@ -80,14 +80,38 @@ jobs:
           # minutes the rebuild took, with nothing left to retry past that. Three
           # attempts costs at most a few extra minutes against a race that, empirically,
           # has never needed more than one retry to clear.
+          #
+          # The step fails unless today's commit reached main. From 27 October to 6
+          # November 2026 every push was refused because data/eucri.db had passed
+          # GitHub's 100 MB file limit, and this step still ended green: the loop below
+          # printed "::error::" and fell out with exit 0. Eleven sessions were lost before
+          # anyone looked. A refusal that is not a race now stops the loop at once
+          # (retrying cannot shrink the file) and fails the job.
+          LIMIT=104857600   # GitHub's hard limit per file
+          WARN=89128960     # 85 MiB: about two weeks of growth before the limit
+          SIZE=$(stat -c%s data/eucri.db)
+          if [ "$SIZE" -ge "$LIMIT" ]; then
+            echo "::error::data/eucri.db is ${SIZE} bytes, over GitHub's 100 MiB limit; it cannot be pushed. The database is kept as this run's artifact."
+            exit 1
+          elif [ "$SIZE" -ge "$WARN" ]; then
+            echo "::warning::data/eucri.db is ${SIZE} bytes; GitHub refuses it at 104857600"
+          fi
+          PUSHED=0
           for attempt in 1 2 3; do
             git add data/eucri.db site/ config/term_schedules.yaml
             if git diff --cached --quiet; then
               echo "nothing to commit"
+              PUSHED=1
               break
             fi
             git commit -m "daily: $(date -u +%F)${SUFFIX}"
-            if git push origin main; then
+            if git push origin main 2>"$RUNNER_TEMP/push.err"; then
+              PUSHED=1
+              break
+            fi
+            cat "$RUNNER_TEMP/push.err"
+            if ! grep -q "fetch first\|non-fast-forward" "$RUNNER_TEMP/push.err"; then
+              echo "::error::push refused for a reason a retry cannot fix; today's run is not committed. The database is kept as this run's artifact."
               break
             fi
             echo "::warning::push rejected on attempt ${attempt}/3; main advanced during this run, rebuilding today's outputs on top of it"
@@ -104,3 +128,15 @@ jobs:
               python -m tci.run daily
             fi
           done
+          if [ "$PUSHED" != "1" ]; then exit 1; fi
+
+      # When the commit did not land, the day's collection exists only on this runner.
+      # Keep the database so the session can be recovered rather than re-collected,
+      # which is impossible for a past date.
+      - name: Keep the database if it was not committed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eucri-db-${{ github.run_id }}
+          path: data/eucri.db
+          retention-days: 90

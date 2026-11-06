@@ -267,3 +267,23 @@ def test_no_job_runs_on_a_moving_image() -> None:
             assert "latest" not in str(job.get("runs-on", "")), (
                 f"{path.name}:{name} runs on a moving image label"
             )
+
+
+def test_a_daily_push_that_did_not_land_fails_the_job() -> None:
+    """27 October to 6 November 2026: data/eucri.db was over GitHub's 100 MB limit, every
+    push was refused, and the job was green for eleven days because the retry loop ended
+    on an echo. The step must exit non-zero unless the commit reached main."""
+    commit = next(s for s in _steps(_load("daily.yml"), "daily")
+                  if "git push" in str(s.get("run", "")))
+    run = commit["run"]
+    assert 'if [ "$PUSHED" != "1" ]; then exit 1; fi' in run
+    assert "LIMIT=104857600" in run, "no size guard before the push"
+
+
+def test_an_uncommitted_daily_database_is_kept() -> None:
+    """A past day cannot be collected again, so a database that did not reach main is
+    uploaded as the run's artifact instead of dying with the runner."""
+    steps = _steps(_load("daily.yml"), "daily")
+    keep = [s for s in steps if "upload-artifact" in str(s.get("uses", ""))]
+    assert keep and keep[0].get("if") == "failure()"
+    assert keep[0]["with"]["path"] == "data/eucri.db"

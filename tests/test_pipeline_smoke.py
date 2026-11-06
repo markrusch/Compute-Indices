@@ -191,14 +191,13 @@ def test_intraday_builds_from_the_copy_without_touching_the_record(repo_copy: Pa
 
 
 def test_intraday_ingest_runs_from_the_copy(repo_copy: Path) -> None:
-    """The load the daily run makes after its prints, on demand: it migrates, loads what
-    the log holds (possibly nothing yet) and leaves every print where it was."""
-    conn = sqlite3.connect(repo_copy / "data" / "eucri.db")
-    before = conn.execute("SELECT COUNT(*) FROM daily_index").fetchone()[0]
-    conn.close()
+    """Ingest builds data/intraday.db from the log and leaves the record byte-for-byte
+    as it was: migration 0013 moved the intraday tables out of eucri.db."""
+    record = repo_copy / "data" / "eucri.db"
+    before = record.read_bytes()
     proc = _run(repo_copy, "intraday", "ingest")
     assert "loaded" in proc.stdout
-    conn = sqlite3.connect(repo_copy / "data" / "eucri.db")
-    assert conn.execute("SELECT COUNT(*) FROM daily_index").fetchone()[0] == before
-    conn.execute("SELECT * FROM intraday_prices LIMIT 1").fetchall()  # the view exists
-    conn.close()
+    assert record.read_bytes() == before, "ingest wrote to the record"
+    side = sqlite3.connect(repo_copy / "data" / "intraday.db")
+    side.execute("SELECT * FROM intraday_prices LIMIT 1").fetchall()  # the view exists
+    side.close()
