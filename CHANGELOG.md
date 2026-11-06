@@ -45,14 +45,20 @@ tie should then still go to the lower price or to the midpoint of the pair is a 
 question that version has to answer: on two-thirds of days the lower-median rule is what
 sets the level.
 
-## Eleven sessions lost to a file-size limit — 2026-11-06 — no methodology change
+## Ten sessions lost to a file-size limit — 2026-11-06 — no methodology change
 
-No print exists for 27 October to 6 November 2026. The daily run collected and computed
+No print exists for 27 October to 5 November 2026. The daily run collected and computed
 each of those sessions, then could not push: `data/eucri.db` had passed the 100 MB
 GitHub accepts for one file (115.16 MB on 6 November), and every push was refused. The
-commit step's retry loop ended on an `::error::` line and exit 0, so every one of the
-eleven runs showed green. The runner's copy of each day went with the runner. A collector
+commit step's retry loop ended on an `::error::` line and exit 0, so every one of those
+runs showed green. The runner's copy of each day went with the runner. A collector
 reports today's price, so those sessions cannot be collected again, and they stay gaps.
+
+The 6 November print was not taken at the fixing. Its 11:00 run was refused like the
+others; once this fix was on main, a manual run at 20:37 UTC collected and published the
+session from prices read then, nine and a half hours late. EU H100 printed $3.99/GPU-hr
+from seven providers, the same value as 26 October. Nothing in `daily_index` marks a
+print as late: its `computed_at` (2026-11-06T20:37:00Z) is the only trace.
 
 All 1,199 live prints recompute unchanged and all 2,447 published digests match.
 
