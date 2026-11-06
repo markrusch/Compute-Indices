@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-11-06T21:07:54Z",
+ "generated_utc": "2026-11-06T22:08:53Z",
  "latest": {
-  "at_utc": "2026-11-06T20:36:36Z",
+  "at_utc": "2026-11-06T22:08:50Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -221,24 +221,24 @@
     }
    ]
   },
-  "origin": "fixing",
+  "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 0,
-   "civo": 0,
-   "coreweave": 0,
-   "digitalocean": 0,
+   "azure_retail": 92,
+   "civo": 92,
+   "coreweave": 92,
+   "digitalocean": 92,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 0,
-   "latitude": 0,
-   "ovh": 0,
+   "lambda_pricing": 92,
+   "latitude": 92,
+   "ovh": 92,
    "runpod": 0,
-   "scaleway": 0,
-   "seeweb": 0,
+   "scaleway": 92,
+   "seeweb": 92,
    "static_yaml": 0,
-   "together": 0,
+   "together": 92,
    "vast_ai": 0,
-   "voltagepark": 0
+   "voltagepark": 92
   },
   "sources_missing": [
    "crusoe"
@@ -1854,7 +1854,7 @@
    "last_ok_utc": "2026-11-06T20:36:34Z"
   },
   "crusoe": {
-   "consecutive_failures": 4,
+   "consecutive_failures": 3,
    "last_error": "RuntimeError: crusoe: identity pin '<div class=\"pricing-heading is-d\">GPU model</div><div class=' found 0x page-wide (need exactly 1) -- page restructured or a lookalike section appeared; refusing to extract",
    "last_ok_utc": null
   },
@@ -1866,12 +1866,12 @@
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-06T20:36:04Z"
+   "last_ok_utc": "2026-11-06T22:08:44Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-06T20:36:35Z"
+   "last_ok_utc": "2026-11-06T22:08:44Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
@@ -1891,7 +1891,7 @@
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-06T20:36:02Z"
+   "last_ok_utc": "2026-11-06T22:08:44Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
@@ -1906,7 +1906,7 @@
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-06T20:36:04Z"
+   "last_ok_utc": "2026-11-06T22:08:43Z"
   },
   "together": {
    "consecutive_failures": 0,
@@ -1916,7 +1916,7 @@
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-06T20:36:01Z"
+   "last_ok_utc": "2026-11-06T22:08:50Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
