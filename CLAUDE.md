@@ -35,7 +35,7 @@ python -m tci.run contrib validate|ingest|aggregate    # contributed term prices
 python -m tci.run intraday sweep [--force] [--source S]   # read the sources that are due
 python -m tci.run intraday path|settle [--date D] [--series S]   # replayed index, window mean
 python -m tci.run intraday build|verify|status # page + data; check the store; source health
-python -m tci.run intraday ingest              # load the log into the intraday_* tables
+python -m tci.run intraday ingest              # build data/intraday.db from the log (not committed)
 
 pytest                                         # 289 tests
 pytest tests/test_site.py::test_pages_are_self_contained -q    # a single test
@@ -85,8 +85,10 @@ One direction, and each stage earns its place:
   `outputs/intraday_page.py` renders `site/intraday.html`. Never store an intraday read
   in `observations`: `_observations_for_date` takes every row dated that day, so it
   would enter the 11:00 print without a version. The hourly job opens `eucri.db`
-  read-only and never commits it; the daily run loads the log into the `intraday_*`
-  tables (`intraday_db.py`, migration 0011) after its prints. Between 10:40 and 13:00
+  read-only and never commits it. The log is the record; `intraday ingest` loads it into
+  `data/intraday.db` for SQL (`intraday_db.py`), a separate file that is never committed.
+  Migration 0013 moved those tables out of `eucri.db`: they took it past GitHub's 100 MB
+  file limit, and eleven daily pushes were refused before anyone noticed. Between 10:40 and 13:00
   UTC the hourly job reads nothing the fixing has not read that day, so it can never
   spend a rate limit the 11:00 run needs.
 
@@ -109,6 +111,12 @@ Breaking one of these either fails CI or silently publishes something false.
 words. Never interpolate across a missing print, never carry a value forward, and never let
 a live surface show an older print as current — that distinction is why `current_print()`
 exists alongside `latest_print()`. This is the one failure mode the project cannot afford.
+
+**`data/eucri.db` must stay under 100 MB.** GitHub refuses a larger file, and a day
+whose push is refused is lost: a collector reports today's price, so the session cannot
+be collected again. The daily job warns at 85 MiB, fails at the limit, and uploads the
+database as a run artifact whenever its commit does not land. Never add a table to the
+record that copies something already committed elsewhere.
 
 **The database is append-only.** Triggers block UPDATE and DELETE on `observations`,
 `daily_index` and `weight_sets`. A correction is a new revision. Every read must take

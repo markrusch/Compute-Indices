@@ -320,13 +320,11 @@ def _cmd_intraday(args: argparse.Namespace) -> int:
         return 0
 
     if args.action == "ingest":
-        # The one intraday action that writes the record, and only its intraday tables.
-        # The daily run does this after its prints; this is the same load on demand, e.g.
-        # to bring a local copy up to the latest committed hour.
+        # Loads the committed log into data/intraday.db, its own uncommitted database
+        # (migration 0013 moved the tables out of the record). Never touches eucri.db.
         from tci import intraday_db
 
-        rw = db.connect()
-        db.migrate(rw)
+        rw = intraday_db.connect()
         loaded = intraday_db.load(rw, store)
         print(f"loaded {loaded.sweeps} sweeps ({loaded.reads} reads, {loaded.new_rows} new"
               f" row contents); {loaded.skipped} already held")

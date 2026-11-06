@@ -45,6 +45,45 @@ tie should then still go to the lower price or to the midpoint of the pair is a 
 question that version has to answer: on two-thirds of days the lower-median rule is what
 sets the level.
 
+## Eleven sessions lost to a file-size limit — 2026-11-06 — no methodology change
+
+No print exists for 27 October to 6 November 2026. The daily run collected and computed
+each of those sessions, then could not push: `data/eucri.db` had passed the 100 MB
+GitHub accepts for one file (115.16 MB on 6 November), and every push was refused. The
+commit step's retry loop ended on an `::error::` line and exit 0, so every one of the
+eleven runs showed green. The runner's copy of each day went with the runner. A collector
+reports today's price, so those sessions cannot be collected again, and they stay gaps.
+
+All 1,199 live prints recompute unchanged and all 2,447 published digests match.
+
+- **The intraday tables leave the record.** On 26 October they were 43 MB of a 103.5 MB
+  file, growing about 2 MB a day, and every row was a copy of `data/intraday/`, which is
+  committed already. Migration 0013 drops them and the file is vacuumed to 58.9 MB.
+  `tci.run intraday ingest` now builds `data/intraday.db`, which is not committed, from
+  the log. Nothing in the calculation ever read them.
+- **The daily job fails when its commit does not land.** It warns at 85 MiB, refuses to
+  try past 100 MiB, stops retrying on a refusal that is not a race, and uploads the
+  database as a run artifact (kept 90 days) whenever the commit fails, so a session is
+  never again discarded with the runner.
+- **A session with no row is now a gap on the reliability page.** The log was built from
+  stored rows that published null, so a day that left no row never appeared in it, and
+  the unbroken run counted straight across one. This also brings 16 September onto the
+  page; it was lost to a skipped commit step and never listed.
+
+- **Scaleway had been recorded at $0.00 since 29 October.** Its Instance API began
+  reporting `hourly_price: 0.0` for all 50 server types. The price band kept every zero
+  out of the prints, so Scaleway dropped out of the panel without an error. The collector
+  now reads Scaleway's public Product Catalog, which quotes per minute: converted, H100-2-
+  80G is EUR 2.8665/GPU-hr and H100-SXM-4-80G EUR 3.19275, exactly the 26 October values.
+  The catalog also lists an 8-GPU H100 SXM instance (EUR 3.1663) the old API did not. A
+  non-positive price is now skipped, and a run with no priced GPU fails instead of
+  succeeding with zeros. The zero rows already stored stay where they are, as the record.
+
+Found, not fixed: one day's collection adds about 1.5 MB to the vacuumed record (measured
+on a copy, 6 November: 0.93 MB of it `observations`). From 58.9 MB that reaches the
+85 MiB warning around 25 November 2026 and the limit around 6 December. Keeping it under
+the limit for good needs a decision on where the record lives.
+
 ## Build and test time — 2026-09-30 — no methodology change
 
 All 688 stored prints recompute unchanged, all 1,388 published digests match, and the

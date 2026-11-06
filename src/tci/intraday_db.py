@@ -1,13 +1,18 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Mark Rusch
-"""Load the intraday log into the database's intraday tables (migration 0011).
+"""Load the intraday log into its own SQLite database, data/intraday.db.
 
 The log in data/intraday/ is what the hourly job read, hour by hour, verified against its
-hashes. This copies it into SQLite so the reads can be queried beside the fixing's own:
+hashes. This copies it into SQLite so the reads can be queried with SQL:
 
     SELECT at_utc, provider, price_usd_per_gpu_hr, n FROM intraday_prices
     WHERE source = 'vast_ai' AND gpu_model = 'H100_SXM' AND country = 'NL'
     ORDER BY at_utc;
+
+The tables began inside data/eucri.db (migration 0011) and were moved out by 0013:
+they grew the record by about 2 MB a day, all of it a copy of a log that is committed
+already, and took the file past the 100 MB GitHub accepts. data/intraday.db is not
+committed. `tci.run intraday ingest` builds it, or brings it up to date, from the log.
 
 It is kept apart from tci.intraday on purpose: that module must never be able to write to
 the record (tests/test_intraday.py reads its source for INSERT/UPDATE/DELETE and fails on
@@ -26,6 +31,8 @@ import logging
 import sqlite3
 from collections import Counter
 from dataclasses import dataclass
+from importlib import resources
+from pathlib import Path
 
 from tci import intraday
 from tci.db import utc_now_iso
@@ -43,6 +50,22 @@ class LoadResult:
     new_rows: int  # distinct row contents not seen before
     skipped: int  # sweeps already in the database
     problems: dict[str, str]  # log segments that did not fully verify
+
+
+DEFAULT_PATH = Path(__file__).resolve().parents[2] / "data" / "intraday.db"
+
+
+def connect(path: Path | None = None) -> sqlite3.Connection:
+    """The intraday database, created with 0011's schema on first use."""
+    target = path or DEFAULT_PATH
+    target.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(target)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    if not available(conn):
+        schema = resources.files("tci.migrations").joinpath("0011_intraday.sql")
+        conn.executescript("BEGIN;\n" + schema.read_text(encoding="utf-8") + "\nCOMMIT;")
+    return conn
 
 
 def available(conn: sqlite3.Connection) -> bool:

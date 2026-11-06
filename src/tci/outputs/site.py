@@ -3079,7 +3079,11 @@ def _reliability(ctx: SiteContext) -> str:
     contribute one identical row per session and bury the sessions that mean something.
     """
     gaps = reliability.gap_log(ctx.conn)
-    history = series_history(ctx.conn, HEADLINE)
+    # A session that left no row is a session that did not print. Without these the rate
+    # and the unbroken run would be counted over stored rows only, and skip the hole.
+    unrecorded = [Point(g.date, None, None, g.flags) for g in gaps
+                  if g.series == HEADLINE and g.flags == reliability.NOT_RECORDED]
+    history = sorted(series_history(ctx.conn, HEADLINE) + unrecorded, key=lambda p: p.date)
     printed = [p for p in history if p.value is not None]
     sessions = len(history)
     rate = (len(printed) / sessions * 100.0) if sessions else 0.0
@@ -3103,7 +3107,8 @@ def _reliability(ctx: SiteContext) -> str:
             f'<tr><td class="num">{_e(_human_date(g.date))}</td>'
             f"<td>{_e(reason)}</td>"
             f"{marker}"
-            f'<td class="ta-r u">v{_e(g.methodology_version)}</td></tr>'
+            + (f'<td class="ta-r u">v{_e(g.methodology_version)}</td></tr>'
+               if g.methodology_version else '<td class="ta-r u">&#8212;</td></tr>')
         )
     table = (
         f"""<div class="card card__body--flush"><div class="scroll-x">
@@ -3128,12 +3133,14 @@ def _reliability(ctx: SiteContext) -> str:
     for series in sorted({g.series for g in gaps} - {HEADLINE}):
         hist = series_history(ctx.conn, series)
         n_gaps = sum(1 for g in gaps if g.series == series)
+        n_unrecorded = sum(1 for g in gaps if g.series == series
+                           and g.flags == reliability.NOT_RECORDED)
         ever = any(p.value is not None for p in hist)
         state = "prints intermittently" if ever else "has never printed"
         others.append(
             f"<tr><td>{_e(display_series(series))}</td>"
             f'<td class="ta-r num">{n_gaps}</td>'
-            f'<td class="ta-r num">{len(hist)}</td>'
+            f'<td class="ta-r num">{len(hist) + n_unrecorded}</td>'
             f'<td class="u">{state}</td></tr>'
         )
 

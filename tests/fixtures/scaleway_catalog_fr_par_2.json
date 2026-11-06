@@ -1,0 +1,1306 @@
+{
+ "products": [
+  {
+   "sku": "/instance/server/b300_sxm_8_288g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "B300-SXM-8-288G",
+   "variant": "B300-SXM-8-288G - fr-par-2",
+   "description": "B300-SXM-8-288G - fr-par-2 (1\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 1,
+     "nanos": 0
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "Intel Xeon 6 6776P (2.3GHz), x64, vCPUs: 224",
+      "arch": "x64",
+      "type": "Intel Xeon 6 6776P (2.3GHz)",
+      "virtual": {
+       "count": 224
+      },
+      "threads": 224,
+      "shared": false
+     },
+     "ram": {
+      "description": "3.75 TiB",
+      "size": 4123168604160,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 20 Gb/s, Public: 20 Gb/s",
+      "internal_bandwidth": 20000000000,
+      "public_bandwidth": 20000000000,
+      "max_public_bandwidth": 20000000000
+     },
+     "gpu": {
+      "description": "8 x B300-SXM",
+      "count": 8,
+      "type": "B300-SXM"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "B300-SXM-8-288G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/rtx6000b_4_96g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "RTX6000B-4-96G",
+   "variant": "RTX6000B-4-96G - fr-par-2",
+   "description": "RTX6000B-4-96G - fr-par-2 (0.192\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 192000000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 9555P (3,2 GHz), x64, vCPUs: 112",
+      "arch": "x64",
+      "type": "AMD EPYC 9555P (3,2 GHz)",
+      "virtual": {
+       "count": 112
+      },
+      "threads": 112,
+      "shared": false
+     },
+     "ram": {
+      "description": "960 GiB",
+      "size": 1030792151040,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 20 Gb/s, Public: 20 Gb/s",
+      "internal_bandwidth": 20000000000,
+      "public_bandwidth": 20000000000,
+      "max_public_bandwidth": 20000000000
+     },
+     "gpu": {
+      "description": "4 x RTX6000-Blackwell",
+      "count": 4,
+      "type": "RTX6000-Blackwell"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "RTX6000B-4-96G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/rtx6000b_2_96g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "RTX6000B-2-96G",
+   "variant": "RTX6000B-2-96G - fr-par-2",
+   "description": "RTX6000B-2-96G - fr-par-2 (0.096\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 96000000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 9555P (3,2 GHz), x64, vCPUs: 56",
+      "arch": "x64",
+      "type": "AMD EPYC 9555P (3,2 GHz)",
+      "virtual": {
+       "count": 56
+      },
+      "threads": 56,
+      "shared": false
+     },
+     "ram": {
+      "description": "480 GiB",
+      "size": 515396075520,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 20 Gb/s, Public: 20 Gb/s",
+      "internal_bandwidth": 20000000000,
+      "public_bandwidth": 20000000000,
+      "max_public_bandwidth": 20000000000
+     },
+     "gpu": {
+      "description": "2 x RTX6000-Blackwell",
+      "count": 2,
+      "type": "RTX6000-Blackwell"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "RTX6000B-2-96G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/rtx6000b_1_96g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "RTX6000B-1-96G",
+   "variant": "RTX6000B-1-96G - fr-par-2",
+   "description": "RTX6000B-1-96G - fr-par-2 (0.048\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 48000000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 9555P (3,2 GHz), x64, vCPUs: 28",
+      "arch": "x64",
+      "type": "AMD EPYC 9555P (3,2 GHz)",
+      "virtual": {
+       "count": 28
+      },
+      "threads": 28,
+      "shared": false
+     },
+     "ram": {
+      "description": "240 GiB",
+      "size": 257698037760,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 20 Gb/s, Public: 20 Gb/s",
+      "internal_bandwidth": 20000000000,
+      "public_bandwidth": 20000000000,
+      "max_public_bandwidth": 20000000000
+     },
+     "gpu": {
+      "description": "1 x RTX6000-Blackwell",
+      "count": 1,
+      "type": "RTX6000-Blackwell"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "RTX6000B-1-96G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/h100_sxm_8_80g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "H100-SXM-8-80G",
+   "variant": "H100-SXM-8-80G - fr-par-2",
+   "description": "H100-SXM-8-80G - fr-par-2 (0.42218\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 422180000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "Intel Xeon Platinum 8452Y (2.0 GHz), x64, vCPUs: 128",
+      "arch": "x64",
+      "type": "Intel Xeon Platinum 8452Y (2.0 GHz)",
+      "virtual": {
+       "count": 128
+      },
+      "threads": 128,
+      "shared": false
+     },
+     "ram": {
+      "description": "960 GiB",
+      "size": 1030792151040,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 20 Gb/s, Public: 20 Gb/s",
+      "internal_bandwidth": 20000000000,
+      "public_bandwidth": 20000000000,
+      "max_public_bandwidth": 20000000000
+     },
+     "gpu": {
+      "description": "8 x H100-SXM",
+      "count": 8,
+      "type": "H100-SXM"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "H100-SXM-8-80G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/h100_sxm_4_80g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "H100-SXM-4-80G",
+   "variant": "H100-SXM-4-80G - fr-par-2",
+   "description": "H100-SXM-4-80G - fr-par-2 (0.21285\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 212850000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "Intel Xeon Platinum 8452Y (2.0 GHz), x64, vCPUs: 64",
+      "arch": "x64",
+      "type": "Intel Xeon Platinum 8452Y (2.0 GHz)",
+      "virtual": {
+       "count": 64
+      },
+      "threads": 64,
+      "shared": false
+     },
+     "ram": {
+      "description": "480 GiB",
+      "size": 515396075520,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 20 Gb/s, Public: 20 Gb/s",
+      "internal_bandwidth": 20000000000,
+      "public_bandwidth": 20000000000,
+      "max_public_bandwidth": 20000000000
+     },
+     "gpu": {
+      "description": "4 x H100-SXM",
+      "count": 4,
+      "type": "H100-SXM"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "H100-SXM-4-80G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/h100_sxm_2_80g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "H100-SXM-2-80G",
+   "variant": "H100-SXM-2-80G - fr-par-2",
+   "description": "H100-SXM-2-80G - fr-par-2 (0.11033\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 110330000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "Intel Xeon Platinum 8452Y (2.0 GHz), x64, vCPUs: 32",
+      "arch": "x64",
+      "type": "Intel Xeon Platinum 8452Y (2.0 GHz)",
+      "virtual": {
+       "count": 32
+      },
+      "threads": 32,
+      "shared": false
+     },
+     "ram": {
+      "description": "240 GiB",
+      "size": 257698037760,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 20 Gb/s, Public: 20 Gb/s",
+      "internal_bandwidth": 20000000000,
+      "public_bandwidth": 20000000000,
+      "max_public_bandwidth": 20000000000
+     },
+     "gpu": {
+      "description": "2 x H100-SXM",
+      "count": 2,
+      "type": "H100-SXM"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "H100-SXM-2-80G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/h100_2_80g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "H100-2-80G",
+   "variant": "H100-2-80G - fr-par-2",
+   "description": "H100-2-80G - fr-par-2 (0.09555\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 95550000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 9334 (2.7 GHz), x64, vCPUs: 48",
+      "arch": "x64",
+      "type": "AMD EPYC 9334 (2.7 GHz)",
+      "virtual": {
+       "count": 48
+      },
+      "threads": 48,
+      "shared": false
+     },
+     "ram": {
+      "description": "480 GiB",
+      "size": 515396075520,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 20 Gb/s, Public: 20 Gb/s",
+      "internal_bandwidth": 20000000000,
+      "public_bandwidth": 20000000000,
+      "max_public_bandwidth": 20000000000
+     },
+     "gpu": {
+      "description": "2 x H100-PCIe",
+      "count": 2,
+      "type": "H100-PCIe"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "H100-2-80G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/h100_1_80g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "H100-1-80G",
+   "variant": "H100-1-80G - fr-par-2",
+   "description": "H100-1-80G - fr-par-2 (0.047775\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 47775000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 9334 (2.7 GHz), x64, vCPUs: 24",
+      "arch": "x64",
+      "type": "AMD EPYC 9334 (2.7 GHz)",
+      "virtual": {
+       "count": 24
+      },
+      "threads": 24,
+      "shared": false
+     },
+     "ram": {
+      "description": "240 GiB",
+      "size": 257698037760,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 10 Gb/s, Public: 10 Gb/s",
+      "internal_bandwidth": 10000000000,
+      "public_bandwidth": 10000000000,
+      "max_public_bandwidth": 10000000000
+     },
+     "gpu": {
+      "description": "1 x H100-PCIe",
+      "count": 1,
+      "type": "H100-PCIe"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "H100-1-80G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/l40s_8_48g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "L40S-8-48G",
+   "variant": "L40S-8-48G - fr-par-2",
+   "description": "L40S-8-48G - fr-par-2 (0.195988\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 195988000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 7413 (2.65 GHz), x64, vCPUs: 64",
+      "arch": "x64",
+      "type": "AMD EPYC 7413 (2.65 GHz)",
+      "virtual": {
+       "count": 64
+      },
+      "threads": 64,
+      "shared": false
+     },
+     "ram": {
+      "description": "768 GiB",
+      "size": 824633720832,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 20 Gb/s, Public: 20 Gb/s",
+      "internal_bandwidth": 20000000000,
+      "public_bandwidth": 20000000000,
+      "max_public_bandwidth": 20000000000
+     },
+     "gpu": {
+      "description": "8 x L40S",
+      "count": 8,
+      "type": "L40S"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "L40S-8-48G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/l40s_4_48g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "L40S-4-48G",
+   "variant": "L40S-4-48G - fr-par-2",
+   "description": "L40S-4-48G - fr-par-2 (0.097994\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 97994000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 7413 (2.65 GHz), x64, vCPUs: 32",
+      "arch": "x64",
+      "type": "AMD EPYC 7413 (2.65 GHz)",
+      "virtual": {
+       "count": 32
+      },
+      "threads": 32,
+      "shared": false
+     },
+     "ram": {
+      "description": "384 GiB",
+      "size": 412316860416,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 10 Gb/s, Public: 10 Gb/s",
+      "internal_bandwidth": 10000000000,
+      "public_bandwidth": 10000000000,
+      "max_public_bandwidth": 10000000000
+     },
+     "gpu": {
+      "description": "4 x L40S",
+      "count": 4,
+      "type": "L40S"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "L40S-4-48G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/l40s_2_48g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "L40S-2-48G",
+   "variant": "L40S-2-48G - fr-par-2",
+   "description": "L40S-2-48G - fr-par-2 (0.048997\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 48997000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 7413 (2.65 GHz), x64, vCPUs: 16",
+      "arch": "x64",
+      "type": "AMD EPYC 7413 (2.65 GHz)",
+      "virtual": {
+       "count": 16
+      },
+      "threads": 16,
+      "shared": false
+     },
+     "ram": {
+      "description": "192 GiB",
+      "size": 206158430208,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 5 Gb/s, Public: 5 Gb/s",
+      "internal_bandwidth": 5000000000,
+      "public_bandwidth": 5000000000,
+      "max_public_bandwidth": 5000000000
+     },
+     "gpu": {
+      "description": "2 x L40S",
+      "count": 2,
+      "type": "L40S"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "L40S-2-48G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/l40s_1_48g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "L40S-1-48G",
+   "variant": "L40S-1-48G - fr-par-2",
+   "description": "L40S-1-48G - fr-par-2 (0.024498\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 24498000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 7413 (2.65 GHz), x64, vCPUs: 8",
+      "arch": "x64",
+      "type": "AMD EPYC 7413 (2.65 GHz)",
+      "virtual": {
+       "count": 8
+      },
+      "threads": 8,
+      "shared": false
+     },
+     "ram": {
+      "description": "96 GiB",
+      "size": 103079215104,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block, Scratch",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 2.5 Gb/s, Public: 2.5 Gb/s",
+      "internal_bandwidth": 2500000000,
+      "public_bandwidth": 2500000000,
+      "max_public_bandwidth": 2500000000
+     },
+     "gpu": {
+      "description": "1 x L40S",
+      "count": 1,
+      "type": "L40S"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "L40S-1-48G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/l4_8_24g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "L4-8-24G",
+   "variant": "L4-8-24G - fr-par-2",
+   "description": "L4-8-24G - fr-par-2 (0.105\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 105000000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 7413 (2.65 GHz), x64, vCPUs: 64",
+      "arch": "x64",
+      "type": "AMD EPYC 7413 (2.65 GHz)",
+      "virtual": {
+       "count": 64
+      },
+      "threads": 64,
+      "shared": false
+     },
+     "ram": {
+      "description": "384 GiB",
+      "size": 412316860416,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 20 Gb/s, Public: 20 Gb/s",
+      "internal_bandwidth": 20000000000,
+      "public_bandwidth": 20000000000,
+      "max_public_bandwidth": 20000000000
+     },
+     "gpu": {
+      "description": "8 x L4",
+      "count": 8,
+      "type": "L4"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "L4-8-24G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/l4_4_24g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "L4-4-24G",
+   "variant": "L4-4-24G - fr-par-2",
+   "description": "L4-4-24G - fr-par-2 (0.0525\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 52500000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 7413 (2.65 GHz), x64, vCPUs: 32",
+      "arch": "x64",
+      "type": "AMD EPYC 7413 (2.65 GHz)",
+      "virtual": {
+       "count": 32
+      },
+      "threads": 32,
+      "shared": false
+     },
+     "ram": {
+      "description": "192 GiB",
+      "size": 206158430208,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 10 Gb/s, Public: 10 Gb/s",
+      "internal_bandwidth": 10000000000,
+      "public_bandwidth": 10000000000,
+      "max_public_bandwidth": 10000000000
+     },
+     "gpu": {
+      "description": "4 x L4",
+      "count": 4,
+      "type": "L4"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "L4-4-24G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/l4_2_24g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "L4-2-24G",
+   "variant": "L4-2-24G - fr-par-2",
+   "description": "L4-2-24G - fr-par-2 (0.02625\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 26250000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 7413 (2.65 GHz), x64, vCPUs: 16",
+      "arch": "x64",
+      "type": "AMD EPYC 7413 (2.65 GHz)",
+      "virtual": {
+       "count": 16
+      },
+      "threads": 16,
+      "shared": false
+     },
+     "ram": {
+      "description": "96 GiB",
+      "size": 103079215104,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 5 Gb/s, Public: 5 Gb/s",
+      "internal_bandwidth": 5000000000,
+      "public_bandwidth": 5000000000,
+      "max_public_bandwidth": 5000000000
+     },
+     "gpu": {
+      "description": "2 x L4",
+      "count": 2,
+      "type": "L4"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "L4-2-24G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/l4_1_24g/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "L4-1-24G",
+   "variant": "L4-1-24G - fr-par-2",
+   "description": "L4-1-24G - fr-par-2 (0.013125\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 13125000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC 7413 (2.65 GHz), x64, vCPUs: 8",
+      "arch": "x64",
+      "type": "AMD EPYC 7413 (2.65 GHz)",
+      "virtual": {
+       "count": 8
+      },
+      "threads": 8,
+      "shared": false
+     },
+     "ram": {
+      "description": "48 GiB",
+      "size": 51539607552,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 2.5 Gb/s, Public: 2.5 Gb/s",
+      "internal_bandwidth": 2500000000,
+      "public_bandwidth": 2500000000,
+      "max_public_bandwidth": 2500000000
+     },
+     "gpu": {
+      "description": "1 x L4",
+      "count": 1,
+      "type": "L4"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "L4-1-24G",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/render_s/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "RENDER-S",
+   "variant": "RENDER-S - fr-par-2",
+   "description": "RENDER-S - fr-par-2 (1.221\u20ac per hour)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 1,
+     "nanos": 221000000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "Intel Xeon Gold 6148 (2.4 GHz), x64, vCPUs: 10",
+      "arch": "x64",
+      "type": "Intel Xeon Gold 6148 (2.4 GHz)",
+      "virtual": {
+       "count": 10
+      },
+      "threads": 10,
+      "shared": false
+     },
+     "ram": {
+      "description": "42 GiB",
+      "size": 45097156608,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Dynamic local: 1 x SSD, Block",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 2 Gb/s, Public: 2 Gb/s",
+      "internal_bandwidth": 2000000000,
+      "public_bandwidth": 2000000000,
+      "max_public_bandwidth": 2000000000
+     },
+     "gpu": {
+      "description": "1 x P100",
+      "count": 1,
+      "type": "P100"
+     }
+    },
+    "instance": {
+     "range": "GPU",
+     "offer_id": "RENDER-S",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "hour",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/play2_pico/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "PLAY2-PICO",
+   "variant": "PLAY2-PICO - fr-par-2",
+   "description": "PLAY2-PICO - fr-par-2 (0.01428\u20ac per hour)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 14280000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC\u2122 7543 (2.8 GHz), x64, vCPUs: 1",
+      "arch": "x64",
+      "type": "AMD EPYC\u2122 7543 (2.8 GHz)",
+      "virtual": {
+       "count": 1
+      },
+      "threads": 1,
+      "shared": true
+     },
+     "ram": {
+      "description": "2 GiB",
+      "size": 2147483648,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Block",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 100 Mb/s, Public: 100 Mb/s",
+      "internal_bandwidth": 100000000,
+      "public_bandwidth": 100000000,
+      "max_public_bandwidth": 100000000
+     }
+    },
+    "instance": {
+     "range": "Development",
+     "offer_id": "PLAY2-PICO",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "hour",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/instance/server/dev1_s/fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "DEV1-S",
+   "variant": "DEV1-S - fr-par-2",
+   "description": "DEV1-S - fr-par-2 (0.008976\u20ac per hour)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 8976000
+    }
+   },
+   "properties": {
+    "hardware": {
+     "cpu": {
+      "description": "AMD EPYC\u2122 7281 (2.1 GHz) or equivalent, x64, vCPUs: 2",
+      "arch": "x64",
+      "type": "AMD EPYC\u2122 7281 (2.1 GHz) or equivalent",
+      "virtual": {
+       "count": 2
+      },
+      "threads": 2,
+      "shared": true
+     },
+     "ram": {
+      "description": "2 GiB",
+      "size": 2147483648,
+      "type": "",
+      "ecc_type": "standard"
+     },
+     "storage": {
+      "description": "Dynamic local: 1 x SSD, Block",
+      "total": 0
+     },
+     "network": {
+      "description": "Internal: 200 Mb/s, Public: 200 Mb/s",
+      "internal_bandwidth": 200000000,
+      "public_bandwidth": 200000000,
+      "max_public_bandwidth": 200000000
+     }
+    },
+    "instance": {
+     "range": "Development",
+     "offer_id": "DEV1-S",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "hour",
+    "size": 1
+   },
+   "status": "general_availability",
+   "badges": []
+  },
+  {
+   "sku": "/compute/h100_1_m/run_fr-par-2",
+   "service_category": "Compute",
+   "product_category": "Instance",
+   "product": "H100-1-M",
+   "variant": "H100-1-M - fr-par-2",
+   "description": "H100-1-M - fr-par-2 (0.07\u20ac per minute)",
+   "locality": {
+    "zone": "fr-par-2"
+   },
+   "price": {
+    "retail_price": {
+     "currency_code": "EUR",
+     "units": 0,
+     "nanos": 70000000
+    }
+   },
+   "properties": {
+    "instance": {
+     "range": "GPU",
+     "offer_id": "H100-1-M",
+     "recommended_replacement_offer_ids": []
+    }
+   },
+   "unit_of_measure": {
+    "unit": "minute",
+    "size": 1
+   },
+   "status": "retired",
+   "badges": []
+  }
+ ],
+ "total_count": 21
+}

@@ -115,3 +115,21 @@ def _factors():
     from tci.config import load_factors
 
     return load_factors()
+
+
+def test_a_session_with_no_row_is_a_gap(conn) -> None:
+    """27 October to 6 November 2026 left no rows: the run computed its prints and could
+    not push them. A log built from stored rows alone would never list those days."""
+    _print(conn, "2026-10-26", "EU-CRI-H100", 3.99)
+    _print(conn, "2026-10-29", "EU-CRI-H100", 3.99)
+    gaps = reliability.gap_log(conn)
+    assert [(g.date, g.flags) for g in gaps] == [
+        ("2026-10-28", reliability.NOT_RECORDED), ("2026-10-27", reliability.NOT_RECORDED)]
+    assert gaps[0].reason.startswith("no print was recorded")
+
+
+def test_a_series_is_not_missing_outside_its_own_span(conn) -> None:
+    _print(conn, "2026-10-01", "EU-CRI-H100", 3.99)
+    _print(conn, "2026-10-02", "EU-CRI-H100", 3.99)
+    _print(conn, "2026-10-02", "EU-CRI-H100-US", 3.99)
+    assert reliability.gap_log(conn) == []

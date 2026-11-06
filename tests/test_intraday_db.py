@@ -69,7 +69,8 @@ def _store_with_sweeps(tmp_path: Path, hours: int = 4) -> intraday.Store:
     return intraday.Store(tmp_path / "log")
 
 
-def test_a_load_is_lossless(tmp_path: Path, conn: sqlite3.Connection) -> None:
+def test_a_load_is_lossless(tmp_path: Path) -> None:
+    conn = intraday_db.connect(tmp_path / "intraday.db")
     store = _store_with_sweeps(tmp_path)
     result = intraday_db.load(conn, store)
     assert result.sweeps == 4 and result.reads == 8 and result.skipped == 0
@@ -93,7 +94,8 @@ def test_a_load_is_lossless(tmp_path: Path, conn: sqlite3.Connection) -> None:
     assert failed[2][1] is None and "502" in failed[2][2]
 
 
-def test_unchanged_content_is_stored_once(tmp_path: Path, conn: sqlite3.Connection) -> None:
+def test_unchanged_content_is_stored_once(tmp_path: Path) -> None:
+    conn = intraday_db.connect(tmp_path / "intraday.db")
     """The catalog read four times is one book of one row; the marketplace's unchanged
     offer at $2.50 is one row content however many hours it stays listed."""
     intraday_db.load(conn, _store_with_sweeps(tmp_path))
@@ -104,7 +106,8 @@ def test_unchanged_content_is_stored_once(tmp_path: Path, conn: sqlite3.Connecti
 
 
 def test_a_second_load_adds_nothing_and_a_later_one_adds_only_new_sweeps(
-        tmp_path: Path, conn: sqlite3.Connection) -> None:
+        tmp_path: Path) -> None:
+    conn = intraday_db.connect(tmp_path / "intraday.db")
     store = _store_with_sweeps(tmp_path, hours=2)
     intraday_db.load(conn, store)
     again = intraday_db.load(conn, intraday.Store(tmp_path / "log"))
@@ -120,7 +123,8 @@ def test_a_second_load_adds_nothing_and_a_later_one_adds_only_new_sweeps(
     assert conn.execute("SELECT COUNT(*) FROM intraday_sweeps").fetchone()[0] == 3
 
 
-def test_the_intraday_tables_are_append_only(tmp_path: Path, conn: sqlite3.Connection) -> None:
+def test_the_intraday_tables_are_append_only(tmp_path: Path) -> None:
+    conn = intraday_db.connect(tmp_path / "intraday.db")
     intraday_db.load(conn, _store_with_sweeps(tmp_path))
     for table in intraday_db.TABLES:
         with pytest.raises(sqlite3.IntegrityError, match="immutable"):
@@ -129,16 +133,16 @@ def test_the_intraday_tables_are_append_only(tmp_path: Path, conn: sqlite3.Conne
         conn.execute("UPDATE intraday_rows SET price_usd_per_gpu_hr = 0")
 
 
-def test_a_load_never_touches_what_a_print_reads(tmp_path: Path, conn: sqlite3.Connection
-                                                 ) -> None:
-    before = {t: conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
-              for t in ("observations", "runs", "daily_index", "constituents")}
-    intraday_db.load(conn, _store_with_sweeps(tmp_path))
-    after = {t: conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in before}
-    assert after == before
+def test_the_record_holds_no_intraday_tables(conn: sqlite3.Connection) -> None:
+    """Migration 0013 moved them out: they took eucri.db past GitHub's 100 MB limit and
+    eleven daily pushes were refused. They must not come back by a later migration."""
+    assert not intraday_db.available(conn)
+    names = {r[0] for r in conn.execute("SELECT name FROM sqlite_master")}
+    assert not names & {*intraday_db.TABLES, "intraday_prices"}
 
 
-def test_a_damaged_log_loads_what_verified(tmp_path: Path, conn: sqlite3.Connection) -> None:
+def test_a_damaged_log_loads_what_verified(tmp_path: Path) -> None:
+    conn = intraday_db.connect(tmp_path / "intraday.db")
     store = _store_with_sweeps(tmp_path)
     path = store.path_for("2026-09-20")
     lines = path.read_text().splitlines(keepends=True)
@@ -147,20 +151,19 @@ def test_a_damaged_log_loads_what_verified(tmp_path: Path, conn: sqlite3.Connect
     assert result.sweeps == 3 and path.name in result.problems
 
 
-def test_the_daily_run_survives_a_failing_load(monkeypatch: pytest.MonkeyPatch,
-                                               conn: sqlite3.Connection) -> None:
+def test_the_daily_run_does_not_load_the_log() -> None:
+    """The intraday database is not committed, so a load on the runner would be thrown
+    away with it. The load is `tci.run intraday ingest`, on a local copy."""
     from tci import commands
 
-    def boom(*args: object, **kwargs: object) -> None:
-        raise sqlite3.OperationalError("disk I/O error")
-
-    monkeypatch.setattr(intraday_db, "load", boom)
-    commands._load_intraday(conn)  # logged and swallowed, never raised
+    assert not hasattr(commands, "_load_intraday")
 
 
-def test_a_database_before_migration_0011_is_skipped() -> None:
-    old = sqlite3.connect(":memory:")
-    assert not intraday_db.available(old)
-    from tci import commands
-
-    commands._load_intraday(old)  # no tables, no error
+def test_ingest_writes_only_the_intraday_database(tmp_path: Path,
+                                                  conn: sqlite3.Connection) -> None:
+    before = {t: conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+              for t in ("observations", "runs", "daily_index", "constituents")}
+    side = intraday_db.connect(tmp_path / "intraday.db")
+    assert intraday_db.load(side, _store_with_sweeps(tmp_path)).sweeps == 4
+    after = {t: conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in before}
+    assert after == before and not intraday_db.available(conn)

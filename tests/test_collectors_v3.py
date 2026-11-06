@@ -12,7 +12,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 import responses
+from responses import matchers
 
 from tci.collectors import base
 from tci.collectors.azure_retail import REGIONS, AzureRetailCollector
@@ -21,37 +23,52 @@ from tci.collectors.scaleway import URL as SCALEWAY_URL
 from tci.collectors.scaleway import ZONES, ScalewayCollector
 
 FIXTURES = Path(__file__).parent / "fixtures"
-SCALEWAY_FIXTURE = json.loads((FIXTURES / "scaleway_fr_par_2.json").read_text(encoding="utf-8"))
+SCALEWAY_FIXTURE = json.loads(
+    (FIXTURES / "scaleway_catalog_fr_par_2.json").read_text(encoding="utf-8"))
 AZURE_FIXTURE = json.loads((FIXTURES / "azure_westeurope.json").read_text(encoding="utf-8"))
 
 
 def _scaleway_all_zones(payload: dict | None = None, status: int = 200) -> None:
     for zone in ZONES:
         responses.add(
-            responses.GET, SCALEWAY_URL.format(zone=zone),
+            responses.GET, SCALEWAY_URL,
+            match=[matchers.query_param_matcher(
+                {"product_types": "instance", "zone": zone, "page_size": "1000",
+                 "page": "1"})],
             json=payload if payload is not None else SCALEWAY_FIXTURE, status=status,
         )
+
+
+def _product(name: str, gpu: int | None, eur_per_minute: float,
+             status: str = "general_availability", unit: str = "minute") -> dict:
+    units = int(eur_per_minute)
+    hardware = {"gpu": {"count": gpu, "type": name}} if gpu else {}
+    return {
+        "product_category": "Instance", "product": name, "status": status,
+        "sku": f"/instance/server/{name.lower()}/fr-par-2",
+        "price": {"retail_price": {"currency_code": "EUR", "units": units,
+                                   "nanos": round((eur_per_minute - units) * 1e9)}},
+        "properties": {"hardware": hardware, "instance": {"offer_id": name}},
+        "unit_of_measure": {"unit": unit, "size": 1},
+    }
 
 
 # --- Scaleway -------------------------------------------------------------------------
 
 @responses.activate
-def test_scaleway_divides_instance_price_by_gpu_count() -> None:
-    """hourly_price is per INSTANCE in EUR — a per-GPU series needs it divided."""
+def test_scaleway_converts_the_per_minute_instance_price_to_per_gpu_hour() -> None:
+    """The catalog quotes EUR per INSTANCE per MINUTE. Converted, both H100 shapes give
+    exactly what the Instance API gave on 26 October 2026, its last day with prices."""
     _scaleway_all_zones()
     out = ScalewayCollector().collect(base.make_session())
-
-    par2 = [o for o in out if o.region == "fr-par-2"]
-    by_name = {json.loads(o.raw_json)["instance_name"]: o for o in par2}
-
-    b300_8 = by_name["B300-SXM-8-288G"]
-    assert b300_8.gpu_count == 8
-    assert b300_8.price_usd_per_gpu_hr == 60.0 / 8  # 7.50, not 60.0
-    assert b300_8.gpu_model == "B300_SXM"
-
-    sxm2 = by_name["H100-SXM-2-80G"]
-    assert sxm2.price_usd_per_gpu_hr == 6.6198 / 2
-    assert sxm2.gpu_model == "H100_SXM"
+    by_name = {json.loads(o.raw_json)["instance_name"]: o
+               for o in out if o.region == "fr-par-2"}
+    sxm4 = by_name["H100-SXM-4-80G"]
+    assert sxm4.gpu_count == 4 and sxm4.gpu_model == "H100_SXM"
+    assert sxm4.price_usd_per_gpu_hr == pytest.approx(3.19275)
+    pcie2 = by_name["H100-2-80G"]
+    assert pcie2.price_usd_per_gpu_hr == pytest.approx(2.8665)
+    assert by_name["B300-SXM-8-288G"].gpu_model == "B300_SXM"
 
 
 @responses.activate
@@ -60,7 +77,7 @@ def test_scaleway_records_native_currency_for_print_time_conversion() -> None:
     _scaleway_all_zones()
     out = ScalewayCollector().collect(base.make_session())
     raw = json.loads(out[0].raw_json)
-    assert raw["currency"] == "EUR"
+    assert raw["currency"] == "EUR" and raw["unit"] == "1 minute"
     assert raw["price_native_per_gpu_hr"] == out[0].price_usd_per_gpu_hr
 
 
@@ -87,34 +104,35 @@ def test_scaleway_country_from_zone() -> None:
 
 
 @responses.activate
-def test_scaleway_skips_non_gpu_and_unmapped_instances() -> None:
-    _scaleway_all_zones({"servers": {
-        "DEV1-S": {"gpu": 0, "hourly_price": 0.01},
-        "PLAY2-PICO": {"gpu": None, "hourly_price": 0.02},
-        "RENDER-S": {"gpu": 1, "hourly_price": 1.0},
-        "H100-SXM-2-80G": {"gpu": 2, "hourly_price": 6.6198},
-    }})
+def test_scaleway_skips_non_gpu_unmapped_and_retired_instances() -> None:
+    _scaleway_all_zones({"products": [
+        _product("DEV1-S", None, 0.0002),
+        _product("RENDER-S", 1, 0.02),
+        _product("H100-1-M", 1, 0.07, status="retired"),
+        _product("H100-SXM-2-80G", 2, 0.1103),
+    ], "total_count": 4})
     out = ScalewayCollector().collect(base.make_session())
-    names = {json.loads(o.raw_json)["instance_name"] for o in out}
-    assert names == {"H100-SXM-2-80G"}
+    assert {json.loads(o.raw_json)["instance_name"] for o in out} == {"H100-SXM-2-80G"}
 
 
 @responses.activate
-def test_scaleway_never_invents_a_missing_price() -> None:
-    _scaleway_all_zones({"servers": {"H100-SXM-2-80G": {"gpu": 2, "hourly_price": None}}})
-    assert ScalewayCollector().collect(base.make_session()) == []
+def test_scaleway_never_records_a_zero_price() -> None:
+    """29 October to 6 November 2026: the Instance API read 0.0 for every server and
+    the collector stored $0.00 for each. A non-positive price is skipped, and a run
+    with no priced GPU at all fails rather than reporting success."""
+    _scaleway_all_zones({"products": [_product("H100-SXM-2-80G", 2, 0.0)],
+                         "total_count": 1})
+    with pytest.raises(RuntimeError, match="no priced GPU"):
+        ScalewayCollector().collect(base.make_session())
 
 
 @responses.activate
-def test_scaleway_one_failing_zone_does_not_kill_the_run() -> None:
-    """Nine zones, one source: a single 404 must not lose the other eight."""
-    responses.add(responses.GET, SCALEWAY_URL.format(zone=ZONES[0]), status=404)
-    for zone in ZONES[1:]:
-        responses.add(responses.GET, SCALEWAY_URL.format(zone=zone),
-                      json=SCALEWAY_FIXTURE, status=200)
+def test_scaleway_does_not_guess_an_unknown_billing_unit() -> None:
+    _scaleway_all_zones({"products": [_product("H100-SXM-2-80G", 2, 3.0, unit="month"),
+                                      _product("H100-SXM-4-80G", 4, 0.2129)],
+                         "total_count": 2})
     out = ScalewayCollector().collect(base.make_session())
-    assert out, "a single failing zone emptied the whole collection"
-    assert {o.region for o in out} == set(ZONES[1:])
+    assert {json.loads(o.raw_json)["instance_name"] for o in out} == {"H100-SXM-4-80G"}
 
 
 # --- Azure Retail ---------------------------------------------------------------------

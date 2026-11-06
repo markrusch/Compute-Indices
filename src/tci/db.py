@@ -51,6 +51,13 @@ def _migration_files() -> list[tuple[int, str, str]]:
     return sorted(out)
 
 
+# Migrations that free enough space for the file to need compacting. VACUUM cannot run
+# inside a migration's transaction, so it runs once after them. 0013 drops 43 MB of
+# intraday tables from a file GitHub refuses past 100 MB; dropped pages are only marked
+# free until the file is vacuumed, so without this the file would not shrink at all.
+VACUUM_AFTER = frozenset({"0013_intraday_out_of_the_record.sql"})
+
+
 def migrate(conn: sqlite3.Connection) -> list[str]:
     """Apply pending migrations; returns the names applied. Idempotent."""
     conn.execute(
@@ -64,6 +71,8 @@ def migrate(conn: sqlite3.Connection) -> list[str]:
             continue
         _apply_migration(conn, number, name, sql)
         applied.append(name)
+    if VACUUM_AFTER & set(applied):
+        conn.execute("VACUUM")
     return applied
 
 

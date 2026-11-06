@@ -24,6 +24,8 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
+from datetime import date as date_type
+from datetime import timedelta
 
 from tci.config import Factors, load_factors
 from tci.index import provider_offers
@@ -37,7 +39,16 @@ GAP_REASONS = {
     "no_linkable_series": "no series it could be chained to printed that day",
     "reference_gap": "the reference leg did not print",
     "lead_gap": "the lead leg did not print",
+    "not_recorded": "no print was recorded: the run's output never reached the record",
 }
+
+# A session with no row at all. Not a flag the calculation writes: the calculation never
+# ran into the record that day, so there is nothing to flag. From 27 October to 6
+# November 2026 the daily run computed every print and could not push the database
+# (it had passed GitHub's 100 MB file limit); the record simply stops on 26 October and
+# resumes later. A log built only from stored rows would never list those days, and the
+# reliability page's unbroken run would count straight across them.
+NOT_RECORDED = "not_recorded"
 
 
 @dataclass(frozen=True)
@@ -95,10 +106,38 @@ def gap_log(conn: sqlite3.Connection, series: str | None = None) -> list[Gap]:
         sql += " AND d.series = ?"
         params.append(series)
     sql += " ORDER BY d.date DESC, d.series"
-    return [
+    gaps = [
         Gap(r["date"], r["series"], r["flags"], r["revision"], r["methodology_version"])
         for r in conn.execute(sql, params)
     ]
+    gaps += [Gap(d, s, NOT_RECORDED, 0, "") for d, s in unrecorded_sessions(conn, series)]
+    return sorted(gaps, key=lambda g: (g.date, g.series), reverse=True)
+
+
+def unrecorded_sessions(conn: sqlite3.Connection,
+                        series: str | None = None) -> list[tuple[str, str]]:
+    """(date, series) for every day inside a series' stored span that has no row at all.
+
+    Bounded by the series' own first and last stored dates: a series is not missing
+    before it began, and today is not missing before today's run has had its chance.
+    """
+    sql = "SELECT series, date FROM daily_index"
+    params: list[str] = []
+    if series:
+        sql += " WHERE series = ?"
+        params.append(series)
+    held: dict[str, set[str]] = {}
+    for r in conn.execute(sql, params):
+        held.setdefault(r[0], set()).add(r[1])
+    missing = []
+    for name, dates in held.items():
+        day = date_type.fromisoformat(min(dates))
+        last = date_type.fromisoformat(max(dates))
+        while day < last:
+            if day.isoformat() not in dates:
+                missing.append((day.isoformat(), name))
+            day += timedelta(days=1)
+    return missing
 
 
 def coverage(conn: sqlite3.Connection, series: str, days: int = 21) -> list[Day]:

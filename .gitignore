@@ -23,6 +23,10 @@ data/*.db-wal
 data/*.db-shm
 # Held only while a sweep runs; one left behind by a killed runner must not be committed.
 data/intraday/.lock
+# Built from data/intraday/ by `tci.run intraday ingest`; migration 0013 moved it out of
+# eucri.db so the committed record stays under GitHub's 100 MB file limit.
+data/intraday.db
+data/intraday.db-*
 
 # Design handoff working folder (mockups + prototyping runtime, not part of the build)
 Compute Index Branding/
