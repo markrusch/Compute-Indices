@@ -1,100 +1,90 @@
 {
- "generated_utc": "2026-11-07T22:08:16Z",
+ "generated_utc": "2026-11-07T23:08:44Z",
  "latest": {
-  "at_utc": "2026-11-07T22:08:11Z",
+  "at_utc": "2026-11-07T23:08:39Z",
   "constituents": {
    "EU-CRI-H100": [
     {
      "price_usd": 4.41,
      "provider": "digitalocean",
-     "weight_pct": 12.5
+     "weight_pct": 16.666667
     },
     {
      "price_usd": 3.99,
      "provider": "lambdalabs",
-     "weight_pct": 12.5
+     "weight_pct": 16.666667
     },
     {
      "price_usd": 4.5,
      "provider": "nebius",
-     "weight_pct": 12.5
-    },
-    {
-     "price_usd": 3.99,
-     "provider": "runpod",
-     "weight_pct": 25.0
+     "weight_pct": 16.666667
     },
     {
      "price_usd": 3.53523,
      "provider": "scaleway",
-     "weight_pct": 12.5
+     "weight_pct": 16.666667
     },
     {
      "price_usd": 2.110185,
      "provider": "seeweb",
-     "weight_pct": 12.5
+     "weight_pct": 16.666667
     },
     {
      "price_usd": 4.9375,
      "provider": "verda",
-     "weight_pct": 12.5
+     "weight_pct": 16.666667
     }
    ],
    "EU-CRI-H100-GLOBAL": [
     {
      "price_usd": 2.99,
      "provider": "civo",
-     "weight_pct": 8.333333
+     "weight_pct": 10.0
     },
     {
      "price_usd": 6.155,
      "provider": "coreweave",
-     "weight_pct": 8.333333
+     "weight_pct": 10.0
     },
     {
      "price_usd": 4.41,
      "provider": "digitalocean",
-     "weight_pct": 8.333333
+     "weight_pct": 10.0
     },
     {
      "price_usd": 3.99,
      "provider": "lambdalabs",
-     "weight_pct": 8.333333
+     "weight_pct": 10.0
     },
     {
      "price_usd": 4.5,
      "provider": "nebius",
-     "weight_pct": 8.333333
-    },
-    {
-     "price_usd": 3.99,
-     "provider": "runpod",
-     "weight_pct": 16.666667
+     "weight_pct": 10.0
     },
     {
      "price_usd": 3.53523,
      "provider": "scaleway",
-     "weight_pct": 8.333333
+     "weight_pct": 10.0
     },
     {
      "price_usd": 2.110185,
      "provider": "seeweb",
-     "weight_pct": 8.333333
+     "weight_pct": 10.0
     },
     {
      "price_usd": 3.99,
      "provider": "together",
-     "weight_pct": 8.333333
+     "weight_pct": 10.0
     },
     {
      "price_usd": 4.9375,
      "provider": "verda",
-     "weight_pct": 8.333333
+     "weight_pct": 10.0
     },
     {
      "price_usd": 1.99,
      "provider": "voltagepark",
-     "weight_pct": 8.333333
+     "weight_pct": 10.0
     }
    ],
    "EU-CRI-H100-NC": [
@@ -196,22 +186,22 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 656,
-   "civo": 300,
-   "coreweave": 300,
-   "digitalocean": 300,
+   "azure_retail": 0,
+   "civo": 0,
+   "coreweave": 0,
+   "digitalocean": 0,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 300,
-   "latitude": 300,
-   "ovh": 300,
+   "lambda_pricing": 0,
+   "latitude": 0,
+   "ovh": 0,
    "runpod": 0,
-   "scaleway": 300,
-   "seeweb": 300,
-   "static_yaml": 0,
-   "together": 300,
+   "scaleway": 0,
+   "seeweb": 361,
+   "static_yaml": 1,
+   "together": 0,
    "vast_ai": 0,
-   "voltagepark": 300
+   "voltagepark": 0
   },
   "sources_missing": [
    "crusoe"
@@ -219,7 +209,7 @@
   "values": {
    "EU-CRI-A100": {
     "flags": "insufficient_sources",
-    "n_sources": 3,
+    "n_sources": 4,
     "value_eur": null,
     "value_usd": null
    },
@@ -236,14 +226,14 @@
     "value_usd": null
    },
    "EU-CRI-H100": {
-    "flags": "",
-    "n_sources": 7,
-    "value_eur": 3.573668,
-    "value_usd": 3.99
+    "flags": "no_executable_input",
+    "n_sources": 6,
+    "value_eur": 3.949843,
+    "value_usd": 4.41
    },
    "EU-CRI-H100-GLOBAL": {
-    "flags": "",
-    "n_sources": 11,
+    "flags": "no_executable_input",
+    "n_sources": 10,
     "value_eur": 3.573668,
     "value_usd": 3.99
    },
@@ -255,7 +245,7 @@
    },
    "EU-CRI-H100-MKT": {
     "flags": "insufficient_sources",
-    "n_sources": 1,
+    "n_sources": 0,
     "value_eur": null,
     "value_usd": null
    },
@@ -1814,17 +1804,17 @@
   "azure_retail": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T11:11:41Z"
+   "last_ok_utc": "2026-11-07T23:08:39Z"
   },
   "civo": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T17:07:40Z"
+   "last_ok_utc": "2026-11-07T23:07:51Z"
   },
   "coreweave": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T17:07:38Z"
+   "last_ok_utc": "2026-11-07T23:07:51Z"
   },
   "crusoe": {
    "consecutive_failures": 3,
@@ -1834,67 +1824,67 @@
   "digitalocean": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T17:07:40Z"
+   "last_ok_utc": "2026-11-07T23:07:52Z"
   },
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T22:08:06Z"
+   "last_ok_utc": "2026-11-07T23:07:41Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T22:08:05Z"
+   "last_ok_utc": "2026-11-07T23:07:53Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T17:07:42Z"
+   "last_ok_utc": "2026-11-07T23:07:53Z"
   },
   "latitude": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T17:07:37Z"
+   "last_ok_utc": "2026-11-07T23:07:52Z"
   },
   "ovh": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T17:07:46Z"
+   "last_ok_utc": "2026-11-07T23:07:53Z"
   },
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T22:08:05Z"
+   "last_ok_utc": "2026-11-07T23:07:41Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T17:07:42Z"
+   "last_ok_utc": "2026-11-07T23:07:43Z"
   },
   "seeweb": {
-   "consecutive_failures": 0,
-   "last_error": null,
+   "consecutive_failures": 1,
+   "last_error": "ConnectTimeout: HTTPSConnectionPool(host='www.seeweb.it', port=443): Max retries exceeded with url: /en/products/cloud-server-gpu (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.seeweb.it', port=443) at 0x7efc4ef72390>, 'Connection to www.seeweb.it timed out. (connect timeout=30)'))",
    "last_ok_utc": "2026-11-07T17:07:38Z"
   },
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T22:08:04Z"
+   "last_ok_utc": "2026-11-07T23:07:39Z"
   },
   "together": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T17:07:38Z"
+   "last_ok_utc": "2026-11-07T23:07:43Z"
   },
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T22:08:11Z"
+   "last_ok_utc": "2026-11-07T23:07:48Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T17:07:39Z"
+   "last_ok_utc": "2026-11-07T23:07:52Z"
   }
  },
  "store_problems": {}
