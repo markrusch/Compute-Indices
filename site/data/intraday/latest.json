@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-11-08T04:10:38Z",
+ "generated_utc": "2026-11-08T05:09:47Z",
  "latest": {
-  "at_utc": "2026-11-08T04:10:33Z",
+  "at_utc": "2026-11-08T05:09:42Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -35,7 +35,7 @@
      "weight_pct": 10.0
     },
     {
-     "price_usd": 3.157022,
+     "price_usd": 3.922356,
      "provider": "vast.ai",
      "weight_pct": 20.0
     },
@@ -92,7 +92,7 @@
      "weight_pct": 7.142857
     },
     {
-     "price_usd": 3.157022,
+     "price_usd": 3.922356,
      "provider": "vast.ai",
      "weight_pct": 14.285714
     },
@@ -233,22 +233,22 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 301,
-   "civo": 302,
-   "coreweave": 302,
-   "digitalocean": 302,
+   "azure_retail": 361,
+   "civo": 0,
+   "coreweave": 0,
+   "digitalocean": 0,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 302,
-   "latitude": 302,
-   "ovh": 302,
+   "lambda_pricing": 0,
+   "latitude": 0,
+   "ovh": 0,
    "runpod": 0,
-   "scaleway": 302,
-   "seeweb": 662,
+   "scaleway": 0,
+   "seeweb": 0,
    "static_yaml": 0,
-   "together": 302,
+   "together": 0,
    "vast_ai": 0,
-   "voltagepark": 302
+   "voltagepark": 0
   },
   "sources_missing": [
    "crusoe"
@@ -1856,12 +1856,12 @@
   "civo": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T23:07:51Z"
+   "last_ok_utc": "2026-11-08T05:09:37Z"
   },
   "coreweave": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T23:07:51Z"
+   "last_ok_utc": "2026-11-08T05:09:35Z"
   },
   "crusoe": {
    "consecutive_failures": 3,
@@ -1871,67 +1871,67 @@
   "digitalocean": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T23:07:52Z"
+   "last_ok_utc": "2026-11-08T05:09:36Z"
   },
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-08T04:10:27Z"
+   "last_ok_utc": "2026-11-08T05:09:34Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-08T04:10:26Z"
+   "last_ok_utc": "2026-11-08T05:09:38Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T23:07:53Z"
+   "last_ok_utc": "2026-11-08T05:09:37Z"
   },
   "latitude": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T23:07:52Z"
+   "last_ok_utc": "2026-11-08T05:09:37Z"
   },
   "ovh": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T23:07:53Z"
+   "last_ok_utc": "2026-11-08T05:09:42Z"
   },
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-08T04:10:27Z"
+   "last_ok_utc": "2026-11-08T05:09:33Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T23:07:43Z"
+   "last_ok_utc": "2026-11-08T05:09:35Z"
   },
   "seeweb": {
-   "consecutive_failures": 1,
-   "last_error": "ConnectTimeout: HTTPSConnectionPool(host='www.seeweb.it', port=443): Max retries exceeded with url: /en/products/cloud-server-gpu (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.seeweb.it', port=443) at 0x7efc4ef72390>, 'Connection to www.seeweb.it timed out. (connect timeout=30)'))",
-   "last_ok_utc": "2026-11-07T17:07:38Z"
+   "consecutive_failures": 0,
+   "last_error": null,
+   "last_ok_utc": "2026-11-08T05:09:34Z"
   },
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-08T04:10:26Z"
+   "last_ok_utc": "2026-11-08T05:09:32Z"
   },
   "together": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T23:07:43Z"
+   "last_ok_utc": "2026-11-08T05:09:34Z"
   },
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-08T04:10:33Z"
+   "last_ok_utc": "2026-11-08T05:09:40Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-07T23:07:52Z"
+   "last_ok_utc": "2026-11-08T05:09:36Z"
   }
  },
  "store_problems": {}
