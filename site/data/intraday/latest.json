@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-11-10T03:11:48Z",
+ "generated_utc": "2026-11-10T04:10:50Z",
  "latest": {
-  "at_utc": "2026-11-10T03:11:42Z",
+  "at_utc": "2026-11-10T04:10:47Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -20,6 +20,11 @@
      "weight_pct": 12.5
     },
     {
+     "price_usd": 3.99,
+     "provider": "runpod",
+     "weight_pct": 25.0
+    },
+    {
      "price_usd": 3.53523,
      "provider": "scaleway",
      "weight_pct": 12.5
@@ -28,11 +33,6 @@
      "price_usd": 2.110185,
      "provider": "seeweb",
      "weight_pct": 12.5
-    },
-    {
-     "price_usd": 4.762444,
-     "provider": "vast.ai",
-     "weight_pct": 25.0
     },
     {
      "price_usd": 4.9875,
@@ -67,6 +67,11 @@
      "weight_pct": 8.333333
     },
     {
+     "price_usd": 3.99,
+     "provider": "runpod",
+     "weight_pct": 16.666667
+    },
+    {
      "price_usd": 3.53523,
      "provider": "scaleway",
      "weight_pct": 8.333333
@@ -80,11 +85,6 @@
      "price_usd": 3.99,
      "provider": "together",
      "weight_pct": 8.333333
-    },
-    {
-     "price_usd": 4.762444,
-     "provider": "vast.ai",
-     "weight_pct": 16.666667
     },
     {
      "price_usd": 4.9875,
@@ -131,7 +131,7 @@
    ],
    "EU-CRI-H100-SPOT": [
     {
-     "price_usd": 2.133488,
+     "price_usd": 2.1114,
      "provider": "aws",
      "weight_pct": 20.0
     },
@@ -196,22 +196,22 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 242,
-   "civo": 243,
-   "coreweave": 243,
-   "digitalocean": 243,
+   "azure_retail": 301,
+   "civo": 302,
+   "coreweave": 302,
+   "digitalocean": 302,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 243,
-   "latitude": 243,
-   "ovh": 243,
+   "lambda_pricing": 302,
+   "latitude": 302,
+   "ovh": 302,
    "runpod": 0,
-   "scaleway": 243,
-   "seeweb": 243,
+   "scaleway": 302,
+   "seeweb": 302,
    "static_yaml": 0,
-   "together": 243,
+   "together": 302,
    "vast_ai": 0,
-   "voltagepark": 243
+   "voltagepark": 302
   },
   "sources_missing": [
    "crusoe"
@@ -219,7 +219,7 @@
   "values": {
    "EU-CRI-A100": {
     "flags": "insufficient_sources",
-    "n_sources": 2,
+    "n_sources": 3,
     "value_eur": null,
     "value_usd": null
    },
@@ -238,14 +238,14 @@
    "EU-CRI-H100": {
     "flags": "",
     "n_sources": 7,
-    "value_eur": 4.030452,
-    "value_usd": 4.5
+    "value_eur": 3.573668,
+    "value_usd": 3.99
    },
    "EU-CRI-H100-GLOBAL": {
     "flags": "",
     "n_sources": 11,
-    "value_eur": 3.752799,
-    "value_usd": 4.19
+    "value_eur": 3.573668,
+    "value_usd": 3.99
    },
    "EU-CRI-H100-HS": {
     "flags": "insufficient_sources",
@@ -1839,12 +1839,12 @@
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T03:11:36Z"
+   "last_ok_utc": "2026-11-10T04:10:40Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T03:11:36Z"
+   "last_ok_utc": "2026-11-10T04:10:40Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
@@ -1864,7 +1864,7 @@
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T03:11:36Z"
+   "last_ok_utc": "2026-11-10T04:10:40Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
@@ -1879,7 +1879,7 @@
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T03:11:35Z"
+   "last_ok_utc": "2026-11-10T04:10:39Z"
   },
   "together": {
    "consecutive_failures": 0,
@@ -1889,7 +1889,7 @@
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T03:11:42Z"
+   "last_ok_utc": "2026-11-10T04:10:47Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
