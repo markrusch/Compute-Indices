@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-11-10T22:09:05Z",
+ "generated_utc": "2026-11-10T23:09:58Z",
  "latest": {
-  "at_utc": "2026-11-10T22:08:58Z",
+  "at_utc": "2026-11-10T23:09:52Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -30,7 +30,7 @@
      "weight_pct": 12.5
     },
     {
-     "price_usd": 3.630356,
+     "price_usd": 4.097022,
      "provider": "vast.ai",
      "weight_pct": 25.0
     },
@@ -87,7 +87,7 @@
      "weight_pct": 7.692308
     },
     {
-     "price_usd": 3.630356,
+     "price_usd": 4.097022,
      "provider": "vast.ai",
      "weight_pct": 15.384615
     },
@@ -151,7 +151,7 @@
      "weight_pct": 20.0
     },
     {
-     "price_usd": 1.2,
+     "price_usd": 0.9,
      "provider": "nebius",
      "weight_pct": 20.0
     },
@@ -183,7 +183,7 @@
      "weight_pct": 14.285714
     },
     {
-     "price_usd": 1.2,
+     "price_usd": 0.9,
      "provider": "nebius",
      "weight_pct": 14.285714
     },
@@ -201,22 +201,22 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 651,
-   "civo": 300,
-   "coreweave": 300,
-   "digitalocean": 300,
-   "gpuhunt": 0,
-   "hyperstack": 0,
-   "lambda_pricing": 300,
-   "latitude": 300,
-   "ovh": 300,
-   "runpod": 0,
-   "scaleway": 300,
-   "seeweb": 300,
-   "static_yaml": 0,
-   "together": 300,
-   "vast_ai": 0,
-   "voltagepark": 300
+   "azure_retail": 0,
+   "civo": 1,
+   "coreweave": 1,
+   "digitalocean": 1,
+   "gpuhunt": 1,
+   "hyperstack": 1,
+   "lambda_pricing": 1,
+   "latitude": 1,
+   "ovh": 1,
+   "runpod": 1,
+   "scaleway": 1,
+   "seeweb": 1,
+   "static_yaml": 1,
+   "together": 361,
+   "vast_ai": 1,
+   "voltagepark": 1
   },
   "sources_missing": [
    "crusoe"
@@ -243,14 +243,14 @@
    "EU-CRI-H100": {
     "flags": "",
     "n_sources": 7,
-    "value_eur": 3.564728,
-    "value_usd": 3.99
+    "value_eur": 3.660343,
+    "value_usd": 4.097022
    },
    "EU-CRI-H100-GLOBAL": {
     "flags": "",
     "n_sources": 12,
-    "value_eur": 3.243416,
-    "value_usd": 3.630356
+    "value_eur": 3.564728,
+    "value_usd": 3.99
    },
    "EU-CRI-H100-HS": {
     "flags": "insufficient_sources",
@@ -1819,17 +1819,17 @@
   "azure_retail": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T11:17:25Z"
+   "last_ok_utc": "2026-11-10T23:09:52Z"
   },
   "civo": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T17:08:39Z"
+   "last_ok_utc": "2026-11-10T23:08:05Z"
   },
   "coreweave": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T17:08:38Z"
+   "last_ok_utc": "2026-11-10T23:08:06Z"
   },
   "crusoe": {
    "consecutive_failures": 3,
@@ -1839,67 +1839,67 @@
   "digitalocean": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T17:08:38Z"
+   "last_ok_utc": "2026-11-10T23:08:07Z"
   },
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T22:08:53Z"
+   "last_ok_utc": "2026-11-10T23:08:02Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T22:08:52Z"
+   "last_ok_utc": "2026-11-10T23:08:09Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T17:08:39Z"
+   "last_ok_utc": "2026-11-10T23:08:08Z"
   },
   "latitude": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T17:08:39Z"
+   "last_ok_utc": "2026-11-10T23:08:07Z"
   },
   "ovh": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T17:08:43Z"
+   "last_ok_utc": "2026-11-10T23:08:10Z"
   },
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T22:08:52Z"
+   "last_ok_utc": "2026-11-10T23:08:01Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T17:08:37Z"
+   "last_ok_utc": "2026-11-10T23:08:02Z"
   },
   "seeweb": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T17:08:36Z"
+   "last_ok_utc": "2026-11-10T23:08:03Z"
   },
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T22:08:51Z"
+   "last_ok_utc": "2026-11-10T23:08:00Z"
   },
   "together": {
-   "consecutive_failures": 0,
-   "last_error": null,
+   "consecutive_failures": 1,
+   "last_error": "RuntimeError: together: no HGX H100 on-demand price in the table",
    "last_ok_utc": "2026-11-10T17:08:36Z"
   },
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T22:08:58Z"
+   "last_ok_utc": "2026-11-10T23:08:07Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-10T17:08:38Z"
+   "last_ok_utc": "2026-11-10T23:08:07Z"
   }
  },
  "store_problems": {}
