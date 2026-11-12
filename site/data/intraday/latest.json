@@ -1,85 +1,95 @@
 {
- "generated_utc": "2026-11-12T22:08:48Z",
+ "generated_utc": "2026-11-12T23:12:09Z",
  "latest": {
-  "at_utc": "2026-11-12T22:08:43Z",
+  "at_utc": "2026-11-12T23:12:06Z",
   "constituents": {
    "EU-CRI-H100": [
     {
      "price_usd": 4.41,
      "provider": "digitalocean",
-     "weight_pct": 16.666667
+     "weight_pct": 12.5
     },
     {
      "price_usd": 3.99,
      "provider": "lambdalabs",
-     "weight_pct": 16.666667
+     "weight_pct": 12.5
     },
     {
      "price_usd": 4.5,
      "provider": "nebius",
-     "weight_pct": 16.666667
+     "weight_pct": 12.5
     },
     {
      "price_usd": 3.523198,
      "provider": "scaleway",
-     "weight_pct": 16.666667
+     "weight_pct": 12.5
     },
     {
      "price_usd": 2.103003,
      "provider": "seeweb",
-     "weight_pct": 16.666667
+     "weight_pct": 12.5
+    },
+    {
+     "price_usd": 4.358356,
+     "provider": "vast.ai",
+     "weight_pct": 25.0
     },
     {
      "price_usd": 5.1375,
      "provider": "verda",
-     "weight_pct": 16.666667
+     "weight_pct": 12.5
     }
    ],
    "EU-CRI-H100-GLOBAL": [
     {
      "price_usd": 2.99,
      "provider": "civo",
-     "weight_pct": 11.111111
+     "weight_pct": 9.090909
     },
     {
      "price_usd": 6.155,
      "provider": "coreweave",
-     "weight_pct": 11.111111
+     "weight_pct": 9.090909
     },
     {
      "price_usd": 4.41,
      "provider": "digitalocean",
-     "weight_pct": 11.111111
+     "weight_pct": 9.090909
     },
     {
      "price_usd": 3.99,
      "provider": "lambdalabs",
-     "weight_pct": 11.111111
+     "weight_pct": 9.090909
     },
     {
      "price_usd": 4.5,
      "provider": "nebius",
-     "weight_pct": 11.111111
+     "weight_pct": 9.090909
     },
     {
      "price_usd": 3.523198,
      "provider": "scaleway",
-     "weight_pct": 11.111111
+     "weight_pct": 9.090909
     },
     {
      "price_usd": 2.103003,
      "provider": "seeweb",
-     "weight_pct": 11.111111
+     "weight_pct": 9.090909
+    },
+    {
+     "price_usd": 4.358356,
+     "provider": "vast.ai",
+     "weight_pct": 18.181818
     },
     {
      "price_usd": 5.1375,
      "provider": "verda",
-     "weight_pct": 11.111111
+     "weight_pct": 9.090909
     },
     {
      "price_usd": 1.99,
      "provider": "voltagepark",
-     "weight_pct": 11.111111
+     "weight_pct": 9.090909
     }
    ],
    "EU-CRI-H100-NC": [
@@ -176,21 +186,21 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 649,
-   "civo": 300,
-   "coreweave": 300,
-   "digitalocean": 300,
-   "gpuhunt": 0,
-   "hyperstack": 0,
-   "lambda_pricing": 300,
-   "latitude": 300,
-   "ovh": 299,
-   "runpod": 0,
-   "scaleway": 299,
-   "seeweb": 300,
-   "static_yaml": 0,
-   "vast_ai": 0,
-   "voltagepark": 300
+   "azure_retail": 0,
+   "civo": 3,
+   "coreweave": 3,
+   "digitalocean": 3,
+   "gpuhunt": 3,
+   "hyperstack": 3,
+   "lambda_pricing": 3,
+   "latitude": 3,
+   "ovh": 3,
+   "runpod": 3,
+   "scaleway": 3,
+   "seeweb": 3,
+   "static_yaml": 3,
+   "vast_ai": 3,
+   "voltagepark": 3
   },
   "sources_missing": [
    "crusoe",
@@ -199,7 +209,7 @@
   "values": {
    "EU-CRI-A100": {
     "flags": "insufficient_sources",
-    "n_sources": 2,
+    "n_sources": 3,
     "value_eur": null,
     "value_usd": null
    },
@@ -216,16 +226,16 @@
     "value_usd": null
    },
    "EU-CRI-H100": {
-    "flags": "no_executable_input",
-    "n_sources": 6,
-    "value_eur": 3.963332,
-    "value_usd": 4.41
+    "flags": "",
+    "n_sources": 7,
+    "value_eur": 3.916919,
+    "value_usd": 4.358356
    },
    "EU-CRI-H100-GLOBAL": {
-    "flags": "no_executable_input",
-    "n_sources": 9,
-    "value_eur": 3.585872,
-    "value_usd": 3.99
+    "flags": "",
+    "n_sources": 10,
+    "value_eur": 3.916919,
+    "value_usd": 4.358356
    },
    "EU-CRI-H100-HS": {
     "flags": "insufficient_sources",
@@ -235,7 +245,7 @@
    },
    "EU-CRI-H100-MKT": {
     "flags": "insufficient_sources",
-    "n_sources": 0,
+    "n_sources": 1,
     "value_eur": null,
     "value_usd": null
    },
@@ -1794,87 +1804,87 @@
   "azure_retail": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T11:18:45Z"
+   "last_ok_utc": "2026-11-12T23:12:06Z"
   },
   "civo": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T17:08:42Z"
+   "last_ok_utc": "2026-11-12T23:08:19Z"
   },
   "coreweave": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T17:08:41Z"
+   "last_ok_utc": "2026-11-12T23:08:22Z"
   },
   "crusoe": {
-   "consecutive_failures": 2,
+   "consecutive_failures": 3,
    "last_error": "RuntimeError: crusoe: identity pin '<div class=\"pricing-heading is-d\">GPU model</div><div class=' found 0x page-wide (need exactly 1) -- page restructured or a lookalike section appeared; refusing to extract",
    "last_ok_utc": null
   },
   "digitalocean": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T17:08:42Z"
+   "last_ok_utc": "2026-11-12T23:08:23Z"
   },
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T22:08:38Z"
+   "last_ok_utc": "2026-11-12T23:08:19Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T22:08:37Z"
+   "last_ok_utc": "2026-11-12T23:08:24Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T17:08:43Z"
+   "last_ok_utc": "2026-11-12T23:08:24Z"
   },
   "latitude": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T17:08:43Z"
+   "last_ok_utc": "2026-11-12T23:08:23Z"
   },
   "ovh": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T17:08:46Z"
+   "last_ok_utc": "2026-11-12T23:08:25Z"
   },
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T22:08:37Z"
+   "last_ok_utc": "2026-11-12T23:08:18Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T17:08:44Z"
+   "last_ok_utc": "2026-11-12T23:08:22Z"
   },
   "seeweb": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T17:08:41Z"
+   "last_ok_utc": "2026-11-12T23:08:19Z"
   },
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T22:08:36Z"
+   "last_ok_utc": "2026-11-12T23:08:17Z"
   },
   "together": {
-   "consecutive_failures": 4,
+   "consecutive_failures": 3,
    "last_error": "RuntimeError: together: no HGX H100 on-demand price in the table",
    "last_ok_utc": null
   },
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T22:08:43Z"
+   "last_ok_utc": "2026-11-12T23:08:25Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-12T17:08:42Z"
+   "last_ok_utc": "2026-11-12T23:08:22Z"
   }
  },
  "store_problems": {}
