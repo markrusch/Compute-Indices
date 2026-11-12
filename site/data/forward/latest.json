@@ -1,12 +1,12 @@
 {
- "as_of": "2026-11-11",
+ "as_of": "2026-11-12",
  "calibration": [
   {
    "backfilled": false,
    "bias": null,
    "coverage": null,
    "horizon_days": 30,
-   "n_closed": 23,
+   "n_closed": 24,
    "n_nonoverlapping": 1,
    "required": 20,
    "rmse": null
@@ -86,94 +86,94 @@
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-11-11",
+   "date": "2026-11-12",
    "detail": {
-    "commit_days": 91,
-    "covers_days": 91,
-    "kind": "rate_card",
-    "price_usd": 2.01852,
-    "seller": "seeweb"
+    "commit_days": 0.0,
+    "covers_days": 382.524106,
+    "kind": "listed",
+    "price_usd": 4.641022,
+    "seller": "vast.ai:214845"
    },
    "horizon_days": 30,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 36,
+   "n_inputs": 37,
    "p10": null,
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 6.122844
+   "value_usd": 4.641022
   },
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-11-11",
+   "date": "2026-11-12",
    "detail": {
     "commit_days": 91,
     "covers_days": 91,
     "kind": "rate_card",
-    "price_usd": 2.01852,
+    "price_usd": 2.00286,
     "seller": "seeweb"
    },
    "horizon_days": 91,
    "method_version": "1.0.0+4b8640d50d57",
+   "n_inputs": 37,
+   "p10": null,
+   "p50": null,
+   "p90": null,
+   "revision": 1,
+   "value_usd": 2.00286
+  },
+  {
+   "backfilled": false,
+   "component": "L",
+   "date": "2026-11-12",
+   "detail": {
+    "commit_days": 182,
+    "covers_days": 182,
+    "kind": "rate_card",
+    "price_usd": 1.89159,
+    "seller": "seeweb"
+   },
+   "horizon_days": 182,
+   "method_version": "1.0.0+4b8640d50d57",
    "n_inputs": 36,
    "p10": null,
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 2.01852
+   "value_usd": 1.89159
   },
   {
    "backfilled": false,
    "component": "L",
-   "date": "2026-11-11",
+   "date": "2026-11-12",
    "detail": {
-    "commit_days": 182,
-    "covers_days": 182,
+    "commit_days": 365,
+    "covers_days": 365,
     "kind": "rate_card",
-    "price_usd": 1.90638,
+    "price_usd": 1.791447,
     "seller": "seeweb"
    },
-   "horizon_days": 182,
+   "horizon_days": 365,
    "method_version": "1.0.0+4b8640d50d57",
    "n_inputs": 35,
    "p10": null,
    "p50": null,
    "p90": null,
    "revision": 1,
-   "value_usd": 1.90638
-  },
-  {
-   "backfilled": false,
-   "component": "L",
-   "date": "2026-11-11",
-   "detail": {
-    "commit_days": 365,
-    "covers_days": 365,
-    "kind": "rate_card",
-    "price_usd": 1.805454,
-    "seller": "seeweb"
-   },
-   "horizon_days": 365,
-   "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 34,
-   "p10": null,
-   "p50": null,
-   "p90": null,
-   "revision": 1,
-   "value_usd": 1.805454
+   "value_usd": 1.791447
   },
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-11-11",
+   "date": "2026-11-12",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
      "0.11.1": {
       "days": 30,
-      "level_usd": 4.140671,
-      "prints": 50,
+      "level_usd": 4.323697,
+      "prints": 51,
       "q": 316.227766,
       "r": 562.341325
      }
@@ -181,24 +181,24 @@
    },
    "horizon_days": 30,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 50,
-   "p10": 3.82646,
-   "p50": 4.13376,
-   "p90": 4.465739,
+   "n_inputs": 51,
+   "p10": 3.995601,
+   "p50": 4.316481,
+   "p90": 4.66313,
    "revision": 1,
-   "value_usd": 4.141276
+   "value_usd": 4.324329
   },
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-11-11",
+   "date": "2026-11-12",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
      "0.11.1": {
       "days": 91,
-      "level_usd": 4.140671,
-      "prints": 50,
+      "level_usd": 4.323697,
+      "prints": 51,
       "q": 316.227766,
       "r": 562.341325
      }
@@ -206,24 +206,24 @@
    },
    "horizon_days": 91,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 50,
-   "p10": 3.623743,
-   "p50": 4.12052,
-   "p90": 4.685399,
+   "n_inputs": 51,
+   "p10": 3.783922,
+   "p50": 4.302655,
+   "p90": 4.892501,
    "revision": 1,
-   "value_usd": 4.141276
+   "value_usd": 4.324329
   },
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-11-11",
+   "date": "2026-11-12",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
      "0.11.1": {
       "days": 182,
-      "level_usd": 4.140671,
-      "prints": 50,
+      "level_usd": 4.323697,
+      "prints": 51,
       "q": 316.227766,
       "r": 562.341325
      }
@@ -231,24 +231,24 @@
    },
    "horizon_days": 182,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 50,
-   "p10": 3.426682,
-   "p50": 4.100812,
-   "p90": 4.907563,
+   "n_inputs": 51,
+   "p10": 3.578149,
+   "p50": 4.282076,
+   "p90": 5.124486,
    "revision": 1,
-   "value_usd": 4.141276
+   "value_usd": 4.324329
   },
   {
    "backfilled": false,
    "component": "M",
-   "date": "2026-11-11",
+   "date": "2026-11-12",
    "detail": {
     "q_r_units": "variance per day x 1e6, log price",
     "versions": {
      "0.11.1": {
       "days": 365,
-      "level_usd": 4.140671,
-      "prints": 50,
+      "level_usd": 4.323697,
+      "prints": 51,
       "q": 316.227766,
       "r": 562.341325
      }
@@ -256,17 +256,17 @@
    },
    "horizon_days": 365,
    "method_version": "1.0.0+4b8640d50d57",
-   "n_inputs": 50,
-   "p10": 3.154068,
-   "p50": 4.061453,
-   "p90": 5.229881,
+   "n_inputs": 51,
+   "p10": 3.293485,
+   "p50": 4.240978,
+   "p90": 5.461051,
    "revision": 1,
-   "value_usd": 4.141276
+   "value_usd": 4.324329
   },
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-11-11",
+   "date": "2026-11-12",
    "detail": {
     "gap": "0 of 3 eligible sellers at 1 month",
     "sellers": [],
@@ -284,7 +284,7 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-11-11",
+   "date": "2026-11-12",
    "detail": {
     "gap": "1 of 3 eligible sellers at 3 months",
     "sellers": [
@@ -307,7 +307,7 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-11-11",
+   "date": "2026-11-12",
    "detail": {
     "gap": "1 of 3 eligible sellers at 6 months",
     "sellers": [
@@ -330,7 +330,7 @@
   {
    "backfilled": false,
    "component": "T",
-   "date": "2026-11-11",
+   "date": "2026-11-12",
    "detail": {
     "gap": "1 of 3 eligible sellers at 12 months",
     "sellers": [
