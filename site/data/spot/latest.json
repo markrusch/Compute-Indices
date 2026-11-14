@@ -1,29 +1,29 @@
 {
- "generated_utc": "2026-11-14T11:07:43Z",
+ "generated_utc": "2026-11-14T11:15:40Z",
  "note": "Values with status 'indicative' predate the spot series (v0.11.0, effective 2026-10-06) and are replayed, never published as prints. Volatility: standard deviation of daily log changes (spread: of daily USD changes), per day and annualised by sqrt(365); never across a gap.",
  "regions": {
   "eu": {
    "latest": {
-    "breakeven_overhead_pct": 69.94,
-    "date": "2026-11-13",
-    "discount_pct": 41.16,
+    "breakeven_overhead_pct": 66.35,
+    "date": "2026-11-14",
+    "discount_pct": 39.89,
     "on_demand": {
-     "flags": "no_executable_input",
-     "n_sources": 6,
+     "flags": "",
+     "n_sources": 8,
      "status": "print",
-     "value_usd": 4.41
+     "value_usd": 4.358444
     },
     "spot": {
      "flags": "no_executable_input",
      "n_sources": 5,
      "status": "print",
-     "value_usd": 2.595
+     "value_usd": 2.62
     },
     "spread": {
      "flags": "",
      "n_sources": 2,
      "status": "print",
-     "value_usd": 1.815
+     "value_usd": 1.738444
     }
    },
    "outside_index": [
@@ -33,6 +33,13 @@
      "provider": "azure",
      "tier": "interruptible",
      "why": "Low Priority, a retired product"
+    },
+    {
+     "median_usd": 1.0,
+     "offers": 1,
+     "provider": "vast.ai",
+     "tier": "interruptible",
+     "why": "min_bid, a bid floor"
     }
    ],
    "segments": [
@@ -42,7 +49,7 @@
      "sellers": 3
     },
     {
-     "median_spot_usd": 2.4825,
+     "median_spot_usd": 2.345,
      "segment": "neocloud",
      "sellers": 2
     },
@@ -54,14 +61,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 82.58,
+     "discount_pct": 81.83,
      "in_spot_population": true,
      "on_demand_usd": 7.9808,
      "pairs": 2,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 1.433006
+     "spot_usd": 1.493944
     },
     {
      "discount_pct": 81.52,
@@ -84,24 +91,24 @@
      "spot_usd": 7.773148
     },
     {
-     "discount_pct": 47.33,
+     "discount_pct": 54.0,
      "in_spot_population": true,
      "on_demand_usd": 4.5,
      "pairs": 1,
      "provider": "nebius",
      "segment": "neocloud",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.37
+     "spot_usd": 2.07
     },
     {
      "discount_pct": 50.0,
      "in_spot_population": true,
-     "on_demand_usd": 5.19,
+     "on_demand_usd": 5.24,
      "pairs": 9,
      "provider": "verda",
      "segment": "neocloud",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.595
+     "spot_usd": 2.62
     }
    ],
    "series": {
@@ -118,16 +125,16 @@
       "per_period": null
      },
      "7d": {
-      "annualised": 1.427116165058891,
+      "annualised": 1.436776803654025,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.07469867411070277
+      "per_period": 0.0752043350455219
      },
      "hourly": {
-      "annualised": 4.5681805133848945,
+      "annualised": 4.554906930392409,
       "changes": 167,
       "needed": 48,
-      "per_period": 0.04880802155756875
+      "per_period": 0.04866620200316516
      }
     },
     "spot": {
@@ -138,16 +145,16 @@
       "per_period": null
      },
      "7d": {
-      "annualised": 0.28411025575645366,
+      "annualised": 0.07873740648338257,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.014871010451615183
+      "per_period": 0.0041213042156112226
      },
      "hourly": {
-      "annualised": 0.17343450307412636,
+      "annualised": 0.17318218341340977,
       "changes": 167,
       "needed": 48,
-      "per_period": 0.001853034252929698
+      "per_period": 0.0018503383823519986
      }
     },
     "spread": {
@@ -158,36 +165,36 @@
       "per_period": null
      },
      "7d": {
-      "annualised": 5.987610939411139,
+      "annualised": 6.053545769891296,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.3134058804850653
+      "per_period": 0.31685706724558976
      }
     }
    }
   },
   "global": {
    "latest": {
-    "breakeven_overhead_pct": 53.76,
-    "date": "2026-11-13",
-    "discount_pct": 34.96,
+    "breakeven_overhead_pct": 66.35,
+    "date": "2026-11-14",
+    "discount_pct": 39.89,
     "on_demand": {
-     "flags": "no_executable_input",
-     "n_sources": 9,
+     "flags": "",
+     "n_sources": 11,
      "status": "print",
-     "value_usd": 3.99
+     "value_usd": 4.358444
     },
     "spot": {
      "flags": "no_executable_input",
      "n_sources": 6,
      "status": "print",
-     "value_usd": 2.595
+     "value_usd": 2.62
     },
     "spread": {
      "flags": "",
      "n_sources": 2,
      "status": "print",
-     "value_usd": 1.395
+     "value_usd": 1.738444
     }
    },
    "outside_index": [
@@ -197,11 +204,18 @@
      "provider": "azure",
      "tier": "interruptible",
      "why": "Low Priority, a retired product"
+    },
+    {
+     "median_usd": 1.0,
+     "offers": 1,
+     "provider": "vast.ai",
+     "tier": "interruptible",
+     "why": "min_bid, a bid floor"
     }
    ],
    "segments": [
     {
-     "median_spot_usd": 3.191463,
+     "median_spot_usd": 3.182025,
      "segment": "hyperscaler",
      "sellers": 3
     },
@@ -218,14 +232,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 61.16,
+     "discount_pct": 61.46,
      "in_spot_population": true,
      "on_demand_usd": 8.6,
      "pairs": 13,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 3.191463
+     "spot_usd": 3.182025
     },
     {
      "discount_pct": 81.52,
@@ -258,24 +272,24 @@
      "spot_usd": 6.279104
     },
     {
-     "discount_pct": 47.33,
+     "discount_pct": 54.0,
      "in_spot_population": true,
      "on_demand_usd": 4.5,
      "pairs": 1,
      "provider": "nebius",
      "segment": "neocloud",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.37
+     "spot_usd": 2.07
     },
     {
      "discount_pct": 50.0,
      "in_spot_population": true,
-     "on_demand_usd": 5.19,
+     "on_demand_usd": 5.24,
      "pairs": 9,
      "provider": "verda",
      "segment": "neocloud",
      "spot_above_on_demand": 0,
-     "spot_usd": 2.595
+     "spot_usd": 2.62
     }
    ],
    "series": {
@@ -292,16 +306,16 @@
       "per_period": null
      },
      "7d": {
-      "annualised": 1.1039467102183025,
+      "annualised": 1.27493937350778,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.05778321173930259
+      "per_period": 0.06673337679461519
      },
      "hourly": {
-      "annualised": 4.29867121943834,
+      "annualised": 4.2990394016641975,
       "changes": 167,
       "needed": 48,
-      "per_period": 0.045928490989464804
+      "per_period": 0.0459324247757861
      }
     },
     "spot": {
@@ -312,10 +326,10 @@
       "per_period": null
      },
      "7d": {
-      "annualised": 0.09299491865787989,
+      "annualised": 0.07162389700904198,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.004867576510486534
+      "per_period": 0.003748966112367023
      },
      "hourly": {
       "annualised": 0.17287156494215597,
@@ -332,10 +346,10 @@
       "per_period": null
      },
      "7d": {
-      "annualised": 4.642820850132876,
+      "annualised": 5.33477903118913,
       "changes": 7,
       "needed": 5,
-      "per_period": 0.24301635012601808
+      "per_period": 0.27923509666570345
      }
     }
    }
@@ -343,13 +357,13 @@
   "us": {
    "latest": {
     "breakeven_overhead_pct": null,
-    "date": "2026-11-13",
+    "date": "2026-11-14",
     "discount_pct": null,
     "on_demand": {
-     "flags": "insufficient_sources",
-     "n_sources": 4,
-     "status": "gap",
-     "value_usd": null
+     "flags": "",
+     "n_sources": 5,
+     "status": "print",
+     "value_usd": 4.19
     },
     "spot": {
      "flags": "insufficient_sources",
@@ -360,14 +374,14 @@
     "spread": {
      "flags": "",
      "n_sources": 0,
-     "status": "none",
+     "status": "gap",
      "value_usd": null
     }
    },
    "outside_index": [],
    "segments": [
     {
-     "median_spot_usd": 4.889996,
+     "median_spot_usd": 4.873727,
      "segment": "hyperscaler",
      "sellers": 2
     },
@@ -384,14 +398,14 @@
    ],
    "sellers": [
     {
-     "discount_pct": 52.88,
+     "discount_pct": 53.36,
      "in_spot_population": true,
      "on_demand_usd": 6.88,
      "pairs": 4,
      "provider": "aws",
      "segment": "hyperscaler",
      "spot_above_on_demand": 0,
-     "spot_usd": 3.241544
+     "spot_usd": 3.209006
     },
     {
      "discount_pct": 59.97,
@@ -423,13 +437,13 @@
     "on_demand": {
      "30d": {
       "annualised": null,
-      "changes": 14,
+      "changes": 13,
       "needed": 20,
       "per_period": null
      },
      "7d": {
       "annualised": null,
-      "changes": 2,
+      "changes": 1,
       "needed": 5,
       "per_period": null
      },
