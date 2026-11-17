@@ -1,25 +1,25 @@
-# EU-CRI weekly — 2026-11-16
+# EU-CRI weekly — 2026-11-17
 
-**EU-CRI-H100: $4.39 / GPU-hour** (€3.97 at ECB 1.1052 on 2026-11-13)
+**EU-CRI-H100: $4.41 / GPU-hour** (€4.00 at ECB 1.1014 on 2026-11-16)
 
-Week-over-week: -0.5% · Month-over-month: +10.0% · Constituents: 8 (3 executable-quote)
+Week-over-week: +0.0% · Month-over-month: +10.5% · Constituents: 8 (2 executable-quote)
 
 7-day mean: $4.35
 
 <!-- EDITORIAL: lead commentary -->
 
-Dispersion: cheapest constituent $2.09, dearest $5.29 — a 2.5x spread for the same reference unit.
+Dispersion: cheapest constituent $2.08, dearest $5.35 — a 2.6x spread for the same reference unit.
 
 | provider | tier | $/GPU-hr | weight |
 |---|---|---|---|
-| seeweb | list | $2.09 | 10 |
-| scaleway | list | $3.50 | 10 |
-| vast.ai | executable | $3.97 | 20 |
+| seeweb | list | $2.08 | 10 |
+| scaleway | list | $3.49 | 10 |
 | runpod | executable | $4.39 | 20 |
 | digitalocean | list | $4.41 | 10 |
 | nebius | list | $4.50 | 10 |
 | lambdalabs | list | $4.59 | 10 |
-| verda | list | $5.29 | 10 |
+| vast.ai | executable | $4.68 | 20 |
+| verda | list | $5.35 | 10 |
 | aws |  | $0.00 | 0 | *(excluded: out_of_population)*
 | azure |  | $0.00 | 0 | *(excluded: out_of_population)*
 | coreweave |  | $0.00 | 0 | *(excluded: not_in_panel)*
