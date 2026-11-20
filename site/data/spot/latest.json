@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-11-20T13:09:51Z",
+ "generated_utc": "2026-11-20T14:10:26Z",
  "note": "Values with status 'indicative' predate the spot series (v0.11.0, effective 2026-10-06) and are replayed, never published as prints. Volatility: standard deviation of daily log changes (spread: of daily USD changes), per day and annualised by sqrt(365); never across a gap.",
  "regions": {
   "eu": {
@@ -298,10 +298,10 @@
       "per_period": 0.033142480845321204
      },
      "hourly": {
-      "annualised": 3.616407127274344,
+      "annualised": 3.5488951902754526,
       "changes": 167,
       "needed": 48,
-      "per_period": 0.03863894531132762
+      "per_period": 0.03791762441194978
      }
     },
     "spot": {
@@ -434,10 +434,10 @@
       "per_period": 0.020891679859235898
      },
      "hourly": {
-      "annualised": 0.4217025093321083,
-      "changes": 129,
+      "annualised": 0.42007744544797565,
+      "changes": 130,
       "needed": 48,
-      "per_period": 0.004505615552199653
+      "per_period": 0.004488252807260662
      }
     },
     "spot": {
