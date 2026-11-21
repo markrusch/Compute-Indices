@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-11-21T05:09:58Z",
+ "generated_utc": "2026-11-21T06:14:53Z",
  "latest": {
-  "at_utc": "2026-11-21T05:09:53Z",
+  "at_utc": "2026-11-21T06:14:48Z",
   "constituents": {
    "EU-CRI-H100": [
     {
@@ -213,21 +213,21 @@
   },
   "origin": "intraday",
   "source_age_minutes": {
-   "azure_retail": 360,
-   "civo": 0,
-   "coreweave": 0,
-   "digitalocean": 0,
+   "azure_retail": 425,
+   "civo": 65,
+   "coreweave": 65,
+   "digitalocean": 65,
    "gpuhunt": 0,
    "hyperstack": 0,
-   "lambda_pricing": 0,
-   "latitude": 0,
-   "ovh": 0,
+   "lambda_pricing": 65,
+   "latitude": 65,
+   "ovh": 64,
    "runpod": 0,
-   "scaleway": 0,
-   "seeweb": 0,
+   "scaleway": 64,
+   "seeweb": 65,
    "static_yaml": 0,
    "vast_ai": 0,
-   "voltagepark": 0
+   "voltagepark": 65
   },
   "sources_missing": [
    "crusoe",
@@ -1856,12 +1856,12 @@
   "gpuhunt": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-21T05:09:47Z"
+   "last_ok_utc": "2026-11-21T06:14:41Z"
   },
   "hyperstack": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-21T05:09:48Z"
+   "last_ok_utc": "2026-11-21T06:14:40Z"
   },
   "lambda_pricing": {
    "consecutive_failures": 0,
@@ -1881,7 +1881,7 @@
   "runpod": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-21T05:09:46Z"
+   "last_ok_utc": "2026-11-21T06:14:40Z"
   },
   "scaleway": {
    "consecutive_failures": 0,
@@ -1896,7 +1896,7 @@
   "static_yaml": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-21T05:09:45Z"
+   "last_ok_utc": "2026-11-21T06:14:39Z"
   },
   "together": {
    "consecutive_failures": 3,
@@ -1906,7 +1906,7 @@
   "vast_ai": {
    "consecutive_failures": 0,
    "last_error": null,
-   "last_ok_utc": "2026-11-21T05:09:53Z"
+   "last_ok_utc": "2026-11-21T06:14:48Z"
   },
   "voltagepark": {
    "consecutive_failures": 0,
