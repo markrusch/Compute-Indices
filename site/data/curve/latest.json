@@ -1,5 +1,5 @@
 {
- "date": "2026-11-23",
+ "date": "2026-11-24",
  "forward_spot": {
   "published": false,
   "reason": "S* = PHI + pi. A forward spot curve needs market-quoted or transacted term prices and a measured term premium, and this table holds neither.",
@@ -371,14 +371,14 @@
     {
      "m1": 0,
      "m2": 12,
-     "rate": 6.8055,
+     "rate": 6.81,
      "span_months": 12,
      "wide_span": true
     },
     {
      "m1": 12,
      "m2": 36,
-     "rate": 4.0833,
+     "rate": 4.086,
      "span_months": 24,
      "wide_span": true
     }
@@ -390,23 +390,23 @@
      "cum_cost": 0.0,
      "observed": true,
      "price_formation": "administered_differentiated",
-     "rate": 9.074,
+     "rate": 9.08,
      "ratio": 1.0,
      "tenor_months": 0
     },
     {
-     "cum_cost": 59616.0,
+     "cum_cost": 59655.75,
      "observed": true,
      "price_formation": "administered_differentiated",
-     "rate": 6.8055,
+     "rate": 6.81,
      "ratio": 0.75,
      "tenor_months": 12
     },
     {
-     "cum_cost": 131155.64,
+     "cum_cost": 131242.25,
      "observed": true,
      "price_formation": "administered_differentiated",
-     "rate": 4.9907,
+     "rate": 4.994,
      "ratio": 0.55,
      "tenor_months": 36
     }
@@ -414,7 +414,7 @@
    "provider": "azure",
    "region_block": "EU",
    "segment": "hyperscaler",
-   "spot": 9.074,
+   "spot": 9.08,
    "violations": []
   },
   {
@@ -516,7 +516,7 @@
      "tenor_months": 0
     },
     {
-     "cum_cost": 66223.03,
+     "cum_cost": 66223.0,
      "observed": true,
      "price_formation": "administered_differentiated",
      "rate": 7.5597,
@@ -524,7 +524,7 @@
      "tenor_months": 12
     },
     {
-     "cum_cost": 180308.74,
+     "cum_cost": 180308.75,
      "observed": true,
      "price_formation": "administered_differentiated",
      "rate": 6.8611,
@@ -1597,35 +1597,35 @@
     {
      "m1": 0,
      "m2": 1,
-     "rate": 2.4206,
+     "rate": 2.4324,
      "span_months": 1,
      "wide_span": false
     },
     {
      "m1": 1,
      "m2": 3,
-     "rate": 2.3836,
+     "rate": 2.3951,
      "span_months": 2,
      "wide_span": false
     },
     {
      "m1": 3,
      "m2": 6,
-     "rate": 2.3465,
+     "rate": 2.3579,
      "span_months": 3,
      "wide_span": false
     },
     {
      "m1": 6,
      "m2": 12,
-     "rate": 2.1736,
+     "rate": 2.1842,
      "span_months": 6,
      "wide_span": false
     },
     {
      "m1": 12,
      "m2": 24,
-     "rate": 1.4326,
+     "rate": 1.4396,
      "span_months": 12,
      "wide_span": true
     }
@@ -1637,47 +1637,47 @@
      "cum_cost": 0.0,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 2.47,
+     "rate": 2.482,
      "ratio": 1.0,
      "tenor_months": 0
     },
     {
-     "cum_cost": 1767.04,
+     "cum_cost": 1775.62,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 2.4206,
+     "rate": 2.4324,
      "ratio": 0.98,
      "tenor_months": 1
     },
     {
-     "cum_cost": 5247.02,
+     "cum_cost": 5272.51,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 2.3959,
+     "rate": 2.4075,
      "ratio": 0.97,
      "tenor_months": 3
     },
     {
-     "cum_cost": 10385.86,
+     "cum_cost": 10436.31,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 2.3712,
+     "rate": 2.3827,
      "ratio": 0.96,
      "tenor_months": 6
     },
     {
-     "cum_cost": 19906.22,
+     "cum_cost": 20002.93,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 2.2724,
+     "rate": 2.2834,
      "ratio": 0.92,
      "tenor_months": 12
     },
     {
-     "cum_cost": 32455.8,
+     "cum_cost": 32613.48,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 1.8525,
+     "rate": 1.8615,
      "ratio": 0.75,
      "tenor_months": 24
     }
@@ -1685,7 +1685,7 @@
    "provider": "verda",
    "region_block": "EU",
    "segment": "neocloud",
-   "spot": 2.47,
+   "spot": 2.482,
    "violations": []
   },
   {
@@ -1793,35 +1793,35 @@
     {
      "m1": 0,
      "m2": 1,
-     "rate": 9.457,
+     "rate": 9.6481,
      "span_months": 1,
      "wide_span": false
     },
     {
      "m1": 1,
      "m2": 3,
-     "rate": 9.3122,
+     "rate": 9.5004,
      "span_months": 2,
      "wide_span": false
     },
     {
      "m1": 3,
      "m2": 6,
-     "rate": 9.1675,
+     "rate": 9.3528,
      "span_months": 3,
      "wide_span": false
     },
     {
      "m1": 6,
      "m2": 12,
-     "rate": 8.492,
+     "rate": 8.6636,
      "span_months": 6,
      "wide_span": false
     },
     {
      "m1": 12,
      "m2": 24,
-     "rate": 5.597,
+     "rate": 5.7101,
      "span_months": 12,
      "wide_span": true
     }
@@ -1833,47 +1833,47 @@
      "cum_cost": 0.0,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 9.65,
+     "rate": 9.845,
      "ratio": 1.0,
      "tenor_months": 0
     },
     {
-     "cum_cost": 6903.61,
+     "cum_cost": 7043.11,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 9.457,
+     "rate": 9.6481,
      "ratio": 0.98,
      "tenor_months": 1
     },
     {
-     "cum_cost": 20499.49,
+     "cum_cost": 20913.73,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 9.3605,
+     "rate": 9.5496,
      "ratio": 0.97,
      "tenor_months": 3
     },
     {
-     "cum_cost": 40576.32,
+     "cum_cost": 41396.26,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 9.264,
+     "rate": 9.4512,
      "ratio": 0.96,
      "tenor_months": 6
     },
     {
-     "cum_cost": 77771.28,
+     "cum_cost": 79342.82,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 8.878,
+     "rate": 9.0574,
      "ratio": 0.92,
      "tenor_months": 12
     },
     {
-     "cum_cost": 126801.0,
+     "cum_cost": 129363.3,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 7.2375,
+     "rate": 7.3838,
      "ratio": 0.75,
      "tenor_months": 24
     }
@@ -1881,7 +1881,7 @@
    "provider": "verda",
    "region_block": "EU",
    "segment": "neocloud",
-   "spot": 9.65,
+   "spot": 9.845,
    "violations": []
   },
   {
@@ -1891,35 +1891,35 @@
     {
      "m1": 0,
      "m2": 1,
-     "rate": 12.9164,
+     "rate": 13.0438,
      "span_months": 1,
      "wide_span": false
     },
     {
      "m1": 1,
      "m2": 3,
-     "rate": 12.7187,
+     "rate": 12.8442,
      "span_months": 2,
      "wide_span": false
     },
     {
      "m1": 3,
      "m2": 6,
-     "rate": 12.521,
+     "rate": 12.6445,
      "span_months": 3,
      "wide_span": false
     },
     {
      "m1": 6,
      "m2": 12,
-     "rate": 11.5984,
+     "rate": 11.7128,
      "span_months": 6,
      "wide_span": false
     },
     {
      "m1": 12,
      "m2": 24,
-     "rate": 7.6444,
+     "rate": 7.7198,
      "span_months": 12,
      "wide_span": true
     }
@@ -1931,47 +1931,47 @@
      "cum_cost": 0.0,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 13.18,
+     "rate": 13.31,
      "ratio": 1.0,
      "tenor_months": 0
     },
     {
-     "cum_cost": 9428.97,
+     "cum_cost": 9521.97,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 12.9164,
+     "rate": 13.0438,
      "ratio": 0.98,
      "tenor_months": 1
     },
     {
-     "cum_cost": 27998.27,
+     "cum_cost": 28274.43,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 12.7846,
+     "rate": 12.9107,
      "ratio": 0.97,
      "tenor_months": 3
     },
     {
-     "cum_cost": 55419.26,
+     "cum_cost": 55965.89,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 12.6528,
+     "rate": 12.7776,
      "ratio": 0.96,
      "tenor_months": 6
     },
     {
-     "cum_cost": 106220.26,
+     "cum_cost": 107267.95,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 12.1256,
+     "rate": 12.2452,
      "ratio": 0.92,
      "tenor_months": 12
     },
     {
-     "cum_cost": 173185.2,
+     "cum_cost": 174893.4,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 9.885,
+     "rate": 9.9825,
      "ratio": 0.75,
      "tenor_months": 24
     }
@@ -1979,7 +1979,7 @@
    "provider": "verda",
    "region_block": "EU",
    "segment": "neocloud",
-   "spot": 13.18,
+   "spot": 13.31,
    "violations": []
   },
   {
@@ -1989,35 +1989,35 @@
     {
      "m1": 0,
      "m2": 1,
-     "rate": 5.4512,
+     "rate": 5.5076,
      "span_months": 1,
      "wide_span": false
     },
     {
      "m1": 1,
      "m2": 3,
-     "rate": 5.3678,
+     "rate": 5.4233,
      "span_months": 2,
      "wide_span": false
     },
     {
      "m1": 3,
      "m2": 6,
-     "rate": 5.2844,
+     "rate": 5.339,
      "span_months": 3,
      "wide_span": false
     },
     {
      "m1": 6,
      "m2": 12,
-     "rate": 4.895,
+     "rate": 4.9456,
      "span_months": 6,
      "wide_span": false
     },
     {
      "m1": 12,
      "m2": 24,
-     "rate": 3.2262,
+     "rate": 3.2596,
      "span_months": 12,
      "wide_span": true
     }
@@ -2029,47 +2029,47 @@
      "cum_cost": 0.0,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 5.5625,
+     "rate": 5.62,
      "ratio": 1.0,
      "tenor_months": 0
     },
     {
-     "cum_cost": 3979.41,
+     "cum_cost": 4020.55,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 5.4512,
+     "rate": 5.5076,
      "ratio": 0.98,
      "tenor_months": 1
     },
     {
-     "cum_cost": 11816.42,
+     "cum_cost": 11938.57,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 5.3956,
+     "rate": 5.4514,
      "ratio": 0.97,
      "tenor_months": 3
     },
     {
-     "cum_cost": 23389.2,
+     "cum_cost": 23630.98,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 5.34,
+     "rate": 5.3952,
      "ratio": 0.96,
      "tenor_months": 6
     },
     {
-     "cum_cost": 44829.3,
+     "cum_cost": 45292.7,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 5.1175,
+     "rate": 5.1704,
      "ratio": 0.92,
      "tenor_months": 12
     },
     {
-     "cum_cost": 73091.25,
+     "cum_cost": 73846.8,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 4.1719,
+     "rate": 4.215,
      "ratio": 0.75,
      "tenor_months": 24
     }
@@ -2077,7 +2077,7 @@
    "provider": "verda",
    "region_block": "EU",
    "segment": "neocloud",
-   "spot": 5.5625,
+   "spot": 5.62,
    "violations": []
   },
   {
@@ -2087,35 +2087,35 @@
     {
      "m1": 0,
      "m2": 1,
-     "rate": 6.9703,
+     "rate": 7.0413,
      "span_months": 1,
      "wide_span": false
     },
     {
      "m1": 1,
      "m2": 3,
-     "rate": 6.8636,
+     "rate": 6.9335,
      "span_months": 2,
      "wide_span": false
     },
     {
      "m1": 3,
      "m2": 6,
-     "rate": 6.7569,
+     "rate": 6.8258,
      "span_months": 3,
      "wide_span": false
     },
     {
      "m1": 6,
      "m2": 12,
-     "rate": 6.259,
+     "rate": 6.3228,
      "span_months": 6,
      "wide_span": false
     },
     {
      "m1": 12,
      "m2": 24,
-     "rate": 4.1253,
+     "rate": 4.1673,
      "span_months": 12,
      "wide_span": true
     }
@@ -2127,47 +2127,47 @@
      "cum_cost": 0.0,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 7.1125,
+     "rate": 7.185,
      "ratio": 1.0,
      "tenor_months": 0
     },
     {
-     "cum_cost": 5088.28,
+     "cum_cost": 5140.15,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 6.9703,
+     "rate": 7.0413,
      "ratio": 0.98,
      "tenor_months": 1
     },
     {
-     "cum_cost": 15109.08,
+     "cum_cost": 15263.1,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 6.8991,
+     "rate": 6.9694,
      "ratio": 0.97,
      "tenor_months": 3
     },
     {
-     "cum_cost": 29906.64,
+     "cum_cost": 30211.49,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 6.828,
+     "rate": 6.8976,
      "ratio": 0.96,
      "tenor_months": 6
     },
     {
-     "cum_cost": 57321.06,
+     "cum_cost": 57905.35,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 6.5435,
+     "rate": 6.6102,
      "ratio": 0.92,
      "tenor_months": 12
     },
     {
-     "cum_cost": 93458.25,
+     "cum_cost": 94410.9,
      "observed": true,
      "price_formation": "administered_uniform",
-     "rate": 5.3344,
+     "rate": 5.3887,
      "ratio": 0.75,
      "tenor_months": 24
     }
@@ -2175,7 +2175,7 @@
    "provider": "verda",
    "region_block": "EU",
    "segment": "neocloud",
-   "spot": 7.1125,
+   "spot": 7.185,
    "violations": []
   }
  ],
