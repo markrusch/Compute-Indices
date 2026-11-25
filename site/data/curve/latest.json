@@ -1,5 +1,5 @@
 {
- "date": "2026-11-24",
+ "date": "2026-11-25",
  "forward_spot": {
   "published": false,
   "reason": "S* = PHI + pi. A forward spot curve needs market-quoted or transacted term prices and a measured term premium, and this table holds neither.",
@@ -371,14 +371,14 @@
     {
      "m1": 0,
      "m2": 12,
-     "rate": 6.81,
+     "rate": 6.8055,
      "span_months": 12,
      "wide_span": true
     },
     {
      "m1": 12,
      "m2": 36,
-     "rate": 4.086,
+     "rate": 4.0833,
      "span_months": 24,
      "wide_span": true
     }
@@ -390,23 +390,23 @@
      "cum_cost": 0.0,
      "observed": true,
      "price_formation": "administered_differentiated",
-     "rate": 9.08,
+     "rate": 9.074,
      "ratio": 1.0,
      "tenor_months": 0
     },
     {
-     "cum_cost": 59655.75,
+     "cum_cost": 59616.0,
      "observed": true,
      "price_formation": "administered_differentiated",
-     "rate": 6.81,
+     "rate": 6.8055,
      "ratio": 0.75,
      "tenor_months": 12
     },
     {
-     "cum_cost": 131242.25,
+     "cum_cost": 131155.64,
      "observed": true,
      "price_formation": "administered_differentiated",
-     "rate": 4.994,
+     "rate": 4.9907,
      "ratio": 0.55,
      "tenor_months": 36
     }
@@ -414,7 +414,7 @@
    "provider": "azure",
    "region_block": "EU",
    "segment": "hyperscaler",
-   "spot": 9.08,
+   "spot": 9.074,
    "violations": []
   },
   {
@@ -516,7 +516,7 @@
      "tenor_months": 0
     },
     {
-     "cum_cost": 66223.0,
+     "cum_cost": 66223.03,
      "observed": true,
      "price_formation": "administered_differentiated",
      "rate": 7.5597,
@@ -524,7 +524,7 @@
      "tenor_months": 12
     },
     {
-     "cum_cost": 180308.75,
+     "cum_cost": 180308.74,
      "observed": true,
      "price_formation": "administered_differentiated",
      "rate": 6.8611,
