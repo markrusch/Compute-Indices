@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-11-26T12:14:47Z",
+ "generated_utc": "2026-11-26T13:10:00Z",
  "note": "Values with status 'indicative' predate the spot series (v0.11.0, effective 2026-10-06) and are replayed, never published as prints. Volatility: standard deviation of daily log changes (spread: of daily USD changes), per day and annualised by sqrt(365); never across a gap.",
  "regions": {
   "eu": {
@@ -124,10 +124,10 @@
       "per_period": 0.0
      },
      "hourly": {
-      "annualised": 0.5190084046591862,
-      "changes": 167,
+      "annualised": 0.5174521913919747,
+      "changes": 168,
       "needed": 48,
-      "per_period": 0.005545265413427103
+      "per_period": 0.005528638292307069
      }
     },
     "spot": {
@@ -144,10 +144,10 @@
       "per_period": 0.023540928935261607
      },
      "hourly": {
-      "annualised": 0.4245094473240915,
-      "changes": 167,
+      "annualised": 0.42323800259559874,
+      "changes": 168,
       "needed": 48,
-      "per_period": 0.004535605849129046
+      "per_period": 0.004522021293629169
      }
     },
     "spread": {
@@ -298,10 +298,10 @@
       "per_period": 0.0026243239238776914
      },
      "hourly": {
-      "annualised": 1.9386837950664033,
-      "changes": 167,
+      "annualised": 1.9328706371674265,
+      "changes": 168,
       "needed": 48,
-      "per_period": 0.020713568604756594
+      "per_period": 0.0206514588139505
      }
     },
     "spot": {
@@ -318,10 +318,10 @@
       "per_period": 0.02833533366473379
      },
      "hourly": {
-      "annualised": 0.4865109676956055,
-      "changes": 167,
+      "annualised": 0.48505218713983217,
+      "changes": 168,
       "needed": 48,
-      "per_period": 0.0051980515502190365
+      "per_period": 0.005182465433907449
      }
     },
     "spread": {
@@ -435,7 +435,7 @@
      },
      "hourly": {
       "annualised": 0.0,
-      "changes": 159,
+      "changes": 160,
       "needed": 48,
       "per_period": 0.0
      }
